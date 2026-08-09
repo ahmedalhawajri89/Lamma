@@ -1,0 +1,3 @@
+# Font Awesome is bundled, not authored here.
+assests/font/**     linguist-vendored
+assests/webfonts/** linguist-vendored
