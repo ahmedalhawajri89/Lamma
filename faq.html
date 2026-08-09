@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;500;600;700;800&family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <link rel="shortcut icon" href="assests/img/6144-removebg-preview.png" type="image/x-icon">
+  
+  <!-- Modern Design System -->
+  <link rel="stylesheet" href="assests/css/variables.css">
+  <link rel="stylesheet" href="assests/css/base.css">
+  <link rel="stylesheet" href="assests/css/layouts.css">
+  <link rel="stylesheet" href="assests/css/components.css">
+  
+  <title>الأسئلة الشائعة | كفالة</title>
+
+  <style>
+    .kfl-faq-item {
+      background: var(--kfl-white);
+      border: 1px solid var(--kfl-gray-200);
+      border-radius: var(--kfl-radius-xl);
+      margin-bottom: var(--kfl-space-4);
+      overflow: hidden;
+      transition: all var(--kfl-transition-fast);
+    }
+    .kfl-faq-item:hover {
+      border-color: var(--kfl-primary-300);
+      box-shadow: var(--kfl-shadow-md);
+    }
+    .kfl-faq-item.active {
+      border-color: var(--kfl-primary-500);
+      box-shadow: var(--kfl-shadow-lg);
+    }
+    .kfl-faq-question {
+      padding: var(--kfl-space-5) var(--kfl-space-6);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: var(--kfl-gray-900);
+    }
+    .kfl-faq-question i {
+      color: var(--kfl-primary-600);
+      transition: transform var(--kfl-transition-fast);
+    }
+    .kfl-faq-item.active .kfl-faq-question i {
+      transform: rotate(180deg);
+    }
+    .kfl-faq-answer {
+      padding: 0 var(--kfl-space-6);
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+      color: var(--kfl-gray-600);
+      line-height: 1.6;
+    }
+    .kfl-faq-item.active .kfl-faq-answer {
+      padding-bottom: var(--kfl-space-5);
+      max-height: 300px; /* arbitrary max height for transition */
+    }
+  </style>
+</head>
+<body class="kfl-app kfl-bg-gray">
+
+  <!-- Header Placeholder -->
+  <div id="header-placeholder"></div>
+
+  <!-- Page Header -->
+  <section class="kfl-section" style="background-color: var(--kfl-white); border-bottom: 1px solid var(--kfl-gray-200); padding-top: calc(var(--kfl-space-24) + 60px);">
+    <div class="kfl-container reveal">
+      <div class="kfl-section-header" style="justify-content: center; text-align: center;">
+        <span class="kfl-section-tag">مركز المساعدة</span>
+        <h1 class="kfl-section-title">الأسئلة الشائعة</h1>
+        <p class="kfl-section-desc">إجابات وافية على استفساراتكم الأكثر شيوعاً حول الكفالة ومنصتنا.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ Section -->
+  <section class="kfl-section">
+    <div class="kfl-container max-w-3xl">
+      <div class="kfl-faq-container reveal delay-100">
+        
+        <!-- FAQ Item 1 -->
+        <div class="kfl-faq-item active" onclick="this.classList.toggle('active')">
+          <div class="kfl-faq-question">
+            <span>كيف يمكنني التأكد من وصول التبرع لليتيم؟</span>
+            <i class="fa-solid fa-chevron-down"></i>
+          </div>
+          <div class="kfl-faq-answer">
+            <p>نحن نلتزم بأعلى معايير الشفافية. عند كفالتك ليتيم، ستحصل على حساب خاص يمكنك من خلاله متابعة التقارير الدورية (المالية، الدراسية، والصحية) التي توضح كيفية صرف الكفالة وحالة اليتيم بالتفصيل.</p>
+          </div>
+        </div>
+
+        <!-- FAQ Item 2 -->
+        <div class="kfl-faq-item" onclick="this.classList.toggle('active')">
+          <div class="kfl-faq-question">
+            <span>هل يمكنني التواصل مع اليتيم أو زيارته؟</span>
+            <i class="fa-solid fa-chevron-down"></i>
+          </div>
+          <div class="kfl-faq-answer">
+            <p>نعم، يمكن ترتيب زيارات أو اتصالات مرئية بالتنسيق مع إدارة الجمعية والمشرفين الميدانيين، وذلك لضمان خصوصية اليتيم وراحته ووفقاً لسياسات الجمعية.</p>
+          </div>
+        </div>
+
+        <!-- FAQ Item 3 -->
+        <div class="kfl-faq-item" onclick="this.classList.toggle('active')">
+          <div class="kfl-faq-question">
+            <span>ما هي طرق الدفع المتاحة؟</span>
+            <i class="fa-solid fa-chevron-down"></i>
+          </div>
+          <div class="kfl-faq-answer">
+            <p>نوفر خيارات متعددة وآمنة للدفع تشمل البطاقات الائتمانية (فيزا، ماستركارد)، بطاقات مدى، التحويل البنكي المباشر، بالإضافة إلى دعم Apple Pay عبر المنصة.</p>
+          </div>
+        </div>
+
+        <!-- FAQ Item 4 -->
+        <div class="kfl-faq-item" onclick="this.classList.toggle('active')">
+          <div class="kfl-faq-question">
+            <span>هل يمكنني إلغاء الكفالة في أي وقت؟</span>
+            <i class="fa-solid fa-chevron-down"></i>
+          </div>
+          <div class="kfl-faq-answer">
+            <p>نعم، الكفالة عمل تطوعي ويمكنك إيقافها في أي وقت، ولكننا نشجع على الاستمرار لضمان استقرار حياة اليتيم. يفضل إبلاغنا قبل شهر من الإيقاف لترتيب كافل بديل.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <div id="footer-placeholder"></div>
+  <div id="modals-placeholder"></div>
+  <script src="assests/js/main.js"></script>
+</body>
+</html>

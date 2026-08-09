@@ -1,0 +1,15 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+node_modules/
+.claude/
+
+# editors, agents & local artefacts
+.idea/
+.vscode/
+.claude/
+.ai/
+CLAUDE.md
+.DS_Store
+Thumbs.db

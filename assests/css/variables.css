@@ -1,0 +1,86 @@
+/* variables.css - Premium Modern Design System */
+
+:root {
+  /* Colors - Premium Emerald (Brand) */
+  --kfl-primary-50: #ecfdf5;
+  --kfl-primary-100: #d1fae5;
+  --kfl-primary-200: #a7f3d0;
+  --kfl-primary-300: #6ee7b7;
+  --kfl-primary-400: #34d399;
+  --kfl-primary-500: #10b981;
+  --kfl-primary-600: #059669;
+  --kfl-primary-700: #047857; /* Core Primary */
+  --kfl-primary-800: #065f46;
+  --kfl-primary-900: #064e3b;
+
+  /* Colors - Accents */
+  --kfl-accent-gold: #f59e0b;
+  --kfl-accent-blue: #3b82f6;
+  --kfl-accent-red: #ef4444;
+
+  /* Colors - Surface & Neutrals */
+  --kfl-white: #ffffff;
+  --kfl-gray-50: #f8fafc;   /* App background */
+  --kfl-gray-100: #f1f5f9;
+  --kfl-gray-200: #e2e8f0;  /* Borders */
+  --kfl-gray-300: #cbd5e1;
+  --kfl-gray-400: #94a3b8;
+  --kfl-gray-500: #64748b;
+  --kfl-gray-600: #475569;  /* Body text */
+  --kfl-gray-700: #334155;
+  --kfl-gray-800: #1e293b;
+  --kfl-gray-900: #0f172a;  /* Headings / Footer */
+  --kfl-navy: #0B1120;      /* Deep Navy */
+
+  /* Glassmorphism & Blur Variables */
+  --kfl-glass-bg: rgba(255, 255, 255, 0.65);
+  --kfl-glass-bg-dark: rgba(11, 17, 32, 0.7);
+  --kfl-glass-bg-strong: rgba(255, 255, 255, 0.85);
+  --kfl-glass-border: rgba(255, 255, 255, 0.4);
+  --kfl-glass-border-light: rgba(255, 255, 255, 0.9);
+  --kfl-glass-blur: blur(24px);
+  --kfl-glass-blur-sm: blur(12px);
+
+  /* Typography */
+  --kfl-font-heading: 'Alexandria', sans-serif;
+  --kfl-font-body: 'Cairo', sans-serif;
+
+  /* Modern Diffused Shadows (3D Soft UI style) */
+  --kfl-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.02);
+  --kfl-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.04), 0 2px 4px rgba(0, 0, 0, 0.02);
+  --kfl-shadow-lg: 0 12px 32px -4px rgba(0, 0, 0, 0.08), 0 4px 12px -4px rgba(0, 0, 0, 0.04);
+  --kfl-shadow-xl: 0 24px 48px -12px rgba(0, 0, 0, 0.15), 0 12px 24px -8px rgba(0, 0, 0, 0.08);
+  --kfl-shadow-glow: 0 0 24px rgba(16, 185, 129, 0.25);
+  --kfl-shadow-glow-strong: 0 12px 32px rgba(16, 185, 129, 0.4);
+  --kfl-shadow-glow-gold: 0 8px 24px rgba(245, 158, 11, 0.25);
+  --kfl-shadow-3d: 0 4px 0 rgba(4, 120, 87, 1), 0 10px 20px rgba(16, 185, 129, 0.3); /* Button 3D */
+
+  /* Border Radius - Modern rounded aesthetic */
+  --kfl-radius-sm: 0.5rem;   /* 8px */
+  --kfl-radius-md: 0.75rem;  /* 12px */
+  --kfl-radius-lg: 1rem;     /* 16px */
+  --kfl-radius-xl: 1.5rem;   /* 24px */
+  --kfl-radius-2xl: 2.5rem;  /* 40px */
+  --kfl-radius-full: 9999px;
+
+  /* Spacing */
+  --kfl-space-1: 0.25rem;
+  --kfl-space-2: 0.5rem;
+  --kfl-space-3: 0.75rem;
+  --kfl-space-4: 1rem;
+  --kfl-space-5: 1.25rem;
+  --kfl-space-6: 1.5rem;
+  --kfl-space-8: 2rem;
+  --kfl-space-10: 2.5rem;
+  --kfl-space-12: 3rem;
+  --kfl-space-16: 4rem;
+  --kfl-space-24: 6rem;
+  --kfl-space-32: 8rem;
+  
+  /* Modern Transitions (Custom Easing for Framer-like feel) */
+  --kfl-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --kfl-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --kfl-transition-fast: 200ms var(--kfl-ease-out);
+  --kfl-transition-normal: 400ms var(--kfl-ease-out);
+  --kfl-transition-slow: 600ms var(--kfl-ease-out);
+}

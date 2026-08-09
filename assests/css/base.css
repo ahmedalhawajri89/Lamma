@@ -1,0 +1,129 @@
+/* base.css - Global Styles & Reset (Modern SaaS approach) */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--kfl-font-body);
+  color: var(--kfl-gray-800);
+  background-color: var(--kfl-gray-50);
+  line-height: 1.6;
+  direction: rtl;
+  overflow-x: hidden;
+  text-rendering: optimizeLegibility;
+}
+
+/* Custom Scrollbar for a premium feel */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--kfl-gray-50);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--kfl-gray-300);
+  border-radius: var(--kfl-radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--kfl-gray-400);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--kfl-font-heading);
+  color: var(--kfl-gray-900);
+  line-height: 1.15;
+  margin-bottom: var(--kfl-space-4);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+}
+
+h1 { font-size: clamp(2.2rem, 5vw, 3.5rem); }
+h2 { font-size: clamp(1.8rem, 4vw, 2.5rem); }
+h3 { font-size: clamp(1.5rem, 3vw, 2rem); }
+h4 { font-size: clamp(1.25rem, 2vw, 1.5rem); }
+
+p {
+  margin-bottom: var(--kfl-space-4);
+  color: var(--kfl-gray-600);
+  font-size: clamp(1rem, 1.5vw, 1.1rem);
+  line-height: 1.7;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+}
+
+a {
+  color: var(--kfl-primary-600);
+  text-decoration: none;
+  transition: all var(--kfl-transition-fast);
+}
+
+a:hover {
+  color: var(--kfl-primary-700);
+}
+
+ul, ol {
+  list-style: none;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+button, input, textarea, select {
+  font-family: inherit;
+  font-size: inherit;
+  outline: none;
+}
+
+/* Common Layout Utilities */
+.kfl-container {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 var(--kfl-space-4);
+}
+
+@media (min-width: 768px) {
+  .kfl-container { padding: 0 var(--kfl-space-6); }
+}
+
+@media (min-width: 1024px) {
+  .kfl-container { padding: 0 var(--kfl-space-8); }
+}
+
+.kfl-section {
+  padding: var(--kfl-space-16) 0;
+  position: relative;
+}
+
+@media (min-width: 1024px) {
+  .kfl-section { padding: var(--kfl-space-24) 0; }
+}
+
+/* Text Utilities */
+.text-center { text-align: center; }
+.text-primary { color: var(--kfl-primary-600); }
+.text-gradient {
+  background: linear-gradient(135deg, var(--kfl-primary-700) 0%, var(--kfl-primary-400) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}

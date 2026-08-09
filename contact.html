@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;500;600;700;800&family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <link rel="shortcut icon" href="assests/img/6144-removebg-preview.png" type="image/x-icon">
+  
+  <!-- Modern Design System -->
+  <link rel="stylesheet" href="assests/css/base.css">
+  <link rel="stylesheet" href="assests/css/variables.css">
+  <link rel="stylesheet" href="assests/css/layouts.css">
+  <link rel="stylesheet" href="assests/css/components.css">
+  
+  <title>تواصل معنا | كفالة</title>
+
+  <style>
+    /* Scoped styling for Contact Info Card */
+    .kfl-contact-info-card {
+      background: linear-gradient(135deg, var(--kfl-primary-500), var(--kfl-primary-700));
+      border-radius: var(--kfl-radius-xl);
+      padding: var(--kfl-space-8);
+      color: var(--kfl-white);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: var(--kfl-shadow-xl);
+    }
+    
+    @media (min-width: 768px) {
+      .kfl-contact-info-card {
+        padding: var(--kfl-space-10);
+      }
+    }
+
+    .kfl-contact-abstract {
+      position: absolute;
+      bottom: -4rem;
+      right: -4rem;
+      width: 16rem;
+      height: 16rem;
+      background: var(--kfl-white);
+      opacity: 0.05;
+      border-radius: 50%;
+      filter: blur(2rem);
+      pointer-events: none;
+    }
+
+    .kfl-contact-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--kfl-space-6);
+      margin-bottom: var(--kfl-space-10);
+      flex-grow: 1;
+    }
+
+    .kfl-contact-item {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--kfl-space-4);
+    }
+
+    .kfl-contact-icon {
+      width: 3rem;
+      height: 3rem;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 1.25rem;
+    }
+
+    .kfl-contact-details h4 {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 0.85rem;
+      margin-bottom: var(--kfl-space-1);
+      font-weight: 600;
+    }
+
+    .kfl-contact-details p {
+      color: var(--kfl-white);
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    .kfl-social-links {
+      display: flex;
+      gap: var(--kfl-space-3);
+    }
+
+    .kfl-social-btn {
+      width: 2.5rem;
+      height: 2.5rem;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--kfl-white);
+      text-decoration: none;
+      transition: all var(--kfl-transition-fast);
+    }
+
+    .kfl-social-btn:hover {
+      background: var(--kfl-white);
+      color: var(--kfl-primary-600);
+      transform: translateY(-2px);
+    }
+
+    .kfl-contact-form-card {
+      background: var(--kfl-white);
+      border-radius: var(--kfl-radius-xl);
+      padding: var(--kfl-space-8);
+      box-shadow: var(--kfl-shadow-md);
+      border: 1px solid rgba(0,0,0,0.03);
+    }
+    
+    @media (min-width: 768px) {
+      .kfl-contact-form-card {
+        padding: var(--kfl-space-10);
+      }
+    }
+  </style>
+</head>
+<body class="kfl-app kfl-bg-gray">
+
+  <div id="header-placeholder"></div>
+
+  <!-- Page Header -->
+  <section class="kfl-section" style="background-color: var(--kfl-white); border-bottom: 1px solid var(--kfl-gray-200); padding-top: calc(var(--kfl-space-24) + 60px);">
+    <div class="kfl-container reveal">
+      <div class="kfl-saas-section-header" style="justify-content: center; text-align: center;">
+        <div class="kfl-saas-header-content" style="margin: 0 auto;">
+          <span class="kfl-saas-pill">كيف نساعدك؟</span>
+          <h1 class="kfl-display-1" style="color: var(--kfl-primary-600); margin-bottom: var(--kfl-space-4);">تواصل معنا</h1>
+          <p class="kfl-saas-subtitle" style="font-size: 1.15rem;">نحن هنا للإجابة على استفساراتكم وسماع اقتراحاتكم، فريقنا يسعد بخدمتكم دائماً.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact Section -->
+  <section class="kfl-section">
+    <div class="kfl-container" style="max-width: 1100px;">
+      <div class="kfl-split-layout" style="gap: var(--kfl-space-8); align-items: stretch;">
+        
+        <!-- Contact Info Side -->
+        <div class="kfl-contact-info-card reveal-right">
+          <div class="kfl-contact-abstract"></div>
+          
+          <h3 style="color: var(--kfl-white); font-size: 1.75rem; margin-bottom: var(--kfl-space-4); position: relative; z-index: 10;">بيانات التواصل</h3>
+          <p style="color: rgba(255,255,255,0.85); font-size: 1.05rem; margin-bottom: var(--kfl-space-8); position: relative; z-index: 10;">يسعدنا تواصلكم معنا في أي وقت. فريقنا جاهز للرد على جميع استفساراتكم ومساعدتكم في رحلة الخير.</p>
+          
+          <div class="kfl-contact-list" style="position: relative; z-index: 10;">
+            <div class="kfl-contact-item">
+              <div class="kfl-contact-icon"><i class="fa-solid fa-phone"></i></div>
+              <div class="kfl-contact-details">
+                <h4>الهاتف</h4>
+                <p dir="ltr">+966 50 000 0000</p>
+              </div>
+            </div>
+            
+            <div class="kfl-contact-item">
+              <div class="kfl-contact-icon"><i class="fa-solid fa-envelope"></i></div>
+              <div class="kfl-contact-details">
+                <h4>البريد الإلكتروني</h4>
+                <p>info@kafala.com</p>
+              </div>
+            </div>
+
+            <div class="kfl-contact-item">
+              <div class="kfl-contact-icon"><i class="fa-solid fa-location-dot"></i></div>
+              <div class="kfl-contact-details">
+                <h4>العنوان</h4>
+                <p>المملكة العربية السعودية، الرياض</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="kfl-social-links" style="position: relative; z-index: 10;">
+            <a href="#" class="kfl-social-btn"><i class="fa-brands fa-twitter"></i></a>
+            <a href="#" class="kfl-social-btn"><i class="fa-brands fa-instagram"></i></a>
+            <a href="#" class="kfl-social-btn"><i class="fa-brands fa-facebook-f"></i></a>
+            <a href="#" class="kfl-social-btn"><i class="fa-brands fa-whatsapp"></i></a>
+          </div>
+        </div>
+
+        <!-- Contact Form Side -->
+        <div class="kfl-contact-form-card reveal-left">
+          <h3 style="font-size: 1.75rem; margin-bottom: var(--kfl-space-6); font-weight: 800;">أرسل لنا رسالة</h3>
+          <form>
+            <div class="kfl-form-group">
+              <label class="kfl-label">الاسم الكامل</label>
+              <div class="kfl-input-wrapper">
+                <input type="text" class="kfl-input" placeholder="أدخل اسمك" required>
+                <i class="fa-regular fa-user kfl-input-icon"></i>
+              </div>
+            </div>
+            
+            <div class="kfl-form-group">
+              <label class="kfl-label">البريد الإلكتروني</label>
+              <div class="kfl-input-wrapper">
+                <input type="email" class="kfl-input" placeholder="example@email.com" required>
+                <i class="fa-regular fa-envelope kfl-input-icon"></i>
+              </div>
+            </div>
+            
+            <div class="kfl-form-group">
+              <label class="kfl-label">الرسالة</label>
+              <textarea rows="5" class="kfl-input" style="border-radius: var(--kfl-radius-xl); padding-top: 1rem; padding-right: 1.25rem;" placeholder="اكتب رسالتك هنا..." required></textarea>
+            </div>
+            
+            <button type="submit" class="kfl-btn kfl-btn-primary kfl-btn-block kfl-mt-6" style="padding: 1rem; font-size: 1.1rem;">
+              إرسال الرسالة <i class="fa-regular fa-paper-plane kfl-ms-2"></i>
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div id="footer-placeholder"></div>
+  <div id="modals-placeholder"></div>
+  <script src="assests/js/main.js"></script>
+</body>
+</html>
