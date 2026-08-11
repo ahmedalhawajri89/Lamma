@@ -33,29 +33,31 @@ function headerMarkup({ page, solid }) {
   return `
 <a class="skip-link" href="#main">تخطَّ إلى المحتوى الرئيسي</a>
 <header class="site-header${solid ? ' site-header--solid' : ''}" id="siteHeader">
-  <div class="container site-header__inner">
-    <a class="brand" href="index.html">
-      <img class="brand__mark" src="assets/img/logo.svg" alt="" width="44" height="44">
-      <span class="brand__name">${SITE.name}<span class="brand__tag">${SITE.tagline}</span></span>
-    </a>
-
-    <button class="nav-toggle" type="button" id="navToggle"
-            aria-expanded="false" aria-controls="siteNav" aria-label="فتح قائمة التنقل">
-      <span class="nav-toggle__bars" aria-hidden="true"><span></span><span></span><span></span></span>
-    </button>
-
-    <div class="site-nav" id="siteNav">
-      <nav class="nav" aria-label="التنقل الرئيسي">${navMarkup(page)}</nav>
-      <a class="btn btn--primary btn--sm" href="orphans.html">
-        اكفل الآن <i class="fa-solid fa-heart btn__icon" aria-hidden="true"></i>
+  <div class="container">
+    <div class="header-shell">
+      <a class="brand" href="index.html">
+        <img class="brand__mark" src="assets/img/logo.svg" alt="" width="38" height="38">
+        <span class="brand__name">${SITE.name}<span class="brand__tag">${SITE.tagline}</span></span>
       </a>
-    </div>
 
-    <div class="header-actions">
-      <a class="btn btn--outline btn--sm" href="login.html">تسجيل الدخول</a>
-      <a class="btn btn--primary btn--sm" href="orphans.html">
-        اكفل الآن <i class="fa-solid fa-heart btn__icon" aria-hidden="true"></i>
-      </a>
+      <div class="site-nav" id="siteNav">
+        <nav class="nav" aria-label="التنقل الرئيسي">${navMarkup(page)}</nav>
+        <a class="btn btn--outline btn--sm" href="login.html">تسجيل الدخول</a>
+        <a class="btn btn--primary btn--sm" href="orphans.html">
+          اكفل الآن <i class="fa-solid fa-heart btn__icon" aria-hidden="true"></i>
+        </a>
+      </div>
+
+      <div class="header-actions">
+        <a class="btn btn--outline btn--sm" href="login.html">تسجيل الدخول</a>
+        <a class="btn btn--primary btn--sm" href="orphans.html">
+          اكفل الآن <i class="fa-solid fa-heart btn__icon" aria-hidden="true"></i>
+        </a>
+        <button class="nav-toggle" type="button" id="navToggle"
+                aria-expanded="false" aria-controls="siteNav" aria-label="فتح قائمة التنقل">
+          <span class="nav-toggle__bars" aria-hidden="true"><span></span><span></span><span></span></span>
+        </button>
+      </div>
     </div>
   </div>
 </header>`;
@@ -79,18 +81,53 @@ function footerMarkup() {
 
   return `
 <footer class="site-footer">
+  <span class="footer-watermark" aria-hidden="true">${SITE.name}</span>
+
   <div class="container">
+
+    <div class="footer-top">
+      <p class="footer-claim">
+        كل شهر يمرّ بلا كافل هو شهرٌ لا يعود.
+        <em>ابدأ اليوم بما تستطيع.</em>
+      </p>
+
+      <div class="footer-news">
+        <p class="footer-news__label">
+          رسالة واحدة كل شهر: ما أنجزناه، وما صرفناه، وقصة طفل واحد. بلا إلحاح.
+        </p>
+        <form class="newsletter" data-validate-form
+              data-success-message="تم اشتراكك، ستصلك أول رسالة مطلع الشهر" novalidate>
+          <div class="field" style="flex:1">
+            <label class="sr-only" for="footerNewsEmail">البريد الإلكتروني</label>
+            <div class="field__control">
+              <input class="input" type="email" id="footerNewsEmail" name="email"
+                     placeholder="بريدك الإلكتروني" autocomplete="email"
+                     data-validate="required|email" aria-describedby="err-footerNews">
+            </div>
+            <p class="field__error" id="err-footerNews" role="alert"></p>
+          </div>
+          <button class="btn btn--primary" type="submit">اشترك</button>
+        </form>
+      </div>
+    </div>
+
     <div class="site-footer__grid">
       <div>
         <a class="brand" href="index.html">
-          <img class="brand__mark" src="assets/img/logo.svg" alt="" width="44" height="44">
+          <img class="brand__mark" src="assets/img/logo.svg" alt="" width="38" height="38">
           <span class="brand__name">${SITE.name}<span class="brand__tag">${SITE.tagline}</span></span>
         </a>
         <p class="footer-about">
           منصة تربط بين من يريد أن يعطي ومن يستحق أن يُعطى، بشفافية موثّقة وتقارير دورية.
-          نعمل منذ ١٤ عاماً في ١٢ دولة، ونؤمن أن كرامة الطفل ليست وسيلة لجمع التبرعات.
+          نعمل منذ ١٤ عاماً في ١٢ دولة.
         </p>
-        <div class="social-row">${social}</div>
+        <div class="footer-trust">
+          <i class="fa-solid fa-file-shield" aria-hidden="true"></i>
+          <span>
+            <strong>مرخّصون ومدقّقون</strong>
+            ميزانية سنوية معتمدة من مكتب مستقل ومنشورة للجميع
+          </span>
+        </div>
       </div>
 
       <nav aria-labelledby="footerNavHeading">
@@ -119,11 +156,17 @@ function footerMarkup() {
             <span>${SITE.address}</span>
           </li>
         </ul>
+        <div class="social-row" style="margin-block-start:var(--space-5)">${social}</div>
       </div>
     </div>
 
     <div class="footer-bottom">
       <p>© ${YEAR} منصة ${SITE.name} — جميع الحقوق محفوظة.</p>
+      <nav aria-label="روابط قانونية">
+        <a href="transparency.html#child-policy">سياسة حماية الطفل</a>
+        <a href="transparency.html">الخصوصية</a>
+        <a href="faq.html">شروط الاستخدام</a>
+      </nav>
       <div class="payment-row" aria-label="وسائل الدفع المقبولة">
         <i class="fa-brands fa-cc-visa" aria-hidden="true"></i>
         <i class="fa-brands fa-cc-mastercard" aria-hidden="true"></i>
@@ -165,7 +208,7 @@ function initNavToggle() {
   });
 
   window.addEventListener('resize', () => {
-    if (window.innerWidth > 992 && nav.classList.contains('is-open')) setOpen(false);
+    if (window.innerWidth > 1024 && nav.classList.contains('is-open')) setOpen(false);
   });
 }
 

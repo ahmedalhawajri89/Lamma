@@ -153,25 +153,20 @@ export function initWordReveal() {
    ------------------------------------------------------------------------- */
 export function initToTop() {
   const btn = $('#toTop');
-  if (!btn) return;
-
-  const ring = $('circle', btn);
-  if (ring) {
-    const length = ring.getTotalLength?.() ?? 100;
-    btn.style.setProperty('--ring-length', length);
-  }
+  const root = document.documentElement;
 
   const update = rafThrottle(() => {
-    const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+    const scrollable = root.scrollHeight - window.innerHeight;
     const progress = scrollable > 0 ? window.scrollY / scrollable : 0;
-    btn.style.setProperty('--scroll-progress', progress.toFixed(3));
-    btn.classList.toggle('is-visible', window.scrollY > 600);
+    // يُكتب على الجذر فيستفيد منه خط تقدّم القراءة في الهيدر أيضاً
+    root.style.setProperty('--scroll-progress', progress.toFixed(3));
+    btn?.classList.toggle('is-visible', window.scrollY > 600);
   });
 
   update();
   window.addEventListener('scroll', update, { passive: true });
 
-  btn.addEventListener('click', () => {
+  btn?.addEventListener('click', () => {
     window.scrollTo({
       top: 0,
       behavior: prefersReducedMotion() ? 'auto' : 'smooth',

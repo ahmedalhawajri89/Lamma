@@ -34,6 +34,12 @@ using all three brand colours, and stays legible from 120px down to 16px. Shippe
 outline shifted diagonally behind the image. Editorial, contemporary, and quiet —
 it adds depth without ornament.
 
+**The chrome is light throughout.** The header is a floating glass pill that tightens
+on scroll, with a reading-progress hairline along the top edge and a filled pill
+marking the active link. The footer is warm cream in three tiers — claim + newsletter,
+link columns, legal bar — over an oversized brand watermark. Dark is reserved for one
+place only: the scrim that keeps hero text legible over photography.
+
 **The hero is a cinematic slider**: full-bleed imagery with a directional scrim,
 slow Ken Burns zoom, per-slide copy, thumbnail navigation and an autoplay progress
 bar — with a visible pause control, because WCAG 2.2.2 requires any auto-advancing

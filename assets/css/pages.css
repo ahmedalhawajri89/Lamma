@@ -110,7 +110,7 @@
   display: grid;
   place-items: center;
   padding: var(--space-12);
-  background: var(--gradient-dusk);
+  background: linear-gradient(160deg, var(--clay-50) 0%, var(--amber-50) 60%, var(--sand-100) 100%);
   overflow: hidden;
 }
 
@@ -119,9 +119,10 @@
   position: absolute;
   inline-size: 26rem;
   block-size: 32rem;
-  border-radius: var(--radius-2xl);
-  border: 1.5px solid rgb(255 255 255 / 0.12);
+  border-radius: var(--radius-3xl);
+  border: 1.5px solid var(--color-brand-border);
   transform: rotate(-10deg);
+  opacity: 0.7;
 }
 
 .auth__aside-inner {
@@ -129,7 +130,7 @@
   z-index: var(--z-base);
   max-inline-size: 26rem;
   text-align: center;
-  color: var(--sand-25);
+  color: var(--color-text);
 }
 
 .auth__aside-art {
@@ -141,9 +142,9 @@
   box-shadow: var(--shadow-xl);
 }
 
-.auth__aside-inner h2 { color: var(--sand-25); font-size: var(--text-xl); }
+.auth__aside-inner h2 { color: var(--color-text); font-size: var(--text-xl); }
 .auth__aside-inner p {
-  color: color-mix(in oklab, var(--sand-25) 72%, transparent);
+  color: var(--color-text-muted);
   font-size: var(--text-sm);
   line-height: var(--leading-relaxed);
   margin-block-start: var(--space-3);

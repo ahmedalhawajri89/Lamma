@@ -71,42 +71,11 @@
       </div>
     </section>
 
-    <!-- النشرة -->
-    <section class="section section--surface">
-      <div class="container container--narrow">
-        <div class="card" style="padding:clamp(var(--space-6),4vw,var(--space-12));align-items:center;text-align:center" data-reveal>
-          <div class="icon-box icon-box--accent icon-box--soft">
-            <i class="fa-regular fa-envelope-open" aria-hidden="true"></i>
-          </div>
-          <h2 style="font-size:var(--text-xl)">رسالة واحدة كل شهر</h2>
-          <p class="card__text">
-            ملخّص ما أنجزناه، وما صرفناه، وقصة طفل واحد. بلا إلحاح ولا حملات،
-            ويمكنك إلغاء الاشتراك بنقرة.
-          </p>
-
-          <form class="newsletter" data-validate-form
-                data-success-message="تم اشتراكك، ستصلك أول رسالة مطلع الشهر" novalidate>
-            <div class="field" style="flex:1">
-              <label class="sr-only" for="newsletterEmail">البريد الإلكتروني</label>
-              <div class="field__control">
-                <input class="input" type="email" id="newsletterEmail" name="email"
-                       placeholder="بريدك الإلكتروني" autocomplete="email"
-                       data-validate="required|email" aria-describedby="err-newsletter">
-              </div>
-              <p class="field__error" id="err-newsletter" role="alert"></p>
-            </div>
-            <button class="btn btn--primary" type="submit">اشترك</button>
-          </form>
-        </div>
-      </div>
-    </section>
-
   </main>
 
   <div data-layout="footer"></div>
 
   <button class="to-top" type="button" id="toTop" aria-label="العودة إلى أعلى الصفحة">
-    <svg class="to-top__ring" viewBox="0 0 54 54" aria-hidden="true"><circle cx="27" cy="27" r="25"></circle></svg>
     <i class="fa-solid fa-arrow-up" aria-hidden="true"></i>
   </button>
 </body>

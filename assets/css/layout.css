@@ -33,14 +33,11 @@
 .section--alt     { background: var(--color-surface-alt); }
 .section--warm    { background: var(--gradient-warm); }
 
+/* قسم مميّز دافئ — بديل فاتح عن الأسطح الداكنة */
 .section--ink {
-  background: var(--gradient-dusk);
-  color: var(--color-text-invert);
+  background: linear-gradient(155deg, var(--clay-50) 0%, var(--amber-50) 55%, var(--sand-100) 100%);
+  border-block: 1px solid var(--color-brand-border);
 }
-
-.section--ink :is(h1, h2, h3, h4) { color: var(--sand-25); }
-.section--ink .section-lede,
-.section--ink p { color: color-mix(in oklab, var(--sand-25) 78%, transparent); }
 
 /* --------------------------------------------------------------------------
    3. ترويسة القسم
