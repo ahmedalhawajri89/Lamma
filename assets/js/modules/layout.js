@@ -35,7 +35,7 @@ function headerMarkup({ page, solid }) {
 <header class="site-header${solid ? ' site-header--solid' : ''}" id="siteHeader">
   <div class="container site-header__inner">
     <a class="brand" href="index.html">
-      <img class="brand__mark" src="assets/img/logo.png" alt="" width="44" height="44">
+      <img class="brand__mark" src="assets/img/logo.svg" alt="" width="44" height="44">
       <span class="brand__name">${SITE.name}<span class="brand__tag">${SITE.tagline}</span></span>
     </a>
 
@@ -83,7 +83,7 @@ function footerMarkup() {
     <div class="site-footer__grid">
       <div>
         <a class="brand" href="index.html">
-          <img class="brand__mark" src="assets/img/logo.png" alt="" width="44" height="44">
+          <img class="brand__mark" src="assets/img/logo.svg" alt="" width="44" height="44">
           <span class="brand__name">${SITE.name}<span class="brand__tag">${SITE.tagline}</span></span>
         </a>
         <p class="footer-about">

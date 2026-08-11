@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-label="شعار كفالة">
+  <title>كفالة</title>
+
+  <!-- الكفّ الأولى -->
+  <path d="M6.5 19.5C6.5 33.5 14 39.5 24 39.5"
+        fill="none" stroke="#c2410c" stroke-width="6.6" stroke-linecap="round"/>
+
+  <!-- الكفّ الثانية -->
+  <path d="M41.5 19.5C41.5 33.5 34 39.5 24 39.5"
+        fill="none" stroke="#f0910c" stroke-width="6.6" stroke-linecap="round"/>
+
+  <!-- الطفل المحتضَن: رأس وكتفان -->
+  <circle cx="24" cy="14.6" r="5.7" fill="#4d7c0f"/>
+  <path d="M15.6 29.2C15.6 23 32.4 23 32.4 29.2"
+        fill="none" stroke="#4d7c0f" stroke-width="5.7" stroke-linecap="round"/>
+</svg>

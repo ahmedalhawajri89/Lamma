@@ -25,6 +25,11 @@ deliberately away from the medical-green that most charity sites default to.
 | Canvas | `--color-canvas` | `#fbf7f0` — warm sand |
 | Ink | `--color-text` | `#1c1917` |
 
+**The logo** is a custom SVG: two hands — one clay, one amber — cradling a child in
+olive. It draws the literal meaning of *kafala* (to take someone under your hand)
+using all three brand colours, and stays legible from 120px down to 16px. Shipped as
+`logo.svg` (716 B), `favicon.svg`, and a PNG touch icon.
+
 **The offset frame** is the signature: generous corner radii with a thin brand-coloured
 outline shifted diagonally behind the image. Editorial, contemporary, and quiet —
 it adds depth without ornament.
