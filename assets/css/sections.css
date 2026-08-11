@@ -437,7 +437,7 @@
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: var(--color-accent);
+  background: var(--amber-700);
   color: #fff;
   font-family: var(--font-display);
   font-size: var(--text-2xs);

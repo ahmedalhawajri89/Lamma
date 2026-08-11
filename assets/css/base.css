@@ -149,8 +149,11 @@ small { font-size: var(--text-sm); }
    -------------------------------------------------------------------------- */
 :focus-visible {
   outline: 3px solid var(--color-focus);
-  outline-offset: 3px;
+  outline-offset: 2px;
   border-radius: var(--radius-xs);
+  /* هالة فاتحة خارجية تضمن رؤية الحلقة فوق الخلفيات الداكنة أيضاً،
+     وهي غير مرئية عملياً فوق الخلفيات الفاتحة. */
+  box-shadow: 0 0 0 5px color-mix(in oklab, var(--color-focus-halo) 90%, transparent);
 }
 
 :focus:not(:focus-visible) {
