@@ -2,142 +2,106 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>الأسئلة الشائعة | كفالة</title>
+  <meta name="description" content="إجابات مباشرة عن الكفالة: كيف نتحقق، ما نسبة المصاريف الإدارية، هل تُحتسب من الزكاة، وكيف توقفها.">
+  <meta name="theme-color" content="#c2410c">
+
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self'; connect-src 'self'; form-action 'self'; base-uri 'self'; object-src 'none'">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+
+  <link rel="canonical" href="faq.html">
+  <link rel="icon" href="assets/img/logo.png" type="image/png">
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;500;600;700;800&family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
-  <link rel="shortcut icon" href="assests/img/6144-removebg-preview.png" type="image/x-icon">
-  
-  <!-- Modern Design System -->
-  <link rel="stylesheet" href="assests/css/variables.css">
-  <link rel="stylesheet" href="assests/css/base.css">
-  <link rel="stylesheet" href="assests/css/layouts.css">
-  <link rel="stylesheet" href="assests/css/components.css">
-  
-  <title>الأسئلة الشائعة | كفالة</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300;400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Aref+Ruqaa:wght@400;700&display=swap">
 
-  <style>
-    .kfl-faq-item {
-      background: var(--kfl-white);
-      border: 1px solid var(--kfl-gray-200);
-      border-radius: var(--kfl-radius-xl);
-      margin-bottom: var(--kfl-space-4);
-      overflow: hidden;
-      transition: all var(--kfl-transition-fast);
-    }
-    .kfl-faq-item:hover {
-      border-color: var(--kfl-primary-300);
-      box-shadow: var(--kfl-shadow-md);
-    }
-    .kfl-faq-item.active {
-      border-color: var(--kfl-primary-500);
-      box-shadow: var(--kfl-shadow-lg);
-    }
-    .kfl-faq-question {
-      padding: var(--kfl-space-5) var(--kfl-space-6);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      cursor: pointer;
-      font-weight: 700;
-      font-size: 1.1rem;
-      color: var(--kfl-gray-900);
-    }
-    .kfl-faq-question i {
-      color: var(--kfl-primary-600);
-      transition: transform var(--kfl-transition-fast);
-    }
-    .kfl-faq-item.active .kfl-faq-question i {
-      transform: rotate(180deg);
-    }
-    .kfl-faq-answer {
-      padding: 0 var(--kfl-space-6);
-      max-height: 0;
-      overflow: hidden;
-      transition: max-height 0.3s ease-out, padding 0.3s ease-out;
-      color: var(--kfl-gray-600);
-      line-height: 1.6;
-    }
-    .kfl-faq-item.active .kfl-faq-answer {
-      padding-bottom: var(--kfl-space-5);
-      max-height: 300px; /* arbitrary max height for transition */
-    }
-  </style>
+  <link rel="stylesheet" href="assets/vendor/fontawesome/css/all.min.css">
+  <link rel="stylesheet" href="assets/css/tokens.css">
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/layout.css">
+  <link rel="stylesheet" href="assets/css/site.css">
+  <link rel="stylesheet" href="assets/css/components.css">
+  <link rel="stylesheet" href="assets/css/sections.css">
+  <link rel="stylesheet" href="assets/css/pages.css">
+
+  <script type="module" src="assets/js/main.js"></script>
 </head>
-<body class="kfl-app kfl-bg-gray">
 
-  <!-- Header Placeholder -->
-  <div id="header-placeholder"></div>
+<body data-header="solid" class="page-body">
+  <div data-layout="header"></div>
 
-  <!-- Page Header -->
-  <section class="kfl-section" style="background-color: var(--kfl-white); border-bottom: 1px solid var(--kfl-gray-200); padding-top: calc(var(--kfl-space-24) + 60px);">
-    <div class="kfl-container reveal">
-      <div class="kfl-section-header" style="justify-content: center; text-align: center;">
-        <span class="kfl-section-tag">مركز المساعدة</span>
-        <h1 class="kfl-section-title">الأسئلة الشائعة</h1>
-        <p class="kfl-section-desc">إجابات وافية على استفساراتكم الأكثر شيوعاً حول الكفالة ومنصتنا.</p>
+  <main id="main">
+
+    <section class="page-hero page-hero--center">
+      <div class="glow" aria-hidden="true"></div>
+      <div class="container">
+        <div class="page-hero__inner">
+          <nav aria-label="مسار التنقل">
+            <ol class="breadcrumb">
+              <li><a href="index.html">الرئيسية</a></li>
+              <li><span aria-current="page">الأسئلة الشائعة</span></li>
+            </ol>
+          </nav>
+          <span class="eyebrow">مركز المساعدة</span>
+          <h1 class="page-hero__title">أسئلة يطرحها الناس قبل أن يبدأوا</h1>
+          <p class="page-hero__lede">
+            أجبنا عنها بصراحة، بما فيها الأسئلة المحرجة عن المال والمصاريف الإدارية.
+          </p>
+        </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- FAQ Section -->
-  <section class="kfl-section">
-    <div class="kfl-container max-w-3xl">
-      <div class="kfl-faq-container reveal delay-100">
-        
-        <!-- FAQ Item 1 -->
-        <div class="kfl-faq-item active" onclick="this.classList.toggle('active')">
-          <div class="kfl-faq-question">
-            <span>كيف يمكنني التأكد من وصول التبرع لليتيم؟</span>
-            <i class="fa-solid fa-chevron-down"></i>
-          </div>
-          <div class="kfl-faq-answer">
-            <p>نحن نلتزم بأعلى معايير الشفافية. عند كفالتك ليتيم، ستحصل على حساب خاص يمكنك من خلاله متابعة التقارير الدورية (المالية، الدراسية، والصحية) التي توضح كيفية صرف الكفالة وحالة اليتيم بالتفصيل.</p>
-          </div>
-        </div>
-
-        <!-- FAQ Item 2 -->
-        <div class="kfl-faq-item" onclick="this.classList.toggle('active')">
-          <div class="kfl-faq-question">
-            <span>هل يمكنني التواصل مع اليتيم أو زيارته؟</span>
-            <i class="fa-solid fa-chevron-down"></i>
-          </div>
-          <div class="kfl-faq-answer">
-            <p>نعم، يمكن ترتيب زيارات أو اتصالات مرئية بالتنسيق مع إدارة الجمعية والمشرفين الميدانيين، وذلك لضمان خصوصية اليتيم وراحته ووفقاً لسياسات الجمعية.</p>
-          </div>
-        </div>
-
-        <!-- FAQ Item 3 -->
-        <div class="kfl-faq-item" onclick="this.classList.toggle('active')">
-          <div class="kfl-faq-question">
-            <span>ما هي طرق الدفع المتاحة؟</span>
-            <i class="fa-solid fa-chevron-down"></i>
-          </div>
-          <div class="kfl-faq-answer">
-            <p>نوفر خيارات متعددة وآمنة للدفع تشمل البطاقات الائتمانية (فيزا، ماستركارد)، بطاقات مدى، التحويل البنكي المباشر، بالإضافة إلى دعم Apple Pay عبر المنصة.</p>
-          </div>
-        </div>
-
-        <!-- FAQ Item 4 -->
-        <div class="kfl-faq-item" onclick="this.classList.toggle('active')">
-          <div class="kfl-faq-question">
-            <span>هل يمكنني إلغاء الكفالة في أي وقت؟</span>
-            <i class="fa-solid fa-chevron-down"></i>
-          </div>
-          <div class="kfl-faq-answer">
-            <p>نعم، الكفالة عمل تطوعي ويمكنك إيقافها في أي وقت، ولكننا نشجع على الاستمرار لضمان استقرار حياة اليتيم. يفضل إبلاغنا قبل شهر من الإيقاف لترتيب كافل بديل.</p>
-          </div>
-        </div>
-
+    <section class="section">
+      <div class="container container--narrow">
+        <h2 class="sr-only">قائمة الأسئلة والأجوبة</h2>
+        <div class="accordion" data-accordion="single" id="faqList"></div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <div id="footer-placeholder"></div>
-  <div id="modals-placeholder"></div>
-  <script src="assests/js/main.js"></script>
+    <!-- مسارات المساعدة -->
+    <section class="section section--surface">
+      <div class="container">
+        <div class="section-head section-head--center" data-reveal>
+          <span class="eyebrow">لم تجد جوابك؟</span>
+          <h2>ثلاث طرق للوصول إلينا</h2>
+        </div>
+
+        <div class="grid grid--auto-sm">
+          <article class="card card--lift text-center" style="align-items:center" data-reveal>
+            <div class="icon-box icon-box--arch"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i></div>
+            <h3 class="card__title">واتساب</h3>
+            <p class="card__text">أسرع وسيلة — نرد عادةً خلال ساعتين في أيام العمل.</p>
+            <a class="btn btn--outline btn--sm" href="contact.html">راسلنا</a>
+          </article>
+
+          <article class="card card--lift text-center" style="align-items:center" data-reveal data-reveal-delay="80">
+            <div class="icon-box icon-box--accent icon-box--arch"><i class="fa-regular fa-envelope" aria-hidden="true"></i></div>
+            <h3 class="card__title">البريد الإلكتروني</h3>
+            <p class="card__text">للأسئلة التفصيلية عن التقارير أو الميزانية. نرد خلال ٧٢ ساعة.</p>
+            <a class="btn btn--outline btn--sm" href="mailto:info@kafala.org">أرسل رسالة</a>
+          </article>
+
+          <article class="card card--lift text-center" style="align-items:center" data-reveal data-reveal-delay="160">
+            <div class="icon-box icon-box--growth icon-box--arch"><i class="fa-solid fa-file-shield" aria-hidden="true"></i></div>
+            <h3 class="card__title">صفحة الشفافية</h3>
+            <p class="card__text">الميزانية المدقّقة والتقارير السنوية وسياسة حماية الطفل.</p>
+            <a class="btn btn--outline btn--sm" href="transparency.html">اطّلع عليها</a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <div data-layout="footer"></div>
+
+  <button class="to-top" type="button" id="toTop" aria-label="العودة إلى أعلى الصفحة">
+    <svg class="to-top__ring" viewBox="0 0 54 54" aria-hidden="true"><circle cx="27" cy="27" r="25"></circle></svg>
+    <i class="fa-solid fa-arrow-up" aria-hidden="true"></i>
+  </button>
 </body>
 </html>

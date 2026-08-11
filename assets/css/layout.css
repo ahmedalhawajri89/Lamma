@@ -1,0 +1,196 @@
+/* ==========================================================================
+   Kafala — Layout
+   الحاويات، الشبكات، الأقسام، وأدوات التخطيط العامة.
+   كل شيء منطقي الاتجاه (logical properties) ليعمل مع RTL و LTR معاً.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. الحاوية
+   -------------------------------------------------------------------------- */
+.container {
+  width: 100%;
+  max-width: var(--container);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.container--narrow { max-width: var(--container-narrow); }
+.container--wide   { max-width: 92rem; }
+
+/* --------------------------------------------------------------------------
+   2. الأقسام
+   -------------------------------------------------------------------------- */
+.section {
+  padding-block: var(--section-gap);
+  position: relative;
+}
+
+.section--tight   { padding-block: calc(var(--section-gap) * 0.6); }
+.section--flush-t { padding-block-start: 0; }
+.section--flush-b { padding-block-end: 0; }
+
+.section--surface { background: var(--color-surface); }
+.section--alt     { background: var(--color-surface-alt); }
+.section--warm    { background: var(--gradient-warm); }
+
+.section--ink {
+  background: var(--gradient-dusk);
+  color: var(--color-text-invert);
+}
+
+.section--ink :is(h1, h2, h3, h4) { color: var(--sand-25); }
+.section--ink .section-lede,
+.section--ink p { color: color-mix(in oklab, var(--sand-25) 78%, transparent); }
+
+/* --------------------------------------------------------------------------
+   3. ترويسة القسم
+   -------------------------------------------------------------------------- */
+.section-head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: 44rem;
+  margin-block-end: var(--space-12);
+}
+
+.section-head--center {
+  align-items: center;
+  text-align: center;
+  margin-inline: auto;
+}
+
+/* ترويسة بعنوان يمين ورابط يسار */
+.section-head--split {
+  max-width: none;
+  flex-direction: row;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-6);
+  flex-wrap: wrap;
+}
+
+.section-head--split > :first-child {
+  max-width: 42rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.section-lede {
+  font-size: var(--text-lg);
+  color: var(--color-text-muted);
+  line-height: var(--leading-relaxed);
+  margin: 0;
+}
+
+/* --------------------------------------------------------------------------
+   4. الشبكات
+   -------------------------------------------------------------------------- */
+.grid {
+  display: grid;
+  gap: var(--space-6);
+}
+
+/* شبكات تتكيّف ذاتياً بلا media queries — أنظف وأكثر مرونة */
+.grid--auto     { grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr)); }
+.grid--auto-lg  { grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); }
+.grid--auto-sm  { grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr)); }
+
+.grid--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.grid--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.grid--4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+@media (max-width: 60rem) {
+  .grid--3, .grid--4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 38rem) {
+  .grid--2, .grid--3, .grid--4 { grid-template-columns: 1fr; }
+}
+
+.grid--gap-lg { gap: var(--space-10); }
+
+/* تخطيط منقسم: محتوى + وسائط.
+   عمود واحد افتراضاً ثم عمودان — تخطيط صريح بدل auto-fit، لأن نسبة مئوية
+   داخل minmax تنكسر حين يتجاوز الحد الأدنى العرض المتاح فتُحدث تمريراً أفقياً. */
+.split {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(var(--space-8), 4vw, var(--space-16));
+  align-items: center;
+}
+
+@media (min-width: 60.0625rem) {
+  .split { grid-template-columns: 1fr 1fr; }
+  .split--media-start > .split__media { order: -1; }
+}
+
+/* --------------------------------------------------------------------------
+   5. أدوات صغيرة (قليلة ومقصودة — لسنا نبني إطار utility كامل)
+   -------------------------------------------------------------------------- */
+.stack        { display: flex; flex-direction: column; gap: var(--space-4); }
+.stack--sm    { gap: var(--space-2); }
+.stack--lg    { gap: var(--space-6); }
+
+.cluster {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.cluster--between { justify-content: space-between; }
+.cluster--center  { justify-content: center; }
+
+.text-center { text-align: center; }
+.flow > * + * { margin-block-start: var(--space-4); }
+
+.full-bleed { grid-column: 1 / -1; }
+
+/* --------------------------------------------------------------------------
+   6. زخارف الخلفية
+   -------------------------------------------------------------------------- */
+
+/* هالة ضوئية ناعمة — تُستخدم داخل الأقسام لكسر السطح المسطح */
+.glow {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--gradient-glow);
+  filter: blur(8px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* نمط هندسي إسلامي دقيق كخلفية للأقسام المميزة */
+.pattern-bg {
+  position: relative;
+  isolation: isolate;
+}
+
+.pattern-bg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0.4;
+  background-image:
+    repeating-linear-gradient(45deg,
+      transparent 0 14px,
+      color-mix(in oklab, var(--clay-300) 22%, transparent) 14px 15px),
+    repeating-linear-gradient(-45deg,
+      transparent 0 14px,
+      color-mix(in oklab, var(--clay-300) 22%, transparent) 14px 15px);
+  mask-image: radial-gradient(ellipse at center, #000 15%, transparent 72%);
+}
+
+.section > .container { position: relative; z-index: var(--z-base); }
+
+/* فاصل موجي بين قسمين */
+.wave-divider {
+  display: block;
+  width: 100%;
+  height: clamp(2.5rem, 5vw, 5rem);
+  color: var(--color-surface);
+}
+
+.wave-divider svg { width: 100%; height: 100%; display: block; }

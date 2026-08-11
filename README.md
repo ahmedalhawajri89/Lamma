@@ -1,118 +1,169 @@
-# Kafala — Orphan Sponsorship Platform
+# كفالة — Kafala
 
-An Arabic, RTL-first platform for orphan sponsorship and donations. Twelve complete pages covering the whole journey — from reading a child's profile to a confirmed monthly sponsorship — built with nothing but HTML, CSS and JavaScript.
+<div dir="rtl">
 
-**No framework was used on purpose.** Every layout, component, state change and interaction is hand-written. That makes this the clearest evidence of the fundamentals underneath everything else in my portfolio.
+منصة كفالة أيتام بالعربية (RTL أولاً)، مبنية بـ HTML و CSS و JavaScript خالصة —
+بلا إطارات عمل، وبلا مكتبات خارجية، وبلا خطوة بناء.
 
----
+الفكرة التي بُني حولها المشروع: **الشفافية**. لا تبرع مجهول المصير، بل طفل باسمه
+وقصته وملفه الموثّق، وتقرير مصوّر كل ثلاثة أشهر، وميزانية مدقّقة منشورة للجميع.
 
-## What it does
-
-A visitor arrives, browses the sponsorship programmes, opens an individual orphan's profile, chooses a plan, goes through checkout and lands on a confirmation page. A registered sponsor gets a dashboard showing their active sponsorships. Around that core sit the pages a real organisation needs: about, blog, FAQ, contact, sign-in and registration.
-
----
-
-## The twelve pages
-
-| Page | Purpose |
-|---|---|
-| `index.html` | Home — the case, the programmes, the call to sponsor |
-| `sponsorships.html` | Sponsorship programmes and plans |
-| `orphan-details.html` | An individual profile: story, needs, sponsorship options |
-| `checkout.html` | Sponsorship and donation checkout |
-| `thank-you.html` | Confirmation after a completed sponsorship |
-| `user-dashboard.html` | Sponsor area — active sponsorships and history |
-| `login.html` | Sign in |
-| `register.html` | Create an account |
-| `about.html` | Vision, mission, values, goals |
-| `blog.html` | News and stories |
-| `faq.html` | Frequently asked questions |
-| `contact.html` | Contact form and details |
+</div>
 
 ---
 
-## How it is built
+## 🎨 The design
 
-**A real design system, in plain CSS.** `variables.css` holds the whole visual language as custom properties: an emerald brand ramp from 50 to 900, accent colours, a neutral scale, spacing, radii, shadows and motion. Nothing downstream hard-codes a colour. Changing the brand is one file.
+A **warm, humane identity** built around clay and amber on a sand-cream canvas —
+deliberately away from the medical-green that most charity sites default to.
 
-**Stylesheets split by responsibility**, not by page:
+| Role | Token | Value |
+|---|---|---|
+| Primary | `--color-brand` | `#c2410c` — terracotta |
+| Secondary | `--color-accent` | `#d97706` — amber |
+| Growth | `--color-growth` | `#4d7c0f` — olive |
+| Canvas | `--color-canvas` | `#fbf7f0` — warm sand |
+| Ink | `--color-text` | `#1c1917` |
+
+**The arch (`--arch`)** — a mihrab-inspired shape — is the signature form. It repeats
+across hero imagery, icon boxes, journey badges, seals and profile photos, giving the
+site an identity that isn't reducible to "another card grid".
+
+**Typography** pairs *Readex Pro* (display) with *IBM Plex Sans Arabic* (body) and
+*Aref Ruqaa* for scriptural quotations — a distinctly Arabic pairing rather than the
+ubiquitous Cairo/Tajawal default. All sizes are fluid (`clamp`), so nothing snaps at
+breakpoints.
+
+<div dir="rtl">
+
+## ✨ ما الذي يميّز هذا المشروع
+
+- **حاسبة الأثر** — يسحب الزائر شريطاً فيرى فوراً ما الذي يوفّره مبلغه شهرياً.
+- **حلقة الشفافية** — رسم SVG خالص لتوزيع الإنفاق، يُرسم متحركاً عند ظهوره، بلا مكتبة رسم.
+- **سلايدر مكتوب من الصفر** — مبني على `scroll-snap` الأصلي مع سحب بالفأرة وأزرار
+  ونقاط وشريط تقدم ودعم كامل للكيبورد. لا Swiper ولا غيره.
+- **فلترة حيّة للأيتام** — بحث وترتيب وفلترة حسب البرنامج والدولة، وتتصل بالرابط
+  (`orphans.html?program=education`) فتصل من صفحة البرامج محمّلة مسبقاً.
+- **أنيميشن احترافي** — كشف عند التمرير، عدّادات، كشف العنوان كلمةً كلمة، ميلان
+  ثلاثي الأبعاد مع الفأرة، شريط لانهائي — كله يحترم `prefers-reduced-motion`.
+- **١٥ صفحة** متسقة، تُبنى كلها من مصدر بيانات واحد.
+
+## 🔒 الأمان والخصوصية
+
+مشروع واجهة أمامية، لذا الأمان هنا يعني ما يمكن ضبطه في المتصفح:
+
+- **CSP** في كل صفحة: `script-src 'self'` و `object-src 'none'` — لا سكربت خارجي يعمل.
+- **صفر معالجات inline** (`onclick`) — كل الأحداث مربوطة من JS، فتبقى السياسة صارمة.
+- **لا `innerHTML` مع بيانات متغيّرة** — كل نص يمرّ بـ `escapeHtml` أو `textContent`.
+- **تحقق من البطاقة بخوارزمية Luhn** وتحقق من صلاحية التاريخ قبل الإرسال.
+- **لا تخزين لبيانات الدفع** إطلاقاً، ولا إرسال عبر `GET`، مع `autocomplete` الصحيح.
+- **`rel="noopener noreferrer"`** على كل رابط خارجي، و`referrer-policy` مضبوطة.
+
+> ملاحظة: `frame-ancestors` تعمل كترويسة HTTP فقط ولا تُقبل في `<meta>`،
+> لذا تُضاف عند النشر من إعدادات الاستضافة لا من الصفحة.
+
+## ♿ الوصولية
+
+- رابط «تخطَّ إلى المحتوى» في كل صفحة.
+- بنية عناوين صحيحة، و`aria-current` للتنقل، و`aria-expanded` للقوائم والأكورديون.
+- حبس التركيز داخل النوافذ المنبثقة وإعادته لمصدره عند الإغلاق.
+- تبويبات تعمل بالأسهم وفق نمط ARIA القياسي.
+- `:focus-visible` واضح على كل عنصر تفاعلي.
+- رسائل النماذج عبر `role="alert"` و`aria-live` — لا `alert()` معطِّلة.
+- احترام كامل لـ `prefers-reduced-motion`.
+- بلا تمرير أفقي من 320px إلى 1440px (مُختبَر آلياً).
+
+</div>
+
+## 🗂 Structure
 
 ```
-variables.css     design tokens — the single source of truth
-base.css          reset and element defaults
-layouts.css       page scaffolding and grids
-components.css    buttons, cards, badges, forms
-main-ui.css       shared interface patterns
-auth.css          sign-in and registration
-dashboard.css     the sponsor area
-style.css         page-level composition
+kafala-orphan-sponsorship/
+├── index.html              الرئيسية
+├── about.html              من نحن
+├── programs.html           برامج الكفالة
+├── orphans.html            قائمة الأيتام + فلترة
+├── orphan.html             تفاصيل حالة  (?id=KFL-1042)
+├── transparency.html       الشفافية والتقارير
+├── checkout.html           إتمام الكفالة
+├── thank-you.html          التأكيد
+├── dashboard.html          لوحة الكافل
+├── login.html · register.html
+├── blog.html · faq.html · contact.html · 404.html
+│
+└── assets/
+    ├── css/                طبقات مرتّبة — تُحمَّل بهذا الترتيب
+    │   ├── tokens.css      المتغيرات: لون، طباعة، مسافات، ظلال، حركة
+    │   ├── base.css        إعادة ضبط + طباعة + وصولية
+    │   ├── layout.css      الحاويات والشبكات والأقسام
+    │   ├── site.css        الهيدر والتنقل والفوتر
+    │   ├── components.css  المكونات القابلة لإعادة الاستخدام
+    │   ├── sections.css    الأقسام الكبيرة (هيرو، رحلة، حاسبة، شفافية)
+    │   └── pages.css       أنماط خاصة بصفحات بعينها
+    │
+    ├── js/
+    │   ├── main.js         نقطة الدخول الوحيدة
+    │   └── modules/
+    │       ├── data.js     مصدر البيانات الوحيد
+    │       ├── layout.js   الهيدر والفوتر لكل الصفحات
+    │       ├── render.js   قوالب البطاقات
+    │       ├── home.js     تعبئة الأقسام من البيانات
+    │       ├── features.js الحاسبة، الفلترة، صفحات التفاصيل
+    │       ├── slider.js   السلايدر والشريط المتحرك
+    │       ├── motion.js   الكشف، العدّادات، الميلان
+    │       ├── ui.js       أكورديون، تبويبات، نوافذ، تنبيهات
+    │       ├── forms.js    التحقق ومعالجة المدخلات الحساسة
+    │       └── utils.js    أدوات مشتركة
+    │
+    ├── img/
+    └── vendor/fontawesome/
 ```
 
-**Shared partials, loaded at runtime.** The header, footer and modals live once in `assests/components/` and are injected into every page by `main.js` on load — so a change to the navigation happens in one file, not twelve. This is the same instinct a component framework encodes, implemented by hand.
+<div dir="rtl">
 
-**RTL from the start.** The document direction is Arabic; the layout was designed for it rather than mirrored into it afterwards.
+### قواعد الهيكلة
 
----
+- **لا لون ولا مقاس ثابت خارج `tokens.css`.** كل قيمة تصميمية تبدأ من هناك.
+- **البيانات في `data.js` فقط.** لا يتكرر اسم يتيم ولا سعر برنامج في أي صفحة.
+- **الهيدر والفوتر يُبنيان من `layout.js`** — مصدر واحد بدل تكرارهما في ١٥ ملفاً.
+- **خصائص منطقية الاتجاه** (`inset-inline`, `padding-block`) في كل مكان، فيعمل
+  التخطيط في RTL و LTR دون تعديل.
 
-## Tech stack
+</div>
 
-**HTML5** · **CSS3** (custom properties, Flexbox, Grid) · **Vanilla JavaScript** · **Font Awesome** for icons
-
-No build step, no dependencies, no bundler.
-
----
-
-## Getting started
-
-Open `index.html` directly in a browser, or serve the folder with any static server:
+## 🚀 Getting started
 
 ```bash
 npx serve .
+# ثم افتح http://localhost:3000
 ```
 
-A server is recommended over opening the file directly, because the shared header and footer are fetched at runtime and browsers block `fetch` on `file://` URLs.
+<div dir="rtl">
 
----
+يحتاج المشروع خادماً محلياً لأن JavaScript مكتوب بوحدات ES Modules،
+والمتصفح يمنع تحميلها عبر `file://` لأسباب أمنية. أي خادم ساكن يكفي —
+أو إضافة **Live Server** في VS Code.
 
-## Project structure
+عند النشر على GitHub Pages أو Netlify يعمل مباشرة بلا أي إعداد.
 
-```
-*.html                       the twelve pages
-assests/
-  components/                header, footer and modals — injected at runtime
-  css/                       tokens, base, layouts, components, pages
-  js/main.js                 component loading and all interactions
-  img/                       photography and illustrations
-  font/ · webfonts/          Font Awesome
-```
+</div>
 
----
+## 🛠 Stack
 
-## Author
-
-**Ahmed Al-Hawajiri** — Full-Stack Developer
-[GitHub](https://github.com/ahmedalhawajri89) · [LinkedIn](https://www.linkedin.com/in/ahmedalhawajri)
-
-Licensed under the MIT License.
+**HTML5 · CSS3 · JavaScript (ES Modules)** — no framework, no build step, no runtime
+dependency. Font Awesome is vendored locally; only the web fonts come from a CDN.
 
 ---
 
 <div dir="rtl">
 
-## نبذة بالعربية
+## 👤 المطوّر
 
-منصّة عربية لكفالة الأيتام والتبرّع، اثنتا عشرة صفحة كاملة تغطّي الرحلة من قراءة ملف الطفل حتى كفالة شهرية مؤكَّدة — مبنية بـ HTML و CSS و JavaScript فقط.
-
-**عدم استخدام أي إطار عمل كان قراراً مقصوداً.** كل تخطيط ومكوّن وحالة وتفاعل مكتوب باليد، وهذا ما يجعل المشروع أوضح دليل على الأساسيات التي تقوم عليها بقية مشاريعي.
-
-**نظام تصميم حقيقي بـ CSS خام:** ملف `variables.css` يحمل اللغة البصرية كاملة كمتغيّرات — تدرّج لوني كامل للهوية من 50 إلى 900، وألوان مساعدة، وسلّم رمادي، ومسافات وزوايا وظلال وحركة. لا يوجد لون مكتوب يدوياً في أي ملف آخر، وتغيير الهوية يعني تعديل ملف واحد.
-
-**والملفات مقسّمة حسب المسؤولية لا حسب الصفحة:** توكنز، وأساسيات، وتخطيطات، ومكوّنات، وواجهة مشتركة، ولوحة المستخدم.
-
-**الترويسة والتذييل والنوافذ المنبثقة مكتوبة مرة واحدة** في مجلد مستقل، ويحقنها `main.js` في كل صفحة عند التحميل — فتعديل القائمة يحدث في ملف واحد لا في اثني عشر. وهذه نفس الفكرة التي تقوم عليها أطر المكوّنات، منفَّذة يدوياً.
-
-**والاتجاه من اليمين لليسار أصلي في التصميم** لا معكوس عنه لاحقاً.
-
-**للتشغيل:** افتح `index.html` مباشرة، أو الأفضل شغّل خادماً بسيطاً بأمر `npx serve .` — لأن المتصفحات تمنع جلب الملفات المشتركة عند فتح الصفحة من القرص مباشرة.
+**أحمد الحواجري** — مطوّر ومصمم واجهات · أتمتة بيانات
+الخليل، فلسطين
 
 </div>
+
+## 📄 License
+
+[MIT](LICENSE)

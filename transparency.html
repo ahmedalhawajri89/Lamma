@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>الشفافية والتقارير | كفالة</title>
+  <meta name="description" content="أين يذهب كل دولار؟ ميزانية مدقّقة، توزيع الإنفاق، سياسة حماية الطفل، وتقارير سنوية متاحة للجميع.">
+  <meta name="theme-color" content="#c2410c">
+
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self'; connect-src 'self'; form-action 'self'; base-uri 'self'; object-src 'none'">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+
+  <link rel="canonical" href="transparency.html">
+  <link rel="icon" href="assets/img/logo.png" type="image/png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300;400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Aref+Ruqaa:wght@400;700&display=swap">
+
+  <link rel="stylesheet" href="assets/vendor/fontawesome/css/all.min.css">
+  <link rel="stylesheet" href="assets/css/tokens.css">
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/layout.css">
+  <link rel="stylesheet" href="assets/css/site.css">
+  <link rel="stylesheet" href="assets/css/components.css">
+  <link rel="stylesheet" href="assets/css/sections.css">
+  <link rel="stylesheet" href="assets/css/pages.css">
+
+  <script type="module" src="assets/js/main.js"></script>
+</head>
+
+<body data-header="solid" class="page-body">
+  <div data-layout="header"></div>
+
+  <main id="main">
+
+    <section class="page-hero">
+      <div class="glow" aria-hidden="true"></div>
+      <div class="container">
+        <div class="page-hero__inner">
+          <nav aria-label="مسار التنقل">
+            <ol class="breadcrumb">
+              <li><a href="index.html">الرئيسية</a></li>
+              <li><span aria-current="page">الشفافية</span></li>
+            </ol>
+          </nav>
+          <span class="eyebrow">الشفافية</span>
+          <h1 class="page-hero__title">لا نطلب منك أن تثق بنا. نطلب أن تتحقق.</h1>
+          <p class="page-hero__lede">
+            كل ما في هذه الصفحة منشور للعموم، لا للكفلاء وحدهم.
+            ومن حق أي شخص أن يسأل عن أي بند ويحصل على جواب خلال ٧٢ ساعة.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- توزيع الإنفاق -->
+    <section class="section">
+      <div class="container">
+        <div class="split">
+          <div data-reveal="start">
+            <div id="spendingDonut"></div>
+          </div>
+
+          <div class="stack stack--lg" data-reveal="end">
+            <span class="eyebrow">السنة المالية ٢٠٢٥</span>
+            <h2>أين يذهب كل دولار</h2>
+            <p class="section-lede">
+              هذه أرقام آخر سنة مالية مدقّقة من مكتب محاسبة مستقل.
+              المصاريف الإدارية ٧٪ فقط، ومغطاة أساساً من داعمين مخصصين لهذا الغرض.
+            </p>
+            <ul class="legend" role="list" id="spendingLegend"></ul>
+            <a class="btn btn--primary" href="#reports">
+              <i class="fa-solid fa-file-arrow-down" aria-hidden="true"></i>
+              التقارير المدقّقة
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- أرقام السنة -->
+    <section class="section section--ink">
+      <div class="container">
+        <div class="section-head section-head--center" data-reveal>
+          <span class="eyebrow">بالأرقام</span>
+          <h2>ماذا أنجزنا في ٢٠٢٥؟</h2>
+        </div>
+
+        <div class="grid grid--auto-sm">
+          <div class="stat" data-reveal>
+            <div class="stat__value"><span data-count="2140000" data-suffix="">0</span></div>
+            <p class="stat__label">دولاراً وصل للمستفيدين</p>
+          </div>
+          <div class="stat" data-reveal data-reveal-delay="80">
+            <div class="stat__value"><span data-count="3280" data-suffix="+">0</span></div>
+            <p class="stat__label">يتيماً مكفولاً</p>
+          </div>
+          <div class="stat" data-reveal data-reveal-delay="160">
+            <div class="stat__value"><span data-count="11420">0</span></div>
+            <p class="stat__label">زيارة ميدانية موثّقة</p>
+          </div>
+          <div class="stat" data-reveal data-reveal-delay="240">
+            <div class="stat__value"><span data-count="0" data-suffix="">0</span></div>
+            <p class="stat__label">ملاحظة جوهرية من المدقق</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- التقارير -->
+    <section class="section" id="reports">
+      <div class="container">
+        <div class="section-head section-head--center" data-reveal>
+          <span class="eyebrow">التقارير</span>
+          <h2>الوثائق المتاحة للجميع</h2>
+          <p class="section-lede">تُحدَّث سنوياً في الربع الأول بعد اعتماد المدقق الخارجي.</p>
+        </div>
+
+        <div class="grid grid--auto">
+          <article class="card card--lift" data-reveal>
+            <div class="icon-box icon-box--arch"><i class="fa-solid fa-file-invoice-dollar" aria-hidden="true"></i></div>
+            <h3 class="card__title">الميزانية المدقّقة ٢٠٢٥</h3>
+            <p class="card__text">بيان الإيرادات والمصروفات كاملاً، معتمداً من مكتب تدقيق مستقل.</p>
+            <a class="link-arrow" href="#">تحميل PDF <i class="fa-solid fa-arrow-down" aria-hidden="true"></i></a>
+          </article>
+
+          <article class="card card--lift" data-reveal data-reveal-delay="80">
+            <div class="icon-box icon-box--accent icon-box--arch"><i class="fa-solid fa-chart-line" aria-hidden="true"></i></div>
+            <h3 class="card__title">التقرير السنوي ٢٠٢٥</h3>
+            <p class="card__text">ما أنجزناه وما أخفقنا فيه، بالأرقام والصور والدروس المستفادة.</p>
+            <a class="link-arrow" href="#">تحميل PDF <i class="fa-solid fa-arrow-down" aria-hidden="true"></i></a>
+          </article>
+
+          <article class="card card--lift" data-reveal data-reveal-delay="160">
+            <div class="icon-box icon-box--growth icon-box--arch"><i class="fa-solid fa-hand-holding-heart" aria-hidden="true"></i></div>
+            <h3 class="card__title">تقرير الزكاة المستقل</h3>
+            <p class="card__text">سجل منفصل لأموال الزكاة: ما جُمع، ولمن صُرف، بلا أي خصم إداري.</p>
+            <a class="link-arrow" href="#">تحميل PDF <i class="fa-solid fa-arrow-down" aria-hidden="true"></i></a>
+          </article>
+
+          <article class="card card--lift" data-reveal data-reveal-delay="240">
+            <div class="icon-box icon-box--info icon-box--arch"><i class="fa-solid fa-certificate" aria-hidden="true"></i></div>
+            <h3 class="card__title">التراخيص والاعتمادات</h3>
+            <p class="card__text">شهادة التسجيل، رخصة العمل الخيري، واعتمادات الجهات الشريكة.</p>
+            <a class="link-arrow" href="#">عرض الوثائق <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- سياسة حماية الطفل -->
+    <section class="section section--surface" id="child-policy">
+      <div class="container container--narrow">
+        <div class="section-head" data-reveal>
+          <span class="eyebrow">سياسة حماية الطفل</span>
+          <h2>قواعد نلتزم بها حتى حين تكلّفنا تبرعات</h2>
+        </div>
+
+        <div class="stack stack--lg" data-reveal>
+          <article class="card">
+            <h3 class="card__title">في التصوير والنشر</h3>
+            <ul class="check-list" role="list">
+              <li>لا ننشر صورة طفل دون موافقة خطية من وصيّه القانوني.</li>
+              <li>لا نصوّر أطفالاً باكين أو في وضع مُذِلّ، مهما كان أثر ذلك على التبرعات.</li>
+              <li>لا نذكر العنوان التفصيلي أو اسم المدرسة في أي محتوى عام.</li>
+              <li>يحق للأسرة سحب الموافقة في أي وقت، فنحذف المحتوى خلال ٤٨ ساعة.</li>
+            </ul>
+          </article>
+
+          <article class="card">
+            <h3 class="card__title">في التواصل بين الكافل والطفل</h3>
+            <ul class="check-list" role="list">
+              <li>كل رسالة تمرّ بمشرف ميداني قبل تسليمها.</li>
+              <li>لا تُشارك بيانات اتصال مباشرة بين الطرفين.</li>
+              <li>الزيارات الميدانية بترتيب مسبق وبحضور مشرف دائماً.</li>
+              <li>كل من يعمل مع الأطفال يخضع لفحص سوابق ودورة حماية معتمدة.</li>
+            </ul>
+          </article>
+
+          <article class="card">
+            <h3 class="card__title">في حماية بياناتك أنت</h3>
+            <ul class="check-list" role="list">
+              <li>لا نبيع أو نشارك بياناتك مع أي جهة تسويقية.</li>
+              <li>لا نحتفظ ببيانات بطاقتك على خوادمنا — تُعالَج لدى بوابة الدفع مباشرة.</li>
+              <li>يمكنك طلب حذف حسابك وبياناتك كاملةً في أي وقت.</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- سؤال مفتوح -->
+    <section class="section section--flush-t">
+      <div class="container">
+        <div class="cta-band" data-reveal="scale">
+          <div class="cta-band__inner">
+            <h2>لديك سؤال عن بند معيّن؟</h2>
+            <p>اسأل عن أي رقم في أي تقرير. نلتزم بالرد خلال ٧٢ ساعة، ونشر الجواب إن كان يهم غيرك.</p>
+            <a class="btn btn--invert btn--lg" href="contact.html">اطرح سؤالك</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <div data-layout="footer"></div>
+
+  <button class="to-top" type="button" id="toTop" aria-label="العودة إلى أعلى الصفحة">
+    <svg class="to-top__ring" viewBox="0 0 54 54" aria-hidden="true"><circle cx="27" cy="27" r="25"></circle></svg>
+    <i class="fa-solid fa-arrow-up" aria-hidden="true"></i>
+  </button>
+</body>
+</html>

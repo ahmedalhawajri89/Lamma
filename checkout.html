@@ -2,184 +2,288 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>إتمام الكفالة | كفالة</title>
+  <meta name="description" content="خطوة أخيرة لتفعيل كفالتك. دفع مشفّر، ولا نحتفظ ببيانات بطاقتك.">
+  <meta name="theme-color" content="#c2410c">
+
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self'; connect-src 'self'; form-action 'self'; base-uri 'self'; object-src 'none'">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta name="robots" content="noindex, nofollow">
+
+  <link rel="icon" href="assets/img/logo.png" type="image/png">
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;500;600;700;800&family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
-  <link rel="shortcut icon" href="assests/img/6144-removebg-preview.png" type="image/x-icon">
-  
-  <!-- Modern Design System -->
-  <link rel="stylesheet" href="assests/css/base.css">
-  <link rel="stylesheet" href="assests/css/variables.css">
-  <link rel="stylesheet" href="assests/css/layouts.css">
-  <link rel="stylesheet" href="assests/css/components.css">
-  
-  <title>إتمام الكفالة | كفالة</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300;400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Aref+Ruqaa:wght@400;700&display=swap">
+
+  <link rel="stylesheet" href="assets/vendor/fontawesome/css/all.min.css">
+  <link rel="stylesheet" href="assets/css/tokens.css">
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/layout.css">
+  <link rel="stylesheet" href="assets/css/site.css">
+  <link rel="stylesheet" href="assets/css/components.css">
+  <link rel="stylesheet" href="assets/css/sections.css">
+  <link rel="stylesheet" href="assets/css/pages.css">
+
+  <script type="module" src="assets/js/main.js"></script>
 </head>
-<body class="kfl-app kfl-bg-gray">
 
-  <div id="header-placeholder"></div>
+<body data-header="solid" class="page-body">
+  <div data-layout="header"></div>
 
-  <!-- Page Header -->
-  <section class="kfl-section" style="background-color: var(--kfl-white); border-bottom: 1px solid var(--kfl-gray-200); padding-top: calc(var(--kfl-space-24) + 60px); padding-bottom: var(--kfl-space-8); text-align: center;">
-    <div class="kfl-container reveal">
-      <h1 class="kfl-section-title" style="color: var(--kfl-primary-600);">إتمام عملية الكفالة</h1>
-      <p class="kfl-section-desc">خطوة واحدة تفصلك عن صناعة الأثر وتغيير حياة طفل</p>
-    </div>
-  </section>
+  <main id="main">
+    <section class="section">
+      <div class="container">
 
-  <!-- Checkout Section -->
-  <section class="kfl-section">
-    <div class="kfl-container" style="max-width: 1000px;">
-      <div style="display: grid; grid-template-columns: 1fr; gap: var(--kfl-space-8); align-items: start;">
-        
-        <div style="display: grid; grid-template-columns: 1fr; gap: var(--kfl-space-8);">
-          
-          <!-- Payment Form Card -->
-          <div class="kfl-card reveal-right" style="padding: var(--kfl-space-8);">
-            <h3 style="font-size: 1.5rem; font-weight: 700; color: var(--kfl-gray-900); margin-bottom: var(--kfl-space-6);">بيانات الدفع</h3>
-            
-            <!-- Payment Method Selector -->
-            <div style="display: flex; gap: var(--kfl-space-4); margin-bottom: var(--kfl-space-8);">
-              <label style="flex: 1; cursor: pointer;">
-                <input type="radio" name="payment" style="display:none;" checked>
-                <div class="kfl-payment-method active" onclick="selectPayment(this)">
-                  <i class="fa-brands fa-cc-visa" style="font-size: 2rem;"></i>
-                  <span style="font-weight: 700; font-size: 0.9rem;">بطاقة ائتمان</span>
-                </div>
-              </label>
-              <label style="flex: 1; cursor: pointer;">
-                <input type="radio" name="payment" style="display:none;">
-                <div class="kfl-payment-method" onclick="selectPayment(this)">
-                  <i class="fa-brands fa-apple" style="font-size: 2rem;"></i>
-                  <span style="font-weight: 700; font-size: 0.9rem;">Apple Pay</span>
-                </div>
-              </label>
-              <label style="flex: 1; cursor: pointer;">
-                <input type="radio" name="payment" style="display:none;">
-                <div class="kfl-payment-method" onclick="selectPayment(this)">
-                  <i class="fa-solid fa-building-columns" style="font-size: 2rem;"></i>
-                  <span style="font-weight: 700; font-size: 0.9rem;">تحويل بنكي</span>
-                </div>
-              </label>
-            </div>
+        <!-- الخطوات -->
+        <ol class="steps" aria-label="مراحل إتمام الكفالة">
+          <li class="is-done">
+            <span class="steps__dot" aria-hidden="true"><i class="fa-solid fa-check"></i></span>
+            اختيار الطفل
+          </li>
+          <li aria-current="step">
+            <span class="steps__dot num" aria-hidden="true">٢</span>
+            الدفع
+          </li>
+          <li>
+            <span class="steps__dot num" aria-hidden="true">٣</span>
+            التأكيد
+          </li>
+        </ol>
 
-            <form action="thank-you.html">
-              <div class="kfl-form-group">
-                <label class="kfl-label">الاسم على البطاقة</label>
-                <input type="text" class="kfl-input" placeholder="الاسم كما يظهر على البطاقة" required>
-              </div>
-              <div class="kfl-form-group">
-                <label class="kfl-label">رقم البطاقة</label>
-                <div class="kfl-input-wrapper">
-                  <input type="text" id="cardNumber" class="kfl-input" placeholder="0000 0000 0000 0000" required>
-                  <i class="fa-regular fa-credit-card kfl-input-icon"></i>
+        <div class="checkout" id="checkoutSummary">
+
+          <!-- النموذج -->
+          <div class="stack stack--lg">
+
+            <div class="card" style="padding:var(--space-8)">
+              <h1 style="font-size:var(--text-xl)">بيانات الكفالة</h1>
+
+              <form id="checkoutForm" data-validate-form novalidate>
+
+                <!-- نوع الكفالة -->
+                <fieldset style="border:0;padding:0;margin:0 0 var(--space-6)">
+                  <legend class="field__label" style="margin-block-end:var(--space-3)">تكرار الكفالة</legend>
+                  <div class="chip-group" data-chips>
+                    <button class="chip is-active" type="button" data-value="monthly">شهرية</button>
+                    <button class="chip" type="button" data-value="quarterly">كل ٣ أشهر</button>
+                    <button class="chip" type="button" data-value="yearly">سنوية</button>
+                  </div>
+                </fieldset>
+
+                <!-- الزكاة -->
+                <div class="field" style="margin-block-end:var(--space-6)">
+                  <label class="checkbox">
+                    <input type="checkbox" name="zakat">
+                    <span>
+                      احتسب هذا المبلغ من الزكاة
+                      <span class="field__hint" style="display:block">
+                        سنوجّه مبلغك للحالات المستحقة زكوياً، بلا أي خصم إداري.
+                      </span>
+                    </span>
+                  </label>
                 </div>
-              </div>
-              <div style="display: flex; gap: var(--kfl-space-4);">
-                <div class="kfl-form-group" style="flex: 1;">
-                  <label class="kfl-label">تاريخ الانتهاء</label>
-                  <input type="text" class="kfl-input" placeholder="MM/YY" required>
-                </div>
-                <div class="kfl-form-group" style="flex: 1;">
-                  <label class="kfl-label">رمز الأمان (CVC)</label>
-                  <div class="kfl-input-wrapper">
-                    <input type="password" class="kfl-input" placeholder="123" required>
-                    <i class="fa-solid fa-lock kfl-input-icon"></i>
+
+                <!-- بيانات الكافل -->
+                <h2 style="font-size:var(--text-md);margin-block-end:var(--space-4)">بياناتك</h2>
+
+                <div class="grid grid--2" style="gap:var(--space-4);margin-block-end:var(--space-4)">
+                  <div class="field">
+                    <label class="field__label" for="donorName">الاسم الكامل <span class="req">*</span></label>
+                    <div class="field__control">
+                      <i class="fa-regular fa-user field__icon" aria-hidden="true"></i>
+                      <input class="input" type="text" id="donorName" name="name"
+                             autocomplete="name" data-validate="required|minlength:3"
+                             aria-describedby="err-donorName">
+                    </div>
+                    <p class="field__error" id="err-donorName" role="alert"></p>
+                  </div>
+
+                  <div class="field">
+                    <label class="field__label" for="donorEmail">البريد الإلكتروني <span class="req">*</span></label>
+                    <div class="field__control">
+                      <i class="fa-regular fa-envelope field__icon" aria-hidden="true"></i>
+                      <input class="input" type="email" id="donorEmail" name="email"
+                             autocomplete="email" inputmode="email" data-validate="required|email"
+                             aria-describedby="err-donorEmail">
+                    </div>
+                    <p class="field__error" id="err-donorEmail" role="alert"></p>
                   </div>
                 </div>
-              </div>
-              
-              <!-- Trust Badges -->
-              <div style="display: flex; align-items: center; gap: var(--kfl-space-4); padding: var(--kfl-space-4); background: var(--kfl-gray-50); border-radius: var(--kfl-radius-lg); margin-bottom: var(--kfl-space-6); margin-top: var(--kfl-space-2);">
-                <i class="fa-solid fa-shield-halved" style="color: var(--kfl-primary-600); font-size: 1.5rem;"></i>
-                <span style="font-size: 0.9rem; color: var(--kfl-gray-600);">جميع المعاملات مشفرة وآمنة بتقنية SSL 256-bit</span>
-              </div>
 
-              <button type="submit" class="kfl-btn-premium" style="width: 100%; justify-content: center; padding: 1rem; font-size: 1.1rem; border-radius: var(--kfl-radius-xl);">
-                <span class="btn-text">إتمام الدفع وتفعيل الكفالة</span>
-                <div class="btn-pulse"></div>
-                <i class="fa-solid fa-lock btn-icon"></i>
-              </button>
-            </form>
+                <div class="field" style="margin-block-end:var(--space-8)">
+                  <label class="field__label" for="donorPhone">رقم الجوال</label>
+                  <div class="field__control">
+                    <i class="fa-solid fa-mobile-screen field__icon" aria-hidden="true"></i>
+                    <input class="input" type="tel" id="donorPhone" name="phone"
+                           autocomplete="tel" inputmode="tel" dir="ltr"
+                           data-validate="phone" aria-describedby="err-donorPhone hint-phone">
+                  </div>
+                  <p class="field__hint" id="hint-phone">اختياري — نستخدمه فقط لإشعارك بوصول التقارير.</p>
+                  <p class="field__error" id="err-donorPhone" role="alert"></p>
+                </div>
+
+                <!-- وسيلة الدفع -->
+                <h2 style="font-size:var(--text-md);margin-block-end:var(--space-4)">وسيلة الدفع</h2>
+
+                <fieldset class="pay-methods" style="border:0;padding:0;margin:0 0 var(--space-8)">
+                  <legend class="sr-only">اختر وسيلة الدفع</legend>
+
+                  <label class="pay-method">
+                    <input type="radio" name="payment" value="card" checked>
+                    <i class="fa-regular fa-credit-card" aria-hidden="true"></i>
+                    <span>بطاقة ائتمان</span>
+                  </label>
+
+                  <label class="pay-method">
+                    <input type="radio" name="payment" value="applepay">
+                    <i class="fa-brands fa-apple-pay" aria-hidden="true"></i>
+                    <span>Apple Pay</span>
+                  </label>
+
+                  <label class="pay-method">
+                    <input type="radio" name="payment" value="bank">
+                    <i class="fa-solid fa-building-columns" aria-hidden="true"></i>
+                    <span>تحويل بنكي</span>
+                  </label>
+                </fieldset>
+
+                <!-- معاينة البطاقة -->
+                <div class="card-preview" aria-hidden="true">
+                  <div class="card-preview__chip"></div>
+                  <div class="card-preview__number" id="previewNumber">•••• •••• •••• ••••</div>
+                  <div class="card-preview__row">
+                    <div>
+                      <span>CARD HOLDER</span>
+                      <div id="previewHolder">الاسم على البطاقة</div>
+                    </div>
+                    <div>
+                      <span>EXPIRES</span>
+                      <div id="previewExpiry">MM/YY</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- بيانات البطاقة -->
+                <div class="field" style="margin-block-end:var(--space-4)">
+                  <label class="field__label" for="cardHolder">الاسم على البطاقة <span class="req">*</span></label>
+                  <div class="field__control">
+                    <input class="input" type="text" id="cardHolder" name="cc-name"
+                           autocomplete="cc-name" data-validate="required|minlength:3"
+                           aria-describedby="err-cardHolder">
+                  </div>
+                  <p class="field__error" id="err-cardHolder" role="alert"></p>
+                </div>
+
+                <div class="field" style="margin-block-end:var(--space-4)">
+                  <label class="field__label" for="cardNumber">رقم البطاقة <span class="req">*</span></label>
+                  <div class="field__control">
+                    <i class="fa-regular fa-credit-card field__icon" aria-hidden="true"></i>
+                    <input class="input" type="text" id="cardNumber" name="cc-number"
+                           autocomplete="cc-number" inputmode="numeric" dir="ltr"
+                           placeholder="4242 4242 4242 4242"
+                           data-validate="required|card" aria-describedby="err-cardNumber">
+                  </div>
+                  <p class="field__error" id="err-cardNumber" role="alert"></p>
+                </div>
+
+                <div class="grid grid--2" style="gap:var(--space-4);margin-block-end:var(--space-6)">
+                  <div class="field">
+                    <label class="field__label" for="cardExpiry">تاريخ الانتهاء <span class="req">*</span></label>
+                    <div class="field__control">
+                      <input class="input" type="text" id="cardExpiry" name="cc-exp"
+                             autocomplete="cc-exp" inputmode="numeric" dir="ltr" placeholder="MM/YY"
+                             data-validate="required|expiry" aria-describedby="err-cardExpiry">
+                    </div>
+                    <p class="field__error" id="err-cardExpiry" role="alert"></p>
+                  </div>
+
+                  <div class="field">
+                    <label class="field__label" for="cardCvc">رمز الأمان <span class="req">*</span></label>
+                    <div class="field__control">
+                      <i class="fa-solid fa-lock field__icon" aria-hidden="true"></i>
+                      <input class="input" type="password" id="cardCvc" name="cc-csc"
+                             autocomplete="cc-csc" inputmode="numeric" dir="ltr" placeholder="123"
+                             data-validate="required|cvc" aria-describedby="err-cardCvc">
+                    </div>
+                    <p class="field__error" id="err-cardCvc" role="alert"></p>
+                  </div>
+                </div>
+
+                <div class="secure-note" style="margin-block-end:var(--space-6)">
+                  <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+                  <span>
+                    الاتصال مشفّر، وبيانات بطاقتك تُعالَج لدى بوابة الدفع مباشرة —
+                    لا تمرّ بخوادمنا ولا نحتفظ بها إطلاقاً.
+                  </span>
+                </div>
+
+                <button class="btn btn--primary btn--lg btn--block" type="submit">
+                  <i class="fa-solid fa-lock" aria-hidden="true"></i>
+                  تفعيل الكفالة
+                </button>
+
+                <p class="field__hint text-center" style="margin-block-start:var(--space-4)">
+                  بالمتابعة أنت توافق على
+                  <a href="transparency.html#child-policy">شروط الكفالة وسياسة الخصوصية</a>.
+                  يمكنك الإيقاف في أي وقت بلا رسوم.
+                </p>
+              </form>
+            </div>
+
           </div>
 
-          <!-- Order Summary Card -->
-          <div class="kfl-card reveal-left" style="background: linear-gradient(135deg, var(--kfl-primary-700), var(--kfl-primary-900)); color: var(--kfl-white); border: none; position: relative; overflow: hidden;">
-            <!-- Decorative Blob -->
-            <div style="position: absolute; top: -60px; left: -60px; width: 200px; height: 200px; background: rgba(255,255,255,0.05); border-radius: 50%; filter: blur(30px);"></div>
+          <!-- الملخص -->
+          <aside class="summary" aria-label="ملخص الكفالة">
+            <h2 style="font-size:var(--text-md)">ملخص الكفالة</h2>
 
-            <h3 style="font-size: 1.3rem; font-weight: 700; color: var(--kfl-white); margin-bottom: var(--kfl-space-6); position: relative; z-index: 2;">ملخص الكفالة</h3>
-            
-            <!-- Child Info -->
-            <div style="display: flex; align-items: center; gap: var(--kfl-space-4); margin-bottom: var(--kfl-space-8); background: rgba(255,255,255,0.1); padding: var(--kfl-space-4); border-radius: var(--kfl-radius-xl); border: 1px solid rgba(255,255,255,0.2); position: relative; z-index: 2;">
-              <img src="assests/img/child2.jpg" alt="اليتيم" style="width: 64px; height: 64px; border-radius: var(--kfl-radius-lg); object-fit: cover; flex-shrink: 0;">
+            <div class="summary__child">
+              <img data-checkout="photo" src="assets/img/child-01.jpg" alt="" width="56" height="56">
               <div>
-                <h4 style="font-weight: 700; font-size: 1.1rem; color: var(--kfl-white); margin-bottom: 0.3rem;">الطفل: أحمد</h4>
-                <span class="kfl-badge kfl-badge-primary" style="font-size: 0.8rem;">كفالة شاملة</span>
+                <strong data-checkout="name">…</strong>
+                <span class="badge badge--brand" data-checkout="program">…</span>
               </div>
             </div>
-            
-            <!-- Price Breakdown -->
-            <div style="display: flex; flex-direction: column; gap: var(--kfl-space-4); position: relative; z-index: 2;">
-              <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: var(--kfl-space-4); border-bottom: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.8);">
-                <span>قيمة الكفالة الشهرية</span>
-                <span style="font-weight: 700; color: var(--kfl-white);">200 ر.س</span>
+
+            <div class="summary__lines">
+              <div class="summary__line">
+                <span>رقم الملف</span>
+                <strong class="num" data-checkout="id">…</strong>
               </div>
-              <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: var(--kfl-space-4); border-bottom: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.8);">
-                <span>المدة</span>
-                <span style="font-weight: 700; color: var(--kfl-white);">سنة واحدة (تجدد)</span>
+              <div class="summary__line">
+                <span>الكفالة الشهرية</span>
+                <strong class="num" data-checkout="price">…</strong>
               </div>
-              <div style="display: flex; justify-content: space-between; align-items: center; padding-top: var(--kfl-space-2);">
-                <span style="font-size: 1.1rem; color: rgba(255,255,255,0.9);">الإجمالي (أول شهر)</span>
-                <span style="font-size: 1.8rem; font-weight: 800; color: #6ee7b7;">200 ر.س</span>
+              <div class="summary__line">
+                <span>رسوم المنصة</span>
+                <strong style="color:var(--color-success)">لا يوجد</strong>
               </div>
             </div>
-          </div>
+
+            <div class="summary__total">
+              <span>الإجمالي الآن</span>
+              <strong class="num" data-checkout="price">…</strong>
+            </div>
+
+            <div class="secure-note">
+              <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+              <span>٩٣٪ من هذا المبلغ يصل للطفل مباشرة، والباقي مصاريف تشغيل موثّقة.</span>
+            </div>
+
+            <a class="link-arrow" href="orphans.html">
+              <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+              تغيير الطفل المختار
+            </a>
+          </aside>
 
         </div>
       </div>
-    </div>
-  </section>
+    </section>
+  </main>
 
-  <div id="footer-placeholder"></div>
-  <div id="modals-placeholder"></div>
-
-  <script src="assests/js/main.js"></script>
-  <script>
-    function selectPayment(el) {
-      document.querySelectorAll('.kfl-payment-method').forEach(m => m.classList.remove('active'));
-      el.classList.add('active');
-    }
-  </script>
-
-  <style>
-    .kfl-payment-method {
-      border: 2px solid var(--kfl-gray-200);
-      border-radius: var(--kfl-radius-xl);
-      padding: var(--kfl-space-4);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: var(--kfl-space-2);
-      transition: all var(--kfl-transition-normal);
-      color: var(--kfl-gray-600);
-    }
-    .kfl-payment-method.active {
-      border-color: var(--kfl-primary-500);
-      background: var(--kfl-primary-50);
-      color: var(--kfl-primary-700);
-    }
-    .kfl-payment-method:hover {
-      border-color: var(--kfl-primary-300);
-    }
-    /* Two-column grid for large screens */
-    @media (min-width: 768px) {
-      .kfl-checkout-grid { grid-template-columns: 1.4fr 1fr !important; }
-    }
-  </style>
+  <div data-layout="footer"></div>
 </body>
 </html>

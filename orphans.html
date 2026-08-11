@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>الأيتام بانتظار الكفالة | كفالة</title>
+  <meta name="description" content="تصفّح الحالات الموثّقة وابحث حسب البرنامج أو الدولة. كل حالة مزارة ميدانياً ومراجَعة من لجنة مستقلة.">
+  <meta name="theme-color" content="#c2410c">
+
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self'; connect-src 'self'; form-action 'self'; base-uri 'self'; object-src 'none'">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+
+  <link rel="canonical" href="orphans.html">
+  <link rel="icon" href="assets/img/logo.png" type="image/png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300;400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Aref+Ruqaa:wght@400;700&display=swap">
+
+  <link rel="stylesheet" href="assets/vendor/fontawesome/css/all.min.css">
+  <link rel="stylesheet" href="assets/css/tokens.css">
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/layout.css">
+  <link rel="stylesheet" href="assets/css/site.css">
+  <link rel="stylesheet" href="assets/css/components.css">
+  <link rel="stylesheet" href="assets/css/sections.css">
+  <link rel="stylesheet" href="assets/css/pages.css">
+
+  <script type="module" src="assets/js/main.js"></script>
+</head>
+
+<body data-header="solid" class="page-body">
+  <div data-layout="header"></div>
+
+  <main id="main">
+
+    <section class="page-hero">
+      <div class="glow" aria-hidden="true"></div>
+      <div class="container">
+        <div class="page-hero__inner">
+          <nav aria-label="مسار التنقل">
+            <ol class="breadcrumb">
+              <li><a href="index.html">الرئيسية</a></li>
+              <li><span aria-current="page">الأيتام</span></li>
+            </ol>
+          </nav>
+          <span class="eyebrow"><span class="pulse-dot"></span> بانتظار كافل</span>
+          <h1 class="page-hero__title">اختر من تقف معه</h1>
+          <p class="page-hero__lede">
+            كل حالة هنا مرّت بثلاث مراحل تحقّق وزيارة ميدانية غير معلنة.
+            رتّبناها بحيث تظهر الأشد احتياجاً أولاً.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+
+        <!-- شريط الفلترة -->
+        <div class="filter-bar" role="search">
+          <div class="field filter-bar__search">
+            <label class="sr-only" for="orphanSearch">ابحث بالاسم أو الدولة</label>
+            <div class="field__control">
+              <i class="fa-solid fa-magnifying-glass field__icon" aria-hidden="true"></i>
+              <input class="input" type="search" id="orphanSearch"
+                     placeholder="ابحث بالاسم أو الدولة أو المدينة…" autocomplete="off">
+            </div>
+          </div>
+
+          <div class="field filter-bar__group">
+            <label class="sr-only" for="filterProgram">البرنامج</label>
+            <select class="select" id="filterProgram">
+              <option value="">كل البرامج</option>
+            </select>
+          </div>
+
+          <div class="field filter-bar__group">
+            <label class="sr-only" for="filterCountry">الدولة</label>
+            <select class="select" id="filterCountry">
+              <option value="">كل الدول</option>
+            </select>
+          </div>
+
+          <div class="field filter-bar__group">
+            <label class="sr-only" for="filterSort">الترتيب</label>
+            <select class="select" id="filterSort">
+              <option value="urgent">الأشد احتياجاً</option>
+              <option value="funded-asc">الأقل تغطية</option>
+              <option value="price-asc">الأقل مبلغاً</option>
+              <option value="price-desc">الأعلى مبلغاً</option>
+              <option value="age-asc">الأصغر سناً</option>
+            </select>
+          </div>
+
+          <button class="btn btn--ghost btn--sm" type="button" id="filterReset">
+            <i class="fa-solid fa-rotate-right" aria-hidden="true"></i> إعادة تعيين
+          </button>
+
+          <p class="filter-bar__count" role="status" aria-live="polite">
+            <strong class="num" id="orphanCount">0</strong> حالة معروضة
+          </p>
+        </div>
+
+        <!-- الشبكة -->
+        <h2 class="sr-only">نتائج الحالات المتاحة للكفالة</h2>
+        <div class="grid grid--auto" id="orphansGrid"></div>
+
+      </div>
+    </section>
+
+    <!-- طمأنة -->
+    <section class="section section--surface">
+      <div class="container container--narrow">
+        <div class="section-head section-head--center" data-reveal>
+          <span class="eyebrow">قبل أن تختار</span>
+          <h2>ثلاثة أشياء يطمئنك أن تعرفها</h2>
+        </div>
+
+        <div class="grid grid--auto-sm">
+          <article class="card" data-reveal>
+            <div class="icon-box icon-box--growth icon-box--arch"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></div>
+            <h3 class="card__title">لا التزام</h3>
+            <p class="card__text">يمكنك إيقاف الكفالة متى شئت بلا رسوم. نطلب فقط إشعاراً بشهر لتأمين بديل.</p>
+          </article>
+
+          <article class="card" data-reveal data-reveal-delay="80">
+            <div class="icon-box icon-box--accent icon-box--arch"><i class="fa-solid fa-camera-retro" aria-hidden="true"></i></div>
+            <h3 class="card__title">تقرير كل ٣ أشهر</h3>
+            <p class="card__text">صورة حديثة، درجات، تقرير صحي، وكشف بما صُرف — يصلك على بريدك ولوحتك.</p>
+          </article>
+
+          <article class="card" data-reveal data-reveal-delay="160">
+            <div class="icon-box icon-box--info icon-box--arch"><i class="fa-solid fa-user-shield" aria-hidden="true"></i></div>
+            <h3 class="card__title">خصوصية محفوظة</h3>
+            <p class="card__text">لا نشارك بياناتك مع أي جهة، ولا نعرض بيانات الطفل الكاملة إلا لكافله.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <div data-layout="footer"></div>
+
+  <button class="to-top" type="button" id="toTop" aria-label="العودة إلى أعلى الصفحة">
+    <svg class="to-top__ring" viewBox="0 0 54 54" aria-hidden="true"><circle cx="27" cy="27" r="25"></circle></svg>
+    <i class="fa-solid fa-arrow-up" aria-hidden="true"></i>
+  </button>
+</body>
+</html>

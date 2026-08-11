@@ -2,141 +2,175 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>إنشاء حساب | كفالة</title>
+  <meta name="description" content="أنشئ حسابك في دقيقة وابدأ كفالتك الأولى.">
+  <meta name="theme-color" content="#c2410c">
+
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self'; connect-src 'self'; form-action 'self'; base-uri 'self'; object-src 'none'">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+
+  <link rel="canonical" href="register.html">
+  <link rel="icon" href="assets/img/logo.png" type="image/png">
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;500;600;700;800&family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
-  <link rel="shortcut icon" href="assests/img/6144-removebg-preview.png" type="image/x-icon">
-  
-  <!-- Modern Design System -->
-  <link rel="stylesheet" href="assests/css/main-ui.css">
-  
-  <title>إنشاء حساب جديد - كفالة</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300;400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Aref+Ruqaa:wght@400;700&display=swap">
 
-  <style>
-    /* Small adjustment specific to register form for name fields */
-    .kfl-name-fields {
-      display: flex;
-      gap: var(--kfl-space-4);
-    }
-    .kfl-name-fields .kfl-form-group {
-      flex: 1;
-    }
-  </style>
+  <link rel="stylesheet" href="assets/vendor/fontawesome/css/all.min.css">
+  <link rel="stylesheet" href="assets/css/tokens.css">
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/layout.css">
+  <link rel="stylesheet" href="assets/css/site.css">
+  <link rel="stylesheet" href="assets/css/components.css">
+  <link rel="stylesheet" href="assets/css/sections.css">
+  <link rel="stylesheet" href="assets/css/pages.css">
+
+  <script type="module" src="assets/js/main.js"></script>
 </head>
+
 <body>
+  <a class="skip-link" href="#main">تخطَّ إلى المحتوى الرئيسي</a>
 
-  <div class="kfl-auth-wrapper">
-    
-    <!-- Form Side -->
-    <div class="kfl-auth-form-side">
-      <div class="kfl-auth-form-container">
-        
-        <div class="kfl-auth-logo">
-          <a href="index.html">
-            <img src="assests/img/6144-removebg-preview.png" alt="شعار كفالة">
+  <div class="auth">
+
+    <aside class="auth__aside">
+      <div class="auth__aside-inner">
+        <p class="quote-script" style="color:var(--amber-300);margin-block-end:var(--space-6)">
+          وَيُطْعِمُونَ الطَّعَامَ عَلَىٰ حُبِّهِ مِسْكِينًا وَيَتِيمًا وَأَسِيرًا
+        </p>
+        <h2>ابدأ من حيث تستطيع، وتوقّف متى شئت</h2>
+        <p>
+          لا حد أدنى مُلزم ولا التزام طويل. الحساب مجاني،
+          ويمكنك تصفّح كل الحالات قبل أن تقرر أي شيء.
+        </p>
+      </div>
+    </aside>
+
+    <main class="auth__main" id="main">
+      <div class="auth__form">
+
+        <a class="auth__back" href="index.html">
+          <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+          العودة للرئيسية
+        </a>
+
+        <div class="auth__head">
+          <a class="brand" href="index.html" style="justify-content:center;margin-block-end:var(--space-6)">
+            <img class="brand__mark" src="assets/img/logo.png" alt="" width="44" height="44">
+            <span class="brand__name">كفالة</span>
           </a>
+          <h1>أنشئ حسابك</h1>
+          <p>دقيقة واحدة تفصلك عن كفالتك الأولى.</p>
         </div>
 
-        <div class="kfl-auth-header">
-          <h1 class="kfl-auth-title">إنشاء حساب</h1>
-          <p class="kfl-auth-subtitle">انضم إلينا الآن وكن جزءاً من مجتمع الخير وصناعة الأمل.</p>
-        </div>
-
-        <div class="kfl-social-logins">
-          <button class="kfl-social-btn">
-            <i class="fa-brands fa-google" style="color: #DB4437; font-size: 1.2rem;"></i> سجل عبر Google
+        <div class="auth__social" style="grid-template-columns:1fr">
+          <button class="social-btn" type="button">
+            <i class="fa-brands fa-google" style="color:#db4437" aria-hidden="true"></i>
+            التسجيل عبر Google
           </button>
         </div>
 
-        <div class="kfl-auth-divider">أو عبر البريد الإلكتروني</div>
+        <p class="auth__divider">أو عبر البريد الإلكتروني</p>
 
-        <form action="user-dashboard.html" method="GET">
-          
-          <div class="kfl-name-fields">
-            <div class="kfl-form-group">
-              <label class="kfl-label" for="fname">الاسم الأول</label>
-              <div class="kfl-input-wrapper">
-                <input type="text" id="fname" class="kfl-input" placeholder="أحمد" required>
-                <i class="fa-regular fa-user kfl-input-icon"></i>
+        <form data-validate-form data-redirect="dashboard.html" novalidate>
+
+          <div class="grid grid--2" style="gap:var(--space-4);margin-block-end:var(--space-4)">
+            <div class="field">
+              <label class="field__label" for="firstName">الاسم الأول</label>
+              <div class="field__control">
+                <i class="fa-regular fa-user field__icon" aria-hidden="true"></i>
+                <input class="input" type="text" id="firstName" name="given-name"
+                       autocomplete="given-name"
+                       data-validate="required|minlength:2" aria-describedby="err-firstName">
               </div>
+              <p class="field__error" id="err-firstName" role="alert"></p>
             </div>
-            <div class="kfl-form-group">
-              <label class="kfl-label" for="lname">الاسم الأخير</label>
-              <div class="kfl-input-wrapper">
-                <input type="text" id="lname" class="kfl-input" placeholder="محمد" required>
-                <i class="fa-regular fa-user kfl-input-icon"></i>
+
+            <div class="field">
+              <label class="field__label" for="lastName">اسم العائلة</label>
+              <div class="field__control">
+                <i class="fa-regular fa-user field__icon" aria-hidden="true"></i>
+                <input class="input" type="text" id="lastName" name="family-name"
+                       autocomplete="family-name"
+                       data-validate="required|minlength:2" aria-describedby="err-lastName">
               </div>
+              <p class="field__error" id="err-lastName" role="alert"></p>
             </div>
           </div>
 
-          <div class="kfl-form-group">
-            <label class="kfl-label" for="email">البريد الإلكتروني</label>
-            <div class="kfl-input-wrapper">
-              <input type="email" id="email" class="kfl-input" placeholder="name@example.com" required>
-              <i class="fa-regular fa-envelope kfl-input-icon"></i>
+          <div class="field" style="margin-block-end:var(--space-4)">
+            <label class="field__label" for="email">البريد الإلكتروني</label>
+            <div class="field__control">
+              <i class="fa-regular fa-envelope field__icon" aria-hidden="true"></i>
+              <input class="input" type="email" id="email" name="email"
+                     autocomplete="email" inputmode="email"
+                     data-validate="required|email" aria-describedby="err-email">
             </div>
+            <p class="field__error" id="err-email" role="alert"></p>
           </div>
 
-          <div class="kfl-form-group">
-            <label class="kfl-label" for="password">كلمة المرور</label>
-            <div class="kfl-input-wrapper">
-              <input type="password" id="password" class="kfl-input" placeholder="••••••••" required>
-              <i class="fa-solid fa-lock kfl-input-icon"></i>
-              <button type="button" class="kfl-password-toggle" onclick="togglePassword('password', this)">
-                <i class="fa-regular fa-eye"></i>
+          <div class="field" style="margin-block-end:var(--space-4)">
+            <label class="field__label" for="phone">رقم الجوال</label>
+            <div class="field__control">
+              <i class="fa-solid fa-mobile-screen field__icon" aria-hidden="true"></i>
+              <input class="input" type="tel" id="phone" name="tel"
+                     autocomplete="tel" inputmode="tel" dir="ltr" placeholder="+970 599 000 000"
+                     data-validate="required|phone" aria-describedby="err-phone">
+            </div>
+            <p class="field__error" id="err-phone" role="alert"></p>
+          </div>
+
+          <div class="field" style="margin-block-end:var(--space-3)">
+            <label class="field__label" for="password">كلمة المرور</label>
+            <div class="field__control">
+              <i class="fa-solid fa-lock field__icon" aria-hidden="true"></i>
+              <input class="input" type="password" id="password" name="password"
+                     autocomplete="new-password" data-strength-for="password"
+                     data-validate="required|minlength:8" aria-describedby="err-password passwordStrength">
+              <button class="field__action" type="button"
+                      data-password-toggle="password" aria-label="إظهار كلمة المرور">
+                <i class="fa-regular fa-eye" aria-hidden="true"></i>
               </button>
             </div>
+            <p class="field__error" id="err-password" role="alert"></p>
           </div>
 
-          <div class="kfl-form-group" style="margin-top: 1rem; margin-bottom: 2rem;">
-            <label class="kfl-checkbox-group" style="align-items: flex-start;">
-              <input type="checkbox" required style="margin-top: 5px;">
-              <span style="font-size: 0.9rem; color: var(--kfl-gray-600); line-height: 1.5;">بإنشائك حساباً، أنت توافق على <a href="#">شروط الاستخدام</a> و <a href="#">سياسة الخصوصية</a> الخاصة بمنصة كفالة.</span>
+          <div class="strength" id="passwordStrength" style="margin-block-end:var(--space-6)">
+            <div class="strength__bars" aria-hidden="true">
+              <span class="strength__bar"></span>
+              <span class="strength__bar"></span>
+              <span class="strength__bar"></span>
+              <span class="strength__bar"></span>
+              <span class="strength__bar"></span>
+            </div>
+            <p class="strength__label" role="status" aria-live="polite">
+              استخدم ٨ أحرف على الأقل مع أرقام ورموز
+            </p>
+          </div>
+
+          <div class="field" style="margin-block-end:var(--space-6)">
+            <label class="checkbox">
+              <input type="checkbox" name="terms" required>
+              <span>
+                أوافق على <a href="transparency.html#child-policy">شروط الاستخدام وسياسة الخصوصية</a>،
+                وأفهم أن بياناتي لن تُشارك مع أي جهة تسويقية.
+              </span>
             </label>
           </div>
 
-          <button type="submit" class="kfl-btn kfl-btn-primary kfl-btn-block">إنشاء الحساب الآن</button>
+          <button class="btn btn--primary btn--lg btn--block" type="submit">إنشاء الحساب</button>
         </form>
 
-        <p style="text-align: center; margin-top: 2rem; color: var(--kfl-gray-600);">
-          لديك حساب بالفعل؟ <a href="login.html" style="font-weight: 600;">تسجيل الدخول</a>
+        <p class="auth__foot">
+          لديك حساب بالفعل؟ <a href="login.html">تسجيل الدخول</a>
         </p>
 
       </div>
-    </div>
-
-    <!-- Image Side -->
-    <div class="kfl-auth-image-side">
-      <!-- Different image can be used, using same for consistency for now -->
-      <img src="assests/img/child2.jpg" alt="كفالة يتيم" class="kfl-auth-img" style="object-position: center top;">
-      <div class="kfl-auth-image-content">
-        <h2>"وَيُطْعِمُونَ الطَّعَامَ عَلَىٰ حُبِّهِ مِسْكِينًا وَيَتِيمًا وَأَسِيرًا"</h2>
-        <p>بدقائق معدودة يمكنك إحداث تغيير جذري في حياة طفل. انضم لآلاف الكفلاء الذين وضعوا ثقتهم في منصة كفالة.</p>
-      </div>
-    </div>
+    </main>
 
   </div>
-
-  <script>
-    function togglePassword(inputId, btn) {
-      const input = document.getElementById(inputId);
-      const icon = btn.querySelector('i');
-      
-      if (input.type === 'password') {
-        input.type = 'text';
-        icon.classList.remove('fa-eye');
-        icon.classList.add('fa-eye-slash');
-      } else {
-        input.type = 'password';
-        icon.classList.remove('fa-eye-slash');
-        icon.classList.add('fa-eye');
-      }
-    }
-  </script>
-
 </body>
 </html>

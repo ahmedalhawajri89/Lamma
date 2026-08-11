@@ -2,115 +2,157 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>تسجيل الدخول | كفالة</title>
+  <meta name="description" content="ادخل إلى لوحتك لمتابعة كفالاتك وتقاريرها.">
+  <meta name="theme-color" content="#c2410c">
+
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self'; connect-src 'self'; form-action 'self'; base-uri 'self'; object-src 'none'">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+
+  <link rel="canonical" href="login.html">
+  <link rel="icon" href="assets/img/logo.png" type="image/png">
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;500;600;700;800&family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
-  <link rel="shortcut icon" href="assests/img/6144-removebg-preview.png" type="image/x-icon">
-  
-  <!-- Modern Design System -->
-  <link rel="stylesheet" href="assests/css/main-ui.css">
-  
-  <title>تسجيل الدخول - كفالة</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300;400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Aref+Ruqaa:wght@400;700&display=swap">
+
+  <link rel="stylesheet" href="assets/vendor/fontawesome/css/all.min.css">
+  <link rel="stylesheet" href="assets/css/tokens.css">
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/layout.css">
+  <link rel="stylesheet" href="assets/css/site.css">
+  <link rel="stylesheet" href="assets/css/components.css">
+  <link rel="stylesheet" href="assets/css/sections.css">
+  <link rel="stylesheet" href="assets/css/pages.css">
+
+  <script type="module" src="assets/js/main.js"></script>
 </head>
+
 <body>
+  <a class="skip-link" href="#main">تخطَّ إلى المحتوى الرئيسي</a>
 
-  <div class="kfl-auth-wrapper">
-    
-    <!-- Image Side (Right in RTL naturally visually if flex is row-reverse, but we just use flex) -->
-    <div class="kfl-auth-image-side">
-      <img src="assests/img/hero-bg-modern.png" alt="كفالة يتيم" class="kfl-auth-img">
-      <div class="kfl-auth-image-content">
-        <h2>كل عطاء يصنع فارقاً</h2>
-        <p>مرحباً بعودتك إلى منصة كفالة، حيث تستمر رحلتك في صناعة الأمل ورسم البسمة على وجوه الأيتام حول العالم.</p>
-      </div>
-    </div>
+  <div class="auth">
 
-    <!-- Form Side -->
-    <div class="kfl-auth-form-side">
-      <div class="kfl-auth-form-container">
-        
-        <div class="kfl-auth-logo">
-          <a href="index.html">
-            <img src="assests/img/6144-removebg-preview.png" alt="شعار كفالة">
+    <main class="auth__main" id="main">
+      <div class="auth__form">
+
+        <a class="auth__back" href="index.html">
+          <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+          العودة للرئيسية
+        </a>
+
+        <div class="auth__head">
+          <a class="brand" href="index.html" style="justify-content:center;margin-block-end:var(--space-6)">
+            <img class="brand__mark" src="assets/img/logo.png" alt="" width="44" height="44">
+            <span class="brand__name">كفالة</span>
           </a>
+          <h1>أهلاً بعودتك</h1>
+          <p>ادخل لمتابعة كفالاتك وتقاريرها.</p>
         </div>
 
-        <div class="kfl-auth-header">
-          <h1 class="kfl-auth-title">تسجيل الدخول</h1>
-          <p class="kfl-auth-subtitle">مرحباً بعودتك! أدخل تفاصيل حسابك للوصول للوحة التحكم.</p>
-        </div>
-
-        <div class="kfl-social-logins">
-          <button class="kfl-social-btn">
-            <i class="fa-brands fa-google" style="color: #DB4437; font-size: 1.2rem;"></i> Google
+        <div class="auth__social">
+          <button class="social-btn" type="button">
+            <i class="fa-brands fa-google" style="color:#db4437" aria-hidden="true"></i> Google
           </button>
-          <button class="kfl-social-btn">
-            <i class="fa-brands fa-apple" style="color: #000; font-size: 1.2rem;"></i> Apple
+          <button class="social-btn" type="button">
+            <i class="fa-brands fa-apple" aria-hidden="true"></i> Apple
           </button>
         </div>
 
-        <div class="kfl-auth-divider">أو عبر البريد الإلكتروني</div>
+        <p class="auth__divider">أو عبر البريد الإلكتروني</p>
 
-        <form action="user-dashboard.html" method="GET">
-          <div class="kfl-form-group">
-            <label class="kfl-label" for="email">البريد الإلكتروني</label>
-            <div class="kfl-input-wrapper">
-              <input type="email" id="email" class="kfl-input" placeholder="name@example.com" required>
-              <i class="fa-regular fa-envelope kfl-input-icon"></i>
+        <form data-validate-form data-redirect="dashboard.html" novalidate>
+
+          <div class="field" style="margin-block-end:var(--space-4)">
+            <label class="field__label" for="email">البريد الإلكتروني</label>
+            <div class="field__control">
+              <i class="fa-regular fa-envelope field__icon" aria-hidden="true"></i>
+              <input class="input" type="email" id="email" name="email"
+                     autocomplete="email" inputmode="email"
+                     data-validate="required|email" aria-describedby="err-email">
             </div>
+            <p class="field__error" id="err-email" role="alert"></p>
           </div>
 
-          <div class="kfl-form-group">
-            <label class="kfl-label" for="password">كلمة المرور</label>
-            <div class="kfl-input-wrapper">
-              <input type="password" id="password" class="kfl-input" placeholder="••••••••" required>
-              <i class="fa-solid fa-lock kfl-input-icon"></i>
-              <button type="button" class="kfl-password-toggle" onclick="togglePassword('password', this)">
-                <i class="fa-regular fa-eye"></i>
+          <div class="field" style="margin-block-end:var(--space-4)">
+            <label class="field__label" for="password">كلمة المرور</label>
+            <div class="field__control">
+              <i class="fa-solid fa-lock field__icon" aria-hidden="true"></i>
+              <input class="input" type="password" id="password" name="password"
+                     autocomplete="current-password"
+                     data-validate="required|minlength:8" aria-describedby="err-password">
+              <button class="field__action" type="button"
+                      data-password-toggle="password" aria-label="إظهار كلمة المرور">
+                <i class="fa-regular fa-eye" aria-hidden="true"></i>
               </button>
             </div>
+            <p class="field__error" id="err-password" role="alert"></p>
           </div>
 
-          <div class="kfl-auth-links">
-            <label class="kfl-checkbox-group">
-              <input type="checkbox" checked>
-              <span>تذكرني</span>
+          <div class="auth__meta" style="margin-block-end:var(--space-6)">
+            <label class="checkbox">
+              <input type="checkbox" name="remember" checked>
+              <span>ابقني مسجّلاً</span>
             </label>
-            <a href="#">نسيت كلمة المرور؟</a>
+            <a href="#" data-modal-open="resetModal">نسيت كلمة المرور؟</a>
           </div>
 
-          <button type="submit" class="kfl-btn kfl-btn-primary kfl-btn-block">تسجيل الدخول</button>
+          <button class="btn btn--primary btn--lg btn--block" type="submit">تسجيل الدخول</button>
         </form>
 
-        <p style="text-align: center; margin-top: 2rem; color: var(--kfl-gray-600);">
-          ليس لديك حساب؟ <a href="register.html" style="font-weight: 600;">إنشاء حساب جديد</a>
+        <p class="auth__foot">
+          ليس لديك حساب؟ <a href="register.html">أنشئ حساباً جديداً</a>
         </p>
 
       </div>
-    </div>
+    </main>
+
+    <aside class="auth__aside">
+      <div class="auth__aside-inner">
+        <img class="auth__aside-art" src="assets/img/hero-child.png"
+             alt="طفلة تبتسم في فناء مدرستها" loading="lazy" width="288" height="360">
+        <h2>كل تقرير يصلك هو دليل أن قرارك كان صحيحاً</h2>
+        <p>
+          ١٥٠٠ كافل يتابعون أثرهم من هنا: تقارير مصوّرة، سجل مدفوعات،
+          ورسائل تصل أطفالهم عبر مشرفينا الميدانيين.
+        </p>
+      </div>
+    </aside>
 
   </div>
 
-  <script>
-    function togglePassword(inputId, btn) {
-      const input = document.getElementById(inputId);
-      const icon = btn.querySelector('i');
-      
-      if (input.type === 'password') {
-        input.type = 'text';
-        icon.classList.remove('fa-eye');
-        icon.classList.add('fa-eye-slash');
-      } else {
-        input.type = 'password';
-        icon.classList.remove('fa-eye-slash');
-        icon.classList.add('fa-eye');
-      }
-    }
-  </script>
+  <!-- استعادة كلمة المرور -->
+  <div class="modal" id="resetModal" role="dialog" aria-modal="true" aria-labelledby="resetTitle">
+    <div class="modal__backdrop"></div>
+    <div class="modal__panel">
+      <button class="modal__close" type="button" data-modal-close aria-label="إغلاق">
+        <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+      </button>
+
+      <div class="modal__head">
+        <h2 id="resetTitle" style="font-size:var(--text-lg)">استعادة كلمة المرور</h2>
+        <p>أدخل بريدك وسنرسل لك رابط إعادة التعيين خلال دقائق.</p>
+      </div>
+
+      <form data-validate-form data-success-message="أرسلنا لك رابط إعادة التعيين، تفقّد بريدك" novalidate>
+        <div class="field" style="margin-block-end:var(--space-6)">
+          <label class="field__label" for="resetEmail">البريد الإلكتروني</label>
+          <div class="field__control">
+            <i class="fa-regular fa-envelope field__icon" aria-hidden="true"></i>
+            <input class="input" type="email" id="resetEmail" name="email"
+                   autocomplete="email" data-autofocus
+                   data-validate="required|email" aria-describedby="err-resetEmail">
+          </div>
+          <p class="field__error" id="err-resetEmail" role="alert"></p>
+        </div>
+
+        <button class="btn btn--primary btn--block" type="submit">أرسل الرابط</button>
+      </form>
+    </div>
+  </div>
 
 </body>
 </html>

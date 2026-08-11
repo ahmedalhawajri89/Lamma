@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>لوحتي | كفالة</title>
+  <meta name="description" content="تابع كفالاتك وتقاريرها وسجل مدفوعاتك من مكان واحد.">
+  <meta name="theme-color" content="#c2410c">
+
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self'; connect-src 'self'; form-action 'self'; base-uri 'self'; object-src 'none'">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta name="robots" content="noindex, nofollow">
+
+  <link rel="icon" href="assets/img/logo.png" type="image/png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300;400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Aref+Ruqaa:wght@400;700&display=swap">
+
+  <link rel="stylesheet" href="assets/vendor/fontawesome/css/all.min.css">
+  <link rel="stylesheet" href="assets/css/tokens.css">
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/layout.css">
+  <link rel="stylesheet" href="assets/css/site.css">
+  <link rel="stylesheet" href="assets/css/components.css">
+  <link rel="stylesheet" href="assets/css/sections.css">
+  <link rel="stylesheet" href="assets/css/pages.css">
+
+  <script type="module" src="assets/js/main.js"></script>
+</head>
+
+<body>
+  <a class="skip-link" href="#main">تخطَّ إلى المحتوى الرئيسي</a>
+
+  <div class="dash">
+
+    <!-- الشريط الجانبي -->
+    <aside class="dash__side">
+      <a class="brand" href="index.html">
+        <img class="brand__mark" src="assets/img/logo.png" alt="" width="44" height="44">
+        <span class="brand__name">كفالة<span class="brand__tag">لوحة الكافل</span></span>
+      </a>
+
+      <div class="dash__user">
+        <div class="dash__avatar">
+          <img src="assets/img/user.png" alt="" width="48" height="48">
+        </div>
+        <div>
+          <strong>عبدالله المطيري</strong>
+          <span>كافل منذ ٣ سنوات</span>
+        </div>
+      </div>
+
+      <nav class="dash__nav" aria-label="تنقل لوحة التحكم">
+        <a class="dash__nav-item" href="dashboard.html" aria-current="page">
+          <i class="fa-solid fa-gauge-high" aria-hidden="true"></i> نظرة عامة
+        </a>
+        <a class="dash__nav-item" href="#sponsorships">
+          <i class="fa-solid fa-children" aria-hidden="true"></i> كفالاتي
+        </a>
+        <a class="dash__nav-item" href="#reports">
+          <i class="fa-regular fa-file-lines" aria-hidden="true"></i> التقارير
+          <span class="badge badge--urgent">٢</span>
+        </a>
+        <a class="dash__nav-item" href="#payments">
+          <i class="fa-solid fa-receipt" aria-hidden="true"></i> المدفوعات
+        </a>
+        <a class="dash__nav-item" href="#settings">
+          <i class="fa-solid fa-gear" aria-hidden="true"></i> الإعدادات
+        </a>
+        <a class="dash__nav-item dash__nav-item--logout" href="index.html">
+          <i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i> تسجيل الخروج
+        </a>
+      </nav>
+    </aside>
+
+    <!-- المحتوى -->
+    <main class="dash__main" id="main">
+
+      <header class="dash__head">
+        <div>
+          <h1>أهلاً عبدالله</h1>
+          <p>لديك تقريران جديدان لم تطّلع عليهما بعد.</p>
+        </div>
+        <a class="btn btn--primary" href="orphans.html">
+          <i class="fa-solid fa-plus" aria-hidden="true"></i>
+          كفالة جديدة
+        </a>
+      </header>
+
+      <!-- المؤشرات -->
+      <div class="grid grid--auto-sm">
+        <div class="metric" data-reveal>
+          <div>
+            <p class="metric__label">أيتام تكفلهم</p>
+            <p class="metric__value num"><span data-count="2">0</span></p>
+          </div>
+          <span class="icon-box icon-box--arch"><i class="fa-solid fa-children" aria-hidden="true"></i></span>
+        </div>
+
+        <div class="metric" data-reveal data-reveal-delay="80">
+          <div>
+            <p class="metric__label">إجمالي ما قدّمته</p>
+            <p class="metric__value num">$<span data-count="3240">0</span></p>
+            <p class="metric__trend"><i class="fa-solid fa-arrow-up" aria-hidden="true"></i> منذ ٢٠٢٣</p>
+          </div>
+          <span class="icon-box icon-box--growth icon-box--arch"><i class="fa-solid fa-hand-holding-dollar" aria-hidden="true"></i></span>
+        </div>
+
+        <div class="metric" data-reveal data-reveal-delay="160">
+          <div>
+            <p class="metric__label">تقارير جديدة</p>
+            <p class="metric__value num"><span data-count="2">0</span></p>
+          </div>
+          <span class="icon-box icon-box--accent icon-box--arch"><i class="fa-regular fa-file-lines" aria-hidden="true"></i></span>
+        </div>
+
+        <div class="metric" data-reveal data-reveal-delay="240">
+          <div>
+            <p class="metric__label">القسط القادم</p>
+            <p class="metric__value" style="font-size:var(--text-lg)">٢٥ أغسطس</p>
+            <p class="metric__trend">تلقائي — لا إجراء مطلوب</p>
+          </div>
+          <span class="icon-box icon-box--info icon-box--arch"><i class="fa-regular fa-calendar-check" aria-hidden="true"></i></span>
+        </div>
+      </div>
+
+      <!-- الكفالات -->
+      <section id="sponsorships">
+        <div class="cluster cluster--between" style="margin-block-end:var(--space-5)">
+          <h2 style="font-size:var(--text-lg)">كفالاتي</h2>
+          <a class="link-arrow" href="orphans.html">إضافة كفالة <i class="fa-solid fa-plus" aria-hidden="true"></i></a>
+        </div>
+
+        <div class="stack">
+          <article class="sponsor-row">
+            <div class="sponsor-row__who">
+              <img src="assets/img/child-02.png" alt="" width="48" height="48">
+              <div>
+                <strong>أحمد</strong>
+                <span class="badge badge--brand">الكفالة الشاملة</span>
+              </div>
+            </div>
+            <div class="sponsor-row__cell">
+              <span>القسط القادم</span>
+              <strong>٢٥ أغسطس ٢٠٢٦</strong>
+            </div>
+            <div class="sponsor-row__cell">
+              <span>المبلغ الشهري</span>
+              <strong class="num">$65</strong>
+            </div>
+            <div class="sponsor-row__actions">
+              <button class="btn btn--outline btn--sm" type="button" data-modal-open="reportModal">
+                التقرير <span class="badge badge--urgent">جديد</span>
+              </button>
+              <a class="btn btn--ghost btn--sm" href="orphan.html?id=KFL-1043">الملف</a>
+            </div>
+          </article>
+
+          <article class="sponsor-row">
+            <div class="sponsor-row__who">
+              <img src="assets/img/child-01.jpg" alt="" width="48" height="48">
+              <div>
+                <strong>أمنية</strong>
+                <span class="badge badge--info">الكفالة التعليمية</span>
+              </div>
+            </div>
+            <div class="sponsor-row__cell">
+              <span>القسط القادم</span>
+              <strong>١ سبتمبر ٢٠٢٦</strong>
+            </div>
+            <div class="sponsor-row__cell">
+              <span>المبلغ الشهري</span>
+              <strong class="num">$35</strong>
+            </div>
+            <div class="sponsor-row__actions">
+              <button class="btn btn--outline btn--sm" type="button" data-modal-open="reportModal">
+                التقرير <span class="badge badge--urgent">جديد</span>
+              </button>
+              <a class="btn btn--ghost btn--sm" href="orphan.html?id=KFL-1042">الملف</a>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- المدفوعات -->
+      <section id="payments">
+        <div class="cluster cluster--between" style="margin-block-end:var(--space-5)">
+          <h2 style="font-size:var(--text-lg)">سجل المدفوعات</h2>
+          <button class="btn btn--ghost btn--sm" type="button">
+            <i class="fa-solid fa-download" aria-hidden="true"></i> تحميل الإيصالات
+          </button>
+        </div>
+
+        <div class="table-wrap">
+          <table class="table">
+            <caption class="sr-only">سجل المدفوعات لآخر أربعة أشهر</caption>
+            <thead>
+              <tr>
+                <th scope="col">التاريخ</th>
+                <th scope="col">الطفل</th>
+                <th scope="col">المبلغ</th>
+                <th scope="col">الوسيلة</th>
+                <th scope="col">الحالة</th>
+                <th scope="col">الإيصال</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>٢٥ يوليو ٢٠٢٦</td><td>أحمد</td><td class="num">$65</td>
+                <td>فيزا ••42</td>
+                <td><span class="badge badge--growth">مكتمل</span></td>
+                <td><a class="link-arrow" href="#">تحميل</a></td>
+              </tr>
+              <tr>
+                <td>١ يوليو ٢٠٢٦</td><td>أمنية</td><td class="num">$35</td>
+                <td>فيزا ••42</td>
+                <td><span class="badge badge--growth">مكتمل</span></td>
+                <td><a class="link-arrow" href="#">تحميل</a></td>
+              </tr>
+              <tr>
+                <td>٢٥ يونيو ٢٠٢٦</td><td>أحمد</td><td class="num">$65</td>
+                <td>فيزا ••42</td>
+                <td><span class="badge badge--growth">مكتمل</span></td>
+                <td><a class="link-arrow" href="#">تحميل</a></td>
+              </tr>
+              <tr>
+                <td>١ يونيو ٢٠٢٦</td><td>أمنية</td><td class="num">$35</td>
+                <td>فيزا ••42</td>
+                <td><span class="badge badge--growth">مكتمل</span></td>
+                <td><a class="link-arrow" href="#">تحميل</a></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- نافذة التقرير -->
+  <div class="modal" id="reportModal" role="dialog" aria-modal="true" aria-labelledby="reportModalTitle">
+    <div class="modal__backdrop"></div>
+    <div class="modal__panel">
+      <button class="modal__close" type="button" data-modal-close aria-label="إغلاق">
+        <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+      </button>
+
+      <div class="modal__head">
+        <h2 id="reportModalTitle" style="font-size:var(--text-lg)">تقرير الربع الثالث — أحمد</h2>
+        <p>يوليو ٢٠٢٦ · وثّقه المشرف الميداني بعد زيارة بتاريخ ١٨ يوليو</p>
+      </div>
+
+      <div class="stack stack--lg">
+        <div class="arch arch--soft" style="aspect-ratio:16/10">
+          <img class="arch__img" src="assets/img/child-02.png" alt="أحمد في فناء مدرسته" loading="lazy">
+        </div>
+
+        <ul class="check-list" role="list">
+          <li><strong>الدراسة</strong> — معدّل ٨٧٪، تحسّن ٩ نقاط عن الفصل الماضي.</li>
+          <li><strong>الصحة</strong> — فحص دوري بلا ملاحظات، ووزنه ضمن المعدّل الطبيعي.</li>
+          <li><strong>الحالة النفسية</strong> — اندماج جيد مع أقرانه، وشارك في نادي الرسم.</li>
+          <li><strong>ما صُرف</strong> — ‎$65 شهرياً: غذاء ‎$26، تعليم ‎$18، صحة ‎$12، أنشطة ‎$9.</li>
+        </ul>
+
+        <div class="secure-note">
+          <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+          <span>هذا التقرير خاص بك ككافل. نرجو عدم نشر صور الطفل خارج المنصة حمايةً لخصوصيته.</span>
+        </div>
+
+        <div class="cluster">
+          <button class="btn btn--primary" type="button" data-modal-close>
+            <i class="fa-solid fa-download" aria-hidden="true"></i> تحميل PDF
+          </button>
+          <button class="btn btn--outline" type="button" data-modal-close>أرسل رسالة لأحمد</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

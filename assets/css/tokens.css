@@ -1,0 +1,222 @@
+/* ==========================================================================
+   Kafala — Design Tokens
+   الطبقة الأساسية: كل قيمة تصميمية في المشروع تبدأ من هنا.
+   لا يُسمح بأي لون أو مقاس ثابت (hard-coded) خارج هذا الملف.
+   ========================================================================== */
+
+:root {
+  /* ------------------------------------------------------------------
+     1. اللون — هوية "الطين والعنبر"
+     تيراكوتا دافئة (الأرض والبيت) + عنبر (الضوء والأمل)
+     + زيتوني (النمو) على أرضية رملية كريمية.
+     ------------------------------------------------------------------ */
+
+  /* الأساسي: طين / تيراكوتا */
+  --clay-50:  #fdf5f1;
+  --clay-100: #fae7dd;
+  --clay-200: #f4cbb8;
+  --clay-300: #eca88a;
+  --clay-400: #e07a53;
+  --clay-500: #d35a30;
+  --clay-600: #c2410c;
+  --clay-700: #9a3412;
+  --clay-800: #7c2d12;
+  --clay-900: #5c220f;
+
+  /* الثانوي: عنبر / عسلي */
+  --amber-50:  #fffaeb;
+  --amber-100: #fef0c7;
+  --amber-200: #fde08a;
+  --amber-300: #fcca4d;
+  --amber-400: #fab225;
+  --amber-500: #f0910c;
+  --amber-600: #d97706;
+  --amber-700: #b45309;
+  --amber-800: #92400e;
+  --amber-900: #78350f;
+
+  /* التمييز: زيتوني (النمو والاستدامة) */
+  --olive-50:  #f6f9ec;
+  --olive-100: #e9f2d1;
+  --olive-200: #d4e5a8;
+  --olive-300: #b6d275;
+  --olive-400: #96ba4c;
+  --olive-500: #75992f;
+  --olive-600: #4d7c0f;
+  --olive-700: #3f630f;
+  --olive-800: #354e12;
+  --olive-900: #2d4213;
+
+  /* المحايد: رمل ودافئ — ليس رمادياً بارداً */
+  --sand-0:   #ffffff;
+  --sand-25:  #fefbf7;
+  --sand-50:  #fbf7f0;  /* أرضية الصفحة */
+  --sand-100: #f5eee2;  /* سطح بديل */
+  --sand-200: #e9dfd0;  /* حدود */
+  --sand-300: #d6c8b4;
+  --sand-400: #b3a596;
+  --sand-500: #8c7f6d;
+  --sand-600: #6b6053;
+  --sand-700: #4e463c;
+  --sand-800: #322c25;
+  --sand-900: #1c1917;  /* الحبر */
+
+  /* ألوان الحالة */
+  --teal-100: #ccfbf1;
+  --teal-600: #0d9488;
+  --teal-700: #0f766e;
+  --rose-100: #ffe4e6;
+  --rose-600: #e11d48;
+  --rose-700: #be123c;
+
+  /* ------------------------------------------------------------------
+     2. الأدوار الدلالية (Semantic) — استخدم هذه في المكونات، لا التدرجات أعلاه
+     ------------------------------------------------------------------ */
+  --color-brand:            var(--clay-600);
+  --color-brand-hover:      var(--clay-700);
+  --color-brand-soft:       var(--clay-50);
+  --color-brand-border:     var(--clay-200);
+  --color-brand-contrast:   var(--sand-0);
+
+  --color-accent:           var(--amber-600);
+  --color-accent-soft:      var(--amber-50);
+  --color-growth:           var(--olive-600);
+  --color-growth-soft:      var(--olive-50);
+
+  --color-canvas:           var(--sand-50);
+  --color-surface:          var(--sand-0);
+  --color-surface-alt:      var(--sand-100);
+  --color-surface-ink:      var(--sand-900);
+
+  --color-text:             var(--sand-900);
+  --color-text-muted:       var(--sand-600);
+  --color-text-subtle:      var(--sand-500);
+  --color-text-invert:      var(--sand-25);
+
+  --color-border:           var(--sand-200);
+  --color-border-strong:    var(--sand-300);
+
+  --color-success:          var(--olive-600);
+  --color-success-soft:     var(--olive-50);
+  --color-info:             var(--teal-700);
+  --color-info-soft:        var(--teal-100);
+  --color-urgent:           var(--rose-700);
+  --color-urgent-soft:      var(--rose-100);
+
+  --color-focus:            var(--amber-500);
+
+  /* ------------------------------------------------------------------
+     3. التدرجات والزخارف المميزة
+     ------------------------------------------------------------------ */
+  --gradient-brand:  linear-gradient(135deg, var(--clay-600) 0%, var(--clay-500) 45%, var(--amber-600) 100%);
+  --gradient-warm:   linear-gradient(160deg, var(--sand-50) 0%, var(--clay-50) 100%);
+  --gradient-dusk:   linear-gradient(155deg, var(--clay-800) 0%, var(--sand-900) 60%, #241b14 100%);
+  --gradient-glow:   radial-gradient(closest-side, rgb(224 122 83 / 0.28), transparent 100%);
+  --gradient-fade-b: linear-gradient(to top, rgb(28 25 23 / 0.88), rgb(28 25 23 / 0.15) 55%, transparent);
+
+  /* ------------------------------------------------------------------
+     4. الطباعة — Readex Pro للعناوين، IBM Plex Sans Arabic للمتن،
+        Aref Ruqaa للنصوص الروحية (الآيات والاقتباسات)
+     ------------------------------------------------------------------ */
+  --font-display: "Readex Pro", "Segoe UI", system-ui, sans-serif;
+  --font-body:    "IBM Plex Sans Arabic", "Segoe UI", system-ui, sans-serif;
+  --font-quote:   "Aref Ruqaa", "Readex Pro", serif;
+  --font-num:     "IBM Plex Sans Arabic", ui-monospace, monospace;
+
+  /* مقياس طباعي سلس (fluid) — يتمدد مع عرض الشاشة بلا قفزات */
+  --text-2xs: clamp(0.69rem, 0.67rem + 0.10vw, 0.75rem);
+  --text-xs:  clamp(0.78rem, 0.75rem + 0.14vw, 0.86rem);
+  --text-sm:  clamp(0.88rem, 0.85rem + 0.16vw, 0.97rem);
+  --text-md:  clamp(1.00rem, 0.96rem + 0.20vw, 1.10rem);
+  --text-lg:  clamp(1.13rem, 1.07rem + 0.28vw, 1.28rem);
+  --text-xl:  clamp(1.30rem, 1.20rem + 0.45vw, 1.55rem);
+  --text-2xl: clamp(1.55rem, 1.38rem + 0.80vw, 2.05rem);
+  --text-3xl: clamp(1.90rem, 1.60rem + 1.40vw, 2.85rem);
+  --text-4xl: clamp(2.30rem, 1.80rem + 2.30vw, 3.90rem);
+  --text-5xl: clamp(2.70rem, 1.95rem + 3.40vw, 5.20rem);
+
+  --leading-tight:   1.18;
+  --leading-snug:    1.35;
+  --leading-normal:  1.65;
+  --leading-relaxed: 1.85;
+
+  --tracking-tight: -0.02em;
+  --tracking-wide:  0.04em;
+
+  /* ------------------------------------------------------------------
+     5. المسافات — مقياس 4px متسق
+     ------------------------------------------------------------------ */
+  --space-1:  0.25rem;
+  --space-2:  0.5rem;
+  --space-3:  0.75rem;
+  --space-4:  1rem;
+  --space-5:  1.25rem;
+  --space-6:  1.5rem;
+  --space-8:  2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+  --space-24: 6rem;
+
+  /* حشوة الأقسام — تتنفس مع الشاشة */
+  --section-gap: clamp(3.5rem, 2rem + 7vw, 7.5rem);
+  --gutter:      clamp(1rem, 0.5rem + 2.2vw, 2.5rem);
+  --container:   78rem;
+  --container-narrow: 46rem;
+
+  /* ------------------------------------------------------------------
+     6. الأشكال — القوس (المحراب) هو التوقيع البصري للمشروع
+     ------------------------------------------------------------------ */
+  --radius-xs:   0.375rem;
+  --radius-sm:   0.625rem;
+  --radius-md:   0.875rem;
+  --radius-lg:   1.25rem;
+  --radius-xl:   1.75rem;
+  --radius-2xl:  2.5rem;
+  --radius-pill: 999px;
+
+  /* شكل القوس: نصف دائرة علوية + قاعدة مستقيمة */
+  --arch: 50% 50% var(--radius-lg) var(--radius-lg) / 42% 42% var(--radius-lg) var(--radius-lg);
+  --arch-soft: 42% 42% var(--radius-xl) var(--radius-xl) / 30% 30% var(--radius-xl) var(--radius-xl);
+
+  /* ------------------------------------------------------------------
+     7. الظلال — دافئة (مبنية على البني لا الأسود) لتبدو طبيعية
+     ------------------------------------------------------------------ */
+  --shadow-xs: 0 1px 2px rgb(92 34 15 / 0.05);
+  --shadow-sm: 0 2px 6px rgb(92 34 15 / 0.06), 0 1px 2px rgb(92 34 15 / 0.04);
+  --shadow-md: 0 6px 18px -4px rgb(92 34 15 / 0.10), 0 2px 6px -2px rgb(92 34 15 / 0.06);
+  --shadow-lg: 0 16px 38px -10px rgb(92 34 15 / 0.16), 0 6px 14px -8px rgb(92 34 15 / 0.10);
+  --shadow-xl: 0 32px 64px -18px rgb(92 34 15 / 0.24), 0 12px 26px -12px rgb(92 34 15 / 0.14);
+  --shadow-brand: 0 12px 28px -8px rgb(194 65 12 / 0.42);
+  --shadow-inset: inset 0 1px 0 rgb(255 255 255 / 0.6);
+
+  /* زجاج */
+  --glass-bg:     rgb(255 253 250 / 0.72);
+  --glass-border: rgb(255 255 255 / 0.55);
+  --glass-blur:   saturate(1.4) blur(18px);
+
+  /* ------------------------------------------------------------------
+     8. الحركة
+     ------------------------------------------------------------------ */
+  --ease-out:  cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-soft: cubic-bezier(0.33, 1, 0.68, 1);
+  --ease-back: cubic-bezier(0.34, 1.4, 0.64, 1);
+
+  --dur-fast:   180ms;
+  --dur-normal: 320ms;
+  --dur-slow:   620ms;
+  --dur-scene:  900ms;
+
+  /* ------------------------------------------------------------------
+     9. الطبقات (z-index) — مركزية حتى لا تتضارب
+     ------------------------------------------------------------------ */
+  --z-base:    1;
+  --z-raised:  10;
+  --z-sticky:  100;
+  --z-header:  200;
+  --z-drawer:  300;
+  --z-overlay: 400;
+  --z-modal:   500;
+  --z-toast:   600;
+}

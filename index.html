@@ -2,364 +2,532 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <!-- Google Fonts: Cairo & Alexandria -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>كفالة | اكفل يتيماً وتابع أثرك شهراً بشهر</title>
+  <meta name="description" content="منصة كفالة تربطك بيتيم حقيقي وتُريك أين يذهب كل دولار. ٩٣٪ من كفالتك تصل للطفل مباشرة، وتقرير مصوّر كل ثلاثة أشهر.">
+  <meta name="theme-color" content="#c2410c">
+
+  <!-- سياسة أمان المحتوى: نسمح فقط بالمصادر التي نستخدمها فعلاً،
+       فلا يستطيع سكربت خارجي أو إطار مدسوس أن يعمل داخل الصفحة. -->
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self';
+                 img-src 'self' data:;
+                 style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+                 font-src 'self' https://fonts.gstatic.com;
+                 script-src 'self';
+                 connect-src 'self';
+                 form-action 'self';
+                
+                 base-uri 'self';
+                 object-src 'none'">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+
+  <!-- مشاركة اجتماعية -->
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="ar_AR">
+  <meta property="og:title" content="كفالة | اكفل يتيماً وتابع أثرك شهراً بشهر">
+  <meta property="og:description" content="٩٣٪ من كفالتك تصل للطفل مباشرة، وتقرير مصوّر كل ثلاثة أشهر.">
+  <meta property="og:image" content="assets/img/hero-child.png">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <link rel="canonical" href="index.html">
+  <link rel="icon" href="assets/img/logo.png" type="image/png">
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;500;600;700;800&family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  
-  <!-- Font Awesome -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
-  <!-- Custom Core CSS -->
-  <link rel="stylesheet" href="assests/css/variables.css">
-  <link rel="stylesheet" href="assests/css/base.css">
-  <link rel="stylesheet" href="assests/css/components.css">
-  <link rel="stylesheet" href="assests/css/layouts.css">
-  
-  
-  <link rel="shortcut icon" href="assests/img/6144-removebg-preview.png" type="image/x-icon">
-  
-  <title>كفالة | منصة كفالة الأيتام الحديثة</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300;400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Aref+Ruqaa:wght@400;700&display=swap">
+
+  <link rel="stylesheet" href="assets/vendor/fontawesome/css/all.min.css">
+  <link rel="stylesheet" href="assets/css/tokens.css">
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/layout.css">
+  <link rel="stylesheet" href="assets/css/site.css">
+  <link rel="stylesheet" href="assets/css/components.css">
+  <link rel="stylesheet" href="assets/css/sections.css">
+  <link rel="stylesheet" href="assets/css/pages.css">
+
+  <script type="module" src="assets/js/main.js"></script>
 </head>
-<body class="kfl-app">
 
-  <div id="header-placeholder"></div>
+<body>
+  <div data-layout="header"></div>
 
-  <!-- Modern Hero Section -->
-  <section class="kfl-hero-modern" id="home">
-    <!-- Ambient subtle background handled via CSS/soft gradients, removed harsh orbs -->
-    <div class="kfl-container">
-      <div class="hero-split-layout">
-        
-        <!-- Right Side: Content -->
-        <div class="hero-content reveal-right">
-          <span class="kfl-badge kfl-badge-primary kfl-mb-4" style="background: var(--kfl-glass-bg); backdrop-filter: var(--kfl-glass-blur-sm); border: 1px solid var(--kfl-glass-border);">
-            معاً نصنع الأمل <i class="fa-solid fa-heart kfl-ms-2 text-red-500"></i>
-          </span>
-          <h1 class="kfl-display-1">
-            كن سببًا في صناعة مستقبل <br>
-            <span class="text-gradient">أكثر أمانًا لطفل يتيم</span>
-          </h1>
-          <p class="hero-subtitle">
-            كفالتك اليوم ليست مجرد دعم مالي، إنها رسالة حب تمنحهم فرصة لحياة كريمة وتضيء طريقهم نحو مستقبل مشرق.
-          </p>
-          
-          <div class="hero-actions">
-            <a href="sponsorships.html" class="kfl-btn btn-3d" style="padding: 1rem 2rem; font-size: 1.1rem; border-radius: var(--kfl-radius-xl);">
-              ابدأ الكفالة الآن
-              <i class="fa-solid fa-arrow-left kfl-ms-2"></i>
-            </a>
-            <a href="#how-it-works" class="kfl-btn kfl-glass" style="padding: 1rem 2rem; border-radius: var(--kfl-radius-xl); color: var(--kfl-gray-800); font-weight: 700;">
-              <i class="fa-solid fa-play kfl-me-2" style="color: var(--kfl-primary-500);"></i>
-              شاهد قصص النجاح
-            </a>
-          </div>
+  <noscript>
+    <nav class="container" style="padding-block:1rem" aria-label="تنقل بديل">
+      <a href="index.html">الرئيسية</a> · <a href="about.html">من نحن</a> ·
+      <a href="programs.html">برامج الكفالة</a> · <a href="orphans.html">الأيتام</a> ·
+      <a href="transparency.html">الشفافية</a> · <a href="blog.html">المدونة</a> ·
+      <a href="contact.html">تواصل معنا</a>
+    </nav>
+  </noscript>
 
-          <div class="hero-social-proof kfl-mt-8">
-            <div class="proof-avatars">
-              <img src="assests/img/child2.jpg" alt="User">
-              <img src="assests/img/child2.jpg" alt="User">
-              <img src="assests/img/child2.jpg" alt="User">
-              <div class="avatar-more">+1500</div>
-            </div>
-            <div class="proof-text">
-              <strong>كافل وداعم</strong> يثقون بنا
-            </div>
-          </div>
-        </div>
-        
-        <!-- Left Side: 3D Scene -->
-        <div class="hero-3d-scene reveal-left" id="heroScene">
-          <div class="scene-container">
-            <!-- Main Card -->
-            <div class="glass-panel main-image-card">
-              <img src="assests/img/hero-bg-modern.png" alt="طفل يتيم" onerror="this.src='assests/img/child2.jpg'">
-              <div class="card-overlay-gradient"></div>
+  <main id="main">
+
+    <!-- ==================================================================
+         الهيرو
+         ================================================================== -->
+    <section class="hero">
+      <div class="container">
+        <div class="hero__layout">
+
+          <div class="hero__content">
+            <span class="badge badge--brand">
+              <span class="pulse-dot"></span>
+              ٥٧ طفلاً ينتظرون كافلاً هذا الشهر
+            </span>
+
+            <h1 class="hero__title" data-words>
+              طفلٌ واحد يكفيه
+              <span class="hero__accent">قرارٌ واحد</span>
+              منك اليوم
+            </h1>
+
+            <p class="hero__lede">
+              لا نطلب منك تبرعاً عابراً. نطلب علاقة: تختار طفلاً باسمه وقصته،
+              وتتابع دراسته وصحته بتقرير مصوّر كل ثلاثة أشهر، وتعرف أين ذهب كل دولار.
+            </p>
+
+            <div class="hero__actions">
+              <a class="btn btn--primary btn--lg" href="orphans.html">
+                اختر طفلاً تكفله
+                <i class="fa-solid fa-arrow-left btn__icon btn__icon--arrow" aria-hidden="true"></i>
+              </a>
+              <a class="btn btn--glass btn--lg" href="#how">
+                <i class="fa-solid fa-circle-play" aria-hidden="true"></i>
+                كيف تعمل الكفالة؟
+              </a>
             </div>
 
-            <!-- Floating Stat Card 1 -->
-            <div class="float-card top-card">
-              <div class="kfl-icon-box bg-emerald-light"><i class="fa-solid fa-hands-holding-child text-emerald"></i></div>
-              <div class="stat-info">
-                <h4 class="counter" data-target="320">+0</h4>
-                <span>يتيم مكفول</span>
+            <div class="social-proof">
+              <div class="avatar-stack" aria-hidden="true">
+                <img src="assets/img/user.png" alt="" width="40" height="40">
+                <img src="assets/img/profile.png" alt="" width="40" height="40">
+                <img src="assets/img/user.png" alt="" width="40" height="40">
+                <span class="num">1.5k</span>
               </div>
-            </div>
-
-            <!-- Floating Stat Card 2 -->
-            <div class="float-card bottom-card">
-              <div class="kfl-icon-box" style="background: #fefce8;"><i class="fa-solid fa-hand-holding-heart" style="color: #d97706;"></i></div>
-              <div class="stat-info">
-                <h4 class="counter" data-target="98">0%</h4>
-                <span>نسبة النجاح</span>
+              <div class="social-proof__text">
+                <strong>١٥٠٠+ كافل حول العالم</strong>
+                <span class="social-proof__stars" aria-hidden="true">★★★★★</span>
+                تقييم ٤٫٩ من ٥ على شفافية التقارير
               </div>
             </div>
           </div>
-        </div>
 
-      </div>
-    </div>
-  </section>
+          <div class="hero__stage" data-tilt="4">
+            <div class="hero__glow" aria-hidden="true"></div>
+            <div class="hero__arch-echo" aria-hidden="true"></div>
 
-  <!-- Stats Section -->
-  <section class="kfl-section" id="statistics">
-    <div class="kfl-container">
-      <div class="kfl-grid-4">
-        <div class="kfl-card text-center reveal">
-          <div class="kfl-icon-box mx-auto kfl-mb-3 bg-emerald-light"><i class="fa-solid fa-children text-emerald"></i></div>
-          <h3 class="counter kfl-stat-num" data-target="57">0</h3>
-          <p class="kfl-stat-text">أيتام بانتظار الكفالة</p>
-        </div>
-        <div class="kfl-card text-center reveal delay-100">
-          <div class="kfl-icon-box mx-auto kfl-mb-3 bg-blue-light"><i class="fa-solid fa-seedling text-blue"></i></div>
-          <h3 class="counter kfl-stat-num" data-target="200">+0</h3>
-          <p class="kfl-stat-text">مشروع تنموي منجز</p>
-        </div>
-        <div class="kfl-card text-center reveal delay-200">
-          <div class="kfl-icon-box mx-auto kfl-mb-3 bg-gold-light"><i class="fa-solid fa-calendar-check text-gold"></i></div>
-          <h3 class="counter kfl-stat-num" data-target="12">+0</h3>
-          <p class="kfl-stat-text">سنوات من العطاء</p>
-        </div>
-        <div class="kfl-card text-center reveal delay-300">
-          <div class="kfl-icon-box mx-auto kfl-mb-3 bg-red-light"><i class="fa-solid fa-graduation-cap text-red"></i></div>
-          <h3 class="counter kfl-stat-num" data-target="85">+0</h3>
-          <p class="kfl-stat-text">قصة نجاح لخريجين</p>
-        </div>
-      </div>
-    </div>
-  </section>
+            <div class="hero__arch" data-tilt-target>
+              <img src="assets/img/hero-child.png"
+                   alt="طفلة تبتسم في فناء مدرستها"
+                   width="400" height="500" fetchpriority="high">
+            </div>
 
-  <!-- About Split Section -->
-  <section class="kfl-section kfl-bg-gray">
-    <div class="kfl-container">
-      <div class="kfl-split-layout">
-        <div class="kfl-split-image reveal-right">
-          <div class="kfl-image-container">
-            <img src="assests/img/child2.jpg" alt="فريق كفالة" class="kfl-img-fluid">
-            <div class="kfl-play-btn-overlay"><i class="fa-solid fa-play"></i></div>
-          </div>
-          <div class="kfl-glass trust-badge-modern">
-            <i class="fa-solid fa-shield-check text-primary fa-lg"></i>
-            <div class="badge-text">
-              <strong>جمعية مرخصة رسمياً</strong>
-              <span>شفافية تامة في التقارير</span>
+            <div class="hero__chip hero__chip--a">
+              <span class="icon-box icon-box--growth" style="inline-size:2.5rem;block-size:2.5rem;font-size:1rem">
+                <i class="fa-solid fa-hands-holding-child" aria-hidden="true"></i>
+              </span>
+              <div>
+                <strong class="num"><span data-count="3280" data-suffix="+">0</span></strong>
+                <span>يتيم مكفول اليوم</span>
+              </div>
+            </div>
+
+            <div class="hero__chip hero__chip--b">
+              <span class="icon-box icon-box--accent" style="inline-size:2.5rem;block-size:2.5rem;font-size:1rem">
+                <i class="fa-solid fa-file-shield" aria-hidden="true"></i>
+              </span>
+              <div>
+                <strong class="num"><span data-count="93" data-suffix="٪">0</span></strong>
+                <span>يصل للطفل مباشرة</span>
+              </div>
             </div>
           </div>
-        </div>
-        
-        <div class="kfl-split-content reveal-left">
-          <span class="kfl-section-tag">رسالتنا</span>
-          <h2 class="kfl-section-title">نحن جسر الأمل بينك وبينهم</h2>
-          <p class="kfl-section-desc">في "كفالة"، لا نكتفي بتقديم الدعم المالي فحسب، بل نبني مستقبلاً متكاملاً لليتيم. نعمل بشفافية ومصداقية لضمان وصول عطائكم لمستحقيه.</p>
-          
-          <ul class="kfl-feature-list">
-            <li><div class="icon-check"><i class="fa-solid fa-check"></i></div><span>رعاية شاملة وميدانية مستمرة</span></li>
-            <li><div class="icon-check"><i class="fa-solid fa-check"></i></div><span>تقارير دورية شفافة للكافل</span></li>
-            <li><div class="icon-check"><i class="fa-solid fa-check"></i></div><span>برامج تطوير نفسي واجتماعي</span></li>
-          </ul>
-          
-          <a href="about.html" class="kfl-btn kfl-btn-outline">اكتشف المزيد عنا</a>
-        </div>
-      </div>
-    </div>
-  </section>
 
-  <!-- Sponsorship Types -->
-  <section class="kfl-section">
-    <div class="kfl-container">
-      <div class="kfl-section-header reveal">
-        <span class="kfl-section-tag">مجالات الدعم</span>
-        <h2 class="kfl-section-title">اختر كيف تصنع الأثر</h2>
-        <p class="kfl-section-desc">تتعدد مسارات الخير، اختر الكفالة التي تتناسب مع رغبتك في رسم البسمة على وجوههم.</p>
-      </div>
+        </div>
 
-      <div class="kfl-grid-4">
-        <div class="kfl-card kfl-hover-up reveal delay-100">
-          <div class="kfl-icon-bg bg-emerald-light kfl-mb-4"><i class="fa-solid fa-wallet text-emerald"></i></div>
-          <h3 class="kfl-card-title">كفالة مالية</h3>
-          <p class="kfl-card-text">تغطي الاحتياجات المعيشية الأساسية لليتيم شهرياً بانتظام.</p>
-          <a href="#" class="kfl-link">تفاصيل الكفالة <i class="fa-solid fa-arrow-left kfl-ms-1"></i></a>
-        </div>
-        
-        <div class="kfl-card kfl-hover-up reveal delay-200">
-          <div class="kfl-icon-bg bg-blue-light kfl-mb-4"><i class="fa-solid fa-book-open text-blue"></i></div>
-          <h3 class="kfl-card-title">كفالة تعليمية</h3>
-          <p class="kfl-card-text">دعم مسيرة الطفل التعليمية من الحقيبة المدرسية حتى التخرج.</p>
-          <a href="#" class="kfl-link">تفاصيل الكفالة <i class="fa-solid fa-arrow-left kfl-ms-1"></i></a>
-        </div>
-        
-        <div class="kfl-card kfl-hover-up reveal delay-300">
-          <div class="kfl-icon-bg bg-red-light kfl-mb-4"><i class="fa-solid fa-stethoscope text-red"></i></div>
-          <h3 class="kfl-card-title">كفالة صحية</h3>
-          <p class="kfl-card-text">تأمين الرعاية الطبية والعلاجية والعمليات الجراحية عند الحاجة.</p>
-          <a href="#" class="kfl-link">تفاصيل الكفالة <i class="fa-solid fa-arrow-left kfl-ms-1"></i></a>
-        </div>
-        
-        <div class="kfl-card kfl-hover-up reveal delay-400">
-          <div class="kfl-icon-bg bg-gold-light kfl-mb-4"><i class="fa-solid fa-people-roof text-gold"></i></div>
-          <h3 class="kfl-card-title">كفالة أسرة</h3>
-          <p class="kfl-card-text">دعم شامل لأسرة الأيتام المتعففة لضمان استقرارهم المجتمعي.</p>
-          <a href="#" class="kfl-link">تفاصيل الكفالة <i class="fa-solid fa-arrow-left kfl-ms-1"></i></a>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Orphans Grid (SaaS Modern) -->
-  <section class="kfl-section kfl-bg-gray">
-    <div class="kfl-container">
-      
-      <!-- SaaS Section Header -->
-      <div class="kfl-saas-section-header reveal">
-        <div class="kfl-saas-header-content">
-          <span class="kfl-saas-pill"><i class="fa-solid fa-bolt kfl-me-2"></i>حالات عاجلة</span>
-          <h2 class="kfl-saas-title kfl-display-3">أيتام بانتظار رعايتك</h2>
-          <p class="kfl-saas-subtitle">هؤلاء الأطفال ينتظرون قلباً رحيماً يمسح دمعتهم ويصنع مستقبلهم.</p>
-        </div>
-        <a href="sponsorships.html" class="kfl-saas-link">
-          عرض جميع الأيتام <i class="fa-solid fa-arrow-left"></i>
+        <a class="scroll-cue" href="#trust">
+          <span class="scroll-cue__mouse" aria-hidden="true"></span>
+          مرّر لتعرف من نحن
         </a>
       </div>
+    </section>
 
-      <!-- SaaS Grid -->
-      <div class="kfl-grid-3">
-        
-        <!-- SaaS Orphan Card 1 -->
-        <div class="kfl-saas-card reveal delay-100">
-          <div class="kfl-saas-card-img">
-            <div class="kfl-saas-card-badge">
-              <i class="fa-solid fa-book-open text-primary"></i> تعليمية
-            </div>
-            <img src="assests/img/child2.jpg" alt="أمنية">
-            <div class="kfl-saas-card-overlay"></div>
-            <div class="kfl-saas-card-name">
-              <h3>أمنية</h3>
-            </div>
-          </div>
-          <div class="kfl-saas-card-body">
-            <div class="kfl-saas-meta">
-              <span><i class="fa-solid fa-calendar-day"></i> 8 سنوات</span>
-              <span><i class="fa-solid fa-location-dot"></i> فلسطين - غزة</span>
-            </div>
-            
-            <div class="kfl-saas-progress-wrapper">
-              <div class="kfl-saas-progress-info">
-                <span>المتبقي</span>
-                <strong>$30 / شهرياً</strong>
-              </div>
-              <div class="kfl-saas-progress-track">
-                <div class="kfl-saas-progress-fill" style="width: 40%"></div>
-              </div>
-            </div>
-            
-            <a href="orphan-details.html" class="kfl-saas-btn">
-              اكفل الآن <i class="fa-solid fa-arrow-left"></i>
-            </a>
-          </div>
-        </div>
-
-        <!-- SaaS Orphan Card 2 -->
-        <div class="kfl-saas-card reveal delay-200">
-          <div class="kfl-saas-card-img">
-            <div class="kfl-saas-card-badge">
-              <i class="fa-solid fa-heart-pulse text-emerald"></i> شاملة
-            </div>
-            <img src="assests/img/child2.jpg" alt="أحمد">
-            <div class="kfl-saas-card-overlay"></div>
-            <div class="kfl-saas-card-name">
-              <h3>أحمد</h3>
-            </div>
-          </div>
-          <div class="kfl-saas-card-body">
-            <div class="kfl-saas-meta">
-              <span><i class="fa-solid fa-calendar-day"></i> 10 سنوات</span>
-              <span><i class="fa-solid fa-location-dot"></i> اليمن - صنعاء</span>
-            </div>
-            
-            <div class="kfl-saas-progress-wrapper">
-              <div class="kfl-saas-progress-info">
-                <span>المتبقي</span>
-                <strong>$50 / شهرياً</strong>
-              </div>
-              <div class="kfl-saas-progress-track">
-                <div class="kfl-saas-progress-fill" style="width: 10%"></div>
-              </div>
-            </div>
-            
-            <a href="orphan-details.html" class="kfl-saas-btn">
-              اكفل الآن <i class="fa-solid fa-arrow-left"></i>
-            </a>
-          </div>
-        </div>
-
-        <!-- SaaS Orphan Card 3 -->
-        <div class="kfl-saas-card reveal delay-300">
-          <div class="kfl-saas-card-img">
-            <div class="kfl-saas-card-badge">
-              <i class="fa-solid fa-notes-medical text-red-500"></i> صحية
-            </div>
-            <img src="assests/img/child2.jpg" alt="عائشة">
-            <div class="kfl-saas-card-overlay"></div>
-            <div class="kfl-saas-card-name">
-              <h3>عائشة</h3>
-            </div>
-          </div>
-          <div class="kfl-saas-card-body">
-            <div class="kfl-saas-meta">
-              <span><i class="fa-solid fa-calendar-day"></i> 6 سنوات</span>
-              <span><i class="fa-solid fa-location-dot"></i> سوريا - إدلب</span>
-            </div>
-            
-            <div class="kfl-saas-progress-wrapper">
-              <div class="kfl-saas-progress-info">
-                <span>المتبقي</span>
-                <strong>$25 / شهرياً</strong>
-              </div>
-              <div class="kfl-saas-progress-track">
-                <div class="kfl-saas-progress-fill" style="width: 60%"></div>
-              </div>
-            </div>
-            
-            <a href="orphan-details.html" class="kfl-saas-btn">
-              اكفل الآن <i class="fa-solid fa-arrow-left"></i>
-            </a>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </section>
-
-  <!-- Donation Banner -->
-  <section class="kfl-section reveal">
-    <div class="kfl-container">
-      <div class="kfl-donation-banner">
-        <div class="banner-content">
-          <h2>تبرع مفتوح لمشاريع الأيتام</h2>
-          <p>إذا لم تستطع كفالة يتيم بشكل كامل، يمكنك المساهمة بأي مبلغ لدعم صناديق الرعاية العامة للأيتام.</p>
-        </div>
-        <div class="banner-form-wrapper">
-          <form class="kfl-quick-donate">
-            <div class="donate-amounts">
-              <button type="button" class="donate-btn">$10</button>
-              <button type="button" class="donate-btn active">$50</button>
-              <button type="button" class="donate-btn">$100</button>
-            </div>
-            <div class="donate-inputs">
-              <input type="number" placeholder="مبلغ آخر" class="kfl-input glass-input">
-              <button type="submit" class="kfl-btn kfl-btn-white">تبرع <i class="fa-solid fa-heart kfl-ms-2"></i></button>
-            </div>
-          </form>
+    <!-- ==================================================================
+         شريط الثقة
+         ================================================================== -->
+    <section class="trust-strip" id="trust">
+      <div class="container">
+        <p class="trust-strip__label">مرخّصون ومدقّقون ومعتمدون لدى</p>
+        <div class="marquee" data-marquee>
+          <div class="marquee__track" id="partnersTrack"></div>
         </div>
       </div>
+    </section>
+
+    <!-- ==================================================================
+         الأرقام
+         ================================================================== -->
+    <section class="section section--tight">
+      <div class="container">
+        <div class="grid grid--auto-sm" id="statsGrid"></div>
+      </div>
+    </section>
+
+    <!-- ==================================================================
+         المشكلة والحل — قسم "لماذا كفالة"
+         ================================================================== -->
+    <section class="section section--surface">
+      <div class="container">
+        <div class="split">
+
+          <div class="split__media" data-reveal="start">
+            <div class="arch arch--framed" style="aspect-ratio:4/5;max-inline-size:26rem;margin-inline:auto">
+              <img class="arch__img" src="assets/img/child-04.png"
+                   alt="مشرفة ميدانية تزور أسرة في بيتها" loading="lazy" width="420" height="525">
+            </div>
+          </div>
+
+          <div class="stack stack--lg" data-reveal="end">
+            <span class="eyebrow">لماذا كفالة</span>
+            <h2>معظم التبرعات تختفي. نحن نجعل مسارها مرئياً.</h2>
+
+            <p class="section-lede">
+              السؤال الذي يمنع الناس من العطاء ليس «كم أدفع؟» بل «هل وصل؟».
+              بنينا المنصة كلها حول هذا السؤال الواحد.
+            </p>
+
+            <ul class="check-list" role="list">
+              <li><strong>طفل بعينه، لا صندوق مجهول</strong> — تختار باسمه وقصته وظرفه، لا رقماً في حملة.</li>
+              <li><strong>تقرير مصوّر كل ٣ أشهر</strong> — درجاته، صحته، صورته الحديثة، وما صُرف عليه.</li>
+              <li><strong>ميزانية سنوية مدقّقة ومنشورة</strong> — من مكتب تدقيق مستقل، متاحة للجميع لا للكفلاء فقط.</li>
+              <li><strong>٣ مراحل تحقّق ميداني</strong> — قبل أن تظهر أي حالة على المنصة.</li>
+            </ul>
+
+            <div class="cluster">
+              <a class="btn btn--primary" href="transparency.html">
+                اطّلع على تقارير الشفافية
+                <i class="fa-solid fa-arrow-left btn__icon btn__icon--arrow" aria-hidden="true"></i>
+              </a>
+              <a class="btn btn--ghost" href="about.html">من نحن</a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================================================================
+         رحلة الكفالة — ٤ خطوات
+         ================================================================== -->
+    <section class="section pattern-bg" id="how">
+      <div class="container">
+        <div class="section-head section-head--center" data-reveal>
+          <span class="eyebrow">كيف تعمل</span>
+          <h2>من قرارك إلى بيته في أربع خطوات</h2>
+          <p class="section-lede">لا أوراق ولا مقابلات. الأمر يستغرق أقل من خمس دقائق.</p>
+        </div>
+
+        <div class="journey">
+          <div class="journey__step" data-reveal data-reveal-delay="0">
+            <div class="journey__badge">
+              <i class="fa-solid fa-child-reaching" aria-hidden="true"></i>
+              <span class="journey__num num">١</span>
+            </div>
+            <h3 class="journey__title">اختر طفلاً</h3>
+            <p class="journey__text">تصفّح الحالات الموثّقة واختر من تشعر أنك تريد أن تقف معه.</p>
+          </div>
+
+          <div class="journey__step" data-reveal data-reveal-delay="120">
+            <div class="journey__badge">
+              <i class="fa-solid fa-hand-holding-dollar" aria-hidden="true"></i>
+              <span class="journey__num num">٢</span>
+            </div>
+            <h3 class="journey__title">حدّد كفالتك</h3>
+            <p class="journey__text">شهرية أو سنوية، ومن الزكاة أو من الصدقة — أنت تختار.</p>
+          </div>
+
+          <div class="journey__step" data-reveal data-reveal-delay="240">
+            <div class="journey__badge">
+              <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+              <span class="journey__num num">٣</span>
+            </div>
+            <h3 class="journey__title">ادفع بأمان</h3>
+            <p class="journey__text">بوابة دفع مشفّرة، ولا نحتفظ ببيانات بطاقتك على خوادمنا.</p>
+          </div>
+
+          <div class="journey__step" data-reveal data-reveal-delay="360">
+            <div class="journey__badge">
+              <i class="fa-solid fa-envelope-open-text" aria-hidden="true"></i>
+              <span class="journey__num num">٤</span>
+            </div>
+            <h3 class="journey__title">تابع الأثر</h3>
+            <p class="journey__text">تقرير مصوّر كل ٣ أشهر يصلك، ولوحة تحكّم تتابع منها كل شيء.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================================================================
+         الحالات العاجلة — سلايدر
+         ================================================================== -->
+    <section class="section section--alt">
+      <div class="container">
+        <div class="section-head section-head--split" data-reveal>
+          <div>
+            <span class="eyebrow"><span class="pulse-dot"></span> حالات عاجلة</span>
+            <h2>هؤلاء ينتظرون الآن</h2>
+            <p class="section-lede">كل واحد منهم له اسم وقصة وملف موثّق. اسحب لتتصفّح.</p>
+          </div>
+          <a class="btn btn--outline" href="orphans.html">
+            عرض كل الحالات
+            <i class="fa-solid fa-arrow-left btn__icon btn__icon--arrow" aria-hidden="true"></i>
+          </a>
+        </div>
+
+        <div class="slider" data-slider data-slider-label="حالات عاجلة بانتظار الكفالة">
+          <div class="slider__viewport" data-slider-viewport>
+            <div class="slider__track" id="urgentOrphans"></div>
+          </div>
+
+          <div class="cluster cluster--between" style="margin-block-start:var(--space-6)">
+            <div class="slider__nav">
+              <button class="btn-icon" type="button" data-slider-prev aria-label="السابق">
+                <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+              </button>
+              <button class="btn-icon" type="button" data-slider-next aria-label="التالي">
+                <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+              </button>
+            </div>
+            <div class="slider__dots" data-slider-dots></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================================================================
+         حاسبة الأثر
+         ================================================================== -->
+    <section class="section">
+      <div class="container">
+        <div class="section-head section-head--center" data-reveal>
+          <span class="eyebrow">حاسبة الأثر</span>
+          <h2>ماذا يفعل مبلغك فعلاً؟</h2>
+          <p class="section-lede">حرّك الشريط وشاهد ما يتغيّر في حياة طفل شهرياً.</p>
+        </div>
+
+        <div class="calculator" data-reveal>
+          <div>
+            <label class="field__label" for="impactRange">اختر مبلغ كفالتك الشهرية</label>
+
+            <div class="calculator__amount">
+              <span>$</span>
+              <output class="num" id="impactAmount" for="impactRange">45</output>
+              <span>/ شهرياً</span>
+            </div>
+
+            <input class="range" type="range" id="impactRange"
+                   min="15" max="150" step="5" value="45"
+                   aria-describedby="impactSuggestion">
+
+            <div class="range__scale">
+              <span class="num">$15</span>
+              <span class="num">$150</span>
+            </div>
+
+            <p class="field__hint" id="impactSuggestion" role="status" aria-live="polite"></p>
+
+            <a class="btn btn--primary btn--lg" href="orphans.html" style="margin-block-start:var(--space-6)">
+              ابدأ بهذا المبلغ
+              <i class="fa-solid fa-arrow-left btn__icon btn__icon--arrow" aria-hidden="true"></i>
+            </a>
+          </div>
+
+          <div>
+            <p class="field__label" style="margin-block-end:var(--space-4)">هذا المبلغ يغطي:</p>
+            <ul class="impact-list" role="list" id="impactList"></ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================================================================
+         برامج الكفالة
+         ================================================================== -->
+    <section class="section section--surface">
+      <div class="container">
+        <div class="section-head section-head--center" data-reveal>
+          <span class="eyebrow">البرامج</span>
+          <h2>اختر شكل الوقوف معه</h2>
+          <p class="section-lede">
+            أربعة برامج تغطي احتياجات مختلفة. كلها موثّقة، وكلها تصلك تقاريرها.
+          </p>
+        </div>
+
+        <div class="grid grid--auto" id="programsGrid"></div>
+      </div>
+    </section>
+
+    <!-- ==================================================================
+         الشفافية
+         ================================================================== -->
+    <section class="section">
+      <div class="container">
+        <div class="split">
+
+          <div data-reveal="start">
+            <div id="spendingDonut"></div>
+          </div>
+
+          <div class="stack stack--lg" data-reveal="end">
+            <span class="eyebrow">الشفافية</span>
+            <h2>أين يذهب كل دولار تدفعه</h2>
+            <p class="section-lede">
+              هذه أرقام آخر سنة مالية مدقّقة. ننشرها كاملة لا ملخّصة،
+              ونشرح كل بند في التقرير السنوي.
+            </p>
+
+            <ul class="legend" role="list" id="spendingLegend"></ul>
+
+            <div class="cluster">
+              <a class="btn btn--outline" href="transparency.html">
+                <i class="fa-solid fa-file-arrow-down" aria-hidden="true"></i>
+                التقرير المالي المدقّق
+              </a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================================================================
+         الآية
+         ================================================================== -->
+    <section class="verse-band section--alt">
+      <div class="glow" style="inline-size:30rem;block-size:30rem;inset-block-start:-10rem;inset-inline-start:50%;transform:translateX(50%)" aria-hidden="true"></div>
+      <div class="container">
+        <p class="verse-band__text" data-reveal>
+          أَنَا وَكَافِلُ الْيَتِيمِ فِي الْجَنَّةِ هَكَذَا
+          <span class="verse-band__ref">رواه البخاري — وأشار بالسبابة والوسطى وفرّج بينهما</span>
+        </p>
+      </div>
+    </section>
+
+    <!-- ==================================================================
+         قصص الكفلاء
+         ================================================================== -->
+    <section class="section">
+      <div class="container">
+        <div class="section-head section-head--split" data-reveal>
+          <div>
+            <span class="eyebrow">من الكفلاء</span>
+            <h2>ماذا يقول من سبقك؟</h2>
+          </div>
+          <div class="slider__nav">
+            <button class="btn-icon" type="button" data-slider-prev aria-label="السابق">
+              <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+            </button>
+            <button class="btn-icon" type="button" data-slider-next aria-label="التالي">
+              <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="slider" data-slider data-slider-label="شهادات الكفلاء">
+          <div class="slider__viewport" data-slider-viewport>
+            <div class="slider__track" id="storiesTrack"></div>
+          </div>
+          <div class="slider__progress"><div class="slider__progress-bar" data-slider-progress></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================================================================
+         الأسئلة الشائعة
+         ================================================================== -->
+    <section class="section section--surface">
+      <div class="container container--narrow">
+        <div class="section-head section-head--center" data-reveal>
+          <span class="eyebrow">أسئلة متكررة</span>
+          <h2>ما يسأل عنه الناس قبل أن يبدأوا</h2>
+        </div>
+
+        <div class="accordion" data-accordion="single" id="faqList" data-limit="4"></div>
+
+        <p class="text-center" style="margin-block-start:var(--space-8)">
+          <a class="link-arrow" href="faq.html">
+            كل الأسئلة الشائعة
+            <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+          </a>
+        </p>
+      </div>
+    </section>
+
+    <!-- ==================================================================
+         المدونة
+         ================================================================== -->
+    <section class="section">
+      <div class="container">
+        <div class="section-head section-head--split" data-reveal>
+          <div>
+            <span class="eyebrow">من المدونة</span>
+            <h2>نكتب عن عملنا، لا عن أنفسنا</h2>
+          </div>
+          <a class="link-arrow" href="blog.html">
+            كل المقالات <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+          </a>
+        </div>
+
+        <div class="grid grid--auto-lg" id="postsGrid" data-limit="3"></div>
+      </div>
+    </section>
+
+    <!-- ==================================================================
+         النداء الختامي
+         ================================================================== -->
+    <section class="section section--flush-t">
+      <div class="container">
+        <div class="cta-band" data-reveal="scale">
+          <div class="cta-band__inner">
+            <span class="badge badge--glass">لا يستغرق أكثر من ٥ دقائق</span>
+            <h2>طفلٌ ما ينتظر الآن أن يقرر أحدهم</h2>
+            <p>
+              لا تحتاج أن تكون ثرياً لتغيّر حياة إنسان. تحتاج فقط أن تبدأ،
+              ويمكنك التوقف متى شئت بلا التزام.
+            </p>
+            <div class="cluster cluster--center">
+              <a class="btn btn--invert btn--lg" href="orphans.html">
+                اختر طفلاً تكفله
+                <i class="fa-solid fa-arrow-left btn__icon btn__icon--arrow" aria-hidden="true"></i>
+              </a>
+              <a class="btn btn--glass btn--lg" href="contact.html">تحدّث مع فريقنا</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <div data-layout="footer"></div>
+
+  <!-- شريط إجراء سفلي للجوال -->
+  <div class="action-bar" id="actionBar">
+    <div class="action-bar__info">
+      <span>ابدأ من</span>
+      <strong class="num">$35 / شهرياً</strong>
     </div>
-  </section>
+    <a class="btn btn--primary" href="orphans.html">اكفل الآن</a>
+  </div>
 
-  <div id="footer-placeholder"></div>
-  <div id="modals-placeholder"></div>
+  <button class="to-top" type="button" id="toTop" aria-label="العودة إلى أعلى الصفحة">
+    <svg class="to-top__ring" viewBox="0 0 54 54" aria-hidden="true">
+      <circle cx="27" cy="27" r="25"></circle>
+    </svg>
+    <i class="fa-solid fa-arrow-up" aria-hidden="true"></i>
+  </button>
 
-  <script src="assests/js/main.js"></script>
 </body>
 </html>
