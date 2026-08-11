@@ -192,8 +192,8 @@ dependency. Font Awesome is vendored locally; only the web fonts come from a CDN
 
 ## 👤 المطوّر
 
-**أحمد الحواجري** — مطوّر ومصمم واجهات · أتمتة بيانات
-الخليل، فلسطين
+أحمد الحواجري — مطوّر ومصمم واجهات
+غزة - فلسطين
 
 </div>
 
