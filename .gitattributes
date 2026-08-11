@@ -1,3 +1,9 @@
 # Font Awesome is bundled, not authored here.
-assests/font/**     linguist-vendored
-assests/webfonts/** linguist-vendored
+assets/vendor/** linguist-vendored
+
+# Normalise line endings so the repo stays clean across Windows and Unix.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.webp binary
+*.woff2 binary
