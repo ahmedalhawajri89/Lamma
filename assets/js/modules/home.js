@@ -53,7 +53,7 @@ export function renderHomeSections() {
   const storiesHost = document.querySelector('#storiesTrack');
   if (storiesHost) {
     storiesHost.innerHTML = STORIES
-      .map((s) => `<div class="slider__slide slider__slide--wide">${storyCard(s)}</div>`)
+      .map((s, index) => `<div class="slider__slide slider__slide--wide">${storyCard(s, { index })}</div>`)
       .join('');
   }
 

@@ -96,12 +96,12 @@ export function programCard(program, { delay = 0 } = {}) {
 }
 
 /** بطاقة شهادة كافل. */
-export function storyCard(story) {
+export function storyCard(story, { index = 0 } = {}) {
   return `
 <article class="story-card">
   <p class="story-card__quote">${escapeHtml(story.quote)}</p>
   <div class="story-card__author">
-    <img src="${escapeHtml(story.photo)}" alt="" loading="lazy" width="44" height="44">
+    <span class="avatar avatar--${(index % 4) + 1}" aria-hidden="true">${escapeHtml(story.name.trim()[0])}</span>
     <div>
       <strong>${escapeHtml(story.name)}</strong>
       <span>${escapeHtml(story.role)}</span>

@@ -422,6 +422,36 @@
 }
 
 /* ==========================================================================
+   الأفاتار الحرفي
+   للكفلاء نعرض الحرف الأول بدل صورة شخصية عامة: أصدق (لا نُوهم أن هذه صور
+   كفلاء حقيقيين)، وأخف (بلا طلبات صور)، وأنظف بصرياً في الشبكة.
+   ========================================================================== */
+.avatar {
+  display: grid;
+  place-items: center;
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
+  border-radius: 50%;
+  background: var(--avatar-bg, var(--color-brand));
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: var(--text-md);
+  font-weight: 600;
+  line-height: 1;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.avatar--sm { inline-size: 2.5rem; block-size: 2.5rem; font-size: var(--text-sm); }
+.avatar--lg { inline-size: 3rem;    block-size: 3rem; }
+
+/* تدرّج ألوان الأفاتار — يُختار بالدور فتبدو المجموعة متنوعة لا رتيبة */
+.avatar--1 { --avatar-bg: var(--clay-600); }
+.avatar--2 { --avatar-bg: var(--amber-600); }
+.avatar--3 { --avatar-bg: var(--olive-600); }
+.avatar--4 { --avatar-bg: var(--teal-700); }
+
+/* ==========================================================================
    شريط التقدم
    ========================================================================== */
 .progress {
