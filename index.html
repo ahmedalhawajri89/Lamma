@@ -65,93 +65,104 @@
   <main id="main">
 
     <!-- ==================================================================
-         الهيرو
+         الهيرو — سلايدر سينمائي
+         النصوص في data-* على كل شريحة، فيبقى المحتوى في HTML لا في JS.
          ================================================================== -->
-    <section class="hero">
-      <div class="container">
-        <div class="hero__layout">
+    <section class="hero" id="heroSlider"
+             role="region" aria-roledescription="عارض شرائح" aria-label="قصص من ينتظرون كافلاً">
 
-          <div class="hero__content">
-            <span class="badge badge--brand">
-              <span class="pulse-dot"></span>
-              ٥٧ طفلاً ينتظرون كافلاً هذا الشهر
-            </span>
-
-            <h1 class="hero__title" data-words>
-              طفلٌ واحد يكفيه
-              <span class="hero__accent">قرارٌ واحد</span>
-              منك اليوم
-            </h1>
-
-            <p class="hero__lede">
-              لا نطلب منك تبرعاً عابراً. نطلب علاقة: تختار طفلاً باسمه وقصته،
-              وتتابع دراسته وصحته بتقرير مصوّر كل ثلاثة أشهر، وتعرف أين ذهب كل دولار.
-            </p>
-
-            <div class="hero__actions">
-              <a class="btn btn--primary btn--lg" href="orphans.html">
-                اختر طفلاً تكفله
-                <i class="fa-solid fa-arrow-left btn__icon btn__icon--arrow" aria-hidden="true"></i>
-              </a>
-              <a class="btn btn--glass btn--lg" href="#how">
-                <i class="fa-solid fa-circle-play" aria-hidden="true"></i>
-                كيف تعمل الكفالة؟
-              </a>
-            </div>
-
-            <div class="social-proof">
-              <div class="avatar-stack" aria-hidden="true">
-                <span class="avatar avatar--sm avatar--1">ع</span>
-                <span class="avatar avatar--sm avatar--2">س</span>
-                <span class="avatar avatar--sm avatar--3">م</span>
-                <span class="num">1.5k</span>
-              </div>
-              <div class="social-proof__text">
-                <strong>١٥٠٠+ كافل حول العالم</strong>
-                <span class="social-proof__stars" aria-hidden="true">★★★★★</span>
-                تقييم ٤٫٩ من ٥ على شفافية التقارير
-              </div>
-            </div>
-          </div>
-
-          <div class="hero__stage" data-tilt="4">
-            <div class="hero__glow" aria-hidden="true"></div>
-            <div class="hero__arch-echo" aria-hidden="true"></div>
-
-            <div class="hero__arch" data-tilt-target>
-              <img src="assets/img/hero-child.webp"
-                   alt="طفلة تبتسم في فناء مدرستها"
-                   width="400" height="500" fetchpriority="high">
-            </div>
-
-            <div class="hero__chip hero__chip--a">
-              <span class="icon-box icon-box--growth" style="inline-size:2.5rem;block-size:2.5rem;font-size:1rem">
-                <i class="fa-solid fa-hands-holding-child" aria-hidden="true"></i>
-              </span>
-              <div>
-                <strong class="num"><span data-count="3280" data-suffix="+">0</span></strong>
-                <span>يتيم مكفول اليوم</span>
-              </div>
-            </div>
-
-            <div class="hero__chip hero__chip--b">
-              <span class="icon-box icon-box--accent" style="inline-size:2.5rem;block-size:2.5rem;font-size:1rem">
-                <i class="fa-solid fa-file-shield" aria-hidden="true"></i>
-              </span>
-              <div>
-                <strong class="num"><span data-count="93" data-suffix="٪">0</span></strong>
-                <span>يصل للطفل مباشرة</span>
-              </div>
-            </div>
-          </div>
-
+      <div class="hero__slides">
+        <div class="hero__slide is-active"
+             data-eyebrow="٥٧ طفلاً ينتظرون كافلاً هذا الشهر"
+             data-title="طفلٌ واحد يكفيه"
+             data-accent="قرارٌ واحد منك"
+             data-lede="لا نطلب منك تبرعاً عابراً. نطلب علاقة: تختار طفلاً باسمه وقصته، وتتابع دراسته وصحته بتقرير مصوّر كل ثلاثة أشهر.">
+          <img src="assets/img/slide-01.webp" alt="أطفال في فصل دراسي يتابعون درسهم"
+               width="1600" height="900" fetchpriority="high">
         </div>
 
-        <a class="scroll-cue" href="#trust">
-          <span class="scroll-cue__mouse" aria-hidden="true"></span>
-          مرّر لتعرف من نحن
-        </a>
+        <div class="hero__slide"
+             data-eyebrow="٩٣٪ يصل للطفل مباشرة"
+             data-title="نُريك أين ذهب"
+             data-accent="كل دولار"
+             data-lede="ميزانية سنوية مدقّقة ومنشورة للجميع، وتقرير مصوّر يوثّق ما صُرف على طفلك بالتفصيل. لا نطلب أن تثق بنا، بل أن تتحقق.">
+          <img src="assets/img/slide-02.webp" alt="طفلة تبتسم في فصلها الدراسي مع زملائها"
+               width="1600" height="900" loading="lazy">
+        </div>
+
+        <div class="hero__slide"
+             data-eyebrow="١٤ عاماً في ١٢ دولة"
+             data-title="مقعد دراسي محفوظ"
+             data-accent="لكل طفل كفلته"
+             data-lede="من الرسوم إلى الحقيبة إلى دروس التقوية. ٣٢٨٠ طفلاً على مقاعدهم اليوم لأن أحداً قرر أن يقف معهم.">
+          <img src="assets/img/slide-03.webp" alt="طفل يحمل كتبه في طريقه إلى المدرسة"
+               width="1600" height="900" loading="lazy">
+        </div>
+
+        <div class="hero__slide"
+             data-eyebrow="ابدأ من ٣٥ دولاراً شهرياً"
+             data-title="لا التزام، ولا رسوم"
+             data-accent="ويمكنك التوقف متى شئت"
+             data-lede="لا تحتاج أن تكون ثرياً لتغيّر حياة إنسان. تحتاج فقط أن تبدأ، والباقي نتكفّل بتوثيقه لك شهراً بشهر.">
+          <img src="assets/img/slide-04.webp" alt="طفل في زيّه المدرسي يبتسم للكاميرا"
+               width="1600" height="900" loading="lazy">
+        </div>
       </div>
+
+      <div class="container hero__inner">
+
+        <!-- يملؤه hero.js من data-* للشريحة النشطة -->
+        <div class="hero__content" id="heroContent"></div>
+
+        <div class="hero__bar">
+
+          <div class="hero__proof">
+            <div class="avatar-stack" aria-hidden="true">
+              <span class="avatar avatar--sm avatar--1">ع</span>
+              <span class="avatar avatar--sm avatar--2">س</span>
+              <span class="avatar avatar--sm avatar--3">م</span>
+            </div>
+            <div>
+              <strong>١٥٠٠+ كافل حول العالم</strong>
+              <span>تقييم ٤٫٩ من ٥ على شفافية التقارير</span>
+            </div>
+          </div>
+
+          <div class="hero__meta">
+            <span class="hero__count num" id="heroCount">01</span>
+            <div class="hero__progress" aria-hidden="true"><span></span></div>
+
+            <div class="hero__controls">
+              <button class="hero__ctrl" type="button" id="heroPrev" aria-label="الشريحة السابقة">
+                <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+              </button>
+              <button class="hero__ctrl" type="button" id="heroPlay" aria-label="إيقاف العرض التلقائي">
+                <i class="fa-solid fa-pause" aria-hidden="true"></i>
+              </button>
+              <button class="hero__ctrl" type="button" id="heroNext" aria-label="الشريحة التالية">
+                <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="hero__thumbs">
+            <button class="hero__thumb" type="button" aria-current="true" aria-label="الشريحة ١">
+              <img src="assets/img/thumb-01.webp" alt="" width="80" height="80" loading="lazy">
+            </button>
+            <button class="hero__thumb" type="button" aria-current="false" aria-label="الشريحة ٢">
+              <img src="assets/img/thumb-02.webp" alt="" width="80" height="80" loading="lazy">
+            </button>
+            <button class="hero__thumb" type="button" aria-current="false" aria-label="الشريحة ٣">
+              <img src="assets/img/thumb-03.webp" alt="" width="80" height="80" loading="lazy">
+            </button>
+            <button class="hero__thumb" type="button" aria-current="false" aria-label="الشريحة ٤">
+              <img src="assets/img/thumb-04.webp" alt="" width="80" height="80" loading="lazy">
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <p class="sr-only" id="heroLive" role="status" aria-live="polite"></p>
     </section>
 
     <!-- ==================================================================
@@ -183,9 +194,11 @@
         <div class="split">
 
           <div class="split__media" data-reveal="start">
-            <div class="arch arch--framed" style="aspect-ratio:4/5;max-inline-size:26rem;margin-inline:auto">
-              <img class="arch__img" src="assets/img/about-classroom.webp"
+            <div class="frame-set" style="max-inline-size:26rem;margin-inline:auto">
+              <div class="frame" style="aspect-ratio:4/5">
+                <img class="frame__img" src="assets/img/about-classroom.webp"
                    alt="مشرفة ميدانية تزور أسرة في بيتها" loading="lazy" width="420" height="525">
+              </div>
             </div>
           </div>
 

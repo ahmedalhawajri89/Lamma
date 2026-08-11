@@ -74,7 +74,7 @@ export function programCard(program, { delay = 0 } = {}) {
          data-reveal data-reveal-delay="${delay}">
   ${program.featured ? '<span class="badge badge--accent program-card__ribbon">الأكثر أثراً</span>' : ''}
 
-  <div class="icon-box icon-box--arch">
+  <div class="icon-box icon-box--soft">
     <i class="fa-solid ${escapeHtml(program.icon)}" aria-hidden="true"></i>
   </div>
 

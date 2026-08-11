@@ -37,6 +37,60 @@
   min-block-size: 4.75rem;
 }
 
+/* ------- الهيدر فوق هيرو داكن -------
+   قبل الالتصاق يكون الهيدر شفافاً فوق صورة داكنة، فنقلب النص إلى الأبيض
+   لضمان التباين. وبمجرد أن يصير زجاجياً فاتحاً يعود إلى ألوانه الأصلية. */
+.site-header:not(.site-header--solid):not(.is-stuck) {
+  --header-fg: #fff;
+}
+
+.site-header:not(.site-header--solid):not(.is-stuck) :is(.brand__name, .nav__link) {
+  color: var(--header-fg);
+}
+
+.site-header:not(.site-header--solid):not(.is-stuck) .brand__tag {
+  color: rgb(255 255 255 / 0.62);
+}
+
+.site-header:not(.site-header--solid):not(.is-stuck) .nav__link:hover {
+  background: rgb(255 255 255 / 0.14);
+}
+
+.site-header:not(.site-header--solid):not(.is-stuck) .nav__link[aria-current="page"] {
+  color: var(--amber-300);
+}
+
+.site-header:not(.site-header--solid):not(.is-stuck) .nav__link[aria-current="page"]::after {
+  background: var(--amber-300);
+}
+
+.site-header:not(.site-header--solid):not(.is-stuck) .btn--outline {
+  --btn-fg: #fff;
+  --btn-bg: rgb(255 255 255 / 0.1);
+  --btn-border: rgb(255 255 255 / 0.35);
+  backdrop-filter: blur(10px);
+}
+
+.site-header:not(.site-header--solid):not(.is-stuck) .btn--outline:hover {
+  --btn-bg: rgb(255 255 255 / 0.2);
+  --btn-border: rgb(255 255 255 / 0.6);
+  --btn-fg: #fff;
+}
+
+.site-header:not(.site-header--solid):not(.is-stuck) .nav-toggle {
+  background: rgb(255 255 255 / 0.12);
+  border-color: rgb(255 255 255 / 0.3);
+}
+
+.site-header:not(.site-header--solid):not(.is-stuck) .nav-toggle__bars span {
+  background: #fff;
+}
+
+/* استثناء: حين تُفتح القائمة الجوالة تصير خلفيتها فاتحة، فالنص الأبيض
+   يختفي عليها. نعيد ألوان الروابط داخل الدرج المفتوح. */
+.site-header:has(.site-nav.is-open) .nav__link { color: var(--color-text-muted); }
+.site-header:has(.site-nav.is-open) .nav__link[aria-current="page"] { color: var(--color-brand); }
+
 /* الشعار */
 .brand {
   display: inline-flex;

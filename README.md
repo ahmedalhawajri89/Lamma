@@ -25,9 +25,14 @@ deliberately away from the medical-green that most charity sites default to.
 | Canvas | `--color-canvas` | `#fbf7f0` — warm sand |
 | Ink | `--color-text` | `#1c1917` |
 
-**The arch (`--arch`)** — a mihrab-inspired shape — is the signature form. It repeats
-across hero imagery, icon boxes, journey badges, seals and profile photos, giving the
-site an identity that isn't reducible to "another card grid".
+**The offset frame** is the signature: generous corner radii with a thin brand-coloured
+outline shifted diagonally behind the image. Editorial, contemporary, and quiet —
+it adds depth without ornament.
+
+**The hero is a cinematic slider**: full-bleed imagery with a directional scrim,
+slow Ken Burns zoom, per-slide copy, thumbnail navigation and an autoplay progress
+bar — with a visible pause control, because WCAG 2.2.2 requires any auto-advancing
+content to be stoppable.
 
 **Typography** pairs *Readex Pro* (display) with *IBM Plex Sans Arabic* (body) and
 *Aref Ruqaa* for scriptural quotations — a distinctly Arabic pairing rather than the
@@ -40,6 +45,8 @@ breakpoints.
 
 - **حاسبة الأثر** — يسحب الزائر شريطاً فيرى فوراً ما الذي يوفّره مبلغه شهرياً.
 - **حلقة الشفافية** — رسم SVG خالص لتوزيع الإنفاق، يُرسم متحركاً عند ظهوره، بلا مكتبة رسم.
+- **هيرو سينمائي** — أربع شرائح بصور ملء العرض، تقريب بطيء، مصغّرات،
+  شريط تقدّم، وزر إيقاف ظاهر (معيار WCAG 2.2.2).
 - **سلايدر مكتوب من الصفر** — مبني على `scroll-snap` الأصلي مع سحب بالفأرة وأزرار
   ونقاط وشريط تقدم ودعم كامل للكيبورد. لا Swiper ولا غيره.
 - **فلترة حيّة للأيتام** — بحث وترتيب وفلترة حسب البرنامج والدولة، وتتصل بالرابط
@@ -109,7 +116,8 @@ kafala-orphan-sponsorship/
     │       ├── render.js   قوالب البطاقات
     │       ├── home.js     تعبئة الأقسام من البيانات
     │       ├── features.js الحاسبة، الفلترة، صفحات التفاصيل
-    │       ├── slider.js   السلايدر والشريط المتحرك
+    │       ├── hero.js     سلايدر الهيرو السينمائي
+│       ├── slider.js   السلايدر والشريط المتحرك
     │       ├── motion.js   الكشف، العدّادات، الميلان
     │       ├── ui.js       أكورديون، تبويبات، نوافذ، تنبيهات
     │       ├── forms.js    التحقق ومعالجة المدخلات الحساسة

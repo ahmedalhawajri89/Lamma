@@ -20,6 +20,7 @@ import {
   initActionBar,
 } from './modules/motion.js';
 import { initSliders, initMarquee } from './modules/slider.js';
+import { initHeroSlider } from './modules/hero.js';
 import {
   initAccordions,
   initTabs,
@@ -54,6 +55,7 @@ function boot() {
   initModals();
   initChipGroups();
   initPasswordToggles();
+  initHeroSlider();
   initSliders();
   initMarquee();
 
