@@ -1,5 +1,9 @@
 # كفالة — Kafala
 
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Open%20the%20site-C2410C?style=for-the-badge&logo=vercel&logoColor=white)](https://kafala-orphan-sponsorship.vercel.app/)
+
+**Live demo — [kafala-orphan-sponsorship.vercel.app](https://kafala-orphan-sponsorship.vercel.app/)**
+
 <div dir="rtl">
 
 منصة كفالة أيتام بالعربية (RTL أولاً)، مبنية بـ HTML و CSS و JavaScript خالصة —
@@ -192,8 +196,10 @@ dependency. Font Awesome is vendored locally; only the web fonts come from a CDN
 
 ## 👤 المطوّر
 
-أحمد الحواجري — مطوّر ومصمم واجهات
-غزة - فلسطين
+**أحمد الحواجري** — مطوّر ويب Full-Stack
+غزة، فلسطين
+
+[GitHub](https://github.com/ahmedalhawajri89) · [LinkedIn](https://www.linkedin.com/in/ahmedalhawajri)
 
 </div>
 
