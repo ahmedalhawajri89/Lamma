@@ -10,7 +10,7 @@ export const SITE = {
   email: 'info@kafala.org',
   phone: '+970 599 000 000',
   phoneHref: '+970599000000',
-  address: 'الخليل، فلسطين',
+  address: 'غزة، فلسطين',
   social: [
     { label: 'إكس', icon: 'fa-x-twitter', url: '#' },
     { label: 'إنستغرام', icon: 'fa-instagram', url: '#' },
