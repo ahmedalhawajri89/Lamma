@@ -9,8 +9,6 @@ import {
   STORIES,
   FAQS,
   POSTS,
-  PARTNERS,
-  IMPACT_STATS,
   SPENDING,
 } from './data.js';
 
@@ -20,20 +18,12 @@ import {
   storyCard,
   faqItem,
   postCard,
-  statCard,
-  partnerItem,
   spendingDonut,
   spendingLegend,
   renderInto,
 } from './render.js';
 
 export function renderHomeSections() {
-  /* الإحصاءات */
-  renderInto('#statsGrid', IMPACT_STATS, statCard);
-
-  /* شريط الشركاء */
-  renderInto('#partnersTrack', PARTNERS, partnerItem);
-
   /* البرامج */
   renderInto('#programsGrid', PROGRAMS, programCard);
 

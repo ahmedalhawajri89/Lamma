@@ -19,7 +19,7 @@ import {
   initToTop,
   initActionBar,
 } from './modules/motion.js';
-import { initSliders, initMarquee } from './modules/slider.js';
+import { initSliders } from './modules/slider.js';
 import { initHeroSlider } from './modules/hero.js';
 import {
   initAccordions,
@@ -37,6 +37,7 @@ import {
   initThankYou,
 } from './modules/features.js';
 import { renderHomeSections } from './modules/home.js';
+import { initProofBoard, initCredentials, initFinanceBoard } from './modules/proof.js';
 
 function boot() {
   // ١) الهيكل أولاً — بقية الوحدات قد تحتاج عناصره
@@ -44,6 +45,9 @@ function boot() {
 
   // ٢) المحتوى المُولَّد من البيانات قبل تشغيل الحركات عليه
   renderHomeSections();
+  initProofBoard();
+  initCredentials();
+  initFinanceBoard();
   initOrphanFilters();
   initOrphanDetail();
   initCheckoutSummary();
@@ -57,7 +61,6 @@ function boot() {
   initPasswordToggles();
   initHeroSlider();
   initSliders();
-  initMarquee();
 
   // ٤) النماذج
   initForms();

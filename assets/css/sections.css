@@ -310,21 +310,6 @@
   letter-spacing: var(--tracking-wide);
 }
 
-.partner {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  font-family: var(--font-display);
-  font-size: var(--text-md);
-  font-weight: 600;
-  color: var(--sand-400);
-  white-space: nowrap;
-  transition: color var(--dur-normal) var(--ease-out);
-}
-
-.partner:hover { color: var(--color-brand); }
-.partner i { font-size: var(--text-xl); }
-
 /* ==========================================================================
    3. الأرقام
    ========================================================================== */
@@ -997,3 +982,295 @@
 }
 
 .filter-bar__count strong { color: var(--color-brand); font-family: var(--font-display); }
+
+/* ==========================================================================
+   14. لوحة الثقة — bento غير متناظر
+   بدل صفٍّ من أربعة أرقام متطابقة، كل بلاطة تحمل مرئياً مصغّراً يشرح رقمه:
+   شبكة نقاط للأطفال، حلقة للنسبة، أسماء الدول بدل عددها، وخط زمني للسنوات.
+   الرقم يُرى لا يُقال.
+   ========================================================================== */
+.bento {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-4);
+}
+
+@media (max-width: 62rem) { .bento { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 34rem) { .bento { grid-template-columns: 1fr; } }
+
+.bento__tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-6);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+  transition: border-color var(--dur-normal) var(--ease-out),
+              box-shadow var(--dur-normal) var(--ease-out);
+}
+
+.bento__tile:hover {
+  border-color: var(--color-brand-border);
+  box-shadow: var(--shadow-md);
+}
+
+/* البلاطة الرئيسية: عمودان وصفّان */
+.bento__tile--hero {
+  grid-column: span 2;
+  grid-row: span 2;
+  background: var(--gradient-warm);
+  border-color: var(--color-brand-border);
+}
+
+.bento__tile--wide { grid-column: span 2; }
+
+@media (max-width: 34rem) {
+  .bento__tile--hero,
+  .bento__tile--wide { grid-column: span 1; grid-row: span 1; }
+}
+
+.bento__value {
+  font-family: var(--font-display);
+  font-size: var(--text-4xl);
+  font-weight: 700;
+  line-height: 0.95;
+  color: var(--color-brand);
+  font-variant-numeric: tabular-nums;
+}
+
+.bento__tile--hero .bento__value { font-size: var(--text-5xl); }
+
+.bento__label {
+  font-family: var(--font-display);
+  font-size: var(--text-md);
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.bento__note {
+  font-size: var(--text-xs);
+  color: var(--color-text-subtle);
+  margin: 0;
+  margin-block-start: auto;
+}
+
+/* ------- مرئي: شبكة النقاط (كل نقطة = عدد من الأطفال) ------- */
+.dot-grid {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: center;
+  gap: 0.5rem;
+  flex: 1;
+  margin-block: var(--space-4);
+}
+
+.dot-grid span {
+  inline-size: 0.78rem;
+  block-size: 0.78rem;
+  border-radius: 50%;
+  background: var(--clay-500);
+  opacity: 0;
+  transform: scale(0.3);
+}
+
+.bento__tile.is-visible .dot-grid span {
+  animation: dot-pop 380ms var(--ease-back) forwards;
+  animation-delay: calc(var(--i) * 9ms);
+}
+
+/* كل عاشرة نقطة بلون العنبر لتسهيل العدّ بصرياً */
+.dot-grid span:nth-child(10n) { background: var(--amber-500); }
+
+@keyframes dot-pop {
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* ------- مرئي: حلقة النسبة ------- */
+.ring {
+  position: relative;
+  inline-size: 7.5rem;
+  block-size: 7.5rem;
+  margin-inline: auto;
+}
+
+.ring svg { inline-size: 100%; block-size: 100%; transform: rotate(-90deg); }
+
+.ring__track { fill: none; stroke: var(--color-surface-alt); stroke-width: 9; }
+
+.ring__bar {
+  fill: none;
+  stroke: url(#ringGradient);
+  stroke-width: 9;
+  stroke-linecap: round;
+  stroke-dasharray: var(--circ);
+  stroke-dashoffset: var(--circ);
+  transition: stroke-dashoffset 1.4s var(--ease-out) 200ms;
+}
+
+.bento__tile.is-visible .ring__bar { stroke-dashoffset: var(--offset); }
+
+.ring__center {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  text-align: center;
+}
+
+.ring__center strong {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  color: var(--color-brand);
+  line-height: 1;
+}
+
+/* ------- مرئي: أسماء الدول ------- */
+.country-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.country-chips span {
+  padding: 0.25rem 0.7rem;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  font-size: var(--text-2xs);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateY(0.4rem);
+}
+
+.bento__tile.is-visible .country-chips span {
+  animation: chip-in 400ms var(--ease-out) forwards;
+  animation-delay: calc(var(--i) * 45ms);
+}
+
+@keyframes chip-in {
+  to { opacity: 1; transform: none; }
+}
+
+/* ------- مرئي: الخط الزمني ------- */
+.timeline-bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-block-start: var(--space-2);
+}
+
+.timeline-bar__track {
+  position: relative;
+  flex: 1;
+  block-size: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-alt);
+  overflow: hidden;
+}
+
+.timeline-bar__fill {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  inline-size: 0;
+  border-radius: inherit;
+  background: var(--gradient-brand);
+  transition: inline-size 1.6s var(--ease-out) 200ms;
+}
+
+.bento__tile.is-visible .timeline-bar__fill { inline-size: 100%; }
+
+.timeline-bar__year {
+  font-family: var(--font-num);
+  font-size: var(--text-xs);
+  color: var(--color-text-subtle);
+  font-variant-numeric: tabular-nums;
+}
+
+.timeline-bar__year--now { color: var(--color-brand); font-weight: 600; }
+
+@media (prefers-reduced-motion: reduce) {
+  .dot-grid span,
+  .country-chips span { opacity: 1; transform: none; animation: none; }
+  .ring__bar { transition: none; stroke-dashoffset: var(--offset); }
+  .timeline-bar__fill { transition: none; inline-size: 100%; }
+}
+
+/* ==========================================================================
+   15. شريط الاعتمادات — ساكن لا متحرّك
+   الشعارات المتحركة تُقرأ كزينة. الاعتماد يجب أن يبدو ثابتاً ليُصدَّق،
+   فجعلناه صفاً هادئاً بفواصل شعرية وعلامة توثيق على كل جهة.
+   ========================================================================== */
+.credentials {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-1) 0;
+}
+
+.credential {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-5);
+  position: relative;
+}
+
+/* فاصل شعري بين العناصر، يختفي عند التفاف السطر */
+.credential + .credential::before {
+  content: "";
+  position: absolute;
+  inset-block: 25%;
+  inset-inline-start: 0;
+  inline-size: 1px;
+  background: var(--color-border);
+}
+
+.credential__icon {
+  display: grid;
+  place-items: center;
+  inline-size: 2.4rem;
+  block-size: 2.4rem;
+  border-radius: var(--radius-md);
+  background: var(--color-surface-alt);
+  color: var(--color-text-muted);
+  font-size: var(--text-md);
+  flex-shrink: 0;
+  transition: background-color var(--dur-normal) var(--ease-out),
+              color var(--dur-normal) var(--ease-out);
+}
+
+.credential:hover .credential__icon {
+  background: var(--color-brand-soft);
+  color: var(--color-brand);
+}
+
+.credential__text strong {
+  display: block;
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: 1.25;
+}
+
+.credential__text span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: var(--text-2xs);
+  color: var(--color-growth);
+}
+
+@media (max-width: 48rem) {
+  .credential { padding-inline: var(--space-4); }
+  .credential + .credential::before { display: none; }
+  .credential__text span { display: none; }
+}

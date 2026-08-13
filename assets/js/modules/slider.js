@@ -168,24 +168,3 @@ function createSlider(root) {
 export function initSliders() {
   $$('[data-slider]').forEach(createSlider);
 }
-
-/**
- * الشريط المتحرك اللانهائي: نضاعف المحتوى برمجياً حتى يبدو الدوران متصلاً
- * بلا فجوة، ونضبط المدة على عدد العناصر لتبقى السرعة ثابتة.
- */
-export function initMarquee() {
-  $$('[data-marquee]').forEach((marquee) => {
-    const track = $('.marquee__track', marquee);
-    if (!track || track.dataset.cloned === 'true') return;
-
-    const items = [...track.children];
-    items.forEach((item) => {
-      const clone = item.cloneNode(true);
-      clone.setAttribute('aria-hidden', 'true');
-      track.appendChild(clone);
-    });
-
-    track.dataset.cloned = 'true';
-    track.style.setProperty('--marquee-duration', `${items.length * 6}s`);
-  });
-}

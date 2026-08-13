@@ -148,26 +148,6 @@ export function postCard(post, { delay = 0 } = {}) {
 </article>`;
 }
 
-/** بطاقة إحصائية. */
-export function statCard(stat, { delay = 0 } = {}) {
-  return `
-<div class="stat" data-reveal data-reveal-delay="${delay}">
-  <div class="stat__value">
-    <span data-count="${stat.value}" data-suffix="${escapeHtml(stat.suffix)}">0</span>
-  </div>
-  <p class="stat__label">${escapeHtml(stat.label)}</p>
-</div>`;
-}
-
-/** شعار شريك في شريط الثقة. */
-export function partnerItem(partner) {
-  return `
-<div class="partner">
-  <i class="fa-solid ${escapeHtml(partner.icon)}" aria-hidden="true"></i>
-  <span>${escapeHtml(partner.name)}</span>
-</div>`;
-}
-
 /**
  * حلقة توزيع الإنفاق — تُبنى كـ SVG خالص بلا مكتبة رسم بيانية.
  * نحسب نصيب كل قطاع من محيط الدائرة ونزيح كلاً منها بمقدار ما سبقه.

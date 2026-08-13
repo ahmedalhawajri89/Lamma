@@ -875,28 +875,6 @@
 }
 
 /* ==========================================================================
-   الشريط المتحرك اللانهائي (الشركاء)
-   ========================================================================== */
-.marquee {
-  overflow: hidden;
-  mask-image: linear-gradient(to left, transparent, #000 12%, #000 88%, transparent);
-}
-
-.marquee__track {
-  display: flex;
-  gap: var(--space-12);
-  inline-size: max-content;
-  animation: marquee-scroll var(--marquee-duration, 38s) linear infinite;
-}
-
-.marquee:hover .marquee__track { animation-play-state: paused; }
-
-@keyframes marquee-scroll {
-  from { transform: translateX(0); }
-  to   { transform: translateX(50%); }
-}
-
-/* ==========================================================================
    النافذة المنبثقة (Modal)
    ========================================================================== */
 .modal {

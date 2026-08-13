@@ -1,0 +1,183 @@
+/**
+ * لوحة الثقة والاعتمادات.
+ *
+ * الفكرة: الرقم المجرّد لا يُحدث أثراً. «٣٢٨٠ يتيماً» سطرٌ يُقرأ ويُنسى،
+ * أما ٨٢ نقطة تظهر واحدةً تلو الأخرى فتجعل العدد محسوساً. ولذلك:
+ *   • الأطفال → شبكة نقاط، كل نقطة عددٌ منهم.
+ *   • النسبة  → حلقة تُرسم أمام العين.
+ *   • الدول   → أسماؤها لا عددها.
+ *   • السنوات → خط زمني من سنة التأسيس إلى اليوم.
+ *
+ * كل المرئيات SVG وCSS خالصان — بلا مكتبة رسم بيانية.
+ */
+
+import { $, escapeHtml } from './utils.js';
+import { PROOF, COUNTRIES, PARTNERS } from './data.js';
+import { observeOnce } from './utils.js';
+
+const RING_RADIUS = 52;
+
+/** شبكة النقاط: كل نقطة تمثّل PROOF.perDot طفلاً. */
+function dotGrid(total, perDot) {
+  const count = Math.round(total / perDot);
+  return Array.from({ length: count },
+    (_, i) => `<span style="--i:${i}"></span>`).join('');
+}
+
+/** حلقة النسبة — تُرسم بـ stroke-dashoffset عند دخولها الشاشة. */
+function ring(percent) {
+  const circumference = 2 * Math.PI * RING_RADIUS;
+  const offset = circumference * (1 - percent / 100);
+
+  return `
+<div class="ring" style="--circ:${circumference.toFixed(1)}; --offset:${offset.toFixed(1)}">
+  <svg viewBox="0 0 128 128" aria-hidden="true">
+    <defs>
+      <linearGradient id="ringGradient" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#c2410c"/>
+        <stop offset="100%" stop-color="#f0910c"/>
+      </linearGradient>
+    </defs>
+    <circle class="ring__track" cx="64" cy="64" r="${RING_RADIUS}"></circle>
+    <circle class="ring__bar" cx="64" cy="64" r="${RING_RADIUS}"></circle>
+  </svg>
+  <div class="ring__center">
+    <strong class="num">${percent}٪</strong>
+  </div>
+</div>`;
+}
+
+/** أسماء الدول كشرائح — أوقع من رقم مجرّد. */
+function countryChips(countries) {
+  return countries
+    .map((c, i) => `<span style="--i:${i}">${escapeHtml(c)}</span>`)
+    .join('');
+}
+
+export function initProofBoard() {
+  const host = $('#proofBoard');
+  if (!host) return;
+
+  const nowYear = new Date().getFullYear();
+  const years = nowYear - PROOF.startYear;
+
+  host.innerHTML = `
+<article class="bento__tile bento__tile--hero">
+  <div>
+    <div class="bento__value">
+      <span class="num" data-count="${PROOF.sponsored}" data-suffix="+">0</span>
+    </div>
+    <p class="bento__label">يتيماً مكفولاً اليوم</p>
+  </div>
+
+  <div class="dot-grid" role="img"
+       aria-label="شبكة تمثّل ${PROOF.sponsored} يتيماً مكفولاً، كل نقطة ${PROOF.perDot} طفلاً">
+    ${dotGrid(PROOF.sponsored, PROOF.perDot)}
+  </div>
+
+  <p class="bento__note">
+    كل نقطة تمثّل ${PROOF.perDot} طفلاً — ولكل واحد منهم اسمٌ وملفٌّ وتقرير.
+  </p>
+</article>
+
+<article class="bento__tile">
+  ${ring(PROOF.toChild)}
+  <p class="bento__label text-center">يصل للطفل مباشرة</p>
+  <p class="bento__note text-center">والباقي مصاريف تشغيل موثّقة</p>
+</article>
+
+<article class="bento__tile">
+  <div>
+    <div class="bento__value"><span class="num" data-count="${COUNTRIES.length}">0</span></div>
+    <p class="bento__label">دولة نعمل فيها</p>
+  </div>
+  <div class="country-chips">${countryChips(COUNTRIES)}</div>
+</article>
+
+<article class="bento__tile bento__tile--wide">
+  <div>
+    <div class="bento__value"><span class="num" data-count="${years}">0</span></div>
+    <p class="bento__label">سنة من العمل الموثّق</p>
+  </div>
+
+  <div class="timeline-bar">
+    <span class="timeline-bar__year">${PROOF.startYear}</span>
+    <div class="timeline-bar__track"><div class="timeline-bar__fill"></div></div>
+    <span class="timeline-bar__year timeline-bar__year--now">${nowYear}</span>
+  </div>
+
+  <p class="bento__note">
+    بدأنا بأربعة عشر طفلاً في مخيم واحد، و${PROOF.visits.toLocaleString('en-US')} زيارة ميدانية موثّقة العام الماضي وحده.
+  </p>
+</article>`;
+
+  // كل بلاطة تُشغّل مرئيّها عند دخولها الشاشة، لا عند تحميل الصفحة
+  observeOnce([...host.children], (el) => el.classList.add('is-visible'), { threshold: 0.25 });
+}
+
+/** شريط الاعتمادات — ساكن ومقروء، بلا حركة. */
+export function initCredentials() {
+  const host = $('#credentials');
+  if (!host) return;
+
+  host.innerHTML = PARTNERS.slice(0, 4).map((p) => `
+<div class="credential">
+  <span class="credential__icon"><i class="fa-solid ${escapeHtml(p.icon)}" aria-hidden="true"></i></span>
+  <span class="credential__text">
+    <strong>${escapeHtml(p.name)}</strong>
+    <span><i class="fa-solid fa-circle-check" aria-hidden="true"></i> موثّق</span>
+  </span>
+</div>`).join('');
+}
+
+/**
+ * لوحة الشفافية المالية — نفس نظام البلاطات ببيانات مختلفة،
+ * ليثبت أن اللوحة نظامٌ قابل لإعادة الاستخدام لا قالبٌ منسوخ.
+ */
+export function initFinanceBoard() {
+  const host = $('#financeBoard');
+  if (!host) return;
+
+  host.innerHTML = `
+<article class="bento__tile bento__tile--hero">
+  <div>
+    <div class="bento__value">
+      <span class="num">$<span data-count="2140000">0</span></span>
+    </div>
+    <p class="bento__label">وصل للمستفيدين في السنة المالية الأخيرة</p>
+  </div>
+
+  <div class="dot-grid" role="img" aria-label="شبكة تمثّل توزيع المبلغ، كل نقطة عشرون ألف دولار">
+    ${dotGrid(2140000, 20000)}
+  </div>
+
+  <p class="bento__note">كل نقطة تمثّل ٢٠ ألف دولار صُرفت ووُثّقت.</p>
+</article>
+
+<article class="bento__tile">
+  ${ring(PROOF.toChild)}
+  <p class="bento__label text-center">يصل للطفل مباشرة</p>
+  <p class="bento__note text-center">٧٪ مصاريف إدارية مغطاة من داعمين مخصصين</p>
+</article>
+
+<article class="bento__tile">
+  <div>
+    <div class="bento__value"><span class="num" data-count="${PROOF.visits}">0</span></div>
+    <p class="bento__label">زيارة ميدانية موثّقة</p>
+  </div>
+  <p class="bento__note">بمعدل زيارة لكل طفل كل تسعين يوماً، بلا استثناء.</p>
+</article>
+
+<article class="bento__tile bento__tile--wide">
+  <div>
+    <div class="bento__value"><span class="num" data-count="0">0</span></div>
+    <p class="bento__label">ملاحظة جوهرية من المدقق الخارجي</p>
+  </div>
+  <p class="bento__note">
+    أربع سنوات متتالية بتقرير تدقيق نظيف. التقارير كاملةً منشورة أدناه —
+    لا ملخّصات ولا انتقاء.
+  </p>
+</article>`;
+
+  observeOnce([...host.children], (el) => el.classList.add('is-visible'), { threshold: 0.25 });
+}

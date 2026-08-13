@@ -167,23 +167,35 @@
     </section>
 
     <!-- ==================================================================
-         شريط الثقة
+         شريط الاعتمادات — ساكن، لأن الاعتماد يُصدَّق حين يبدو ثابتاً
          ================================================================== -->
     <section class="trust-strip" id="trust">
       <div class="container">
         <p class="trust-strip__label">مرخّصون ومدقّقون ومعتمدون لدى</p>
-        <div class="marquee" data-marquee>
-          <div class="marquee__track" id="partnersTrack"></div>
-        </div>
+        <div class="credentials" id="credentials"></div>
       </div>
     </section>
 
     <!-- ==================================================================
-         الأرقام
+         لوحة الثقة — أرقام تُرى لا تُقال
          ================================================================== -->
-    <section class="section section--tight">
+    <section class="section section--alt">
       <div class="container">
-        <div class="grid grid--auto-sm" id="statsGrid"></div>
+        <div class="section-head section-head--split" data-reveal>
+          <div>
+            <span class="eyebrow">الأثر بالأرقام</span>
+            <h2>ما الذي أنجزه الكفلاء حتى اليوم</h2>
+            <p class="section-lede">
+              أرقام السنة المالية الأخيرة، مدقّقة من مكتب مستقل ومنشورة كاملةً.
+            </p>
+          </div>
+          <a class="btn btn--outline" href="transparency.html">
+            التقارير المدقّقة
+            <i class="fa-solid fa-arrow-left btn__icon btn__icon--arrow" aria-hidden="true"></i>
+          </a>
+        </div>
+
+        <div class="bento" id="proofBoard"></div>
       </div>
     </section>
 
