@@ -1,0 +1,129 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Models;
+
+use App\Enums\SponsorshipStatus;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
+
+/**
+ * الكفالة — العلاقة المحورية بين كافل ويتيم.
+ *
+ * ليست belongsToMany بسيطة: لها مبلغ منسوخ، وحالة، ودورة فوترة،
+ * وتاريخ بداية ونهاية وسبب إلغاء. لذا هي جدول محوري مُثرى.
+ */
+class Sponsorship extends Model
+{
+    use HasFactory;
+    use LogsActivity;
+    use SoftDeletes;
+
+    protected $fillable = [
+        'reference_code', 'sponsor_id', 'orphan_id', 'program_id',
+        'monthly_amount', 'currency', 'share_percent', 'is_zakat',
+        'status', 'billing_day', 'started_at', 'next_due_at',
+    ];
+
+    /**
+     * عمود مُولَّد في قاعدة البيانات — يُقرأ ولا يُكتب أبداً.
+     * محاولة الكتابة عليه خطأ SQL، فنمنعها هنا.
+     */
+    protected $guarded = ['active_key'];
+
+    protected function casts(): array
+    {
+        return [
+            'monthly_amount' => 'decimal:2',
+            'share_percent' => 'integer',
+            'billing_day' => 'integer',
+            'is_zakat' => 'boolean',
+            'status' => SponsorshipStatus::class,
+            'started_at' => 'date',
+            'next_due_at' => 'date',
+            'paused_at' => 'datetime',
+            'ended_at' => 'datetime',
+        ];
+    }
+
+    /* ---------------------------------------------------------------- العلاقات */
+
+    public function sponsor(): BelongsTo
+    {
+        return $this->belongsTo(Sponsor::class);
+    }
+
+    public function orphan(): BelongsTo
+    {
+        return $this->belongsTo(Orphan::class);
+    }
+
+    public function program(): BelongsTo
+    {
+        return $this->belongsTo(Program::class);
+    }
+
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class);
+    }
+
+    public function messages(): HasMany
+    {
+        return $this->hasMany(Message::class);
+    }
+
+    /* ------------------------------------------------------------------ النطاقات */
+
+    public function scopeLive(Builder $query): Builder
+    {
+        return $query->whereIn('status', [
+            SponsorshipStatus::Pending,
+            SponsorshipStatus::Active,
+            SponsorshipStatus::Paused,
+        ]);
+    }
+
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->where('status', SponsorshipStatus::Active);
+    }
+
+    /** ما يلتقطه أمر الفوترة اليومي — يستعمل idx_sponsorships_due. */
+    public function scopeDueBy(Builder $query, ?string $date = null): Builder
+    {
+        return $query
+            ->where('status', SponsorshipStatus::Active)
+            ->whereDate('next_due_at', '<=', $date ?? now()->toDateString());
+    }
+
+    /* -------------------------------------------------------------------- سلوك */
+
+    /**
+     * موعد القسط التالي.
+     * billing_day مقيَّد بـ 1..28 في التحقق، فلا حاجة لمعالجة فبراير هنا —
+     * وهذا بالضبط سبب ذلك القيد.
+     */
+    public function advanceDueDate(): void
+    {
+        $this->next_due_at = ($this->next_due_at ?? now())
+            ->copy()
+            ->addMonthNoOverflow()
+            ->setDay($this->billing_day);
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['status', 'monthly_amount', 'share_percent', 'next_due_at', 'cancellation_reason'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
+}

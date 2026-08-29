@@ -1,25 +1,27 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Seeders;
 
-use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
     /**
-     * Seed the application's database.
+     * الترتيب مقصود: الأدوار ثم البيانات المرجعية ثم المحتوى ثم البيانات التجريبية.
+     * البذور التجريبية وحدها هي ما يُحذف عند التحضير للإنتاج.
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        $this->call([
+            RoleSeeder::class,
+            ReferenceSeeder::class,
+            ContentSeeder::class,
         ]);
+
+        if (app()->environment(['local', 'testing'])) {
+            $this->call(DemoSeeder::class);
+        }
     }
 }
