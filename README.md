@@ -23,11 +23,28 @@ MySQL، ولوحة إدارة Vue 3، وبوابة للكافل.
 ```
 kafala-orphan-sponsorship/
 │
-├── api/        Laravel 12 · PHP 8.2 · MySQL · Sanctum        ١٢٬٤٠٠ سطر
-├── admin/      Vue 3 · Vite · Pinia · Tailwind 4 · Chart.js   ٢٬٩٠٠ سطر
-├── web/        HTML · CSS · JS — بلا إطار وبلا خطوة بناء     ١٠٬٩٠٠ سطر
-└── docs/       ARCHITECTURE.md · DATABASE.md · PROGRESS.md
+├── api/                    Laravel 12 · PHP 8.2 · MySQL · Sanctum
+│   ├── app/  database/     ١٢٬٤٠٠ سطر
+│   └── public/             ← الموقع العام: HTML و CSS و JS بلا إطار
+│       ├── index.html …    ١٥ صفحة · ١٠٬٩٠٠ سطر
+│       ├── assets/
+│       └── admin-app/      ← ناتج بناء لوحة Vue (لا يُحفظ في المستودع)
+│
+├── admin/                  مصدر اللوحة: Vue 3 · Vite · Pinia · Chart.js
+└── docs/                   ARCHITECTURE.md · DATABASE.md · PROGRESS.md
 ```
+
+**نشرٌ واحد لكل شيء.** الموقع العام ولوحة الإدارة والـ API على أصل واحد:
+
+| المسار | ما يُقدَّم |
+|---|---|
+| `/` · `/about` · `/orphans` … | الموقع العام (‏HTML ساكن، عناوين نظيفة) |
+| `/dashboard` | بوابة الكافل |
+| `/admin` وما تحته | لوحة الإدارة (‏Vue SPA) |
+| `/api/v1/…` | الـ API |
+
+ولأن الأصل واحد فلا CORS، ولا كوكيز عابرة للأصول، و`connect-src 'self'` في
+سياسة أمن المحتوى — أضيق صورة ممكنة.
 
 | | |
 |---|---|
@@ -107,7 +124,7 @@ UNIQUE KEY uniq_active_sponsorship (sponsor_id, orphan_id, active_key)
 </div>
 
 ```bash
-# ١) الخادم
+# ١) الخادم — ويقدّم الموقع العام معه
 cd api
 composer install
 cp .env.example .env && php artisan key:generate
@@ -115,14 +132,17 @@ mysql -u root -e "CREATE DATABASE kafala CHARACTER SET utf8mb4 COLLATE utf8mb4_u
 php artisan migrate --seed          # ٦٠ ثانية: ١٤٨ يتيماً و١٨٠ كافلاً وسنتان من المدفوعات
 php artisan metrics:rollup --all    # يبني جدول التجميع الذي تقرأ منه المخططات
 php artisan storage:link
-php artisan serve
+php artisan serve                   # http://127.0.0.1:8000
 
-# ٢) لوحة الإدارة
+# ٢) لوحة الإدارة — للتطوير عليها
 cd admin && npm install && npm run dev        # http://localhost:5173
 
-# ٣) الموقع العام
-npx serve web -l 5501                         # http://localhost:5501
+# ٣) أو ابنِها فتُقدَّم من الخادم نفسه
+cd admin && npm run build                     # http://127.0.0.1:8000/admin
 ```
+
+> استعمل `127.0.0.1` لا `localhost` مع خادم التطوير على ويندوز: الأخير يُحلّ
+> إلى `::1` أولاً وخادم PHP المدمج يستمع على IPv4 وحده، فيضيف ثانيتين لكل طلب.
 
 **حسابات تجريبية** — كلمة المرور للجميع `password`:
 

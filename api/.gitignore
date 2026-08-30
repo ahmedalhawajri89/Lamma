@@ -22,3 +22,6 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# مخرجات بناء لوحة الإدارة — تُبنى من admin/ ولا تُحفظ في المستودع
+/public/admin-app

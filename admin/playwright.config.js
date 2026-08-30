@@ -15,6 +15,20 @@ export default defineConfig({
   retries: 0,
   reporter: [['list']],
 
+  /**
+   * مهلات أطول من الافتراضي، والسبب بنيوي لا عارض:
+   *
+   * `php artisan serve` **أحادي الخيط**. وكل شاشة هنا تُصدر عدة طلبات
+   * (ترطيب، ثم مصادقة، ثم بيانات الشاشة)، فتصطفّ خلف بعضها. والحزمة كاملةً
+   * تضاعف ذلك لأن الاختبارات تتوالى على الخادم نفسه.
+   *
+   * وقد جرّبنا رفع المهلة في كل تأكيد على حدة فتناثرت الأرقام السحرية بلا
+   * أن تُشفى العلّة. رفعها هنا مرة واحدة أصدق: هي خاصية بيئة التطوير،
+   * و php-fpm في الإنتاج يخدم الطلبات متوازيةً فتسقط الحاجة إليها.
+   */
+  timeout: 60_000,
+  expect: { timeout: 15_000 },
+
   use: {
     baseURL: 'http://localhost:5173',
     locale: 'ar',
@@ -25,22 +39,15 @@ export default defineConfig({
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
 
   /**
-   * خادمان: لوحة Vue على 5173، والموقع العام الساكن على 5501.
-   * المنفذ 5501 هو نفسه منفذ Live Server في .vscode/settings.json،
-   * وهو أيضاً في قائمة أصول CORS — فالتغيير عنه يكسر الجلسة.
+   * خادم واحد: لوحة Vue على 5173.
+   *
+   * الموقع العام لم يعد يحتاج خادماً خاصاً به — صار يُقدَّم من خادم لارافل
+   * على 8000، وهو مفترضٌ قائماً (‏`php artisan serve` في api/).
    */
-  webServer: [
-    {
-      command: 'npm run dev',
-      url: 'http://localhost:5173',
-      reuseExistingServer: true,
-      timeout: 60_000,
-    },
-    {
-      command: 'npx --yes serve ../web -l 5501 --no-clipboard',
-      url: 'http://127.0.0.1:5501/index.html',
-      reuseExistingServer: true,
-      timeout: 60_000,
-    },
-  ],
+  webServer: {
+    command: 'npm run dev',
+    url: 'http://localhost:5173',
+    reuseExistingServer: true,
+    timeout: 60_000,
+  },
 })

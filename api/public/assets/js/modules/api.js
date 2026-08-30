@@ -14,18 +14,27 @@
 /**
  * أصل الـ API.
  *
- * يُقرأ من `<meta name="api-base">` فيمكن تغييره عند النشر بلا إعادة بناء —
- * وهذا لازم لأن المشروع بلا خطوة بناء أصلاً ولا متغيرات بيئة. وتفريغه يعني
- * «لا خادم»، فيبقى الموقع على بياناته المبدئية.
+ * الموقع يُقدَّم من خادم لارافل نفسه، فالأصل واحد والمسارات نسبية — ولهذا
+ * `<meta name="api-base" content="">` هو الوضع الطبيعي.
+ *
+ * وتبقى للوسم فائدتان:
+ *  · **`content="off"`** يوقف كل نداء ويُبقي الموقع على بياناته المبدئية —
+ *    لتصدير ساكن بحت على CDN بلا خادم إطلاقاً.
+ *  · **أصل كامل** (`https://api.kafala.org`) لو فُصل الموقع عن الـ API يوماً.
+ *
+ * والقراءة من وسم HTML لا من متغيّر بيئة مقصودة: هذا الجزء من المشروع بلا
+ * خطوة بناء، فالتغيير عند النشر يجب أن يكون بتحرير ملف لا بإعادة تجميع.
  */
-const BASE = document.querySelector('meta[name="api-base"]')?.content?.trim() ?? '';
+const META = document.querySelector('meta[name="api-base"]')?.content?.trim() ?? '';
+const DISABLED = META === 'off';
+const BASE = DISABLED ? '' : META;
 
 /** مهلة قصيرة: صفحة تنتظر خادماً بطيئاً أسوأ من صفحة تعرض بياناتها المبدئية. */
 const TIMEOUT_MS = 4000;
 
-let offline = !BASE;
+let offline = DISABLED;
 
-export const apiConfigured = () => Boolean(BASE);
+export const apiEnabled = () => !DISABLED;
 export const isOffline = () => offline;
 
 /* =========================================================================
@@ -59,8 +68,8 @@ function csrfToken() {
  * تحت حقله بدل رسالة عامة عائمة.
  */
 export async function request(path, { method = 'GET', body = null } = {}) {
-  if (!BASE) {
-    throw { message: 'لا اتصال بالخادم.', errors: {} };
+  if (DISABLED) {
+    throw { message: 'هذه النسخة ساكنة بلا خادم.', errors: {} };
   }
 
   if (method !== 'GET') await ensureCsrf();
@@ -100,7 +109,10 @@ export async function request(path, { method = 'GET', body = null } = {}) {
 async function tryGet(path, params = {}) {
   if (offline) return null;
 
-  const url = new URL(`${BASE}/api/v1/public/${path}`);
+  // الأساس الثاني لازم: `BASE` فارغ في الوضع الطبيعي (الأصل نفسه)،
+  // و`new URL()` بمسار نسبي بلا أساس يرمي TypeError — فيُبتلع في catch
+  // أدناه ويصير الموقع «بلا خادم» صامتاً بلا أثر في الطرفية
+  const url = new URL(`${BASE}/api/v1/public/${path}`, window.location.origin);
   Object.entries(params).forEach(([k, v]) => {
     if (v !== undefined && v !== null && v !== '') url.searchParams.set(k, v);
   });

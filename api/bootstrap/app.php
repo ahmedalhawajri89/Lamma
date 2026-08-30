@@ -64,7 +64,26 @@ return Application::configure(basePath: dirname(__DIR__))
             return response()->json(['message' => 'يلزم تسجيل الدخول للمتابعة.'], 401);
         });
 
+        /**
+         * صفحة ٤٠٤ الخاصة بالمشروع لكل طلب متصفح.
+         *
+         * لماذا هنا لا في `Route::fallback` وحده؟ لأن الـ 404 يأتي من مصدرين:
+         * مسار غير مطابق (يلتقطه fallback)، و`abort(404)` من داخل متحكّم —
+         * وهذا الثاني يتخطى الموجّه كلياً فيصل إلى صفحة لارافل الافتراضية.
+         * المعالج هنا يغطّي المصدرين معاً.
+         */
         $exceptions->render(function (HttpExceptionInterface $e, Request $request) {
+            if ($e->getStatusCode() === 404
+                && ! $request->is('api/*')
+                && ! $request->expectsJson()
+                && is_file(public_path('404.html'))) {
+                // نقرأ الملف لا نبثّه: BinaryFileResponse يُسقط الجسم مع
+                // أي حالة غير ناجحة، فتخرج ٤٠٤ بيضاء (انظر routes/web.php)
+                return response(file_get_contents(public_path('404.html')), 404, [
+                    'Content-Type' => 'text/html; charset=UTF-8',
+                ]);
+            }
+
             if (! $request->is('api/*')) {
                 return null;
             }

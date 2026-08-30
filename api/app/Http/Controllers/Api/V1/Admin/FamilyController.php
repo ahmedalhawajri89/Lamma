@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1\Admin;
 
+use App\Enums\DocumentType;
+use App\Enums\Gender;
 use App\Enums\GuardianRelation;
 use App\Enums\HousingStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\FamilyResource;
+use App\Models\Country;
 use App\Models\Family;
 use App\Models\Guardian;
+use App\Models\Program;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -129,6 +133,42 @@ class FamilyController extends Controller
         return response()->json([
             'message' => 'حُفظت التعديلات.',
             'data' => new FamilyResource($family->fresh()->load(['country', 'city', 'guardian'])),
+        ]);
+    }
+
+    /**
+     * بيانات مرجعية للنماذج: الدول ومدنها والبرامج.
+     *
+     * طلب واحد بدل ثلاثة، والواجهة تخزّنه: هذه بيانات تتغيّر مرات معدودة
+     * في السنة، ولا معنى لجلبها عند كل فتح لنموذج.
+     */
+    public function references(): JsonResponse
+    {
+        return response()->json([
+            'data' => [
+                'countries' => Country::operational()
+                    ->with(['cities:id,country_id,name_ar'])
+                    ->get()
+                    ->map(fn (Country $c): array => [
+                        'id' => $c->id,
+                        'name' => $c->name_ar,
+                        'cities' => $c->cities->map(fn ($city): array => [
+                            'id' => $city->id,
+                            'name' => $city->name_ar,
+                        ])->all(),
+                    ]),
+
+                'programs' => Program::active()->get()->map(fn (Program $p): array => [
+                    'id' => $p->id,
+                    'name' => $p->name_ar,
+                    'price' => (float) $p->monthly_price,
+                ]),
+
+                'relations' => GuardianRelation::options(),
+                'housing' => HousingStatus::options(),
+                'genders' => Gender::options(),
+                'document_types' => DocumentType::options(),
+            ],
         ]);
     }
 

@@ -111,8 +111,18 @@ const routes = [
   },
 ]
 
+/**
+ * جذر اللوحة في شريط العنوان.
+ *
+ * ليس `import.meta.env.BASE_URL` عمداً: ذاك يتبع **مكان الأصول**
+ * (‏`/admin-app/`) لا **مكان التطبيق** (‏`/admin`)، والاثنان مختلفان قصداً —
+ * انظر `vite.config.js`. واستعماله هنا كان يحوّل الزائر إلى
+ * `/admin-app/login` فيصطدم بمجلد أصول لا تطبيق.
+ */
+const ROUTER_BASE = import.meta.env.DEV ? '/' : '/admin/'
+
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory(ROUTER_BASE),
   routes,
   scrollBehavior: () => ({ top: 0 }),
 })

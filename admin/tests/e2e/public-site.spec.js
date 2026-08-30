@@ -9,18 +9,26 @@ import { test, expect } from '@playwright/test'
  * وأن جلسة الكافل تعبر من الموقع (‏5501) إلى الـ API (‏8000).
  */
 
-const WEB = 'http://127.0.0.1:5501'
+// الموقع العام يُقدَّم من خادم لارافل نفسه بعد دمجه في public/
+const WEB = 'http://127.0.0.1:8000'
 const SPONSOR = { email: 'sponsor@kafala.org', password: 'password' }
 
 test.describe('الموقع العام', () => {
   test('قائمة الأيتام تأتي من قاعدة البيانات لا من الملف', async ({ page }) => {
     await page.goto(`${WEB}/orphans.html`)
-    await page.waitForResponse((r) => r.url().includes('/public/orphans') && r.ok())
-    await page.waitForTimeout(600)
 
-    // البذرة ثمانية أيتام؛ أكثر من ذلك يعني أن البيانات حيّة
-    const cards = await page.locator('#orphansGrid > *').count()
-    expect(cards).toBeGreaterThan(8)
+    /**
+     * تأكيدٌ ينتظر لا `waitForResponse`.
+     *
+     * تسجيل انتظار الاستجابة **بعد** `goto` سباقٌ خاسر: قد تكون وصلت خلال
+     * التنقّل فينتظر حدثاً لن يقع ثانيةً. والتأكيد هنا يعيد المحاولة حتى
+     * يتحقق، فلا يهمّ متى وصلت البيانات.
+     *
+     * البذرة ثمانية أيتام، فأي عدد أكبر يعني أن القائمة حيّة من قاعدة البيانات.
+     */
+    await expect
+      .poll(() => page.locator('#orphansGrid > *').count(), { timeout: 20_000 })
+      .toBeGreaterThan(8)
 
     await expect(page.locator('#orphanCount')).not.toHaveText('8')
   })
@@ -28,7 +36,7 @@ test.describe('الموقع العام', () => {
   test('الموقع يبقى صحيحاً حين يسقط الخادم', async ({ page }) => {
     // هذا ليس احتياطاً نظرياً: الموقع منشور ملفاتٍ ساكنة، وقد يُفتح
     // والـ API متوقف. عندها يجب أن يعرض بياناته المبدئية لا شاشة فارغة.
-    await page.route('**/127.0.0.1:8000/**', (route) => route.abort())
+    await page.route('**/api/v1/public/**', (route) => route.abort())
 
     const errors = []
     page.on('pageerror', (e) => errors.push(e.message))
@@ -42,10 +50,10 @@ test.describe('الموقع العام', () => {
 
   test('حلقة الشفافية تعرض نسباً محسوبة', async ({ page }) => {
     await page.goto(`${WEB}/transparency.html`)
-    await page.waitForResponse((r) => r.url().includes('/public/transparency') && r.ok())
-    await page.waitForTimeout(800)
 
-    await expect(page.locator('#spendingLegend')).toContainText('مصاريف إدارية')
+    await expect(page.locator('#spendingLegend')).toContainText('مصاريف إدارية', {
+      timeout: 20_000,
+    })
   })
 })
 

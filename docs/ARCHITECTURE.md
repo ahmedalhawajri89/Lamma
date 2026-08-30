@@ -5,59 +5,68 @@
 ```
 kafala-orphan-sponsorship/
 │
-├── api/                Laravel 12 · PHP 8.2 · MySQL · Sanctum
+├── api/                        Laravel 12 · PHP 8.2 · MySQL · Sanctum
 │   ├── app/
-│   │   ├── Models/                 Eloquent + العلاقات + الـ scopes
+│   │   ├── Models/             Eloquent + العلاقات + الـ scopes
 │   │   ├── Http/
 │   │   │   ├── Controllers/Api/    نحيفة — لا منطق أعمال
 │   │   │   ├── Requests/           كل تحقق من المدخلات هنا
 │   │   │   ├── Resources/          شكل الاستجابة (لا نُسرّب أعمدة)
 │   │   │   └── Middleware/
-│   │   ├── Actions/                منطق الأعمال — كل صنف فعل واحد
-│   │   ├── Policies/               الصلاحيات على مستوى السجل
-│   │   ├── Observers/              تحديث funded_percent وسجل النشاط
-│   │   ├── Enums/                  PHP 8.1 backed enums بدل النصوص السحرية
-│   │   └── Console/Commands/       billing:run · metrics:rollup
+│   │   ├── Actions/            منطق الأعمال — كل صنف فعل واحد
+│   │   ├── Policies/           الصلاحيات على مستوى السجل
+│   │   ├── Observers/          تحديث funded_percent وسجل النشاط
+│   │   ├── Enums/              backed enums بدل النصوص السحرية
+│   │   └── Console/Commands/   billing:run · metrics:rollup · kafala:check
 │   ├── database/{migrations,factories,seeders}
-│   ├── routes/api.php
-│   └── tests/{Feature,Unit}        Pest
+│   ├── routes/{api,web,console}.php
+│   ├── tests/{Feature,Unit}    Pest — على MySQL لا SQLite
+│   │
+│   └── public/                 ← كل ما يصل المتصفح
+│       ├── index.php           واجهة لارافل الأمامية
+│       ├── *.html              الموقع العام: ١٥ صفحة بلا إطار وبلا بناء
+│       ├── assets/             CSS و JS و صور الموقع
+│       │   └── js/modules/data.js   بذرة + طبقة ترطيب من الـ API
+│       └── admin-app/          ناتج بناء اللوحة — مسارها في المتصفح /admin
 │
-├── admin/              Vue 3 · Vite · Pinia · Vue Router · Tailwind 4 · Chart.js
-│   ├── src/
-│   │   ├── api/                    طبقة HTTP واحدة (axios + interceptors)
-│   │   ├── stores/                 Pinia — auth, orphans, sponsorships…
-│   │   ├── views/                  صفحات الموجّه
-│   │   ├── components/             مكونات قابلة لإعادة الاستخدام
-│   │   ├── composables/            useTable, usePagination, useToast
-│   │   └── charts/                 أغلفة Chart.js
-│   ├── tests/unit/                 Vitest
-│   └── tests/e2e/                  Playwright
+├── admin/                      مصدر اللوحة — Vue 3 · Vite · Pinia · Chart.js
+│   ├── src/{api,stores,views,components,composables,utils}
+│   └── tests/{unit,e2e}        Vitest · Playwright
 │
-├── web/                الموقع العام — HTML/CSS/JS كما هو، بلا إطار
-│   └── assets/js/modules/data.js → يصبح طبقة fetch
-│
-└── docs/               DATABASE.md · ARCHITECTURE.md · API.md
+└── docs/                       DATABASE.md · ARCHITECTURE.md · PROGRESS.md
 ```
 
-## 2. لماذا ثلاثة تطبيقات لا واحد
+## 2. لماذا هذا التقسيم
+
+**تطبيق واحد يُنشر، وثلاث واجهات تقرأ من API واحد.**
 
 | البديل | لماذا رُفض |
 |---|---|
 | مونوليث Blade | يعني إعادة كتابة 4,556 سطر CSS و15 صفحة مصمّمة بعناية. خسارة صافية بلا مكسب. |
-| Inertia | يربط الواجهة بالخادم في نفس النشر، ويلغي إمكانية تطبيق جوال لاحقاً على نفس الـ API. |
-| Next.js Full-stack | يُلغي Laravel و Eloquent و Sanctum — أقوى ما لديك — من المشروع. |
+| Inertia | يلغي إمكانية تطبيق جوال لاحقاً على الـ API نفسه، ويربط كل شاشة بجلسة الخادم. |
+| Next.js Full-stack | يُلغي Laravel و Eloquent و Sanctum — أقوى ما في المهارات — من المشروع. |
 
-الفصل يعطي: نشراً مستقلاً لكل جزء، و API واحداً يخدم الموقع واللوحة وأي تطبيق جوال مستقبلاً، وموقعاً عاماً يبقى ساكناً سريعاً مفهرساً في محركات البحث.
+والموقع العام يبقى **HTML ساكناً** لا Blade: لا يمرّ بمحرّك قوالب، ويُخدَم من
+القرص مباشرةً على خادم حقيقي، ويبقى مفهرساً في محركات البحث كما هو.
+
+**ولماذا كل شيء تحت `api/public` وليس في مجلدات متجاورة؟**
+لأن الأصل الواحد يُسقط طبقةً كاملة من التعقيد: لا CORS، ولا كوكيز عابرة
+للأصول، و`connect-src 'self'` في سياسة أمن المحتوى. وثمنه أن الموقع لم يعد
+يُنشر وحده على CDN — وهو ثمن مقبول ما دام النشر واحداً على أي حال.
 
 ## 3. المصادقة
 
 **Sanctum بنمط SPA (كوكيز، لا توكنات في `localStorage`).**
 
 ```
-admin.kafala.test  ──GET /sanctum/csrf-cookie──>  api.kafala.test
-                   ──POST /login (credentials)──>
-                   <──── HttpOnly session cookie ────
+المتصفح  ──GET /sanctum/csrf-cookie──>  الخادم
+         ──POST /api/v1/auth/login ──>
+         <──── كوكي جلسة HttpOnly ────
 ```
+
+وبعد الدمج صار كل ذلك **على الأصل نفسه**، فالكوكي same-site لا cross-site
+ولا يعتمد على سياسة المتصفح في كوكيز الطرف الثالث. ويبقى CORS مضبوطاً
+لخادم Vite في التطوير وحده.
 
 لماذا الكوكيز لا التوكنات: توكن في `localStorage` يُقرأ بأي ثغرة XSS. الكوكي `HttpOnly` + `SameSite=Lax` لا يُقرأ من JS إطلاقاً. `stateful` domains مضبوطة في `config/sanctum.php`.
 
@@ -82,12 +91,11 @@ Route  →  Middleware (auth:sanctum, role)  →  FormRequest (تحقق)
 | المعيار | الأداة |
 |---|---|
 | تنسيق PHP | Laravel Pint (PSR-12) |
-| تحليل ساكن | PHPStan / Larastan — المستوى 6 |
+| تحليل ساكن | PHPStan / Larastan — المستوى 5، نظيف |
 | اختبارات الخادم | Pest — Feature + Unit |
 | تنسيق JS/Vue | ESLint + Prettier |
 | اختبارات الواجهة | Vitest (وحدات) + Playwright (E2E) |
-| فحص الأنواع | `vue-tsc` على ملفات `.ts` |
-| CI | GitHub Actions: pint → phpstan → pest → eslint → vitest → build |
+| CI | GitHub Actions: pint → phpstan → pest → vitest → build |
 | الهجرات | لا تعديل هجرة منشورة — هجرة جديدة دائماً |
 | البذور | Factories + Seeders تنتج بيانات واقعية بالعربية |
 
@@ -104,4 +112,27 @@ Route  →  Middleware (auth:sanctum, role)  →  FormRequest (تحقق)
 
 ## 7. الموقع العام بعد الربط
 
-`web/assets/js/modules/data.js` يحتفظ **بنفس أسماء الصادرات** (`ORPHANS`, `PROGRAMS`, `SPENDING`, `PROOF`…) لكنها تُملأ من الـ API بدل أن تكون ثابتة. لا وحدة أخرى تتغيّر، ولا سطر CSS واحد يُلمس — وهذا بالضبط ما كان تعليق الملف يَعِد به منذ اليوم الأول.
+`public/assets/js/modules/data.js` يحتفظ **بنفس أسماء الصادرات** (`ORPHANS`,
+`PROGRAMS`, `SPENDING`, `PROOF`…) لكنها تُملأ من الـ API بدل أن تكون ثابتة —
+والصادرات `let` لا `const` لأن ارتباطات ES modules حيّة. لا وحدة أخرى تتغيّر،
+ولا سطر CSS واحد يُلمس؛ وهذا بالضبط ما كان تعليق الملف يَعِد به منذ اليوم الأول.
+
+والقيم المكتوبة تبقى بذرةً تعمل حين يخفق الـ API، فتعرض الصفحة محتوى صحيحاً
+بدل شاشة فارغة.
+
+## 8. توجيه المتصفح
+
+| المسار | من يخدمه |
+|---|---|
+| `/assets/…` · `/admin-app/…` · `/storage/…` | ملفات ساكنة من القرص |
+| `/` · `/about` · `/orphans` … | `routes/web.php` → ملف HTML بعنوان نظيف |
+| `/admin` وما تحته | `routes/web.php` → مدخل الـ SPA، ثم يتولّى موجّه Vue |
+| `/api/v1/…` | `routes/api.php` |
+| أي شيء آخر | `404.html` بحالة 404 |
+
+**مزلقان موثّقان في الكود** لأن أثرهما صامت:
+
+1. **`response()->file()` لا يرسل جسماً مع حالة غير ناجحة** — فتخرج صفحة ٤٠٤
+   برأس صحيح وجسم فارغ. نقرأ الملف بـ `file_get_contents` بدلاً منه.
+2. **مجلد بناء اللوحة اسمه `admin-app` لا `admin`** — لو تطابق مع المسار
+   لخدمته خوادم الويب ساكناً قبل لارافل، وعُرضت صفحة الموقع العام مكان اللوحة.

@@ -126,6 +126,9 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
             Route::get('documents/{document}/download', [Admin\DocumentController::class, 'download'])->name('documents.download');
             Route::delete('documents/{document}', [Admin\DocumentController::class, 'destroy'])->name('documents.destroy');
 
+            /* --- بيانات مرجعية للنماذج --- */
+            Route::get('references', [Admin\FamilyController::class, 'references'])->name('references');
+
             /* --- الأسر --- */
             Route::get('families', [Admin\FamilyController::class, 'index'])->name('families.index');
             Route::post('families', [Admin\FamilyController::class, 'store'])->name('families.store');

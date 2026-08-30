@@ -3,7 +3,34 @@ import vue from '@vitejs/plugin-vue'
 import tailwindcss from '@tailwindcss/vite'
 import { fileURLToPath, URL } from 'node:url'
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
+  /**
+   * في الإنتاج تُبنى اللوحة داخل `api/public` فتُقدَّم من خادم لارافل نفسه —
+   * نشرٌ واحد للمشروع كله، ولا حاجة إلى CORS إطلاقاً.
+   *
+   * ولاحظ الاسم: المجلد `admin-app` والمسار `/admin`. **الاختلاف مقصود.**
+   * لو تطابقا لصار `public/admin` مجلداً موجوداً، وخوادم الويب تخدم المجلدات
+   * ساكنةً قبل أن تصل الطلبات إلى لارافل:
+   *
+   *   · `artisan serve` يرى المجلد فيتوقف عنده (‏404 من الخادم نفسه).
+   *   · Apache يتخطى إعادة الكتابة بـ `RewriteCond %{REQUEST_FILENAME} !-d`.
+   *   · وأسوأها: مع وجود `index.html` داخله، يمشي خادم PHP في المسار فيجعل
+   *     `SCRIPT_NAME=/admin/index.html` و`PATH_INFO=/orphans`، فيقتطع
+   *     Symfony الـ baseUrl ويرى لارافل `/orphans` — فيعرض صفحة الموقع
+   *     العام مكان اللوحة، بلا خطأ ولا أثر يدلّ على السبب.
+   *
+   * وباسمٍ مختلف لا يوجد شيء على مسار `/admin` فيصل الطلب كاملاً.
+   *
+   * وفي التطوير تبقى اللوحة على جذر خادم Vite (‏`/`) فتبقى العناوين قصيرة،
+   * والموجّه يقرأ `import.meta.env.BASE_URL` فيتبع الوضعين بلا تعديل.
+   */
+  base: mode === 'production' ? '/admin-app/' : '/',
+
+  build: {
+    outDir: '../api/public/admin-app',
+    emptyOutDir: true,
+  },
+
   plugins: [vue(), tailwindcss()],
 
   resolve: {
@@ -52,4 +79,4 @@ export default defineConfig({
     globals: true,
     include: ['tests/unit/**/*.spec.js'],
   },
-})
+}))
