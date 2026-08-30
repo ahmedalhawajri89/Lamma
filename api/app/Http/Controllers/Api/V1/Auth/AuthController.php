@@ -64,7 +64,7 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'أهلاً بعودتك.',
-            'data' => new UserResource($user->load(['sponsor', 'staffProfile'])),
+            'data' => new UserResource($user->load(['sponsor', 'staffProfile', 'roles'])),
         ]);
     }
 
@@ -98,14 +98,14 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'تم إنشاء حسابك.',
-            'data' => new UserResource($user->load(['sponsor', 'staffProfile'])),
+            'data' => new UserResource($user->load(['sponsor', 'staffProfile', 'roles'])),
         ], 201);
     }
 
     public function me(Request $request): JsonResponse
     {
         return response()->json([
-            'data' => new UserResource($request->user()->load(['sponsor', 'staffProfile'])),
+            'data' => new UserResource($request->user()->load(['sponsor', 'staffProfile', 'roles'])),
         ]);
     }
 

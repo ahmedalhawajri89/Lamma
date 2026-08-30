@@ -192,7 +192,7 @@ class DemoSeeder extends Seeder
                 'first_name' => $name,
                 'last_name' => self::LAST_NAMES[array_rand(self::LAST_NAMES)],
                 'gender' => $gender,
-                'date_of_birth' => now()->subYears($age)->subMonths(random_int(0, 11))->toDateString(),
+                'date_of_birth' => now()->subYears($age)->subMonthsNoOverflow(random_int(0, 11))->toDateString(),
                 'family_id' => $familyId,
                 'program_id' => $programIds[$programSlug],
                 'status' => OrphanStatus::Active->value,
@@ -204,9 +204,9 @@ class DemoSeeder extends Seeder
                 'story' => $story,
                 'monthly_need' => $programs[$programSlug],
                 'funded_percent' => 0,
-                'verified_at' => now()->subMonths(random_int(2, 20)),
-                'published_at' => now()->subMonths(random_int(1, 18)),
-                'created_at' => now()->subMonths(random_int(2, 22)),
+                'verified_at' => now()->subMonthsNoOverflow(random_int(2, 20)),
+                'published_at' => now()->subMonthsNoOverflow(random_int(1, 18)),
+                'created_at' => now()->subMonthsNoOverflow(random_int(2, 22)),
                 'updated_at' => now(),
             ]);
 
@@ -419,7 +419,45 @@ class DemoSeeder extends Seeder
         $sponsorships = [];
         $counter = 0;
 
+        /**
+         * الكافل التجريبي (SPN-00001) يكفل أحمد وأمنية تحديداً — وهما الطفلان
+         * المعروضان في dashboard.html اليوم. تثبيتهما هنا يجعل بوابة الكافل
+         * تعرض المحتوى نفسه الذي اعتاده الموقع، بدل لوحة فارغة تعتمد على
+         * الاختيار العشوائي أن يقع عليه.
+         */
+        $demoSponsorId = $sponsorIds[0];
+        $demoTargets = ['KFL-1043' => 65.0, 'KFL-1042' => 35.0];
+
         foreach ($orphans as $orphan) {
+            $code = DB::table('orphans')->where('id', $orphan['id'])->value('reference_code');
+
+            if (isset($demoTargets[$code])) {
+                $used[$demoSponsorId][$orphan['id']] = true;
+                $day = $code === 'KFL-1043' ? 25 : 1;
+                $startedAt = Carbon::now()->startOfMonth()->subMonthsNoOverflow(random_int(14, 22));
+
+                $sponsorships[] = [
+                    'reference_code' => 'KFS-2026-'.str_pad((string) ++$counter, 5, '0', STR_PAD_LEFT),
+                    'sponsor_id' => $demoSponsorId,
+                    'orphan_id' => $orphan['id'],
+                    'program_id' => $orphan['program'],
+                    'monthly_amount' => min($demoTargets[$code], $orphan['need'] * $orphan['funded'] / 100),
+                    'currency' => 'USD',
+                    'share_percent' => min(100, $orphan['funded']),
+                    'is_zakat' => false,
+                    'status' => SponsorshipStatus::Active->value,
+                    'billing_day' => $day,
+                    'started_at' => $startedAt->toDateString(),
+                    'next_due_at' => Carbon::now()->addMonthNoOverflow()->setDay($day)->toDateString(),
+                    'ended_at' => null,
+                    'cancellation_reason' => null,
+                    'created_at' => $startedAt,
+                    'updated_at' => now(),
+                ];
+
+                continue;
+            }
+
             if ($orphan['funded'] <= 0) {
                 continue;
             }
@@ -436,7 +474,7 @@ class DemoSeeder extends Seeder
                 }
                 $used[$sponsorId][$orphan['id']] = true;
 
-                $startedAt = Carbon::now()->subMonths(random_int(1, self::MONTHS_OF_HISTORY))->startOfMonth();
+                $startedAt = Carbon::now()->startOfMonth()->subMonthsNoOverflow(random_int(1, self::MONTHS_OF_HISTORY));
                 $billingDay = random_int(1, 28);
                 $amount = round($orphan['need'] * $share / 100, 2);
 
@@ -476,7 +514,7 @@ class DemoSeeder extends Seeder
         $cancelled = 0;
         foreach (array_slice($orphans, 0, 40) as $orphan) {
             $sponsorId = $sponsorIds[array_rand($sponsorIds)];
-            $started = Carbon::now()->subMonths(random_int(12, self::MONTHS_OF_HISTORY));
+            $started = Carbon::now()->startOfMonth()->subMonthsNoOverflow(random_int(12, self::MONTHS_OF_HISTORY));
 
             $sponsorships[] = [
                 'reference_code' => 'KFS-2025-'.str_pad((string) ++$cancelled, 5, '0', STR_PAD_LEFT),
@@ -580,7 +618,9 @@ class DemoSeeder extends Seeder
 
             $months = random_int(3, 18);
             for ($m = 0; $m < $months; $m++) {
-                $spentOn = Carbon::now()->subMonths($m)->setDay(random_int(1, 28));
+                // startOfMonth قبل الطرح: من ٢٩ أغسطس، subMonths(6) يعطي ٢٩ فبراير
+                // غير الموجود فينزلق إلى مارس، فيخرج شهر فارغ وآخر مضاعف في الرسم
+                $spentOn = Carbon::now()->startOfMonth()->subMonthsNoOverflow($m)->setDay(random_int(1, 28));
                 $budget = $orphan['need'] * $orphan['funded'] / 100;
 
                 foreach ($weights as $slug => $weight) {
@@ -665,7 +705,7 @@ class DemoSeeder extends Seeder
 
             // تقارير آخر أربعة أرباع — والقيد الفريد يمنع التكرار
             for ($q = 0; $q < random_int(1, 4); $q++) {
-                $when = Carbon::now()->subMonths(3 * $q);
+                $when = Carbon::now()->subMonthsNoOverflow(3 * $q);
                 $key = $orphan['id'].'-'.$when->year.'-'.$when->quarter;
                 if (isset($seen[$key])) {
                     continue;
@@ -697,7 +737,7 @@ class DemoSeeder extends Seeder
             }
 
             for ($v = 0; $v < random_int(1, 6); $v++) {
-                $when = Carbon::now()->subMonths($v * 2)->subDays(random_int(0, 20));
+                $when = Carbon::now()->subMonthsNoOverflow($v * 2)->subDays(random_int(0, 20));
                 $visits[] = [
                     'orphan_id' => $orphan['id'],
                     'supervisor_id' => $staff['supervisors'][array_rand($staff['supervisors'])],
