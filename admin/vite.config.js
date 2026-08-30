@@ -33,6 +33,17 @@ export default defineConfig({
     proxy: {
       '/api': { target: 'http://127.0.0.1:8000', changeOrigin: false },
       '/sanctum': { target: 'http://127.0.0.1:8000', changeOrigin: false },
+
+      /**
+       * `/storage` لازم أيضاً.
+       *
+       * دالة `asset()` في لارافل تبني الرابط من **مضيف الطلب** لا من
+       * `APP_URL`، والطلب يصل عبر هذا الوسيط فيحمل ترويسة المضيف
+       * `localhost:5173`. فتخرج روابط الصور مشيرةً إلى خادم Vite، وبلا
+       * تمرير `/storage` يردّ عليها بصفحة index.html — فتظهر الصورة
+       * مكسورة بلا خطأ في الشبكة (استجابة 200 وعرضٌ صفر).
+       */
+      '/storage': { target: 'http://127.0.0.1:8000', changeOrigin: false },
     },
   },
 
