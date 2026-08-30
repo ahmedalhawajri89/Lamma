@@ -86,6 +86,12 @@ const routes = [
     meta: { title: 'الرسائل', icon: 'chat', permission: 'messages.review' },
   },
   {
+    path: '/contacts',
+    name: 'contacts',
+    component: () => import('@/views/ContactsView.vue'),
+    meta: { title: 'رسائل التواصل', icon: 'mail', permission: 'content.manage' },
+  },
+  {
     path: '/users',
     name: 'users',
     component: () => import('@/views/UsersView.vue'),

@@ -183,6 +183,7 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
             });
 
             Route::get('contacts', [Admin\ContentController::class, 'contacts'])->name('contacts.index');
+            Route::match(['put', 'patch'], 'contacts/{contact}', [Admin\ContentController::class, 'updateContact'])->name('contacts.update');
             Route::get('settings', [Admin\ContentController::class, 'settings'])->name('settings.index');
             Route::put('settings', [Admin\ContentController::class, 'updateSettings'])->name('settings.update');
 

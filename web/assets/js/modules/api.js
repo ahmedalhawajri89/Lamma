@@ -1,22 +1,22 @@
 /**
  * طبقة الاتصال بالـ API.
  *
- * مبدأ هذا الملف: **الموقع يجب أن يعمل كاملاً بلا خادم.**
+ * فيها نوعان من الطلبات بسلوكين مختلفين عمداً:
  *
- * ليس هذا احتياطاً نظرياً — هذا الموقع منشور على Vercel كملفات ساكنة، وقد
- * يُفتح والخادم متوقف أو غير منشور بعد. فكل دالة هنا تُرجع `null` عند أي
- * إخفاق، و`data.js` يبقي بياناته المبدئية كما هي عندئذ. النتيجة: صفحة تعمل
- * بمحتوى صحيح بدل شاشة فارغة أو أخطاء في الطرفية.
+ *  · **القراءة** (`tryGet`) تتدهور بلطف: تُرجع `null` عند أي إخفاق ولا ترمي
+ *    شيئاً. الموقع منشور ملفاتٍ ساكنة على Vercel وقد يُفتح والـ API متوقف،
+ *    فيعرض عندئذ بياناته المبدئية من `data.js` بدل شاشة فارغة.
  *
- * ولذلك أيضاً لا يوجد `throw` في هذا الملف إطلاقاً.
+ *  · **الكتابة** (`request`) ترمي عند الإخفاق: من أرسل رسالة يجب أن يعرف
+ *    إن لم تصل. الصمت هنا كذب، لا لطف.
  */
 
 /**
  * أصل الـ API.
  *
- * يُقرأ من `<meta name="api-base">` إن وُجد، فيمكن تغييره عند النشر بلا
- * إعادة بناء — وهذا لازم لأن المشروع بلا خطوة بناء أصلاً ولا متغيرات بيئة.
- * وتركه فارغاً يعني «لا خادم»، فيبقى الموقع على بياناته المبدئية.
+ * يُقرأ من `<meta name="api-base">` فيمكن تغييره عند النشر بلا إعادة بناء —
+ * وهذا لازم لأن المشروع بلا خطوة بناء أصلاً ولا متغيرات بيئة. وتفريغه يعني
+ * «لا خادم»، فيبقى الموقع على بياناته المبدئية.
  */
 const BASE = document.querySelector('meta[name="api-base"]')?.content?.trim() ?? '';
 
@@ -25,13 +25,79 @@ const TIMEOUT_MS = 4000;
 
 let offline = !BASE;
 
+export const apiConfigured = () => Boolean(BASE);
+export const isOffline = () => offline;
+
+/* =========================================================================
+   CSRF
+   ========================================================================= */
+
 /**
- * طلب واحد. يُرجع البيانات أو `null`.
+ * مسارات الـ API كلها ضمن مجموعة Sanctum الحالِيّة، فكل طلب مُغيِّر للحالة
+ * يحتاج توكن CSRF — حتى نموذج التواصل المفتوح للجميع.
+ */
+let csrfReady = null;
+
+function ensureCsrf() {
+  csrfReady ??= fetch(`${BASE}/sanctum/csrf-cookie`, { credentials: 'include' });
+  return csrfReady;
+}
+
+function csrfToken() {
+  const match = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]+)/);
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
+/* =========================================================================
+   الطلبات
+   ========================================================================= */
+
+/**
+ * طلب يرمي عند الإخفاق.
  *
- * بعد أول إخفاق نرفع `offline` فلا تحاول بقية الطلبات — إذ لا معنى لانتظار
+ * الخطأ كائن فيه `message` و`errors`، فيستطيع النموذج أن يعرض خطأ كل حقل
+ * تحت حقله بدل رسالة عامة عائمة.
+ */
+export async function request(path, { method = 'GET', body = null } = {}) {
+  if (!BASE) {
+    throw { message: 'لا اتصال بالخادم.', errors: {} };
+  }
+
+  if (method !== 'GET') await ensureCsrf();
+
+  const headers = { Accept: 'application/json' };
+  if (body) headers['Content-Type'] = 'application/json';
+
+  const token = csrfToken();
+  if (token) headers['X-XSRF-TOKEN'] = token;
+
+  const response = await fetch(`${BASE}/api/v1${path}`, {
+    method,
+    credentials: 'include',
+    headers,
+    body: body ? JSON.stringify(body) : null,
+  });
+
+  const payload = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw {
+      status: response.status,
+      message: payload.message ?? 'تعذّر إتمام الطلب.',
+      errors: payload.errors ?? {},
+    };
+  }
+
+  return payload;
+}
+
+/**
+ * قراءة لا ترمي أبداً.
+ *
+ * وبعد أول إخفاق نرفع `offline` فلا تحاول بقية الطلبات — لا معنى لانتظار
  * أربع ثوانٍ ستّ مرات على التوالي بينما الخادم متوقف يقيناً.
  */
-async function get(path, params = {}) {
+async function tryGet(path, params = {}) {
   if (offline) return null;
 
   const url = new URL(`${BASE}/api/v1/public/${path}`);
@@ -50,15 +116,10 @@ async function get(path, params = {}) {
       /**
        * `credentials: 'include'` وإن كانت هذه النقاط عامة لا تحتاج مصادقة.
        *
-       * السبب دقيق ومهم: مسارات الـ API كلها ضمن مجموعة Sanctum الحالِيّة
-       * (stateful)، فأي طلب يصل بلا كوكي جلسة يفتح له لارافل **جلسة ضيف
-       * جديدة** ويعيد `Set-Cookie` بها. وبلا هذا السطر كانت طلبات الترطيب
-       * على `dashboard.html` تستبدل كوكي جلسة الكافل بجلسة ضيف، فيُطرَد
-       * من لوحته بعد ثوانٍ من دخوله.
-       *
-       * وكان العيب متقطعاً لأنه سباق: يقع حين تسبق استجابة الترطيب استجابة
-       * `/auth/me`. وهذا بالضبط ما تكشفه اختبارات المتصفح ولا تكشفه
-       * اختبارات الوحدة.
+       * السبب دقيق ومهم: أي طلب يصل بلا كوكي جلسة يفتح له لارافل **جلسة
+       * ضيف جديدة** ويعيد `Set-Cookie` بها. وبلا هذا السطر كانت طلبات
+       * الترطيب على `dashboard.html` تستبدل كوكي جلسة الكافل بجلسة ضيف،
+       * فيُطرَد من لوحته بعد ثوانٍ من دخوله.
        */
       credentials: 'include',
     });
@@ -78,8 +139,12 @@ async function get(path, params = {}) {
   }
 }
 
+/* =========================================================================
+   نقاط النهاية العامة
+   ========================================================================= */
+
 /** كل ما كان ثابتاً في data.js عدا الأيتام — طلب واحد بدل ستة. */
-export const fetchBootstrap = () => get('bootstrap');
+export const fetchBootstrap = () => tryGet('bootstrap');
 
 /**
  * الأيتام المنشورون.
@@ -89,10 +154,16 @@ export const fetchBootstrap = () => get('bootstrap');
  * والـ API يدعم الفلترة والترتيب والتصفيح على الخادم متى تجاوزت الحالات
  * ما يُحمَّل دفعةً واحدة.
  */
-export const fetchOrphans = () => get('orphans', { per_page: 100, sort: 'urgent' });
+export const fetchOrphans = () => tryGet('orphans', { per_page: 100, sort: 'urgent' });
 
-export const fetchTransparency = () => get('transparency');
+export const fetchTransparency = () => tryGet('transparency');
 
-export const fetchPosts = () => get('posts', { per_page: 12 });
+export const fetchPosts = () => tryGet('posts', { per_page: 12 });
 
-export const isOffline = () => offline;
+/* -------------------------------------------------------------- الكتابة */
+
+export const submitContact = (payload) =>
+  request('/public/contact', { method: 'POST', body: payload });
+
+export const subscribeNewsletter = (email, source = 'footer') =>
+  request('/public/newsletter', { method: 'POST', body: { email, source } });

@@ -32,10 +32,10 @@ kafala-orphan-sponsorship/
 | | |
 |---|---|
 | جداول قاعدة البيانات | **٤٤** في تسعة نطاقات |
-| مسارات الـ API | **٨٧** في أربع مجموعات |
+| مسارات الـ API | **٨٨** في أربع مجموعات |
 | موديلات Eloquent | ٢٩ · و١٥ enum |
-| شاشات لوحة الإدارة | ١٥ |
-| اختبارات | ٤١ Pest · ١١ Playwright · ٦ Vitest |
+| شاشات لوحة الإدارة | ١٦ |
+| اختبارات | ٤٨ Pest · ١٤ Playwright · ٦ Vitest |
 
 ---
 
@@ -138,11 +138,11 @@ npx serve web -l 5501                         # http://localhost:5501
 ## 🧪 الاختبارات
 
 ```bash
-cd api    && ./vendor/bin/pest              # ٤١ اختباراً على MySQL لا SQLite
+cd api    && ./vendor/bin/pest              # ٤٨ اختباراً على MySQL لا SQLite
 cd api    && ./vendor/bin/phpstan analyse   # المستوى ٥، نظيف
 cd api    && ./vendor/bin/pint              # التنسيق
 cd admin  && npm run test                   # Vitest
-cd admin  && npx playwright test            # ١١ اختبار متصفح على API حقيقي
+cd admin  && npx playwright test            # ١٤ اختبار متصفح على API حقيقي
 ```
 
 **لماذا MySQL لا SQLite في الاختبارات؟** لأن المخطّط يعتمد على عمود مُولَّد وفهرس

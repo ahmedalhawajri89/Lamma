@@ -49,6 +49,76 @@ test.describe('الموقع العام', () => {
   })
 })
 
+test.describe('نماذج الموقع', () => {
+  test('رسالة التواصل تُرسَل فعلاً وتصل لوحة الإدارة', async ({ page }) => {
+    const email = `visitor${Date.now()}@example.com`
+
+    await page.goto(`${WEB}/contact.html`)
+    await page.waitForTimeout(1200)
+
+    await page.fill('#contactName', 'زائر اختبار')
+    await page.fill('#contactEmail', email)
+    await page.fill('#contactMessage', 'سؤال عن بند المصاريف الإدارية وكيف حُسبت نسبته.')
+    await page.check('input[name="consent"]')
+
+    const [response] = await Promise.all([
+      page.waitForResponse((r) => r.url().includes('/public/contact')),
+      page.click('form[data-action="contact"] [type="submit"]'),
+    ])
+
+    expect(response.status()).toBe(201)
+
+    // ثم نراها من الجهة الأخرى: لوحة الإدارة
+    await page.goto('http://localhost:5173/login')
+    await page.getByLabel('البريد الإلكتروني').fill('admin@kafala.org')
+    await page.getByLabel('كلمة المرور', { exact: true }).fill('password')
+    await page.getByRole('button', { name: 'دخول' }).click()
+    await page.waitForURL('**/dashboard')
+
+    await page.goto('http://localhost:5173/contacts')
+    await expect(page.getByText(email)).toBeVisible({ timeout: 20_000 })
+  })
+
+  test('التحقق يمنع الإرسال قبل اكتمال الحقول', async ({ page }) => {
+    await page.goto(`${WEB}/contact.html`)
+    await page.waitForTimeout(1200)
+
+    let sent = false
+    page.on('request', (r) => { if (r.url().includes('/public/contact')) sent = true })
+
+    await page.fill('#contactName', 'ا')
+    await page.fill('#contactEmail', 'ليس بريداً')
+    await page.click('form[data-action="contact"] [type="submit"]')
+    await page.waitForTimeout(1000)
+
+    expect(sent).toBe(false)
+    expect(await page.locator('.field.is-invalid').count()).toBeGreaterThan(0)
+  })
+
+  test('الاشتراك في النشرة مربوط بنقطته الصحيحة', async ({ page }) => {
+    /**
+     * ما يخصّ المتصفح هنا هو **الربط**: أن الضغط يُصدر POST إلى النقطة
+     * الصحيحة بالحمولة الصحيحة. أما عقد الخادم (‏201، ومنع التكرار،
+     * والتأكيد المزدوج، وحدّ السبام) فمُغطّى في Pest حيث الحالة تحت
+     * السيطرة — والتأكيد على الحالة هنا يجعل تشغيلين متتاليين من العنوان
+     * نفسه يسقطان الاختبار بـ 429، وهو نجاحٌ للحماية لا فشلٌ للميزة.
+     */
+    const email = `news${Date.now()}@example.com`
+
+    await page.goto(`${WEB}/index.html`)
+    await page.waitForTimeout(1600)
+    await page.fill('#footerNewsEmail', email)
+
+    const [request] = await Promise.all([
+      page.waitForRequest((r) => r.url().includes('/public/newsletter')),
+      page.click('form[data-action="newsletter"] [type="submit"]'),
+    ])
+
+    expect(request.method()).toBe('POST')
+    expect(JSON.parse(request.postData() ?? '{}')).toMatchObject({ email, source: 'footer' })
+  })
+})
+
 test.describe('بوابة الكافل', () => {
   // رحلة كاملة من خمس خطوات، كل خطوة تنتظر الخادم. المهلة الافتراضية
   // (٣٠ ثانية) تكفيها منفردةً ولا تكفيها والحزمة كلها تعمل على خادم

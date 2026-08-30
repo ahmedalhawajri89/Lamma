@@ -1,0 +1,106 @@
+<script setup>
+import { admin } from '@/api/endpoints'
+import { useResource } from '@/composables/useResource'
+import { useUiStore } from '@/stores/ui'
+import { relative, dateTime } from '@/utils/format'
+import PageHeader from '@/components/PageHeader.vue'
+import FilterBar from '@/components/FilterBar.vue'
+import PaginationBar from '@/components/PaginationBar.vue'
+import StatusBadge from '@/components/StatusBadge.vue'
+import BaseIcon from '@/components/BaseIcon.vue'
+
+const ui = useUiStore()
+const { items, meta, loading, filters, reset, load } = useResource(admin.contacts, {
+  open_only: true,
+})
+
+const labels = { new: 'جديدة', in_progress: 'قيد المعالجة', closed: 'مغلقة' }
+
+async function setStatus(row, status) {
+  try {
+    await admin.updateContact(row.id, status)
+    ui.success('حُدّثت حالة الرسالة.')
+    load()
+  } catch (e) {
+    ui.error(e.userMessage)
+  }
+}
+</script>
+
+<template>
+  <div>
+    <PageHeader
+      title="رسائل التواصل"
+      :subtitle="`${meta.total} رسالة — تصل من نموذج contact.html على الموقع`"
+    />
+
+    <FilterBar :has-search="false" @reset="reset">
+      <label class="flex items-center gap-1.5 text-sm cursor-pointer">
+        <input v-model="filters.open_only" type="checkbox" class="accent-clay-600" />
+        المفتوحة فقط
+      </label>
+    </FilterBar>
+
+    <div v-if="loading" class="space-y-2">
+      <div v-for="n in 4" :key="n" class="card h-28 animate-pulse bg-sand-100" />
+    </div>
+
+    <ul v-else-if="items.length" class="space-y-2">
+      <li v-for="m in items" :key="m.id" class="card p-4">
+        <div class="flex items-start justify-between gap-3 flex-wrap mb-2">
+          <div class="min-w-0">
+            <p class="text-sm font-medium">
+              {{ m.name }}
+              <a
+                :href="`mailto:${m.email}`" dir="ltr"
+                class="num text-xs text-clay-700 hover:underline ms-1"
+              >{{ m.email }}</a>
+            </p>
+            <p class="text-xs text-sand-500 mt-0.5">
+              <span v-if="m.subject">{{ m.subject }} · </span>
+              <span :title="dateTime(m.created_at)">{{ relative(m.created_at) }}</span>
+              <span v-if="m.handler"> · عالجها {{ m.handler.name }}</span>
+            </p>
+          </div>
+
+          <StatusBadge :label="labels[m.status] ?? m.status" :value="m.status" />
+        </div>
+
+        <p class="text-sm text-sand-800 leading-relaxed whitespace-pre-line">{{ m.body }}</p>
+
+        <div class="flex gap-2 mt-3 pt-3 border-t border-sand-100 flex-wrap">
+          <a class="btn btn-outline !py-1.5 text-xs" :href="`mailto:${m.email}`">
+            <BaseIcon name="external" :size="14" /> الردّ بالبريد
+          </a>
+
+          <button
+            v-if="m.status === 'new'" class="btn btn-ghost !py-1.5 text-xs" type="button"
+            @click="setStatus(m, 'in_progress')"
+          >
+            بدء المعالجة
+          </button>
+
+          <button
+            v-if="m.status !== 'closed'" class="btn btn-ghost !py-1.5 text-xs" type="button"
+            @click="setStatus(m, 'closed')"
+          >
+            إغلاق
+          </button>
+
+          <button
+            v-else class="btn btn-ghost !py-1.5 text-xs" type="button"
+            @click="setStatus(m, 'new')"
+          >
+            إعادة فتح
+          </button>
+        </div>
+      </li>
+    </ul>
+
+    <p v-else class="card p-10 text-center text-sand-500">
+      لا رسائل في هذا التصنيف.
+    </p>
+
+    <PaginationBar v-model="filters.page" :meta="meta" />
+  </div>
+</template>

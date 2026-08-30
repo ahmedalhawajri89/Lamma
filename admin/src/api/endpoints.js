@@ -89,6 +89,7 @@ export const admin = {
   posts: (params) => client.get(`${v1}/admin/posts`, { params }),
   content: (type) => client.get(`${v1}/admin/content/${type}`),
   contacts: (params) => client.get(`${v1}/admin/contacts`, { params }),
+  updateContact: (id, status) => client.patch(`${v1}/admin/contacts/${id}`, { status }),
   settings: () => client.get(`${v1}/admin/settings`),
 }
 

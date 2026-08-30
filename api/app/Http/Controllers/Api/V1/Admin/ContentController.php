@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1\Admin;
 
+use App\Enums\ContactStatus;
 use App\Enums\PostStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PostResource;
@@ -152,6 +153,34 @@ class ContentController extends Controller
         return response()->json([
             'data' => $messages->items(),
             'meta' => ['total' => $messages->total(), 'current_page' => $messages->currentPage(), 'last_page' => $messages->lastPage()],
+        ]);
+    }
+
+    /**
+     * تغيير حالة رسالة تواصل.
+     *
+     * `handled_by` و`handled_at` يُسندان من الخادم لا من الطلب: من عالج
+     * الرسالة هو من أرسل هذا الطلب، لا من يدّعي ذلك في جسمه.
+     */
+    public function updateContact(Request $request, ContactMessage $contact): JsonResponse
+    {
+        abort_unless($request->user()->can('content.manage'), 403);
+
+        $validated = $request->validate([
+            'status' => ['required', Rule::in(ContactStatus::values())],
+        ]);
+
+        $closing = $validated['status'] !== ContactStatus::New->value;
+
+        $contact->update([
+            'status' => $validated['status'],
+            'handled_by' => $closing ? $request->user()->id : null,
+            'handled_at' => $closing ? now() : null,
+        ]);
+
+        return response()->json([
+            'message' => 'حُدّثت حالة الرسالة.',
+            'data' => $contact->fresh()->load('handler:id,name'),
         ]);
     }
 

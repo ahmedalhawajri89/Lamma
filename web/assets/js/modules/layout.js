@@ -95,7 +95,7 @@ function footerMarkup() {
         <p class="footer-news__label">
           رسالة واحدة كل شهر: ما أنجزناه، وما صرفناه، وقصة طفل واحد. بلا إلحاح.
         </p>
-        <form class="newsletter" data-validate-form
+        <form class="newsletter" data-validate-form data-action="newsletter" data-source="footer"
               data-success-message="تم اشتراكك، ستصلك أول رسالة مطلع الشهر" novalidate>
           <div class="field" style="flex:1">
             <label class="sr-only" for="footerNewsEmail">البريد الإلكتروني</label>

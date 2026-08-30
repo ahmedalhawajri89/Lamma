@@ -11,6 +11,7 @@
  */
 
 import { login, register } from './auth.js';
+import { submitContact, subscribeNewsletter } from './api.js';
 import { toast } from './ui.js';
 import { $, $$, clamp } from './utils.js';
 
@@ -206,7 +207,43 @@ async function submit(form, button, original) {
 
   const values = Object.fromEntries(new FormData(form).entries());
 
+  /**
+   * نموذجا التواصل والنشرة لا ينتقلان بعد النجاح: المستخدم يبقى مكانه
+   * ويحتاج تأكيداً في الصفحة. أما الدخول والتسجيل فينتهيان بانتقال.
+   */
+  const staysOnPage = action === 'contact' || action === 'newsletter';
+
   try {
+    if (action === 'contact') {
+      const { message } = await submitContact({
+        name: values.name,
+        email: values.email,
+
+        // حقول النموذج مسمّاة بلغة الواجهة (topic و message)،
+        // والربط بأسماء الـ API يقع هنا لا بتشويه الـ HTML الدلالي
+        subject: values.topic || null,
+        body: values.message,
+        website: values.website ?? '',
+      });
+
+      restore();
+      form.reset();
+      $$('.field', form).forEach((f) => f.classList.remove('is-invalid'));
+      toast(message || form.dataset.successMessage, 'success');
+
+      return;
+    }
+
+    if (action === 'newsletter') {
+      const { message } = await subscribeNewsletter(values.email, form.dataset.source || 'footer');
+
+      restore();
+      form.reset();
+      toast(message || form.dataset.successMessage, 'success');
+
+      return;
+    }
+
     if (action === 'login') {
       await login(values.email, values.password, Boolean(values.remember));
     } else if (action === 'register') {

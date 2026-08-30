@@ -117,7 +117,7 @@
           <div class="card" style="padding:clamp(var(--space-6),3vw,var(--space-10))" data-reveal="end">
             <h2 style="font-size:var(--text-lg)">أرسل لنا رسالة</h2>
 
-            <form data-validate-form
+            <form data-validate-form data-action="contact"
                   data-success-message="وصلتنا رسالتك، سنرد خلال ٧٢ ساعة بإذن الله" novalidate
                   style="margin-block-start:var(--space-6)">
 
@@ -162,6 +162,13 @@
                           data-validate="required|minlength:15"
                           aria-describedby="err-contactMessage"></textarea>
                 <p class="field__error" id="err-contactMessage" role="alert"></p>
+              </div>
+
+              <!-- مصيدة: مخفية عن البشر وعن قارئات الشاشة، والروبوت يملؤها. -->
+              <div class="sr-only" aria-hidden="true">
+                <label for="contactWebsite">لا تملأ هذا الحقل</label>
+                <input type="text" id="contactWebsite" name="website"
+                       tabindex="-1" autocomplete="off">
               </div>
 
               <div class="field" style="margin-block-end:var(--space-6)">
