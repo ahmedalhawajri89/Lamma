@@ -49,7 +49,7 @@ class OrphanResource extends JsonResource
             'sponsorships' => SponsorshipResource::collection($this->whenLoaded('sponsorships')),
             'reports' => ReportResource::collection($this->whenLoaded('reports')),
             'field_visits' => FieldVisitResource::collection($this->whenLoaded('fieldVisits')),
-            'siblings' => self::collection($this->whenLoaded('siblings')),
+            'siblings' => $this->whenLoaded('familyMembers', fn () => self::collection($this->siblings())),
 
             'sponsorships_count' => $this->whenCounted('sponsorships'),
             'reports_count' => $this->whenCounted('reports'),

@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Collection;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
@@ -101,11 +102,24 @@ class Orphan extends Model
         return $this->hasManyThrough(Payment::class, Sponsorship::class);
     }
 
-    /** الإخوة: أبناء الأسرة نفسها عدا هذا الطفل. */
-    public function siblings(): HasMany
+    /**
+     * كل أبناء الأسرة — هذا الطفل منهم.
+     *
+     * لماذا لا نستثنيه هنا بـ `whereKeyNot($this->getKey())`؟
+     * لأن Eloquent يبني العلاقة أثناء التحميل المسبق على نسخة فارغة من
+     * الموديل، فيكون المفتاح `null` ولا يُستثنى أحد — فيظهر الطفل في قائمة
+     * إخوته. الاستثناء يجب أن يقع بعد التحميل، حيث يُعرف المفتاح فعلاً،
+     * ولذلك هو في `siblings()` أدناه لا في العلاقة.
+     */
+    public function familyMembers(): HasMany
     {
-        return $this->hasMany(self::class, 'family_id', 'family_id')
-            ->whereKeyNot($this->getKey());
+        return $this->hasMany(self::class, 'family_id', 'family_id');
+    }
+
+    /** الإخوة: أبناء الأسرة عدا هذا الطفل. */
+    public function siblings(): Collection
+    {
+        return $this->familyMembers->reject(fn (self $o): bool => $o->is($this))->values();
     }
 
     /* ------------------------------------------------------------------ النطاقات */
@@ -131,9 +145,15 @@ class Orphan extends Model
     }
 
     /**
-     * بحث شريط orphans.html.
-     * الكلمات القصيرة (أقل من أربعة أحرف) تسقط من فهرس FULLTEXT الافتراضي،
-     * وأسماء كثيرة بالعربية أقصر من ذلك — فنرجع إلى LIKE عندها.
+     * البحث — ثلاثة مسارات لأن المستخدم يبحث بثلاث طرق مختلفة:
+     *
+     *  1. **معرّف** (`KFL-1042`) — أكثر ما يُلصق في مربع البحث، وفهرس
+     *     FULLTEXT لا يغطّيه إطلاقاً لأنه على الأسماء والقصة. وجود رقم في
+     *     النص يكفي للتمييز: لا اسم عربي يحمل رقماً.
+     *  2. **اسم قصير** (أقل من أربعة أحرف) — يسقط من فهرس FULLTEXT لأن
+     *     `innerodb_ft_min_token_size` ثلاثة افتراضياً، وأسماء كثيرة
+     *     بالعربية أقصر من ذلك: «ليان» و«جنى» و«آية».
+     *  3. **نص أطول** — هنا وحده يفيد FULLTEXT.
      */
     public function scopeSearch(Builder $query, ?string $term): Builder
     {
@@ -143,14 +163,17 @@ class Orphan extends Model
             return $query;
         }
 
+        if (preg_match('/\d/', $term) === 1) {
+            return $query->where('reference_code', 'like', "%{$term}%");
+        }
+
         if (mb_strlen($term) >= 4) {
             return $query->whereFullText(['first_name', 'last_name', 'story'], $term);
         }
 
         return $query->where(function (Builder $q) use ($term): void {
             $q->where('first_name', 'like', "{$term}%")
-                ->orWhere('last_name', 'like', "{$term}%")
-                ->orWhere('reference_code', 'like', "%{$term}%");
+                ->orWhere('last_name', 'like', "{$term}%");
         });
     }
 

@@ -88,7 +88,7 @@ class OrphanController extends Controller
                 'reports' => fn ($q) => $q->latest('period_year')->latest('period_quarter'),
                 'fieldVisits' => fn ($q) => $q->latest('visited_at')->limit(10),
                 'fieldVisits.supervisor:id,name',
-                'siblings',
+                'familyMembers',
             ])),
         ]);
     }

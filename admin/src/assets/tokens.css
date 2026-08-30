@@ -1,0 +1,167 @@
+/* ==========================================================================
+   توكنز اللوحة — منقولة من web/assets/css/tokens.css
+   حرفياً حتى لا تبدو اللوحة وكأنها من مشروع آخر.
+   طين وعنبر وزيتوني على أرضية رملية، لا رمادي بارد.
+   ========================================================================== */
+
+@import 'tailwindcss';
+
+@theme {
+  /* الطين — الأساسي */
+  --color-clay-50: #fdf5f1;
+  --color-clay-100: #fae7dd;
+  --color-clay-200: #f4cbb8;
+  --color-clay-300: #eca88a;
+  --color-clay-400: #e07a53;
+  --color-clay-500: #d35a30;
+  --color-clay-600: #c2410c;
+  --color-clay-700: #9a3412;
+  --color-clay-800: #7c2d12;
+  --color-clay-900: #5c220f;
+
+  /* العنبر — الثانوي */
+  --color-amber-50: #fffaeb;
+  --color-amber-100: #fef0c7;
+  --color-amber-200: #fde08a;
+  --color-amber-300: #fcca4d;
+  --color-amber-400: #fab225;
+  --color-amber-500: #f0910c;
+  --color-amber-600: #d97706;
+  --color-amber-700: #b45309;
+
+  /* الزيتوني — النمو */
+  --color-olive-50: #f6f9ec;
+  --color-olive-100: #e9f2d1;
+  --color-olive-200: #d4e5a8;
+  --color-olive-400: #96ba4c;
+  --color-olive-600: #4d7c0f;
+  --color-olive-700: #3f630f;
+
+  /* الرمل — المحايد الدافئ */
+  --color-sand-0: #ffffff;
+  --color-sand-25: #fefbf7;
+  --color-sand-50: #fbf7f0;
+  --color-sand-100: #f5eee2;
+  --color-sand-200: #e9dfd0;
+  --color-sand-300: #d6c8b4;
+  --color-sand-400: #b3a596;
+  --color-sand-500: #756a5c;
+  --color-sand-600: #6b6053;
+  --color-sand-700: #4e463c;
+  --color-sand-900: #1c1917;
+
+  /* ألوان الحالات */
+  --color-teal-600: #0d9488;
+  --color-teal-700: #0f766e;
+  --color-rose-600: #e11d48;
+  --color-rose-700: #be123c;
+
+  --font-display: 'Readex Pro', system-ui, sans-serif;
+  --font-sans: 'IBM Plex Sans Arabic', system-ui, sans-serif;
+
+  --radius-card: 1rem;
+  --shadow-card: 0 1px 2px rgb(28 25 23 / 0.04), 0 8px 24px -12px rgb(28 25 23 / 0.12);
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    background: var(--color-sand-50);
+    color: var(--color-sand-900);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  /* الأرقام لاتينية دائماً حتى داخل النص العربي — الأرقام الهندية في
+     جدول مالي تُبطئ القراءة ولا تُحاذى رأسياً */
+  .num {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum';
+    direction: ltr;
+    display: inline-block;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-clay-600);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: var(--color-sand-100); }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-sand-300);
+    border-radius: 99px;
+    border: 2px solid var(--color-sand-100);
+  }
+}
+
+@layer components {
+  .card {
+    background: var(--color-sand-0);
+    border: 1px solid var(--color-sand-200);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 0.625rem;
+    font-weight: 500;
+    font-size: 0.875rem;
+    transition: all 0.15s;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .btn-primary { background: var(--color-clay-600); color: white; }
+  .btn-primary:hover:not(:disabled) { background: var(--color-clay-700); }
+
+  .btn-ghost { background: transparent; color: var(--color-sand-700); }
+  .btn-ghost:hover:not(:disabled) { background: var(--color-sand-100); }
+
+  .btn-outline {
+    background: transparent;
+    color: var(--color-sand-700);
+    border: 1px solid var(--color-sand-200);
+  }
+  .btn-outline:hover:not(:disabled) {
+    border-color: var(--color-clay-300);
+    color: var(--color-clay-700);
+  }
+
+  .input {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--color-sand-200);
+    border-radius: 0.625rem;
+    background: var(--color-sand-0);
+    font-size: 0.875rem;
+    transition: border-color 0.15s;
+  }
+  .input:focus {
+    outline: none;
+    border-color: var(--color-clay-400);
+    box-shadow: 0 0 0 3px rgb(194 65 12 / 0.08);
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.125rem 0.5rem;
+    border-radius: 99px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+}

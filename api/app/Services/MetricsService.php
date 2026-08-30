@@ -225,8 +225,13 @@ class MetricsService
     public function fundingBuckets(): array
     {
         return Cache::remember('metrics.funding_buckets', self::CACHE_TTL, function (): array {
+            /**
+             * الحالتان معاً لا `active` وحدها: المراقب يرفع الحالة إلى
+             * `fully_funded` فور بلوغ التمويل مئة بالمئة، فقصر الاستعلام
+             * على `active` كان يجعل شريحة «مكتمل» صفراً أبداً.
+             */
             $row = Orphan::query()
-                ->where('status', OrphanStatus::Active)
+                ->whereIn('status', [OrphanStatus::Active, OrphanStatus::FullyFunded])
                 ->selectRaw('SUM(funded_percent = 0) as none')
                 ->selectRaw('SUM(funded_percent > 0 AND funded_percent < 50) as low')
                 ->selectRaw('SUM(funded_percent >= 50 AND funded_percent < 100) as mid')
@@ -234,7 +239,7 @@ class MetricsService
                 ->first();
 
             return [
-                ['label' => 'بلا كفالة', 'value' => (int) $row->none],
+                ['label' => 'غير مكفول', 'value' => (int) $row->none],
                 ['label' => 'أقل من ٥٠٪', 'value' => (int) $row->low],
                 ['label' => '٥٠٪ إلى ٩٩٪', 'value' => (int) $row->mid],
                 ['label' => 'مكتمل', 'value' => (int) $row->full],
