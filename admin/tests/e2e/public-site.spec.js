@@ -175,3 +175,55 @@ test.describe('بوابة الكافل', () => {
     await page.waitForURL(/\/login/, { timeout: 20_000 })
   })
 })
+
+/**
+ * المدونة تُقرأ لا تُعرض وحسب.
+ *
+ * كانت عناوين البطاقات `href="#"` ولا توجد صفحة مقال — تُنشر المقالات ولا
+ * تُفتح. هذا الاختبار يحرس الدائرة كاملة: بطاقة → مقال → نصّ.
+ */
+test.describe('المدونة وصفحة المقال', () => {
+  test('من البطاقة إلى نصّ المقال', async ({ page }) => {
+    await page.goto(`${WEB}/blog`)
+
+    const first = page.locator('.post-card__title a').first()
+    await expect(first).toBeVisible({ timeout: 15_000 })
+
+    // الرابط حقيقي لا مرساة فارغة
+    expect(await first.getAttribute('href')).toMatch(/^post\.html\?slug=.+/)
+
+    const title = (await first.textContent()).trim()
+    await first.click()
+
+    // `aria-busy` يسقط حين يكتمل العرض — أدقّ من انتظار محدّد بعينه
+    await expect(page.locator('#postDetail')).not.toHaveAttribute('aria-busy', 'true', { timeout: 20_000 })
+    await expect(page.locator('h1')).toHaveText(title)
+
+    /**
+     * أكثر من فقرة: البذرة كانت تنسخ المقتطف في `body`، فكان «المقال»
+     * جملةً واحدة. فقرة واحدة هنا تعني أن العيب عاد.
+     */
+    expect(await page.locator('.prose p').count()).toBeGreaterThan(2)
+
+    // أرقام هندية في النثر العربي، وصيغة جمع صحيحة
+    const meta = await page.locator('.page-hero__inner .cluster').innerText()
+    expect(meta).not.toMatch(/[0-9]/)
+    expect(meta).not.toMatch(/\bدقيقتان دقائق|١ دقائق|٢ دقائق/)
+  })
+
+  test('slug مجهول يعرض رسالة لا صفحة فارغة', async ({ page }) => {
+    await page.goto(`${WEB}/post.html?slug=${encodeURIComponent('لا-يوجد-هذا')}`)
+    await expect(page.locator('#postDetail h1')).toHaveText('لم نجد هذا المقال', { timeout: 20_000 })
+  })
+
+  test('زرّ «تحميل أقدم» يختفي حين لا مزيد', async ({ page }) => {
+    await page.goto(`${WEB}/blog`)
+    await expect(page.locator('.post-card').first()).toBeVisible({ timeout: 15_000 })
+
+    /**
+     * `[hidden]` وحده لا يكفي في هذا المشروع: `.btn` تضبط `display`
+     * فتهزم قاعدة المتصفح. القاعدة الصريحة في base.css هي ما يجعل هذا يمرّ.
+     */
+    await expect(page.locator('#loadMorePosts')).toBeHidden({ timeout: 15_000 })
+  })
+})

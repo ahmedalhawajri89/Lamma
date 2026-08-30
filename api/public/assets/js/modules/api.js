@@ -107,6 +107,12 @@ export async function request(path, { method = 'GET', body = null } = {}) {
  * أربع ثوانٍ ستّ مرات على التوالي بينما الخادم متوقف يقيناً.
  */
 async function tryGet(path, params = {}) {
+  const payload = await tryGetRaw(path, params);
+  return payload ? (payload.data ?? null) : null;
+}
+
+/** كـ`tryGet` لكن يُرجع الحمولة كاملة (‏`data` و`meta`). */
+async function tryGetRaw(path, params = {}) {
   if (offline) return null;
 
   // الأساس الثاني لازم: `BASE` فارغ في الوضع الطبيعي (الأصل نفسه)،
@@ -141,8 +147,7 @@ async function tryGet(path, params = {}) {
       return null;
     }
 
-    const payload = await response.json();
-    return payload.data ?? null;
+    return await response.json();
   } catch {
     offline = true;
     return null;
@@ -170,7 +175,24 @@ export const fetchOrphans = () => tryGet('orphans', { per_page: 100, sort: 'urge
 
 export const fetchTransparency = () => tryGet('transparency');
 
-export const fetchPosts = () => tryGet('posts', { per_page: 12 });
+export const POSTS_PER_PAGE = 9;
+
+export const fetchPosts = () => tryGet('posts', { per_page: POSTS_PER_PAGE });
+
+/**
+ * صفحة مقالات بمعلومات التصفيح.
+ *
+ * `tryGet` تُرجع `data` وحدها وتُسقط `meta`، وهو الصواب لبقية النقاط.
+ * أما زرّ «تحميل مقالات أقدم» فيحتاج أن يعرف: هل بقي شيء؟ بلا ذلك يبقى
+ * الزرّ ظاهراً بعد آخر مقال فيضغطه الزائر ولا يحدث شيء.
+ */
+export async function fetchPostsPage(page) {
+  const payload = await tryGetRaw('posts', { per_page: POSTS_PER_PAGE, page });
+  return payload ? { posts: payload.data ?? [], meta: payload.meta ?? {} } : null;
+}
+
+/** مقال واحد بنصّه الكامل — نقطة القائمة لا تُرجع `body`. */
+export const fetchPost = (slug) => tryGet(`posts/${encodeURIComponent(slug)}`);
 
 /* -------------------------------------------------------------- الكتابة */
 

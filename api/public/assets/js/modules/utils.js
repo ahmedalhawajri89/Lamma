@@ -105,3 +105,26 @@ export function observeOnce(elements, onEnter, options = {}) {
 
   elements.forEach((el) => observer.observe(el));
 }
+
+/**
+ * أرقام هندية للنثر العربي.
+ *
+ * الموقع يستعمل اللاتينية في الجداول والمبالغ (`.num`) لأنها تُحاذى رأسياً
+ * وتُنسخ صحيحة. أما داخل جملة عربية فالهندية أنسب — و`2026` وسط نصٍّ هندي
+ * يبدو خطأً مطبعياً.
+ */
+export const arabicDigits = (n) => String(n).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[d]);
+
+/**
+ * «دقيقتان» لا «2 دقائق».
+ *
+ * العربية تُعدّ بأربع صيغ لا بواحدة، والقالب `${n} دقائق` يُخرج «١ دقائق»
+ * و«٢ دقائق» — وكلاهما خطأ ظاهر لأي قارئ عربي.
+ */
+export function readingTime(minutes) {
+  const n = Number(minutes) || 0;
+  if (n === 1) return 'دقيقة واحدة';
+  if (n === 2) return 'دقيقتان';
+  if (n <= 10) return `${arabicDigits(n)} دقائق`;
+  return `${arabicDigits(n)} دقيقة`;
+}

@@ -5,7 +5,7 @@
  * والمتغيّر الوحيد هو النص القادم من data.js، وهو مُهرَّب دائماً.
  */
 
-import { escapeHtml, formatMoney } from './utils.js';
+import { escapeHtml, formatMoney, arabicDigits, readingTime } from './utils.js';
 import { getProgram } from './data.js';
 
 /** بطاقة يتيم. */
@@ -148,13 +148,19 @@ export function postCard(post, { delay = 0 } = {}) {
     <span class="badge badge--glass post-card__date">${escapeHtml(post.category)}</span>
   </div>
   <div class="post-card__body">
-    <h3 class="post-card__title"><a href="#">${escapeHtml(post.title)}</a></h3>
+    <h3 class="post-card__title">${
+      // البذرة (وضع بلا خادم) بلا slug — والعنوان حينها نصّ لا رابط:
+      // رابط يقود إلى صفحة تقول «لم نجد المقال» أسوأ من عنوان بلا رابط.
+      post.slug
+        ? `<a href="post.html?slug=${encodeURIComponent(post.slug)}">${escapeHtml(post.title)}</a>`
+        : escapeHtml(post.title)
+    }</h3>
     <p class="post-card__excerpt">${escapeHtml(post.excerpt)}</p>
     <div class="post-card__foot">
       <time datetime="${escapeHtml(post.date)}">
-        <i class="fa-regular fa-calendar" aria-hidden="true"></i> ${escapeHtml(post.dateLabel)}
+        <i class="fa-regular fa-calendar" aria-hidden="true"></i> ${escapeHtml(arabicDigits(post.dateLabel ?? ''))}
       </time>
-      <span><i class="fa-regular fa-clock" aria-hidden="true"></i> ${post.readMin} دقائق قراءة</span>
+      <span><i class="fa-regular fa-clock" aria-hidden="true"></i> ${readingTime(post.readMin)} قراءة</span>
     </div>
   </div>
 </article>`;

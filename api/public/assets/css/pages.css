@@ -761,7 +761,6 @@
   border-block-end-color: var(--color-brand);
 }
 
-.tab-panel[hidden] { display: none; }
 .tab-panel { padding-block-start: var(--space-6); animation: fade-in var(--dur-normal) var(--ease-out); }
 
 @keyframes fade-in {
@@ -934,3 +933,26 @@
 
 .report-row strong { display: inline-block; margin-inline-end: var(--space-2); }
 .report-row .muted { display: block; margin-block-start: 0.15rem; }
+
+/* ── صفحة المقال ─────────────────────────────────────────────────────────
+   نصّ طويل يُقرأ لا يُمسح بالعين. لذلك سطر أوسع وقياس أكبر قليلاً من نصّ
+   الموقع: الفقرة هنا تُقرأ من أولها إلى آخرها، بخلاف نصوص البطاقات.
+   والعرض محكوم بـ .container--narrow فوقه، فلا يتمدّد السطر بلا حدّ. */
+.prose {
+  font-size: var(--text-lg);
+  line-height: var(--leading-relaxed);
+  color: var(--color-text);
+}
+
+.prose > * + * { margin-block-start: var(--space-5); }
+
+.prose p { text-wrap: pretty; }
+
+/* أول فقرة تحمل ثقل الافتتاحية */
+.prose > p:first-child {
+  font-size: var(--text-xl);
+  line-height: var(--leading-normal);
+  color: var(--color-text-muted);
+}
+
+.prose a { color: var(--color-brand); text-underline-offset: 0.25em; }

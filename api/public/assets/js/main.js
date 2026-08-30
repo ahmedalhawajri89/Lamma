@@ -36,6 +36,8 @@ import {
   initOrphanDetail,
   initCheckoutSummary,
   initThankYou,
+  initPostDetail,
+  initPostsPager,
 } from './modules/features.js';
 import { renderHomeSections } from './modules/home.js';
 import { initProofBoard, initCredentials, initFinanceBoard } from './modules/proof.js';
@@ -53,6 +55,8 @@ function boot() {
   initOrphanFilters();
   initOrphanDetail();
   initCheckoutSummary();
+  initPostDetail();
+  initPostsPager();
   initThankYou();
   initPortal();
 

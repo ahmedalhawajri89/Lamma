@@ -363,6 +363,20 @@ export let COUNTRIES = [
   'الصومال', 'الأردن', 'مصر', 'موريتانيا', 'أفغانستان', 'بنغلاديش',
 ];
 
+/**
+ * الميزانية السنوية المنشورة.
+ *
+ * كانت أرقام صفحة الشفافية مكتوبة في HTML — وهو أسوأ مكان لرقم مكتوب:
+ * صفحةٌ عنوانها «لا نطلب منك أن تثق بنا، نطلب أن تتحقق» تعرض رقماً لا
+ * سبيل للتحقق منه.
+ */
+export let ANNUAL = {
+  year: new Date().getFullYear(),
+  income: 0,
+  spent: 0,
+  balance: 0,
+};
+
 /** لوحة الثقة — أرقام تُرى لا تُقال. */
 export let PROOF = {
   sponsored: 3280,      // يتيم مكفول اليوم
@@ -448,6 +462,7 @@ export async function hydrate() {
   if (transparency) {
     SPENDING = take(transparency.spending, SPENDING);
     PROOF = { ...PROOF, ...transparency.proof };
+    ANNUAL = { ...ANNUAL, ...transparency.annual };
   }
 
   return { live: Boolean(bootstrap) };

@@ -250,3 +250,10 @@ small { font-size: var(--text-sm); }
     color: #000;
   }
 }
+
+/* ── [hidden] يجب أن يفوز ──────────────────────────────────────────────
+   `hidden` في ورقة أنماط المتصفح مجرد `display:none` بأولوية المؤلِّف
+   الصفرية، فأي قاعدة لنا تضبط `display` — و`.btn` تضبط `inline-flex` —
+   تهزمها بصمت: يبقى العنصر ظاهراً و`el.hidden = true` لا يفعل شيئاً.
+   هذا `!important` الوحيد المبرَّر: `hidden` عقدٌ مع المتصفح لا زخرفة. */
+[hidden] { display: none !important; }

@@ -3,9 +3,10 @@
  * حاسبة الأثر، وفلترة الأيتام، وصفحة تفاصيل اليتيم.
  */
 
-import { $, $$, formatNumber, escapeHtml, debounce } from './utils.js';
+import { $, $$, formatNumber, escapeHtml, debounce, arabicDigits, readingTime } from './utils.js';
 import { ORPHANS, IMPACT_TIERS, PROGRAMS, getProgram } from './data.js';
-import { orphanCard } from './render.js';
+import { orphanCard, postCard } from './render.js';
+import { fetchPost, fetchPostsPage } from './api.js';
 import { initReveal, initProgressBars } from './motion.js';
 
 /* =========================================================================
@@ -278,4 +279,162 @@ function launchConfetti() {
     bit.addEventListener('animationend', () => bit.remove(), { once: true });
     host.appendChild(bit);
   }
+}
+
+
+/* =========================================================================
+   6. صفحة المقال
+   ========================================================================= */
+
+/**
+ * يعرض مقالاً واحداً حسب `?slug=` في العنوان.
+ *
+ * المدونة كانت تعرض البطاقات بروابط `href="#"` — تُقرأ عناوينها ولا يُقرأ
+ * شيء منها. وهذه الصفحة تكمل الدائرة.
+ *
+ * والنصّ يأتي من نقطة المقال الواحد لا من القائمة: `PostResource` لا يُرجع
+ * `body` في القوائم عمداً، فلا نُحمّل نصوص اثني عشر مقالاً لعرض بطاقاتها.
+ */
+export async function initPostDetail() {
+  const host = $('#postDetail');
+  if (!host) return;
+
+  const slug = new URLSearchParams(window.location.search).get('slug');
+
+  if (!slug) {
+    window.location.replace('blog.html');
+    return;
+  }
+
+  const post = await fetchPost(slug);
+
+  if (!post) {
+    host.innerHTML = `
+<section class="section section--tight">
+  <div class="container container--narrow" style="text-align:center">
+    <h1>لم نجد هذا المقال</h1>
+    <p class="muted" style="margin-block:var(--space-4)">
+      ربما حُذف أو تغيّر رابطه.
+    </p>
+    <a class="btn btn--primary" href="blog.html">العودة إلى المدونة</a>
+  </div>
+</section>`;
+    host.removeAttribute('aria-busy');
+    return;
+  }
+
+  document.title = `${post.title} | كفالة`;
+
+  const cover = post.image
+    ? `<div class="frame" style="aspect-ratio:16/9;margin-block-end:var(--space-8)">
+         <img class="frame__img" src="${escapeHtml(post.image)}" alt="" width="1200" height="675">
+       </div>`
+    : '';
+
+  // النصّ يصل فقرات مفصولة بأسطر فارغة؛ نحوّلها إلى <p> بعد التهريب
+  const body = String(post.body ?? post.excerpt ?? '')
+    .split(/\n{2,}/)
+    .map((para) => para.trim())
+    .filter(Boolean)
+    .map((para) => `<p>${escapeHtml(para)}</p>`)
+    .join('');
+
+  host.innerHTML = `
+<section class="page-hero">
+  <div class="glow" aria-hidden="true"></div>
+  <div class="container">
+    <div class="page-hero__inner">
+      <nav aria-label="مسار التنقل">
+        <ol class="breadcrumb">
+          <li><a href="index.html">الرئيسية</a></li>
+          <li><a href="blog.html">المدونة</a></li>
+          <li><span aria-current="page">${escapeHtml(post.category ?? 'مقال')}</span></li>
+        </ol>
+      </nav>
+      <span class="eyebrow">${escapeHtml(post.category ?? 'مقال')}</span>
+      <h1 class="page-hero__title">${escapeHtml(post.title)}</h1>
+      <p class="page-hero__lede">${escapeHtml(post.excerpt ?? '')}</p>
+
+      <div class="cluster" style="gap:var(--space-5);margin-block-start:var(--space-5)">
+        <time class="muted" datetime="${escapeHtml(post.date ?? '')}">
+          <i class="fa-regular fa-calendar" aria-hidden="true"></i> ${escapeHtml(arabicDigits(post.dateLabel ?? ''))}
+        </time>
+        <span class="muted">
+          <i class="fa-regular fa-clock" aria-hidden="true"></i> ${readingTime(post.readMin)} قراءة
+        </span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section section--tight">
+  <div class="container container--narrow">
+    ${cover}
+    <div class="prose">${body}</div>
+
+    <div class="cluster" style="margin-block-start:var(--space-10)">
+      <a class="btn btn--outline" href="blog.html">
+        <i class="fa-solid fa-arrow-right" aria-hidden="true"></i> كل المقالات
+      </a>
+      <a class="btn btn--primary" href="orphans.html">اختر طفلاً تكفله</a>
+    </div>
+  </div>
+</section>`;
+
+  host.removeAttribute('aria-busy');
+  initReveal();
+}
+
+/* =========================================================================
+   7. «تحميل مقالات أقدم»
+   ========================================================================= */
+
+/**
+ * يجلب الصفحة التالية ويُلحقها بالشبكة.
+ *
+ * كان الزرّ موجوداً بلا معالج إطلاقاً: يضغطه الزائر فلا يحدث شيء. وهذا أسوأ
+ * من غيابه — الزرّ الميت يوحي بأن الموقع معطّل.
+ *
+ * ويختفي حين لا يبقى شيء، فلا يعِد بما لا يملك.
+ */
+export function initPostsPager() {
+  const button = $('#loadMorePosts');
+  const grid = $('#postsGrid');
+  if (!button || !grid) return;
+
+  let page = 1;
+  let lastPage = 1;
+  const original = button.innerHTML;
+
+  // البذرة قد تكون كل ما لدينا (وضع بلا خادم) — عندها لا صفحات أخرى
+  fetchPostsPage(1).then((res) => {
+    lastPage = res?.meta?.last_page ?? 1;
+    button.hidden = lastPage <= 1;
+  });
+
+  button.addEventListener('click', async () => {
+    button.disabled = true;
+    button.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> جارٍ التحميل…';
+
+    const res = await fetchPostsPage(page + 1);
+
+    button.disabled = false;
+    button.innerHTML = original;
+
+    if (!res || !res.posts.length) {
+      button.hidden = true;
+      return;
+    }
+
+    page += 1;
+    lastPage = res.meta.last_page ?? page;
+
+    grid.insertAdjacentHTML(
+      'beforeend',
+      res.posts.map((post, i) => postCard(post, { delay: i * 60 })).join(''),
+    );
+
+    initReveal();
+    button.hidden = page >= lastPage;
+  });
 }
