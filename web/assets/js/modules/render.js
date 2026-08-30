@@ -18,11 +18,23 @@ export function orphanCard(orphan, { delay = 0 } = {}) {
     ? '<span class="badge badge--urgent"><span class="pulse-dot"></span> حالة عاجلة</span>'
     : `<span class="badge badge--glass"><i class="fa-solid ${escapeHtml(program.icon)}"></i> ${escapeHtml(program.name)}</span>`;
 
+  /**
+   * الحالة قد تصل بلا صورة، وهذا وضعٌ مشروع لا خطأ: الملف يُنشأ ميدانياً
+   * وتُرفع صورته لاحقاً بعد موافقة الوصي. ولا نعيد استعمال صورة طفل آخر
+   * لسدّ الفراغ — تلك هي السياسة نفسها التي يعلنها الموقع.
+   */
+  const media = orphan.photo
+    ? `<img class="orphan-card__img" src="${escapeHtml(orphan.photo)}"
+         alt="صورة ${name}" loading="lazy" width="400" height="300">`
+    : `<div class="orphan-card__img orphan-card__img--empty" role="img"
+         aria-label="لا صورة منشورة لـ ${name}">
+         <span aria-hidden="true">${escapeHtml(orphan.name.charAt(0))}</span>
+       </div>`;
+
   return `
 <article class="orphan-card" data-reveal data-reveal-delay="${delay}">
   <div class="orphan-card__media">
-    <img class="orphan-card__img" src="${escapeHtml(orphan.photo)}"
-         alt="صورة ${name}" loading="lazy" width="400" height="300">
+    ${media}
     <div class="orphan-card__tag">${urgentTag}</div>
     <div class="orphan-card__identity">
       <h3 class="orphan-card__name">${name}</h3>

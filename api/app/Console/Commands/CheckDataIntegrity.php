@@ -28,11 +28,18 @@ class CheckDataIntegrity extends Command
         // ١) نسبة تمويل لا تطابق مجموع الكفالات الحيّة —
         //    يقع لو أُدرجت كفالات بالجملة متجاوزةً الـ Observer (كما في البذور)
         $drifted = Orphan::query()
+            ->toBase()
             ->select('orphans.id', 'orphans.reference_code', 'orphans.funded_percent', 'orphans.monthly_need')
             ->selectRaw('COALESCE((
                 SELECT SUM(s.monthly_amount) FROM sponsorships s
-                WHERE s.orphan_id = orphans.id AND s.deleted_at IS NULL AND s.status IN (?, ?)
-            ), 0) as covered', [SponsorshipStatus::Active->value, SponsorshipStatus::Paused->value])
+                WHERE s.orphan_id = orphans.id AND s.deleted_at IS NULL AND s.status IN (?, ?, ?)
+            ), 0) as covered', array_map(
+                static fn (SponsorshipStatus $s): string => $s->value,
+                array_values(array_filter(
+                    SponsorshipStatus::cases(),
+                    static fn (SponsorshipStatus $s): bool => $s->countsTowardFunding(),
+                )),
+            ))
             ->get()
             ->filter(function ($o): bool {
                 $expected = (float) $o->monthly_need > 0

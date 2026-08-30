@@ -9,7 +9,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-/** الدولة — جدول مرجعي يمنع تعدّد صيغ الاسم نفسه. */
+/** الدولة — جدول مرجعي يمنع تعدّد صيغ الاسم نفسه.
+ *
+ * @property int $id
+ * @property string $iso2
+ * @property string $name_ar
+ * @property string|null $flag_emoji
+ * @property bool $is_operational
+ */
 class Country extends Model
 {
     use HasFactory;
@@ -24,11 +31,13 @@ class Country extends Model
         return ['is_operational' => 'boolean', 'sort_order' => 'integer'];
     }
 
+    /** @return HasMany<City, $this> */
     public function cities(): HasMany
     {
         return $this->hasMany(City::class);
     }
 
+    /** @return HasMany<Family, $this> */
     public function families(): HasMany
     {
         return $this->hasMany(Family::class);

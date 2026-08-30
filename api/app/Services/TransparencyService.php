@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Enums\SponsorshipStatus;
 use App\Models\Disbursement;
 use App\Models\FieldVisit;
 use App\Models\Orphan;
@@ -42,6 +43,7 @@ class TransparencyService
                 ->approved()
                 ->inYear($year)
                 ->join('disbursement_categories as c', 'c.id', '=', 'disbursements.category_id')
+                ->toBase()
                 ->selectRaw('c.name_ar, c.color, c.sort_order, SUM(disbursements.amount_base) as total')
                 ->groupBy('c.id', 'c.name_ar', 'c.color', 'c.sort_order')
                 ->orderBy('c.sort_order')
@@ -67,7 +69,10 @@ class TransparencyService
             $total = (float) Disbursement::approved()->sum('amount_base');
 
             return [
-                'sponsored' => Orphan::whereHas('sponsorships', fn ($q) => $q->active())->count(),
+                'sponsored' => Orphan::whereHas(
+                    'sponsorships',
+                    fn ($q) => $q->where('status', SponsorshipStatus::Active),
+                )->count(),
                 'perDot' => 40,
                 'toChild' => $total > 0 ? (int) round(100 - $overhead * 100 / $total) : 93,
                 'startYear' => (int) (Setting::cached()['site.start_year'] ?? 2012),

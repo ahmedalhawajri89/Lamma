@@ -24,7 +24,22 @@ export const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 export const formatNumber = (value) => new Intl.NumberFormat('en-US').format(value);
 
 /** تنسيق مبلغ بالدولار. */
-export const formatMoney = (value) => `$${formatNumber(value)}`;
+/**
+ * المال.
+ *
+ * السنتات تظهر حين تكون فقط: «$65» لسعر برنامج مستدير، و«$522.20» لمجموع
+ * مدفوعات. إظهارها دائماً يضيف ضجيجاً على الأسعار، وإخفاؤها دائماً يجعل
+ * مجموعاً حقيقياً يبدو مقرَّباً — و«$522.2» أسوأ الاثنين لأنه ليس مبلغاً.
+ */
+export const formatMoney = (value) => {
+  const amount = Number(value) || 0;
+  const hasCents = Math.round(amount * 100) % 100 !== 0;
+
+  return `$${new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: hasCents ? 2 : 0,
+    maximumFractionDigits: 2,
+  }).format(amount)}`;
+};
 
 /** تأخير تنفيذ دالة حتى يهدأ الاستدعاء. */
 export function debounce(fn, wait = 200) {

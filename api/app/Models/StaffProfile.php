@@ -20,11 +20,13 @@ class StaffProfile extends Model
         return ['hired_at' => 'date'];
     }
 
+    /** @return BelongsTo<User, $this> */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+    /** @return BelongsTo<Country, $this> */
     public function assignedCountry(): BelongsTo
     {
         return $this->belongsTo(Country::class, 'assigned_country_id');

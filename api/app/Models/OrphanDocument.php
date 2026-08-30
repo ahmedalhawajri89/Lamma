@@ -9,10 +9,21 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 /**
  * مستند تحقق.
  * الملفات تُخزَّن خارج public/ وتُقدَّم عبر مسار محمي بسياسة — لا برابط مباشر.
+ *
+ * @property int $id
+ * @property int $orphan_id
+ * @property DocumentType $type
+ * @property string $path
+ * @property string $original_name
+ * @property string $mime
+ * @property int $size_bytes
+ * @property Carbon|null $verified_at
+ * @property-read Orphan|null $orphan
  */
 class OrphanDocument extends Model
 {
@@ -21,6 +32,9 @@ class OrphanDocument extends Model
     protected $fillable = [
         'orphan_id', 'type', 'path', 'original_name',
         'mime', 'size_bytes', 'uploaded_by',
+
+        // يُسندها DocumentController عند التحقق
+        'verified_at', 'verified_by',
     ];
 
     protected function casts(): array
@@ -32,11 +46,13 @@ class OrphanDocument extends Model
         ];
     }
 
+    /** @return BelongsTo<Orphan, $this> */
     public function orphan(): BelongsTo
     {
         return $this->belongsTo(Orphan::class);
     }
 
+    /** @return BelongsTo<User, $this> */
     public function uploader(): BelongsTo
     {
         return $this->belongsTo(User::class, 'uploaded_by');

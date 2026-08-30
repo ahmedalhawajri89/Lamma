@@ -1,151 +1,93 @@
-# حالة العمل — نقطة الاستئناف
+# حالة العمل
 
-> آخر تحديث: **٢٩ أغسطس ٢٠٢٦**
-> الفرع: `main` · آخر عمل مثبَّت: طبقة النطاق كاملة + بداية طبقة الـ API
-
----
-
-## القرار المعماري (مُتَّفق عليه ومُنفَّذ)
-
-**Laravel 12 API + MySQL ← → Vue 3 SPA، والموقع العام يبقى كما هو ويُغذّى من الـ API.**
-
-رُفض المونوليث (Blade/Inertia) لأنه يعني إعادة كتابة ٤٥٥٦ سطر CSS و١٥ صفحة مصمّمة،
-ورُفض Next.js لأنه يُلغي Laravel و Eloquent و Sanctum من المشروع وهي أقوى ما في المهارات.
-
-نطاق اللوحة المطلوب: **لوحة إدارية + تحليلات ومخططات + بوابة الكافل + مصادقة وصلاحيات** — الأربعة.
+> آخر تحديث: **٣٠ أغسطس ٢٠٢٦** · الفرع `main`
 
 ---
 
-## البيئة (متحقَّق منها وتعمل)
+## ✅ المشروع مكتمل ويعمل
+
+الأربع مراحل المخطَّطة أُنجزت: طبقة الـ API، ولوحة Vue، وربط الموقع العام،
+والجودة والنشر.
+
+| المرحلة | الحالة |
+|---|---|
+| قاعدة بيانات ٤٤ جدولاً + بذور | ✅ |
+| ‏٨٧ مسار API في أربع مجموعات | ✅ |
+| لوحة إدارة Vue بخمس عشرة شاشة | ✅ |
+| بوابة الكافل على الموقع العام | ✅ |
+| الموقع العام يُغذّى من الـ API | ✅ |
+| ‏٤١ Pest · ١١ Playwright · ٦ Vitest | ✅ |
+| PHPStan مستوى ٥ نظيف · Pint · CI | ✅ |
+
+---
+
+## 🧰 البيئة المحلية
 
 | | |
 |---|---|
-| PHP | 8.2.12 — من `D:\xampp\php` |
-| Composer | 2.9.3 |
-| قاعدة البيانات | MariaDB 10.4.32 عبر XAMPP على `D:\xampp` · مستخدم `root` بلا كلمة مرور |
-| القواعد | `kafala` و `kafala_test` — مُنشأتان بـ `utf8mb4_unicode_ci` |
-| Node / npm | 24.13.0 / 11.6.2 |
-| عميل mysql | `/d/xampp/mysql/bin/mysql.exe` (أضف `--default-character-set=utf8mb4` وإلا ظهرت العربية `????`) |
+| PHP | 8.2.12 من `D:\xampp\php` |
+| قاعدة البيانات | MariaDB 10.4.32 عبر XAMPP · `root` بلا كلمة مرور |
+| القواعد | `kafala` للتطوير · `kafala_test` للاختبارات |
+| عميل mysql | `/d/xampp/mysql/bin/mysql.exe` — أضف `--default-character-set=utf8mb4` وإلا ظهرت العربية `????` |
+| الخوادم | API‏ 8000 · لوحة Vue‏ 5173 · الموقع العام‏ 5501 |
+
+**MariaDB لا تعمل تلقائياً عند إقلاع الجهاز.** شغّلها قبل أي شيء:
+
+```bash
+/d/xampp/mysql/bin/mysqld.exe --defaults-file=/d/xampp/mysql/bin/my.ini --standalone &
+```
 
 ---
 
-## ✅ ما اكتمل
+## ⚠️ ما يجب معرفته قبل التعديل
 
-### 1. إعادة الهيكلة إلى monorepo
-الموقع الساكن انتقل بـ `git mv` إلى `web/` — **بلا تعديل سطر واحد** من HTML أو CSS أو JS.
+**١. المنفذ 5501 ليس اختيارياً.**
+هو منفذ Live Server في `.vscode/settings.json`، وهو في قائمة `CORS_ALLOWED_ORIGINS`.
+تشغيل الموقع على منفذ آخر يمنع كوكي الجلسة ويعطّل بوابة الكافل بلا رسالة واضحة.
 
-```
-kafala-orphan-sponsorship/
-├── api/     Laravel 12 + MySQL
-├── web/     الموقع العام كما كان
-├── docs/    DATABASE.md · ARCHITECTURE.md · PROGRESS.md
-└── admin/   ← لم يُنشأ بعد
-```
+**٢. لا تُنادِ `localhost:8000` من المتصفح مباشرةً.**
+على ويندوز يُحلّ `localhost` إلى `::1` أولاً، وخادم PHP المدمج يستمع على IPv4
+وحده، فينتظر كل طلب ثانيتين قبل أن يرجع إلى `127.0.0.1`. لوحة Vue تمرّ بوسيط
+Vite، والموقع العام يستعمل `127.0.0.1` في `<meta name="api-base">`.
 
-### 2. قاعدة البيانات — ٤٤ جدولاً، مُهاجَرة ومبذورة وتعمل
-كل التفاصيل في [`docs/DATABASE.md`](DATABASE.md). الأبرز، ومُتحقَّق منه في المحرّك:
+**٣. الاختبارات تعمل على MySQL لا SQLite** (‏`phpunit.xml`) — المخطّط يعتمد على
+عمود مُولَّد وفهرس FULLTEXT.
 
-- **العمود المُولَّد `sponsorships.active_key`** يعطي قيداً جزئياً حقيقياً: يمنع كفالتين
-  حيّتين لنفس الطفل ويسمح بالعودة بعد الإلغاء. مُتحقَّق منه بـ `SHOW CREATE TABLE`.
-- `payments.idempotency_key` فريد — الخصم المزدوج مستحيل في المحرّك.
-- `UNIQUE(orphan_id, period_year, period_quarter)` على `reports`.
-- فهرس `FULLTEXT` على `orphans` يعمل على MariaDB.
-- `date_of_birth` لا `age` · كل مبلغ `DECIMAL` بعملته وسعر صرفه.
+**٤. `php artisan serve` أحادي الخيط.** طلبات الصفحة تصطفّ خلف بعضها، فمهلات
+اختبارات المتصفح مضبوطة على ذلك. php-fpm يخدمها متوازيةً.
 
-### 3. طبقة النطاق
-- **١٥ enum** في `api/app/Enums` بتسميات عربية عبر `HasLabel`.
-- **٢٩ موديل** في `api/app/Models` بعلاقاتها ونطاقاتها.
-- `SponsorshipObserver` يبقي `orphans.funded_percent` صادقاً.
-- `Model::shouldBeStrict()` خارج الإنتاج.
-- `config/kafala.php` — العملة الأساس، توقيت العرض، الفلفل، حدود الرفع، التصفيح.
+**٥. `GUARDIAN_ID_PEPPER`** في `.env` ما يزال `change-me-in-production`.
 
-### 4. البذور — تعمل بالكامل (‏`php artisan migrate:fresh --seed` ≈ ٦٠ ثانية)
+**٦. نشر Vercel** يعتمد الآن على `vercel.json` مع `outputDirectory: "web"`.
+لم يُختبر النشر الفعلي بعد.
 
-| | |
+---
+
+## 🐞 عيوب حقيقية كشفتها الاختبارات وأُصلحت
+
+هذه ليست قائمة إنجازات بل تذكير بما يتكرر:
+
+| العيب | كشفه |
 |---|---|
-| أيتام | 148 — **الثمانية الأصليون من `data.js` بأسمائهم وقصصهم ونسب تمويلهم حرفياً** |
-| كفلاء | 180 · كفالات 166 · مدفوعات 1741 |
-| صرف | 5127 · تقارير 263 · زيارات 332 · رسائل 120 |
-
-**حسابات الدخول** (كلمة المرور للجميع `password`):
-`admin@kafala.org` · `accountant@kafala.org` · `supervisor0..3@kafala.org` · `sponsor@kafala.org`
-
-**التحقق الذي يثبت أن الأرقام صارت مُشتقّة لا مكتوبة:**
-
-```sql
-SELECT c.slug, ROUND(SUM(d.amount_base)*100/(SELECT SUM(amount_base) FROM disbursements
-       WHERE approved_at IS NOT NULL),1) pct
-FROM disbursements d JOIN disbursement_categories c ON c.id=d.category_id
-WHERE d.approved_at IS NOT NULL GROUP BY c.id, c.slug ORDER BY pct DESC;
-```
-
-يخرج: **38 · 26.9 · 19.1 · 8.9 · 7.0** ونسبة الوصول للطفل **93٪** — مطابقاً تماماً
-لمصفوفة `SPENDING` و `PROOF.toChild` المكتوبتين يدوياً في `data.js`، لكن محسوباً
-من خمسة آلاف صف صرف معتمَد.
-
-### 5. إعداد الـ API (مكتمل)
-- `config/cors.php` — `supports_credentials: true` وأصول صريحة (الكوكيز تمنع `*`).
-- `bootstrap/app.php` — `statefulApi()` و aliases الأدوار، واستجابة JSON عربية موحّدة
-  لأخطاء 401/403/404/422/429 بدل صفحات HTML التي تكسر الواجهة.
-- **التوقيت:** ‏`config/app.php` في Laravel 12 يثبّت `'UTC'` ولا يقرأ `APP_TIMEZONE` —
-  أُصلح ليقرأ من البيئة. القرار: **التخزين بـ UTC والعرض بـ `kafala.display_timezone`
-  (‏`Asia/Gaza`)**.
+| طلبات البيانات العامة تستبدل جلسة الكافل بجلسة ضيف فتطرده من لوحته | Playwright |
+| النموذج قابل للإرسال قبل أن يربطه JS، فكلمة المرور تذهب لشريط العنوان | Playwright |
+| `incrementQuietly` محمية في لارافل ١٢ — كل فتح لمقال كان يسقط | PHPStan |
+| `VerifyOrphan` و`CancelSponsorship` واعتماد الصرف تُسند حقولاً غير مصرَّح بها | Pest |
+| الكفالة المعلّقة لا تُحتسب، فيحجز كافلان الطفل نفسه كاملاً | Pest |
+| شريحة «مكتمل» في مخطط التمويل صفرٌ أبداً | لقطة شاشة |
+| كل الدفعات لها `created_at` واحد — Carbon قابل للتغيير بالمرجع | لقطة شاشة |
+| علاقة `siblings` تعرض الطفل ضمن إخوته | لقطة شاشة |
+| البحث بالمعرّف لا يعمل: FULLTEXT على الأسماء لا يغطّي `KFL-1042` | Playwright |
+| `'fx_rate' ?? 1` — الـ `??` داخل الوسيط، والعمود غير موجود أصلاً | PHPStan |
 
 ---
 
-## 🔨 نقطة التوقف بالضبط
+## 📌 ما لم يُنجَز بعد
 
-كُتب `api/app/Http/Controllers/Api/V1/Auth/AuthController.php` كاملاً
-(‏`login` / `register` / `me` / `logout`) وهو سليم نحوياً، **لكنه يشير إلى ثلاثة أصناف
-لم تُنشأ بعد**، وهذا أول ما يُكتب غداً:
-
-1. `app/Http/Requests/Auth/LoginRequest.php` — ويلزمه ثلاث دوال يستدعيها المتحكّم:
-   `credentials()` و `ensureIsNotRateLimited()` و `hitRateLimiter()` و `clearRateLimiter()`
-   (تحديد المعدّل بمفتاح `email|ip`).
-2. `app/Http/Requests/Auth/RegisterRequest.php`
-3. `app/Http/Resources/UserResource.php` — يجب أن يُخرج الأدوار والصلاحيات ليقرأها
-   الموجّه في Vue، وألا يُسرّب `sponsors.internal_notes`.
-
-`routes/api.php` **لم يُلمس بعد** (ما يزال المسار الافتراضي `api/user` وحده)، فلا شيء
-مكسور الآن — المشروع يقلع ويعمل.
-
----
-
-## 📋 الخطة المتبقية بالترتيب
-
-### المرحلة أ — إكمال الـ API
-1. الثلاثة أعلاه، ثم `routes/api.php` بمجموعاته الأربع:
-   `public` (بلا مصادقة) · `auth` · `portal` (الكافل) · `admin` (الموظفون).
-2. **Policies**: `OrphanPolicy` (تقيّد المشرف الميداني بـ `staff_profiles.assigned_country_id`)
-   و `SponsorshipPolicy` و `ReportPolicy` و `PaymentPolicy`.
-3. **Actions**: `CreateSponsorship` (تنسخ سعر البرنامج) · `CancelSponsorship` ·
-   `RecordPayment` (بمفتاح idempotency) · `ApproveDisbursement` · `PublishReport` · `VerifyOrphan`.
-4. **Resources** لكل موديل يُعاد في استجابة.
-5. **`MetricsService`** — استعلامات التحليلات، تقرأ من `daily_metrics` لا من `payments`.
-6. **أوامر مجدولة**: `metrics:rollup` (ليلي) و `billing:run` (يومي، يقرأ `idx_sponsorships_due`).
-
-### المرحلة ب — لوحة Vue 3
-`admin/` بـ Vite + Vue 3 + Pinia + Vue Router + Tailwind 4 + Chart.js، RTL،
-وبنفس توكنات `web/assets/css/tokens.css` حتى لا تبدو اللوحة من مشروع آخر.
-الشاشات: نظرة عامة · الأيتام · الأسر · الكفلاء · الكفالات · المدفوعات · الصرف ·
-التقارير · الزيارات · الرسائل · المحتوى · المستخدمون · سجل النشاط · الإعدادات.
-
-### المرحلة ج — ربط الموقع العام
-استبدال `web/assets/js/modules/data.js` بطبقة `fetch` **بنفس أسماء الصادرات**
-(‏`ORPHANS`, `PROGRAMS`, `SPENDING`, `PROOF`…) فلا تتغيّر أي وحدة أخرى ولا سطر CSS.
-وإعادة بناء `web/dashboard.html` — وهي أضعف صفحة في المشروع اليوم: كل صفوفها HTML ثابت.
-
-### المرحلة د — الجودة والنشر
-Pest · Larastan مستوى 6 · Vitest · Playwright · GitHub Actions ·
-و`vercel.json` (‏`web/` صار في مجلد فرعي — **يلزم تعديل Root Directory في لوحة Vercel**).
-
----
-
-## ⚠️ ما يجب الانتباه له
-
-- **النشر على Vercel سيتعطّل** حتى يُضبط Root Directory على `web` أو يُضاف `vercel.json`.
-  الرابط الحيّ `kafala-orphan-sponsorship.vercel.app` لم يُعالج بعد.
-- `GUARDIAN_ID_PEPPER` في `.env` ما يزال `change-me-in-production`.
-- أداة Bash في هذه الجلسة **تقصّ الأوامر الطويلة** — الـ heredoc الكبير يفشل بـ
-  `unexpected EOF`. الحل المستعمَل: كتابة سكربت مولّد في مجلد scratchpad ثم تشغيله.
-- لا سطر `Co-Authored-By` في أي commit.
+- **بوابة دفع حقيقية.** `checkout.html` ما يزال يحاكي، و`RecordPayment` جاهزة
+  لاستقبال webhook من بوابة فعلية.
+- **إرسال البريد.** تأكيد الاشتراك في النشرة و«نسيت كلمة المرور» موقوفان على
+  ضبط بوابة بريد.
+- **رفع الصور من اللوحة.** المسار موجود في `OrphanController`، ولا واجهة له بعد.
+- **i18n.** ‏`users.locale` موجود والبنية تحتمله، ولا ترجمة إنجليزية بعد.
+- **`admin/` غير منشور.** يحتاج استضافة ثابتة و`VITE_API_URL` للإنتاج.

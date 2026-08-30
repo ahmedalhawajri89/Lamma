@@ -30,7 +30,10 @@ class ContactController extends Controller
             'phone' => ['nullable', 'string', 'max:24'],
             'subject' => ['nullable', 'string', 'max:180'],
             'body' => ['required', 'string', 'min:10', 'max:4000'],
-            'website' => ['nullable', 'size:0'],
+
+            // لا قاعدة تحقق على حقل المصيدة عمداً: قاعدة `size:0` كانت تردّ
+            // 422 فتخبر الروبوت أن الحقل فخّ. الفحص يقع بعد التحقق ويردّ
+            // نجاحاً كاذباً.
         ], [
             'name.required' => 'الاسم مطلوب.',
             'email.email' => 'صيغة البريد غير صحيحة.',

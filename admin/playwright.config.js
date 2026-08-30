@@ -24,10 +24,23 @@ export default defineConfig({
 
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
 
-  webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:5173',
-    reuseExistingServer: true,
-    timeout: 60_000,
-  },
+  /**
+   * خادمان: لوحة Vue على 5173، والموقع العام الساكن على 5501.
+   * المنفذ 5501 هو نفسه منفذ Live Server في .vscode/settings.json،
+   * وهو أيضاً في قائمة أصول CORS — فالتغيير عنه يكسر الجلسة.
+   */
+  webServer: [
+    {
+      command: 'npm run dev',
+      url: 'http://localhost:5173',
+      reuseExistingServer: true,
+      timeout: 60_000,
+    },
+    {
+      command: 'npx --yes serve ../web -l 5501 --no-clipboard',
+      url: 'http://127.0.0.1:5501/index.html',
+      reuseExistingServer: true,
+      timeout: 60_000,
+    },
+  ],
 })

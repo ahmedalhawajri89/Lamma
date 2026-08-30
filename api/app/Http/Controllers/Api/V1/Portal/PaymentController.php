@@ -23,7 +23,10 @@ class PaymentController extends Controller
             ->with(['sponsorship', 'sponsorship.orphan:id,reference_code,first_name,photo_path,date_of_birth,funded_percent'])
             ->when($request->filled('status'), fn ($q) => $q->where('status', $request->string('status')))
             ->when($request->filled('year'), fn ($q) => $q->whereYear('paid_at', $request->integer('year')))
-            ->latest('created_at')
+            // الترتيب بتاريخ الحدث لا الإدخال. و`ORDER BY paid_at DESC` وحده
+            // يُنزل كل الدفعات الفاشلة إلى القاع لأن paid_at فيها NULL،
+            // فتضيع من سياقها الزمني — و COALESCE يبقيها في شهرها.
+            ->orderByRaw('COALESCE(paid_at, created_at) DESC')
             ->paginate($request->integer('per_page', 20));
 
         return response()->json([

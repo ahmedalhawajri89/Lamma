@@ -9,7 +9,10 @@
   <meta name="theme-color" content="#c2410c">
 
   <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self'; connect-src 'self'; form-action 'self'; base-uri 'self'; object-src 'none'">
+        content="default-src 'self'; img-src 'self' data: http://127.0.0.1:8000; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self'; connect-src 'self' http://127.0.0.1:8000; form-action 'self'; base-uri 'self'; object-src 'none'">
+  <!-- أصل الـ API. فرّغه ليعمل الموقع ساكناً على بياناته المبدئية. -->
+  <meta name="api-base" content="http://127.0.0.1:8000">
+
   <meta name="referrer" content="strict-origin-when-cross-origin">
 
   <link rel="canonical" href="about.html">

@@ -8,10 +8,22 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 /**
  * الصرف — المال الخارج.
  * هذا الجدول يحوّل حلقة الشفافية من نسب مكتوبة يدوياً إلى تجميع مُدقَّق.
+ *
+ * @property int $id
+ * @property int|null $orphan_id
+ * @property int $category_id
+ * @property string $amount
+ * @property string $amount_base
+ * @property Carbon $spent_on
+ * @property string|null $description
+ * @property int|null $recorded_by
+ * @property int|null $approved_by
+ * @property Carbon|null $approved_at
  */
 class Disbursement extends Model
 {
@@ -20,6 +32,9 @@ class Disbursement extends Model
     protected $fillable = [
         'orphan_id', 'category_id', 'amount', 'currency', 'amount_base',
         'spent_on', 'description', 'receipt_path', 'recorded_by',
+
+        // الاعتماد فعلٌ منفصل عن التسجيل، ولا يملكه المسجِّل نفسه
+        'approved_by', 'approved_at',
     ];
 
     protected function casts(): array
@@ -32,21 +47,25 @@ class Disbursement extends Model
         ];
     }
 
+    /** @return BelongsTo<Orphan, $this> */
     public function orphan(): BelongsTo
     {
         return $this->belongsTo(Orphan::class);
     }
 
+    /** @return BelongsTo<DisbursementCategory, $this> */
     public function category(): BelongsTo
     {
         return $this->belongsTo(DisbursementCategory::class, 'category_id');
     }
 
+    /** @return BelongsTo<User, $this> */
     public function recorder(): BelongsTo
     {
         return $this->belongsTo(User::class, 'recorded_by');
     }
 
+    /** @return BelongsTo<User, $this> */
     public function approver(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approved_by');

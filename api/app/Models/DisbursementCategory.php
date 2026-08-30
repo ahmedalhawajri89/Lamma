@@ -21,6 +21,7 @@ class DisbursementCategory extends Model
         return ['is_overhead' => 'boolean', 'is_active' => 'boolean', 'sort_order' => 'integer'];
     }
 
+    /** @return HasMany<Disbursement, $this> */
     public function disbursements(): HasMany
     {
         return $this->hasMany(Disbursement::class, 'category_id');

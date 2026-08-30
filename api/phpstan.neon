@@ -1,0 +1,24 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    paths:
+        - app
+        - database
+        - routes
+
+    # المستوى ٦: يفرض تحديد أنواع المصفوفات ووسائط الدوال.
+    # ما فوقه يفرض معالجة كل قيمة قد تكون null، وهو مفيد لكنه يحتاج تمريرة
+    # مخصّصة على الكود كله — رفعه خطوةً خطوة أنفع من تعطيله بقواعد تجاهل.
+    level: 5
+
+    ignoreErrors:
+        # علاقات Eloquent تُبنى ديناميكياً، و PHPStan لا يرى خصائصها
+        - identifier: property.notFound
+          path: app/Http/Resources/*
+
+        # `$this` داخل JsonResource هو الموديل الملفوف لا الصنف نفسه
+        - identifier: method.notFound
+          path: app/Http/Resources/*
+
+    checkModelProperties: false

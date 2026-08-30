@@ -45,7 +45,14 @@ class AuthController extends Controller
 
         if ($user->status !== UserStatus::Active) {
             Auth::guard('web')->logout();
-            $request->session()->invalidate();
+
+            // الجلسة قد لا تكون مهيّأة: مسارات الـ API تصير حالِيّة فقط
+            // للأصول المصرَّح بها، وطلبٌ من غيرها يصل بلا وسيط جلسة.
+            // استدعاء session() عندها يرمي RuntimeException ويحوّل رفضاً
+            // مشروعاً إلى خطأ خادم.
+            if ($request->hasSession()) {
+                $request->session()->invalidate();
+            }
 
             throw ValidationException::withMessages([
                 'email' => 'هذا الحساب موقوف. تواصل مع الإدارة.',
@@ -55,7 +62,9 @@ class AuthController extends Controller
         $request->clearRateLimiter();
 
         // تثبيت الجلسة: معرّف جديد بعد المصادقة يبطل أي معرّف زُرع قبلها
-        $request->session()->regenerate();
+        if ($request->hasSession()) {
+            $request->session()->regenerate();
+        }
 
         $user->forceFill([
             'last_login_at' => now(),
@@ -94,7 +103,10 @@ class AuthController extends Controller
         });
 
         Auth::login($user);
-        $request->session()->regenerate();
+
+        if ($request->hasSession()) {
+            $request->session()->regenerate();
+        }
 
         return response()->json([
             'message' => 'تم إنشاء حسابك.',
@@ -112,8 +124,11 @@ class AuthController extends Controller
     public function logout(Request $request): JsonResponse
     {
         Auth::guard('web')->logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+
+        if ($request->hasSession()) {
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+        }
 
         return response()->json(['message' => 'تم تسجيل الخروج.']);
     }

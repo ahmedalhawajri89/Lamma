@@ -10,7 +10,20 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property int $id
+ * @property string $slug
+ * @property string $title
+ * @property string|null $excerpt
+ * @property string|null $body
+ * @property PostStatus $status
+ * @property Carbon|null $published_at
+ * @property int $read_minutes
+ * @property int $views_count
+ * @property bool $is_featured
+ */
 class Post extends Model
 {
     use HasFactory;
@@ -37,11 +50,13 @@ class Post extends Model
         return 'slug';
     }
 
+    /** @return BelongsTo<PostCategory, $this> */
     public function category(): BelongsTo
     {
         return $this->belongsTo(PostCategory::class, 'category_id');
     }
 
+    /** @return BelongsTo<User, $this> */
     public function author(): BelongsTo
     {
         return $this->belongsTo(User::class, 'author_id');

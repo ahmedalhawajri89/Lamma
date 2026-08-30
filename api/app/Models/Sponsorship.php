@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
@@ -19,6 +20,26 @@ use Spatie\Activitylog\Traits\LogsActivity;
  *
  * ليست belongsToMany بسيطة: لها مبلغ منسوخ، وحالة، ودورة فوترة،
  * وتاريخ بداية ونهاية وسبب إلغاء. لذا هي جدول محوري مُثرى.
+ *
+ * @property int $id
+ * @property string $reference_code
+ * @property int $sponsor_id
+ * @property int $orphan_id
+ * @property int $program_id
+ * @property string $monthly_amount
+ * @property string $currency
+ * @property int $share_percent
+ * @property bool $is_zakat
+ * @property SponsorshipStatus $status
+ * @property int $billing_day
+ * @property Carbon|null $started_at
+ * @property Carbon|null $next_due_at
+ * @property Carbon|null $paused_at
+ * @property Carbon|null $ended_at
+ * @property string|null $cancellation_reason
+ * @property-read Orphan|null $orphan
+ * @property-read Sponsor|null $sponsor
+ * @property-read Program|null $program
  */
 class Sponsorship extends Model
 {
@@ -30,6 +51,9 @@ class Sponsorship extends Model
         'reference_code', 'sponsor_id', 'orphan_id', 'program_id',
         'monthly_amount', 'currency', 'share_percent', 'is_zakat',
         'status', 'billing_day', 'started_at', 'next_due_at',
+
+        // تُسندها CancelSponsorship و SponsorshipController لا طلب المستخدم
+        'paused_at', 'ended_at', 'cancellation_reason',
     ];
 
     /**
@@ -55,26 +79,31 @@ class Sponsorship extends Model
 
     /* ---------------------------------------------------------------- العلاقات */
 
+    /** @return BelongsTo<Sponsor, $this> */
     public function sponsor(): BelongsTo
     {
         return $this->belongsTo(Sponsor::class);
     }
 
+    /** @return BelongsTo<Orphan, $this> */
     public function orphan(): BelongsTo
     {
         return $this->belongsTo(Orphan::class);
     }
 
+    /** @return BelongsTo<Program, $this> */
     public function program(): BelongsTo
     {
         return $this->belongsTo(Program::class);
     }
 
+    /** @return HasMany<Payment, $this> */
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class);
     }
 
+    /** @return HasMany<Message, $this> */
     public function messages(): HasMany
     {
         return $this->hasMany(Message::class);

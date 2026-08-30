@@ -1,10 +1,27 @@
 /**
  * مصدر البيانات الوحيد للمشروع.
- * كل الأيتام والبرامج والقصص والأسئلة تُقرأ من هنا، فلا يتكرر المحتوى في الصفحات.
- * عند ربط المشروع بواجهة برمجية حقيقية، يُستبدل هذا الملف بطبقة fetch بنفس الشكل.
+ *
+ * كان هذا الملف ثوابت مكتوبة بخط اليد، وصار الآن **بذرةً وطبقة ترطيب معاً**:
+ *
+ *  · القيم المكتوبة أدناه تبقى كما هي وتعمل بلا خادم إطلاقاً — الموقع منشور
+ *    ملفاتٍ ساكنة على Vercel، ويجب أن يعرض محتوى صحيحاً ولو كان الـ API
+ *    متوقفاً أو غير منشور بعد.
+ *  · و`hydrate()` تستبدلها بما في قاعدة البيانات حين يكون الخادم متاحاً.
+ *
+ * الصادرات `let` لا `const` عمداً: ارتباطات ES modules حيّة، فتغيير القيمة
+ * هنا يراه كل مستورِد فوراً بلا أن تتغيّر سطراً واحداً في الوحدات الأخرى.
+ * ولا وحدة تقرأ هذه المصفوفات وقت الاستيراد — كلها تقرؤها داخل دوالها،
+ * وهو شرط صحّة هذه الحيلة.
  */
 
-export const SITE = {
+import {
+  fetchBootstrap,
+  fetchOrphans,
+  fetchPosts,
+  fetchTransparency,
+} from './api.js';
+
+export let SITE = {
   name: 'كفالة',
   tagline: 'منصة كفالة الأيتام',
   email: 'info@kafala.org',
@@ -30,7 +47,7 @@ export const NAV_LINKS = [
 ];
 
 /** برامج الكفالة — المصدر الوحيد للأسعار في الموقع. */
-export const PROGRAMS = [
+export let PROGRAMS = [
   {
     id: 'comprehensive',
     name: 'الكفالة الشاملة',
@@ -71,7 +88,7 @@ export const PROGRAMS = [
 ];
 
 /** الأيتام. حقل `urgent` يرفع الحالة إلى أعلى القائمة. */
-export const ORPHANS = [
+export let ORPHANS = [
   {
     id: 'KFL-1042',
     name: 'أمنية',
@@ -211,7 +228,7 @@ export const ORPHANS = [
 ];
 
 /** توزيع الإنفاق — تُستعمل في حلقة الشفافية. */
-export const SPENDING = [
+export let SPENDING = [
   { label: 'معيشة وغذاء', value: 38, color: 'var(--clay-600)' },
   { label: 'تعليم', value: 27, color: 'var(--amber-500)' },
   { label: 'صحة', value: 19, color: 'var(--olive-600)' },
@@ -230,7 +247,7 @@ export const IMPACT_TIERS = [
 ];
 
 /** شهادات الكفلاء. */
-export const STORIES = [
+export let STORIES = [
   {
     quote: 'كنت أظن أن الكفالة مجرد مبلغ يُخصم شهرياً. أول تقرير وصلني كان فيديو لأحمد يقرأ نصاً كتبه بنفسه — يومها فهمت ما الذي أشارك فيه فعلاً.',
     name: 'عبدالله المطيري',
@@ -254,7 +271,7 @@ export const STORIES = [
 ];
 
 /** الأسئلة الشائعة. */
-export const FAQS = [
+export let FAQS = [
   {
     q: 'كيف أتأكد أن كفالتي وصلت فعلاً للطفل؟',
     a: 'تحصل على حساب في المنصة يعرض لك سجل التحويلات، وتقريراً مصوّراً كل ثلاثة أشهر يوثّق حالة الطفل الدراسية والصحية وأوجه صرف الكفالة. كما تُنشر الميزانية السنوية مدققة على صفحة الشفافية.',
@@ -282,7 +299,7 @@ export const FAQS = [
 ];
 
 /** مقالات المدونة. */
-export const POSTS = [
+export let POSTS = [
   {
     title: 'كيف نتحقق من كل حالة قبل نشرها؟',
     category: 'شفافية',
@@ -341,13 +358,13 @@ export const POSTS = [
 ];
 
 /** الدول التي نعمل فيها — تُعرض بأسمائها لا كرقم مجرّد. */
-export const COUNTRIES = [
+export let COUNTRIES = [
   'فلسطين', 'اليمن', 'سوريا', 'العراق', 'السودان', 'لبنان',
   'الصومال', 'الأردن', 'مصر', 'موريتانيا', 'أفغانستان', 'بنغلاديش',
 ];
 
 /** لوحة الثقة — أرقام تُرى لا تُقال. */
-export const PROOF = {
+export let PROOF = {
   sponsored: 3280,      // يتيم مكفول اليوم
   perDot: 40,           // كل نقطة في الشبكة تمثّل هذا العدد
   toChild: 93,          // نسبة ما يصل للطفل مباشرة
@@ -356,7 +373,7 @@ export const PROOF = {
 };
 
 /** الشركاء — شريط الثقة. */
-export const PARTNERS = [
+export let PARTNERS = [
   { name: 'وزارة التنمية الاجتماعية', icon: 'fa-landmark' },
   { name: 'الهلال الأحمر', icon: 'fa-star-and-crescent' },
   { name: 'شبكة المنظمات الأهلية', icon: 'fa-diagram-project' },
@@ -367,3 +384,71 @@ export const PARTNERS = [
 
 /** مساعد: جلب برنامج بالمعرّف. */
 export const getProgram = (id) => PROGRAMS.find((p) => p.id === id);
+
+
+/* =========================================================================
+   الترطيب من الـ API
+   ========================================================================= */
+
+/** يستبدل قيمة الصادر إن وصلت بيانات صالحة غير فارغة، وإلا يبقيها. */
+const take = (incoming, fallback) =>
+  Array.isArray(incoming) ? (incoming.length ? incoming : fallback) : (incoming ?? fallback);
+
+/**
+ * تُستدعى مرة واحدة من `main.js` قبل الإقلاع.
+ *
+ * الطلبات متوازية لا متسلسلة: لا واحد منها يعتمد على غيره، والتسلسل كان
+ * سيضاعف زمن الانتظار بلا سبب. و`allSettled` لا `all` — إخفاق طلب واحد
+ * يجب ألا يُسقط البقية.
+ */
+export async function hydrate() {
+  /**
+   * لا نجلب إلا ما تحتاجه الصفحة المعروضة.
+   *
+   * `bootstrap` وحده لازم في كل صفحة لأن الهيدر والفوتر يُبنيان منه.
+   * أما قائمة الأيتام والشفافية والمقالات فلكلٍّ منها محورٌ في الـ DOM،
+   * ووجوده هو ما يقرّر جلبها. بلا هذا الشرط كانت لوحة الكافل تجلب مئة
+   * حالة وأرقام الشفافية واثني عشر مقالاً لتعرض أربعة أرقام لا تخصّ شيئاً
+   * من ذلك — أربعة طلبات مهدورة في كل فتح.
+   *
+   * وهذا امتداد لقاعدة المشروع نفسها: كل وحدة تفحص وجود عناصرها وتخرج
+   * بهدوء إن لم تجدها.
+   */
+  const has = (selectors) => selectors.some((s) => document.querySelector(s) !== null);
+
+  const needsOrphans = has([
+    '#orphansGrid', '#urgentOrphans', '#orphanDetail', '#similarOrphans', '#checkoutSummary',
+  ]);
+  const needsTransparency = has(['#spendingDonut', '#spendingLegend', '#financeBoard', '#proofBoard']);
+  const needsPosts = has(['#postsGrid']);
+
+  const [bootstrap, orphans, transparency, posts] = (
+    await Promise.allSettled([
+      fetchBootstrap(),
+      needsOrphans ? fetchOrphans() : null,
+      needsTransparency ? fetchTransparency() : null,
+      needsPosts ? fetchPosts() : null,
+    ])
+  ).map((r) => (r.status === 'fulfilled' ? r.value : null));
+
+  if (bootstrap) {
+    // الهاتف القابل للنقر والحسابات الاجتماعية تبقى من البذرة:
+    // ليست في قاعدة البيانات ولا حاجة لأن تكون
+    SITE = { ...SITE, ...bootstrap.site };
+    PROGRAMS = take(bootstrap.programs, PROGRAMS);
+    COUNTRIES = take(bootstrap.countries, COUNTRIES);
+    PARTNERS = take(bootstrap.partners, PARTNERS);
+    STORIES = take(bootstrap.testimonials, STORIES);
+    FAQS = take(bootstrap.faqs, FAQS);
+  }
+
+  if (orphans) ORPHANS = take(orphans, ORPHANS);
+  if (posts) POSTS = take(posts, POSTS);
+
+  if (transparency) {
+    SPENDING = take(transparency.spending, SPENDING);
+    PROOF = { ...PROOF, ...transparency.proof };
+  }
+
+  return { live: Boolean(bootstrap) };
+}

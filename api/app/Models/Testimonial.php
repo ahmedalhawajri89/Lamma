@@ -20,6 +20,7 @@ class Testimonial extends Model
         return ['is_published' => 'boolean', 'sort_order' => 'integer'];
     }
 
+    /** @return BelongsTo<Sponsor, $this> */
     public function sponsor(): BelongsTo
     {
         return $this->belongsTo(Sponsor::class);

@@ -13,6 +13,19 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * الأسرة — الطبقة التي تجعل «كفالة الأسرة» ممكنة،
  * وتربط الإخوة تلقائياً بلا جدول self-join.
+ *
+ * @property int $id
+ * @property string $family_code
+ * @property int $guardian_id
+ * @property int $country_id
+ * @property int|null $city_id
+ * @property string|null $address
+ * @property int $members_count
+ * @property string|null $monthly_income
+ * @property HousingStatus $housing_status
+ * @property-read Guardian|null $guardian
+ * @property-read Country|null $country
+ * @property-read City|null $city
  */
 class Family extends Model
 {
@@ -32,21 +45,25 @@ class Family extends Model
         ];
     }
 
+    /** @return BelongsTo<Guardian, $this> */
     public function guardian(): BelongsTo
     {
         return $this->belongsTo(Guardian::class);
     }
 
+    /** @return BelongsTo<Country, $this> */
     public function country(): BelongsTo
     {
         return $this->belongsTo(Country::class);
     }
 
+    /** @return BelongsTo<City, $this> */
     public function city(): BelongsTo
     {
         return $this->belongsTo(City::class);
     }
 
+    /** @return HasMany<Orphan, $this> */
     public function orphans(): HasMany
     {
         return $this->hasMany(Orphan::class);

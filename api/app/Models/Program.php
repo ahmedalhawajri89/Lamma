@@ -14,6 +14,18 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  *
  * الكفالة تنسخ `monthly_price` لحظة الإنشاء، فرفع السعر لاحقاً
  * لا يمسّ التزام كافل قائم (snapshot pricing).
+ *
+ * @property int $id
+ * @property string $slug
+ * @property string $name_ar
+ * @property string|null $name_en
+ * @property string|null $icon
+ * @property string|null $accent
+ * @property string $monthly_price
+ * @property string $currency
+ * @property bool $is_featured
+ * @property bool $is_active
+ * @property int $sort_order
  */
 class Program extends Model
 {
@@ -39,16 +51,19 @@ class Program extends Model
         return 'slug';
     }
 
+    /** @return HasMany<ProgramFeature, $this> */
     public function features(): HasMany
     {
         return $this->hasMany(ProgramFeature::class)->orderBy('sort_order');
     }
 
+    /** @return HasMany<Orphan, $this> */
     public function orphans(): HasMany
     {
         return $this->hasMany(Orphan::class);
     }
 
+    /** @return HasMany<Sponsorship, $this> */
     public function sponsorships(): HasMany
     {
         return $this->hasMany(Sponsorship::class);

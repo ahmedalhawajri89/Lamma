@@ -17,6 +17,7 @@ class ProgramFeature extends Model
 
     protected $fillable = ['program_id', 'label_ar', 'sort_order'];
 
+    /** @return BelongsTo<Program, $this> */
     public function program(): BelongsTo
     {
         return $this->belongsTo(Program::class);

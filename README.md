@@ -2,206 +2,203 @@
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-Open%20the%20site-C2410C?style=for-the-badge&logo=vercel&logoColor=white)](https://kafala-orphan-sponsorship.vercel.app/)
 
-**Live demo — [kafala-orphan-sponsorship.vercel.app](https://kafala-orphan-sponsorship.vercel.app/)**
-
 <div dir="rtl">
 
-منصة كفالة أيتام بالعربية (RTL أولاً)، مبنية بـ HTML و CSS و JavaScript خالصة —
-بلا إطارات عمل، وبلا مكتبات خارجية، وبلا خطوة بناء.
+منصة كفالة أيتام كاملة: موقع عام بالعربية (RTL أولاً)، وخادم Laravel 12 على
+MySQL، ولوحة إدارة Vue 3، وبوابة للكافل.
 
 الفكرة التي بُني حولها المشروع: **الشفافية**. لا تبرع مجهول المصير، بل طفل باسمه
 وقصته وملفه الموثّق، وتقرير مصوّر كل ثلاثة أشهر، وميزانية مدقّقة منشورة للجميع.
 
+وهذا المبدأ ليس شعاراً في الصفحة الرئيسية: **كل رقم يعلنه الموقع مُشتقٌّ من قاعدة
+البيانات، لا مكتوبٌ في الواجهة.** حلقة الإنفاق تُجمَّع من صرفٍ معتمَد، ونسبة «٩٣٪
+تصل للطفل» ناتج قسمة، وعدد الزيارات الميدانية `COUNT(*)`.
+
 </div>
 
 ---
 
-## 🎨 The design
-
-A **warm, humane identity** built around clay and amber on a sand-cream canvas —
-deliberately away from the medical-green that most charity sites default to.
-
-| Role | Token | Value |
-|---|---|---|
-| Primary | `--color-brand` | `#c2410c` — terracotta |
-| Secondary | `--color-accent` | `#d97706` — amber |
-| Growth | `--color-growth` | `#4d7c0f` — olive |
-| Canvas | `--color-canvas` | `#fbf7f0` — warm sand |
-| Ink | `--color-text` | `#1c1917` |
-
-**The logo** is a custom SVG: two hands — one clay, one amber — cradling a child in
-olive. It draws the literal meaning of *kafala* (to take someone under your hand)
-using all three brand colours, and stays legible from 120px down to 16px. Shipped as
-`logo.svg` (716 B), `favicon.svg`, and a PNG touch icon.
-
-**The offset frame** is the signature: generous corner radii with a thin brand-coloured
-outline shifted diagonally behind the image. Editorial, contemporary, and quiet —
-it adds depth without ornament.
-
-**The chrome is light throughout.** The header is a floating glass pill that tightens
-on scroll, with a reading-progress hairline along the top edge and a filled pill
-marking the active link. The footer is warm cream in three tiers — claim + newsletter,
-link columns, legal bar — over an oversized brand watermark. Dark is reserved for one
-place only: the scrim that keeps hero text legible over photography.
-
-**The hero is a cinematic slider**: full-bleed imagery with a directional scrim,
-slow Ken Burns zoom, per-slide copy, thumbnail navigation and an autoplay progress
-bar — with a visible pause control, because WCAG 2.2.2 requires any auto-advancing
-content to be stoppable.
-
-**Typography** pairs *Readex Pro* (display) with *IBM Plex Sans Arabic* (body) and
-*Aref Ruqaa* for scriptural quotations — a distinctly Arabic pairing rather than the
-ubiquitous Cairo/Tajawal default. All sizes are fluid (`clamp`), so nothing snaps at
-breakpoints.
-
-<div dir="rtl">
-
-## ✨ ما الذي يميّز هذا المشروع
-
-- **حاسبة الأثر** — يسحب الزائر شريطاً فيرى فوراً ما الذي يوفّره مبلغه شهرياً.
-- **حلقة الشفافية** — رسم SVG خالص لتوزيع الإنفاق، يُرسم متحركاً عند ظهوره، بلا مكتبة رسم.
-- **هيرو سينمائي** — أربع شرائح بصور ملء العرض، تقريب بطيء، مصغّرات،
-  شريط تقدّم، وزر إيقاف ظاهر (معيار WCAG 2.2.2).
-- **سلايدر مكتوب من الصفر** — مبني على `scroll-snap` الأصلي مع سحب بالفأرة وأزرار
-  ونقاط وشريط تقدم ودعم كامل للكيبورد. لا Swiper ولا غيره.
-- **فلترة حيّة للأيتام** — بحث وترتيب وفلترة حسب البرنامج والدولة، وتتصل بالرابط
-  (`orphans.html?program=education`) فتصل من صفحة البرامج محمّلة مسبقاً.
-- **أنيميشن احترافي** — كشف عند التمرير، عدّادات، كشف العنوان كلمةً كلمة، ميلان
-  ثلاثي الأبعاد مع الفأرة، شريط لانهائي — كله يحترم `prefers-reduced-motion`.
-- **١٥ صفحة** متسقة، تُبنى كلها من مصدر بيانات واحد.
-
-## 🔒 الأمان والخصوصية
-
-مشروع واجهة أمامية، لذا الأمان هنا يعني ما يمكن ضبطه في المتصفح:
-
-- **CSP** في كل صفحة: `script-src 'self'` و `object-src 'none'` — لا سكربت خارجي يعمل.
-- **صفر معالجات inline** (`onclick`) — كل الأحداث مربوطة من JS، فتبقى السياسة صارمة.
-- **لا `innerHTML` مع بيانات متغيّرة** — كل نص يمرّ بـ `escapeHtml` أو `textContent`.
-- **تحقق من البطاقة بخوارزمية Luhn** وتحقق من صلاحية التاريخ قبل الإرسال.
-- **لا تخزين لبيانات الدفع** إطلاقاً، ولا إرسال عبر `GET`، مع `autocomplete` الصحيح.
-- **`rel="noopener noreferrer"`** على كل رابط خارجي، و`referrer-policy` مضبوطة.
-
-> ملاحظة: `frame-ancestors` تعمل كترويسة HTTP فقط ولا تُقبل في `<meta>`،
-> لذا تُضاف عند النشر من إعدادات الاستضافة لا من الصفحة.
-
-## ♿ الوصولية
-
-- رابط «تخطَّ إلى المحتوى» في كل صفحة.
-- بنية عناوين صحيحة، و`aria-current` للتنقل، و`aria-expanded` للقوائم والأكورديون.
-- حبس التركيز داخل النوافذ المنبثقة وإعادته لمصدره عند الإغلاق.
-- تبويبات تعمل بالأسهم وفق نمط ARIA القياسي.
-- `:focus-visible` واضح على كل عنصر تفاعلي.
-- رسائل النماذج عبر `role="alert"` و`aria-live` — لا `alert()` معطِّلة.
-- احترام كامل لـ `prefers-reduced-motion`.
-- بلا تمرير أفقي من 320px إلى 1440px (مُختبَر آلياً).
-
-</div>
-
-## 🗂 Structure
+## 🧭 البنية
 
 ```
 kafala-orphan-sponsorship/
-├── index.html              الرئيسية
-├── about.html              من نحن
-├── programs.html           برامج الكفالة
-├── orphans.html            قائمة الأيتام + فلترة
-├── orphan.html             تفاصيل حالة  (?id=KFL-1042)
-├── transparency.html       الشفافية والتقارير
-├── checkout.html           إتمام الكفالة
-├── thank-you.html          التأكيد
-├── dashboard.html          لوحة الكافل
-├── login.html · register.html
-├── blog.html · faq.html · contact.html · 404.html
 │
-└── assets/
-    ├── css/                طبقات مرتّبة — تُحمَّل بهذا الترتيب
-    │   ├── tokens.css      المتغيرات: لون، طباعة، مسافات، ظلال، حركة
-    │   ├── base.css        إعادة ضبط + طباعة + وصولية
-    │   ├── layout.css      الحاويات والشبكات والأقسام
-    │   ├── site.css        الهيدر والتنقل والفوتر
-    │   ├── components.css  المكونات القابلة لإعادة الاستخدام
-    │   ├── sections.css    الأقسام الكبيرة (هيرو، رحلة، حاسبة، شفافية)
-    │   └── pages.css       أنماط خاصة بصفحات بعينها
-    │
-    ├── js/
-    │   ├── main.js         نقطة الدخول الوحيدة
-    │   └── modules/
-    │       ├── data.js     مصدر البيانات الوحيد
-    │       ├── layout.js   الهيدر والفوتر لكل الصفحات
-    │       ├── render.js   قوالب البطاقات
-    │       ├── home.js     تعبئة الأقسام من البيانات
-    │       ├── features.js الحاسبة، الفلترة، صفحات التفاصيل
-    │       ├── hero.js     سلايدر الهيرو السينمائي
-    │       ├── slider.js   السلايدر والشريط المتحرك
-    │       ├── motion.js   الكشف، العدّادات، الميلان
-    │       ├── ui.js       أكورديون، تبويبات، نوافذ، تنبيهات
-    │       ├── forms.js    التحقق ومعالجة المدخلات الحساسة
-    │       └── utils.js    أدوات مشتركة
-    │
-    ├── img/
-    └── vendor/fontawesome/
+├── api/        Laravel 12 · PHP 8.2 · MySQL · Sanctum        ١٢٬٤٠٠ سطر
+├── admin/      Vue 3 · Vite · Pinia · Tailwind 4 · Chart.js   ٢٬٩٠٠ سطر
+├── web/        HTML · CSS · JS — بلا إطار وبلا خطوة بناء     ١٠٬٩٠٠ سطر
+└── docs/       ARCHITECTURE.md · DATABASE.md · PROGRESS.md
 ```
 
-<div dir="rtl">
-
-### قواعد الهيكلة
-
-- **لا لون ولا مقاس ثابت خارج `tokens.css`.** كل قيمة تصميمية تبدأ من هناك.
-- **البيانات في `data.js` فقط.** لا يتكرر اسم يتيم ولا سعر برنامج في أي صفحة.
-- **الهيدر والفوتر يُبنيان من `layout.js`** — مصدر واحد بدل تكرارهما في ١٥ ملفاً.
-- **خصائص منطقية الاتجاه** (`inset-inline`, `padding-block`) في كل مكان، فيعمل
-  التخطيط في RTL و LTR دون تعديل.
-
-</div>
-
-<div dir="rtl">
-
-## 🖼 الصور
-
-كل الصور من [Pexels](https://www.pexels.com/license/) — رخصة تجارية حرة بلا نسب مطلوب.
-مقصوصة على الوجوه عبر معاملات CDN، ومحفوظة **WebP بجودة 82** بالمقاسات النهائية
-لكل خانة (‏@2x)، فلا يُحمَّل بكسل واحد زائد. مجلد الصور كله **700KB**.
-
-اختيار الصور محكوم بسياسة الموقع نفسها: أطفال **يبتسمون ويدرسون ويلعبون** —
-لا صور بؤس ولا دموع. وصور الكفلاء ليست صوراً فوتوغرافية بل **أفاتار حرفية**،
-لأن استعمال صورة شخص حقيقي كـ«كافل» في بيانات تجريبية إيهامٌ لا داعي له.
-
-</div>
-
-## 🚀 Getting started
-
-```bash
-npx serve .
-# ثم افتح http://localhost:3000
-```
-
-<div dir="rtl">
-
-يحتاج المشروع خادماً محلياً لأن JavaScript مكتوب بوحدات ES Modules،
-والمتصفح يمنع تحميلها عبر `file://` لأسباب أمنية. أي خادم ساكن يكفي —
-أو إضافة **Live Server** في VS Code.
-
-عند النشر على GitHub Pages أو Netlify يعمل مباشرة بلا أي إعداد.
-
-</div>
-
-## 🛠 Stack
-
-**HTML5 · CSS3 · JavaScript (ES Modules)** — no framework, no build step, no runtime
-dependency. Font Awesome is vendored locally; only the web fonts come from a CDN.
+| | |
+|---|---|
+| جداول قاعدة البيانات | **٤٤** في تسعة نطاقات |
+| مسارات الـ API | **٨٧** في أربع مجموعات |
+| موديلات Eloquent | ٢٩ · و١٥ enum |
+| شاشات لوحة الإدارة | ١٥ |
+| اختبارات | ٤١ Pest · ١١ Playwright · ٦ Vitest |
 
 ---
 
+## 🗄 قاعدة البيانات
+
+التصميم الكامل وسببُ كل قرار في **[`docs/DATABASE.md`](docs/DATABASE.md)**. وهذه
+أبرز خمسة قرارات:
+
+**١. القيد الجزئي على الكفالات.**
+لا يجوز لكافل أن يكفل الطفل نفسه مرتين *في وقت واحد*، لكنه **يجوز** أن يعود بعد
+إلغاء. و`UNIQUE(sponsor_id, orphan_id)` العادي يمنع العودة. الحل عمود مُولَّد:
+
+```sql
+active_key TINYINT GENERATED ALWAYS AS (
+    CASE WHEN status IN ('pending','active','paused') THEN 1 ELSE NULL END
+) STORED,
+UNIQUE KEY uniq_active_sponsorship (sponsor_id, orphan_id, active_key)
+```
+
+‏`NULL` لا يشارك في قيود `UNIQUE` في MySQL، فالصفوف الملغاة تُستثنى تلقائياً.
+قيدٌ جزئي حقيقي على محرّك لا يدعم القيود الجزئية.
+
+**٢. `idempotency_key` فريد على المدفوعات.**
+الكافل يضغط «ادفع» مرتين، أو تعيد البوابة إرسال الـ webhook. القيد يجعل الخصم
+المزدوج مستحيلاً **في المحرّك** لا في انضباط الكود.
+
+**٣. `date_of_birth` لا `age`.** العمر يتغيّر كل عام والتاريخ لا.
+
+**٤. المال `DECIMAL` بعملته وسعر صرفه.** ‏`FLOAT` يفقد السنتات في الجمع.
+
+**٥. `UNIQUE(orphan_id, year, quarter)` على التقارير.** وعد «تقرير كل ٣ أشهر»
+صار قيداً لا يمكن خرقه.
+
+---
+
+## 🎨 التصميم
+
+هوية **الطين والعنبر** على أرضية رملية — بعيداً عن الأخضر الطبي الذي تلجأ إليه
+مواقع الخير عادةً.
+
+| الدور | التوكن | القيمة |
+|---|---|---|
+| الأساسي | `--color-brand` | `#c2410c` — تيراكوتا |
+| الثانوي | `--color-accent` | `#d97706` — عنبر |
+| النمو | `--color-growth` | `#4d7c0f` — زيتوني |
+| الأرضية | `--color-canvas` | `#fbf7f0` — رمل دافئ |
+
+**الشعار** SVG مخصص: يدان — واحدة طينية وأخرى عنبرية — تحتضنان طفلاً زيتونياً.
+يرسم المعنى الحرفي للكفالة (أن تأخذ أحداً تحت يدك)، ويبقى مقروءاً من 120px إلى 16px.
+
+**الطباعة** *Readex Pro* للعناوين مع *IBM Plex Sans Arabic* للمتن و*Aref Ruqaa*
+للاقتباسات — اقتران عربي مميّز بدل Cairo/Tajawal المكرر. كل المقاسات `clamp`.
+
+### ألوان المخططات لم تُختَر بالذوق
+
+ألوان الموقع فشلت في التحقق الآلي كـ palette فئوي: الزيتوني والفيروزي ΔE 11.7
+للرؤية الطبيعية (الحد ١٥)، والرملي كروماه 0.027 فيُقرأ رمادياً. أُعيد اشتقاق
+اللوحة من السلالم نفسها حتى اجتازت فحوص نطاق الإضاءة وأرضية الكروما وفصل عمى
+الألوان. التفاصيل في [`admin/src/utils/palette.js`](admin/src/utils/palette.js).
+
+---
+
+## 🚀 التشغيل
+
 <div dir="rtl">
+
+**المتطلبات:** PHP ‏8.2+ · Composer · MySQL/MariaDB · Node ‏20+
+
+</div>
+
+```bash
+# ١) الخادم
+cd api
+composer install
+cp .env.example .env && php artisan key:generate
+mysql -u root -e "CREATE DATABASE kafala CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
+php artisan migrate --seed          # ٦٠ ثانية: ١٤٨ يتيماً و١٨٠ كافلاً وسنتان من المدفوعات
+php artisan metrics:rollup --all    # يبني جدول التجميع الذي تقرأ منه المخططات
+php artisan storage:link
+php artisan serve
+
+# ٢) لوحة الإدارة
+cd admin && npm install && npm run dev        # http://localhost:5173
+
+# ٣) الموقع العام
+npx serve web -l 5501                         # http://localhost:5501
+```
+
+**حسابات تجريبية** — كلمة المرور للجميع `password`:
+
+| الحساب | الدور |
+|---|---|
+| `admin@kafala.org` | مدير النظام — يرى كل شيء |
+| `accountant@kafala.org` | محاسب — المال وحده |
+| `supervisor0@kafala.org` | مشرف ميداني — أيتام بلده فقط |
+| `sponsor@kafala.org` | كافل — بوابته على `web/dashboard.html` |
+
+---
+
+## 🧪 الاختبارات
+
+```bash
+cd api    && ./vendor/bin/pest              # ٤١ اختباراً على MySQL لا SQLite
+cd api    && ./vendor/bin/phpstan analyse   # المستوى ٥، نظيف
+cd api    && ./vendor/bin/pint              # التنسيق
+cd admin  && npm run test                   # Vitest
+cd admin  && npx playwright test            # ١١ اختبار متصفح على API حقيقي
+```
+
+**لماذا MySQL لا SQLite في الاختبارات؟** لأن المخطّط يعتمد على عمود مُولَّد وفهرس
+FULLTEXT ودوال تواريخ لا وجود لها في SQLite. الاختبار عليها كان سيمرّ بينما ينكسر
+الإنتاج — وهو أسوأ أنواع الاختبارات: يعطي ثقةً كاذبة.
+
+**ولماذا اختبارات متصفح على API حقيقي؟** لأن أهم ما نتحقق منه لا تكشفه اختبارات
+الوحدة: أن كوكي جلسة Sanctum يعبر من الواجهة إلى الخادم فعلاً. وقد كشفت هذه
+الاختبارات ستّة عيوب حقيقية، منها أن طلبات البيانات العامة كانت تستبدل جلسة الكافل
+بجلسة ضيف فتطرده من لوحته بعد ثوانٍ من دخوله.
+
+---
+
+## 🔒 الأمان
+
+- **جلسة بكوكي `HttpOnly`** لا توكن في `localStorage` — التوكن هناك يُقرأ بأي ثغرة XSS.
+- **تحديد المعدّل بمفتاح «البريد + IP»** لا بأحدهما: بالبريد وحده يقفل مهاجم حساب أي
+  شخص، وبالـ IP وحده تُقفل شبكة مكتب خلف NAT.
+- **رسالة واحدة** للبريد الخاطئ ولكلمة المرور الخاطئة، فلا يصلح النموذج أداةً لكشف
+  البريد المسجَّل.
+- **لا بيانات بطاقة** إطلاقاً: العلامة وآخر أربعة أرقام فقط.
+- **رقم هوية الوصي مُجزّأ** بـ SHA-256 مع pepper — يكشف التكرار ولا يُخزَّن.
+- **Policies على كل موديل**: المشرف الميداني مقيَّد ببلده على مستوى الاستعلام لا
+  بإخفاء الأزرار، فلا يتسرّب حتى العدد الكلي في التصفيح.
+- **قفل النماذج حتى يربطها JS**: بلا ذلك يُرسَل النموذج إرسالاً أصلياً فتذهب كلمة
+  المرور إلى شريط العنوان وسجلّ المتصفح.
+- **`activity_log`** يسجّل كل تغيير على السجلات الحساسة.
+- **CSP** في كل صفحة، وصفر معالجات inline، وكل نص يمرّ بـ `escapeHtml`.
+
+---
+
+## ♿ الوصولية
+
+رابط «تخطَّ إلى المحتوى» · بنية عناوين صحيحة · `aria-current` و`aria-expanded` ·
+حبس التركيز في النوافذ · تبويبات بالأسهم وفق نمط ARIA · `:focus-visible` واضح ·
+رسائل النماذج عبر `role="alert"` · احترام كامل لـ `prefers-reduced-motion` ·
+بلا تمرير أفقي من 320px إلى 1440px · وعرضٌ جدولي بديل لكل مخطط دائري.
+
+---
+
+## 🌐 الموقع العام يعمل بلا خادم
+
+`web/` منشور ملفاتٍ ساكنة. و`data.js` صار **بذرةً وطبقة ترطيب معاً**: قيمه المكتوبة
+تعمل بلا خادم إطلاقاً، و`hydrate()` تستبدلها بما في قاعدة البيانات حين يكون الـ API
+متاحاً. الصادرات `let` لا `const` لأن ارتباطات ES modules حيّة — فلا تتغيّر سطراً
+واحداً في الوحدات الأخرى.
+
+النتيجة: لو سقط الخادم، عرض الموقع محتوى صحيحاً بدل شاشة فارغة. وهذا مُختبَر.
+
+---
 
 ## 👤 المطوّر
 
-**أحمد الحواجري** — مطوّر ويب Full-Stack
-غزة، فلسطين
+**أحمد الحواجري** — مطوّر ويب Full-Stack · غزة، فلسطين
 
 [GitHub](https://github.com/ahmedalhawajri89) · [LinkedIn](https://www.linkedin.com/in/ahmedalhawajri)
-
-</div>
 
 ## 📄 License
 

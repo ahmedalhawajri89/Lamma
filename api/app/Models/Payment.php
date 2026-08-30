@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 /**
  * الدفعة — المال الداخل.
@@ -17,6 +18,21 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * لا بيانات بطاقة حساسة هنا إطلاقاً: العلامة التجارية وآخر أربعة أرقام فقط.
  * و`idempotency_key` الفريد يجعل الخصم المزدوج مستحيلاً على مستوى المحرّك،
  * لا على مستوى انضباط الكود.
+ *
+ * @property int $id
+ * @property string $reference_code
+ * @property int $sponsorship_id
+ * @property int $sponsor_id
+ * @property string $amount
+ * @property string $currency
+ * @property string $amount_base
+ * @property PaymentMethod $method
+ * @property PaymentStatus $status
+ * @property string|null $card_brand
+ * @property string|null $card_last4
+ * @property Carbon|null $paid_at
+ * @property string|null $failure_reason
+ * @property string|null $receipt_number
  */
 class Payment extends Model
 {
@@ -42,11 +58,13 @@ class Payment extends Model
         ];
     }
 
+    /** @return BelongsTo<Sponsorship, $this> */
     public function sponsorship(): BelongsTo
     {
         return $this->belongsTo(Sponsorship::class);
     }
 
+    /** @return BelongsTo<Sponsor, $this> */
     public function sponsor(): BelongsTo
     {
         return $this->belongsTo(Sponsor::class);

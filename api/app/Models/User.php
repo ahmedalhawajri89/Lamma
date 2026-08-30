@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Carbon;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
@@ -23,6 +24,16 @@ use Spatie\Permission\Traits\HasRoles;
  *
  * @property-read Sponsor|null $sponsor
  * @property-read StaffProfile|null $staffProfile
+ * @property int $id
+ * @property string $name
+ * @property string $email
+ * @property string|null $phone
+ * @property string|null $avatar_path
+ * @property string $locale
+ * @property UserStatus $status
+ * @property Carbon|null $email_verified_at
+ * @property Carbon|null $last_login_at
+ * @property Carbon|null $two_factor_confirmed_at
  */
 class User extends Authenticatable
 {
@@ -34,7 +45,7 @@ class User extends Authenticatable
 
     protected $fillable = [
         'name', 'email', 'password', 'phone', 'avatar_path',
-        'locale', 'timezone', 'status',
+        'locale', 'timezone', 'status', 'email_verified_at',
     ];
 
     /**
@@ -63,11 +74,13 @@ class User extends Authenticatable
 
     /* ---------------------------------------------------------------- العلاقات */
 
+    /** @return HasOne<Sponsor, $this> */
     public function sponsor(): HasOne
     {
         return $this->hasOne(Sponsor::class);
     }
 
+    /** @return HasOne<StaffProfile, $this> */
     public function staffProfile(): HasOne
     {
         return $this->hasOne(StaffProfile::class);
@@ -75,14 +88,25 @@ class User extends Authenticatable
 
     /* ------------------------------------------------------------------ النطاقات */
 
+    /**
+     * @param  Builder<self>  $query
+     * @return Builder<self>
+     */
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('status', UserStatus::Active);
     }
 
+    /**
+     * @param  Builder<self>  $query
+     * @return Builder<self>
+     */
     public function scopeStaff(Builder $query): Builder
     {
-        return $query->role(array_column(UserRole::staff(), 'value'));
+        return $query->whereHas(
+            'roles',
+            fn ($q) => $q->whereIn('name', array_column(UserRole::staff(), 'value')),
+        );
     }
 
     /* -------------------------------------------------------------------- مساعدات */

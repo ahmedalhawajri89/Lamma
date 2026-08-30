@@ -1,0 +1,114 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  api:
+    name: الخادم — Laravel
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: kafala_test
+          MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    defaults:
+      run:
+        working-directory: api
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, pdo_mysql, bcmath, intl, gd, zip
+          coverage: none
+
+      - name: تثبيت الاعتماديات
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: تهيئة البيئة
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+        env:
+          DB_DATABASE: kafala_test
+
+      # التنسيق أولاً: أسرع خطوة، وفشلها لا يستحق انتظار بقية الفحوص
+      - name: التنسيق — Pint
+        run: ./vendor/bin/pint --test
+
+      - name: التحليل الساكن — PHPStan
+        run: ./vendor/bin/phpstan analyse --no-progress
+
+      - name: الهجرات على قاعدة نظيفة
+        run: php artisan migrate --force
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_DATABASE: kafala_test
+          DB_USERNAME: root
+          DB_PASSWORD: ''
+
+      - name: الاختبارات — Pest
+        run: ./vendor/bin/pest --parallel
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_DATABASE: kafala_test
+          DB_USERNAME: root
+          DB_PASSWORD: ''
+
+      # فحص الاتساق على بيانات مبذورة — يمسك ما لا تحرسه القيود
+      - name: فحص اتساق البيانات
+        run: |
+          php artisan migrate:fresh --seed --force
+          php artisan kafala:check
+        env:
+          APP_ENV: local
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_DATABASE: kafala_test
+          DB_USERNAME: root
+          DB_PASSWORD: ''
+
+  admin:
+    name: اللوحة — Vue
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: admin
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: admin/package-lock.json
+
+      - run: npm ci
+
+      - name: اختبارات الوحدة — Vitest
+        run: npm run test
+
+      - name: البناء
+        run: npm run build

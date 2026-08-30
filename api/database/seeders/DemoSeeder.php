@@ -582,8 +582,17 @@ class DemoSeeder extends Seeder
                             'failure_reason' => $failed ? 'رصيد غير كافٍ' : null,
                             'receipt_number' => $failed ? null : 'RCP-'.str_pad((string) $counter, 7, '0', STR_PAD_LEFT),
                             'idempotency_key' => hash('sha256', "{$s->id}-{$cursor->format('Y-m')}"),
-                            'created_at' => $cursor,
-                            'updated_at' => $cursor,
+
+                            /**
+                             * `copy()` لا `$cursor` مباشرةً.
+                             *
+                             * Carbon كائن قابل للتغيير، و`$cursor->addMonthNoOverflow()`
+                             * في نهاية الحلقة يعدّل الكائن نفسه الذي تشير إليه كل الصفوف
+                             * السابقة — فتنتهي كل الدفعات بتاريخ إنشاء واحد هو آخر قيمة
+                             * وصلها المؤشر، ويخرج كشف الحساب غير مرتّب.
+                             */
+                            'created_at' => $cursor->copy(),
+                            'updated_at' => $cursor->copy(),
                         ];
 
                         $cursor->addMonthNoOverflow();

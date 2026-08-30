@@ -13,3 +13,8 @@ node_modules/
 CLAUDE.md
 .DS_Store
 Thumbs.db
+
+# لقطات ومخرجات اختبارات
+/admin/shots/
+/admin/test-results/
+/admin/playwright-report/

@@ -8,6 +8,7 @@
  * فيبقى هذا الملف واحداً لكل الصفحات بلا شروط متشعبة.
  */
 
+import { hydrate } from './modules/data.js';
 import { mountLayout } from './modules/layout.js';
 import {
   initReveal,
@@ -38,6 +39,7 @@ import {
 } from './modules/features.js';
 import { renderHomeSections } from './modules/home.js';
 import { initProofBoard, initCredentials, initFinanceBoard } from './modules/proof.js';
+import { initPortal } from './modules/portal.js';
 
 function boot() {
   // ١) الهيكل أولاً — بقية الوحدات قد تحتاج عناصره
@@ -52,6 +54,7 @@ function boot() {
   initOrphanDetail();
   initCheckoutSummary();
   initThankYou();
+  initPortal();
 
   // ٣) مكونات الواجهة
   initAccordions();
@@ -79,8 +82,64 @@ function boot() {
   initActionBar();
 }
 
+/**
+ * الترطيب قبل الإقلاع.
+ *
+ * `boot()` يبني كل شيء من البيانات دفعةً واحدة، فلا بدّ أن تكون نهائية قبله.
+ * وترطيبها بعده كان سيعني إعادة بناء الصفحة أمام الزائر — وميضٌ لا داعي له.
+ *
+ * و`hydrate()` لا ترمي استثناءً أبداً: تُرجع بذرتها عند أي إخفاق، فالإقلاع
+ * مضمون في كل الأحوال.
+ */
+/**
+ * قفل النماذج حتى يربطها JS.
+ *
+ * بين تحميل الـ HTML وانتهاء `hydrate()` تكون النماذج ظاهرة وقابلة للإرسال
+ * بلا أن يكون معالجها موجوداً. ومن يكتب بسرعة ويضغط Enter عندئذ يُرسَل
+ * نموذجه إرسالاً أصلياً: النموذج بلا `action` ولا `method`، فيتحوّل إلى
+ * طلب GET إلى الصفحة نفسها **وكلمة المرور في شريط العنوان** — ومنه إلى
+ * سجلّ المتصفح وسجلّات الخادم الوسيط.
+ *
+ * هذا المستمع يمنع ذلك بالتقاط الحدث في مرحلة capture قبل أي معالج آخر،
+ * ويُزال فور اكتمال الإقلاع فلا يبقى له أثر.
+ */
+function lockForms() {
+  let pending = null;
+
+  const block = (event) => {
+    if (!event.target.matches('form')) return;
+    event.preventDefault();
+    pending = event.target;
+  };
+
+  document.addEventListener('submit', block, true);
+
+  return () => {
+    document.removeEventListener('submit', block, true);
+
+    // لا نبتلع نقرة المستخدم: نعيد إرسال النموذج الآن وقد صار له معالج.
+    // `requestSubmit` لا `submit()` لأن الأخيرة تتخطى حدث submit كلياً
+    // فتتخطى معه التحقق من الحقول.
+    pending?.requestSubmit();
+  };
+}
+
+async function start() {
+  const unlock = lockForms();
+
+  try {
+    await hydrate();
+    boot();
+  } finally {
+    unlock();
+
+    // إشارة جاهزية للاختبارات ولأي نمط CSS يريد إخفاء حالة التحميل
+    document.documentElement.dataset.ready = 'true';
+  }
+}
+
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', boot, { once: true });
+  document.addEventListener('DOMContentLoaded', start, { once: true });
 } else {
-  boot();
+  start();
 }

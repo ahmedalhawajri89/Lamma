@@ -6,6 +6,7 @@ namespace App\Console\Commands;
 
 use App\Actions\Payments\RecordPayment;
 use App\Enums\PaymentMethod;
+use App\Enums\SponsorshipStatus;
 use App\Models\Sponsorship;
 use App\Services\MetricsService;
 use Illuminate\Console\Command;
@@ -33,6 +34,8 @@ class RunBilling extends Command
     {
         $dry = (bool) $this->option('dry');
         $limit = (int) $this->option('limit');
+
+        $this->expireAbandonedHolds();
 
         $due = Sponsorship::query()
             ->dueBy()
@@ -84,5 +87,39 @@ class RunBilling extends Command
         $this->info("نجح: {$done}".($failed > 0 ? " · فشل: {$failed}" : ''));
 
         return $failed > 0 ? self::FAILURE : self::SUCCESS;
+    }
+
+    /**
+     * إلغاء الحجوزات المهجورة.
+     *
+     * الكفالة تُنشأ بحالة `pending` وتُحتسب فوراً في تمويل الطفل — وهذا
+     * مقصود، فهو يمنع كافلين من حجز الطفل نفسه في اللحظة نفسها. لكنه يعني
+     * أن من فتح صفحة الدفع ثم أغلقها يحجب الطفل إلى الأبد.
+     *
+     * فنلغي كل حجز تجاوز مهلة السماح ولم تصله دفعة واحدة. عندها يعيد
+     * SponsorshipObserver حساب التمويل ويعود الطفل إلى الموقع.
+     */
+    private function expireAbandonedHolds(): void
+    {
+        $deadline = now()->subDays((int) config('kafala.billing.grace_days'));
+
+        $abandoned = Sponsorship::query()
+            ->where('status', SponsorshipStatus::Pending)
+            ->where('created_at', '<', $deadline)
+            ->whereDoesntHave('payments')
+            ->get();
+
+        foreach ($abandoned as $sponsorship) {
+            $sponsorship->update([
+                'status' => SponsorshipStatus::Cancelled,
+                'cancellation_reason' => 'حجز لم يُستكمل دفعه',
+                'ended_at' => now(),
+                'next_due_at' => null,
+            ]);
+        }
+
+        if ($abandoned->isNotEmpty()) {
+            $this->line("أُلغي {$abandoned->count()} حجزاً مهجوراً.");
+        }
     }
 }

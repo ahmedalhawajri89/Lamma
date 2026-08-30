@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
@@ -27,6 +28,34 @@ use Spatie\Activitylog\Traits\LogsActivity;
  *
  * @property-read int $age
  * @property-read string $public_name
+ * @property int $id
+ * @property string $reference_code
+ * @property string $first_name
+ * @property string $last_name
+ * @property Gender $gender
+ * @property Carbon $date_of_birth
+ * @property int $family_id
+ * @property int $program_id
+ * @property OrphanStatus $status
+ * @property bool $is_urgent
+ * @property string|null $photo_path
+ * @property string|null $grade_level
+ * @property string|null $health_status
+ * @property string|null $dream
+ * @property string|null $story
+ * @property string $monthly_need
+ * @property int $funded_percent
+ * @property Carbon|null $verified_at
+ * @property int|null $verified_by
+ * @property Carbon|null $published_at
+ * @property-read int $age
+ * @property-read string $full_name
+ * @property-read string $public_name
+ * @property-read Family|null $family
+ * @property-read Program|null $program
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, OrphanDocument> $documents
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, Sponsorship> $sponsorships
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, Orphan> $familyMembers
  */
 class Orphan extends Model
 {
@@ -38,7 +67,18 @@ class Orphan extends Model
         'reference_code', 'first_name', 'last_name', 'gender', 'date_of_birth',
         'family_id', 'program_id', 'status', 'is_urgent', 'photo_path',
         'grade_level', 'health_status', 'dream', 'story', 'monthly_need',
+
+        /**
+         * حقول دورة الحياة — تُسندها الأفعال (VerifyOrphan) لا طلبات المستخدم.
+         * وجودها هنا لازم لأن الوضع الصارم يمنع الإسناد الصامت، وغيابها كان
+         * سيُسقط التوثيق والنشر عند أول استعمال. وحمايتها من الطلبات مسؤولية
+         * FormRequests التي لا تسمح بها أصلاً.
+         */
+        'funded_percent', 'verified_at', 'verified_by', 'published_at',
     ];
+
+    /** يطابق DEFAULT 0 في المخطّط، فلا يخرج الكائن الجديد بنسبة null. */
+    protected $attributes = ['funded_percent' => 0];
 
     protected function casts(): array
     {
@@ -56,47 +96,56 @@ class Orphan extends Model
 
     /* ---------------------------------------------------------------- العلاقات */
 
+    /** @return BelongsTo<Family, $this> */
     public function family(): BelongsTo
     {
         return $this->belongsTo(Family::class);
     }
 
+    /** @return BelongsTo<Program, $this> */
     public function program(): BelongsTo
     {
         return $this->belongsTo(Program::class);
     }
 
+    /** @return BelongsTo<User, $this> */
     public function verifier(): BelongsTo
     {
         return $this->belongsTo(User::class, 'verified_by');
     }
 
+    /** @return HasMany<OrphanDocument, $this> */
     public function documents(): HasMany
     {
         return $this->hasMany(OrphanDocument::class);
     }
 
+    /** @return HasMany<Sponsorship, $this> */
     public function sponsorships(): HasMany
     {
         return $this->hasMany(Sponsorship::class);
     }
 
+    /** @return HasMany<Report, $this> */
     public function reports(): HasMany
     {
         return $this->hasMany(Report::class);
     }
 
+    /** @return HasMany<Disbursement, $this> */
     public function disbursements(): HasMany
     {
         return $this->hasMany(Disbursement::class);
     }
 
+    /** @return HasMany<FieldVisit, $this> */
     public function fieldVisits(): HasMany
     {
         return $this->hasMany(FieldVisit::class);
     }
 
     /** كشف الحساب: كل دفعة وصلت لهذا الطفل عبر أي كفالة. */
+    /** @return HasManyThrough<Payment, Sponsorship, $this> */
     public function payments(): HasManyThrough
     {
         return $this->hasManyThrough(Payment::class, Sponsorship::class);
@@ -111,6 +160,7 @@ class Orphan extends Model
      * إخوته. الاستثناء يجب أن يقع بعد التحميل، حيث يُعرف المفتاح فعلاً،
      * ولذلك هو في `siblings()` أدناه لا في العلاقة.
      */
+    /** @return HasMany<Orphan, $this> */
     public function familyMembers(): HasMany
     {
         return $this->hasMany(self::class, 'family_id', 'family_id');
@@ -182,7 +232,7 @@ class Orphan extends Model
     /** العمر يُشتق من التاريخ، فلا يحتاج تحديثاً سنوياً لكل صف. */
     protected function age(): Attribute
     {
-        return Attribute::get(fn (): int => (int) $this->date_of_birth?->diffInYears(now()));
+        return Attribute::get(fn (): int => (int) $this->date_of_birth->diffInYears(now()));
     }
 
     /** الاسم الأول فقط للعرض العام — حمايةً لخصوصية الطفل. */
@@ -205,7 +255,10 @@ class Orphan extends Model
     public function recalculateFunding(): void
     {
         $covered = (float) $this->sponsorships()
-            ->whereIn('status', [SponsorshipStatus::Active, SponsorshipStatus::Paused])
+            ->whereIn('status', array_filter(
+                SponsorshipStatus::cases(),
+                fn (SponsorshipStatus $s): bool => $s->countsTowardFunding(),
+            ))
             ->sum('monthly_amount');
 
         $need = (float) $this->monthly_need;

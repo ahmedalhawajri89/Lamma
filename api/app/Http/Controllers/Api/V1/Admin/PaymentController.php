@@ -42,11 +42,13 @@ class PaymentController extends Controller
         // فيحاول Eloquent تحميل العلاقات على صفٍّ يحمل COUNT و SUM فقط
         // بلا مفاتيحه الأجنبية — فيسقط الطلب.
         $totals = (clone $query)->settled()
-            ->withoutEagerLoads()
+            ->toBase()
             ->selectRaw('COUNT(*) as count, COALESCE(SUM(amount_base), 0) as total')
             ->first();
 
-        $payments = $query->latest('created_at')->paginate($request->integer('per_page', 25));
+        $payments = $query
+            ->orderByRaw('COALESCE(paid_at, created_at) DESC')
+            ->paginate($request->integer('per_page', 25));
 
         return response()->json([
             'data' => PaymentResource::collection($payments->items()),

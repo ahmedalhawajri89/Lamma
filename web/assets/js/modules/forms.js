@@ -10,6 +10,7 @@
  *   • كل رسائل الخطأ نصية (textContent) فلا مجال لحقن HTML.
  */
 
+import { login, register } from './auth.js';
 import { toast } from './ui.js';
 import { $, $$, clamp } from './utils.js';
 
@@ -163,24 +164,95 @@ export function initForms() {
         button.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> جارٍ المعالجة…';
       }
 
-      // نموذج تجريبي: نحاكي استجابة الخادم ثم ننتقل أو نُظهر تأكيداً.
-      setTimeout(() => {
-        const redirect = form.dataset.redirect;
-        if (redirect) {
-          window.location.href = redirect;
-          return;
-        }
-
-        if (button) {
-          button.disabled = false;
-          button.innerHTML = original;
-        }
-        form.reset();
-        $$('.field', form).forEach((f) => f.classList.remove('is-invalid'));
-        toast(form.dataset.successMessage || 'تم الإرسال بنجاح، شكراً لك', 'success');
-      }, 900);
+      submit(form, button, original);
     });
   });
+}
+
+/**
+ * إرسال النموذج.
+ *
+ * `data-action` يحدّد الوجهة: نماذج المصادقة تُنادي الـ API، وما عداها
+ * (‏الدفع مثلاً) يبقى محاكاةً حتى تُربط بوابة الدفع.
+ *
+ * أخطاء الحقول تُعرض تحت حقولها لا في تنبيه عام: «البريد مسجَّل لدينا»
+ * فوق حقل البريد أوضح من رسالة عائمة تختفي بعد ثوانٍ.
+ */
+async function submit(form, button, original) {
+  const restore = () => {
+    if (button) {
+      button.disabled = false;
+      button.innerHTML = original;
+    }
+  };
+
+  const action = form.dataset.action;
+
+  if (!action) {
+    // لا خادم لهذا النموذج بعد — سلوك المحاكاة كما كان
+    setTimeout(() => {
+      const redirect = form.dataset.redirect;
+      if (redirect) {
+        window.location.href = redirect;
+        return;
+      }
+      restore();
+      form.reset();
+      $$('.field', form).forEach((f) => f.classList.remove('is-invalid'));
+      toast(form.dataset.successMessage || 'تم الإرسال بنجاح، شكراً لك', 'success');
+    }, 900);
+    return;
+  }
+
+  const values = Object.fromEntries(new FormData(form).entries());
+
+  try {
+    if (action === 'login') {
+      await login(values.email, values.password, Boolean(values.remember));
+    } else if (action === 'register') {
+      // حقول النموذج مسمّاة بقيم autocomplete (given-name وtel) لأنها الأصحّ
+      // دلالياً للمتصفح؛ الربط بأسماء الـ API يقع هنا لا بتشويه الـ HTML
+      const fullName = [values['given-name'], values['family-name']]
+        .filter(Boolean)
+        .join(' ')
+        .trim();
+
+      await register({
+        name: fullName || values.name,
+        email: values.email,
+        phone: values.tel || values.phone || null,
+        password: values.password,
+        password_confirmation: values.password_confirmation ?? values.password,
+        terms: true,
+      });
+    }
+
+    // ?redirect= يعيد الكافل إلى الصفحة التي طُرد منها، لا إلى اللوحة دائماً
+    const params = new URLSearchParams(window.location.search);
+    window.location.href = params.get('redirect') || form.dataset.redirect || 'dashboard.html';
+  } catch (error) {
+    restore();
+
+    const fields = error.errors ?? {};
+    let focused = false;
+
+    Object.entries(fields).forEach(([name, messages]) => {
+      const input = form.querySelector(`[name="${name}"]`);
+      const wrapper = input?.closest('.field');
+      const errorEl = wrapper?.querySelector('.field__error');
+
+      if (wrapper) wrapper.classList.add('is-invalid');
+      if (errorEl) errorEl.textContent = messages[0];
+      if (input && !focused) {
+        input.focus();
+        focused = true;
+      }
+    });
+
+    if (!Object.keys(fields).length) {
+      toast(error.message ?? 'تعذّر إتمام الطلب.', 'error');
+    }
+  }
 }
 
 /* =========================================================================

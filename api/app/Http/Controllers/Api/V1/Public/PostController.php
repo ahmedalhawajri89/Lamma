@@ -41,9 +41,15 @@ class PostController extends Controller
             ->where('slug', $slug)
             ->firstOrFail();
 
-        // incrementQuietly: عدّاد القراءات لا يستحق أن يلوّث updated_at
-        // ولا أن يُسجَّل في سجل النشاط
-        $post->incrementQuietly('views_count');
+        /**
+         * عدّاد القراءات يزيد باستعلام مباشر لا عبر الموديل.
+         *
+         * `incrementQuietly` محمية (protected) في لارافل ١٢ فالنداء عليها من
+         * خارج الموديل خطأ قاتل. و`increment()` العادية تلمس `updated_at`
+         * وتُطلق الأحداث — وقراءة زائر لا تستحق أن تُسجَّل كتعديل على المقال
+         * ولا أن تدخل سجل النشاط.
+         */
+        Post::whereKey($post->getKey())->toBase()->increment('views_count');
 
         return response()->json(['data' => new PostResource($post)]);
     }

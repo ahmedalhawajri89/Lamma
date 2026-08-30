@@ -16,6 +16,7 @@ class ReportMedia extends Model
 
     protected $fillable = ['report_id', 'type', 'path', 'caption', 'sort_order'];
 
+    /** @return BelongsTo<Report, $this> */
     public function report(): BelongsTo
     {
         return $this->belongsTo(Report::class);

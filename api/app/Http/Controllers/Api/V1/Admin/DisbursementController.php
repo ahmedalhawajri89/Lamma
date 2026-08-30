@@ -32,9 +32,10 @@ class DisbursementController extends Controller
             ->when($request->filled('from'), fn ($q) => $q->whereDate('spent_on', '>=', $request->date('from')))
             ->when($request->filled('to'), fn ($q) => $q->whereDate('spent_on', '<=', $request->date('to')));
 
-        // withoutEagerLoads(): انظر التعليق نفسه في PaymentController
+        // toBase(): صفّ المجاميع ليس كياناً — لا مفاتيح له ولا علاقات،
+        // وهيدرته موديلاً تجعل Eloquent يحاول تحميل علاقاته فيسقط الطلب
         $totals = (clone $query)
-            ->withoutEagerLoads()
+            ->toBase()
             ->selectRaw('COALESCE(SUM(amount_base), 0) as total')
             ->selectRaw('COALESCE(SUM(CASE WHEN approved_at IS NULL THEN amount_base ELSE 0 END), 0) as pending')
             ->first();
@@ -122,8 +123,15 @@ class DisbursementController extends Controller
         ]);
 
         if (isset($validated['amount'])) {
-            $validated['amount_base'] = round((float) $validated['amount'] * (float) $disbursement->getAttribute('fx_rate' ?? 1), 2)
-                ?: (float) $validated['amount'];
+            /**
+             * سعر الصرف ليس عموداً على `disbursements` — هو محفوظ ضمنياً في
+             * النسبة بين `amount` و`amount_base`. نستخرجه منها بدل تخمينه،
+             * فيبقى تقييم الصرف بالعملة الأساس متسقاً بعد تعديل المبلغ.
+             */
+            $amount = (float) $disbursement->amount;
+            $rate = $amount > 0 ? (float) $disbursement->amount_base / $amount : 1.0;
+
+            $validated['amount_base'] = round((float) $validated['amount'] * $rate, 2);
         }
 
         $disbursement->update($validated);

@@ -9,7 +9,11 @@
   <meta name="theme-color" content="#c2410c">
 
   <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self'; connect-src 'self'; form-action 'self'; base-uri 'self'; object-src 'none'">
+        content="default-src 'self'; img-src 'self' data: http://127.0.0.1:8000; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self'; connect-src 'self' http://127.0.0.1:8000; form-action 'self'; base-uri 'self'; object-src 'none'">
+
+  <!-- أصل الـ API. فرّغه ليعمل الموقع ساكناً على بياناته المبدئية. -->
+  <meta name="api-base" content="http://127.0.0.1:8000">
+
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta name="robots" content="noindex, nofollow">
 
@@ -35,7 +39,12 @@
 <body>
   <a class="skip-link" href="#main">تخطَّ إلى المحتوى الرئيسي</a>
 
-  <div class="dash">
+  <!--
+    كل رقم في هذه الصفحة كان نصاً مكتوباً في HTML: «أيتام تكفلهم ٢»،
+    و«إجمالي ما قدّمته ‎$3240»، وأربعة صفوف مدفوعات ثابتة. صار كله يُقرأ من
+    /api/v1/portal/* فيصدق مع كل كافل لا مع كافل واحد وهمي.
+  -->
+  <div class="dash" data-portal data-portal-loading>
 
     <!-- الشريط الجانبي -->
     <aside class="dash__side">
@@ -46,11 +55,11 @@
 
       <div class="dash__user">
         <div class="dash__avatar">
-          <span class="avatar avatar--lg avatar--1" aria-hidden="true">ع</span>
+          <span class="avatar avatar--lg avatar--1" aria-hidden="true" data-portal-avatar>·</span>
         </div>
         <div>
-          <strong>عبدالله المطيري</strong>
-          <span>كافل منذ ٣ سنوات</span>
+          <strong data-portal-name>…</strong>
+          <span>حسابك</span>
         </div>
       </div>
 
@@ -63,15 +72,12 @@
         </a>
         <a class="dash__nav-item" href="#reports">
           <i class="fa-regular fa-file-lines" aria-hidden="true"></i> التقارير
-          <span class="badge badge--urgent">٢</span>
+          <span class="badge badge--urgent" data-portal-reports-badge hidden>0</span>
         </a>
         <a class="dash__nav-item" href="#payments">
           <i class="fa-solid fa-receipt" aria-hidden="true"></i> المدفوعات
         </a>
-        <a class="dash__nav-item" href="#settings">
-          <i class="fa-solid fa-gear" aria-hidden="true"></i> الإعدادات
-        </a>
-        <a class="dash__nav-item dash__nav-item--logout" href="index.html">
+        <a class="dash__nav-item dash__nav-item--logout" href="index.html" data-portal-logout>
           <i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i> تسجيل الخروج
         </a>
       </nav>
@@ -82,8 +88,8 @@
 
       <header class="dash__head">
         <div>
-          <h1>أهلاً عبدالله</h1>
-          <p>لديك تقريران جديدان لم تطّلع عليهما بعد.</p>
+          <h1 data-portal-greeting>أهلاً بك</h1>
+          <p data-portal-subtitle>جارٍ تحميل لوحتك…</p>
         </div>
         <a class="btn btn--primary" href="orphans.html">
           <i class="fa-solid fa-plus" aria-hidden="true"></i>
@@ -96,7 +102,7 @@
         <div class="metric" data-reveal>
           <div>
             <p class="metric__label">أيتام تكفلهم</p>
-            <p class="metric__value num"><span data-count="2">0</span></p>
+            <p class="metric__value num" data-stat="orphans">—</p>
           </div>
           <span class="icon-box icon-box--soft"><i class="fa-solid fa-children" aria-hidden="true"></i></span>
         </div>
@@ -104,16 +110,16 @@
         <div class="metric" data-reveal data-reveal-delay="80">
           <div>
             <p class="metric__label">إجمالي ما قدّمته</p>
-            <p class="metric__value num">$<span data-count="3240">0</span></p>
-            <p class="metric__trend"><i class="fa-solid fa-arrow-up" aria-hidden="true"></i> منذ ٢٠٢٣</p>
+            <p class="metric__value num" data-stat="given">—</p>
+            <p class="metric__trend"><span class="num" data-stat="commitment">—</span> شهرياً حالياً</p>
           </div>
           <span class="icon-box icon-box--growth icon-box--soft"><i class="fa-solid fa-hand-holding-dollar" aria-hidden="true"></i></span>
         </div>
 
         <div class="metric" data-reveal data-reveal-delay="160">
           <div>
-            <p class="metric__label">تقارير جديدة</p>
-            <p class="metric__value num"><span data-count="2">0</span></p>
+            <p class="metric__label">تقارير لم تقرأها</p>
+            <p class="metric__value num" data-stat="reports">—</p>
           </div>
           <span class="icon-box icon-box--accent icon-box--soft"><i class="fa-regular fa-file-lines" aria-hidden="true"></i></span>
         </div>
@@ -121,8 +127,8 @@
         <div class="metric" data-reveal data-reveal-delay="240">
           <div>
             <p class="metric__label">القسط القادم</p>
-            <p class="metric__value" style="font-size:var(--text-lg)">٢٥ أغسطس</p>
-            <p class="metric__trend">تلقائي — لا إجراء مطلوب</p>
+            <p class="metric__value" style="font-size:var(--text-lg)" data-stat="next">—</p>
+            <p class="metric__trend" data-stat="next-hint"></p>
           </div>
           <span class="icon-box icon-box--info icon-box--soft"><i class="fa-regular fa-calendar-check" aria-hidden="true"></i></span>
         </div>
@@ -135,54 +141,19 @@
           <a class="link-arrow" href="orphans.html">إضافة كفالة <i class="fa-solid fa-plus" aria-hidden="true"></i></a>
         </div>
 
-        <div class="stack">
-          <article class="sponsor-row">
-            <div class="sponsor-row__who">
-              <img src="assets/img/orphan-ahmad.webp" alt="" width="48" height="48">
-              <div>
-                <strong>أحمد</strong>
-                <span class="badge badge--brand">الكفالة الشاملة</span>
-              </div>
-            </div>
-            <div class="sponsor-row__cell">
-              <span>القسط القادم</span>
-              <strong>٢٥ أغسطس ٢٠٢٦</strong>
-            </div>
-            <div class="sponsor-row__cell">
-              <span>المبلغ الشهري</span>
-              <strong class="num">$65</strong>
-            </div>
-            <div class="sponsor-row__actions">
-              <button class="btn btn--outline btn--sm" type="button" data-modal-open="reportModal">
-                التقرير <span class="badge badge--urgent">جديد</span>
-              </button>
-              <a class="btn btn--ghost btn--sm" href="orphan.html?id=KFL-1043">الملف</a>
-            </div>
-          </article>
+        <div class="stack" data-portal-sponsorships>
+          <p class="muted">جارٍ التحميل…</p>
+        </div>
+      </section>
 
-          <article class="sponsor-row">
-            <div class="sponsor-row__who">
-              <img src="assets/img/orphan-omnia.webp" alt="" width="48" height="48">
-              <div>
-                <strong>أمنية</strong>
-                <span class="badge badge--info">الكفالة التعليمية</span>
-              </div>
-            </div>
-            <div class="sponsor-row__cell">
-              <span>القسط القادم</span>
-              <strong>١ سبتمبر ٢٠٢٦</strong>
-            </div>
-            <div class="sponsor-row__cell">
-              <span>المبلغ الشهري</span>
-              <strong class="num">$35</strong>
-            </div>
-            <div class="sponsor-row__actions">
-              <button class="btn btn--outline btn--sm" type="button" data-modal-open="reportModal">
-                التقرير <span class="badge badge--urgent">جديد</span>
-              </button>
-              <a class="btn btn--ghost btn--sm" href="orphan.html?id=KFL-1042">الملف</a>
-            </div>
-          </article>
+      <!-- التقارير -->
+      <section id="reports">
+        <div class="cluster cluster--between" style="margin-block-end:var(--space-5)">
+          <h2 style="font-size:var(--text-lg)">آخر التقارير</h2>
+        </div>
+
+        <div class="stack" data-portal-reports>
+          <p class="muted">جارٍ التحميل…</p>
         </div>
       </section>
 
@@ -190,14 +161,12 @@
       <section id="payments">
         <div class="cluster cluster--between" style="margin-block-end:var(--space-5)">
           <h2 style="font-size:var(--text-lg)">سجل المدفوعات</h2>
-          <button class="btn btn--ghost btn--sm" type="button">
-            <i class="fa-solid fa-download" aria-hidden="true"></i> تحميل الإيصالات
-          </button>
+          <span class="muted">الإجمالي <strong class="num" data-stat="payments-total">—</strong></span>
         </div>
 
         <div class="table-wrap">
           <table class="table">
-            <caption class="sr-only">سجل المدفوعات لآخر أربعة أشهر</caption>
+            <caption class="sr-only">سجل مدفوعاتك</caption>
             <thead>
               <tr>
                 <th scope="col">التاريخ</th>
@@ -208,31 +177,8 @@
                 <th scope="col">الإيصال</th>
               </tr>
             </thead>
-            <tbody>
-              <tr>
-                <td>٢٥ يوليو ٢٠٢٦</td><td>أحمد</td><td class="num">$65</td>
-                <td>فيزا ••42</td>
-                <td><span class="badge badge--growth">مكتمل</span></td>
-                <td><a class="link-arrow" href="#">تحميل</a></td>
-              </tr>
-              <tr>
-                <td>١ يوليو ٢٠٢٦</td><td>أمنية</td><td class="num">$35</td>
-                <td>فيزا ••42</td>
-                <td><span class="badge badge--growth">مكتمل</span></td>
-                <td><a class="link-arrow" href="#">تحميل</a></td>
-              </tr>
-              <tr>
-                <td>٢٥ يونيو ٢٠٢٦</td><td>أحمد</td><td class="num">$65</td>
-                <td>فيزا ••42</td>
-                <td><span class="badge badge--growth">مكتمل</span></td>
-                <td><a class="link-arrow" href="#">تحميل</a></td>
-              </tr>
-              <tr>
-                <td>١ يونيو ٢٠٢٦</td><td>أمنية</td><td class="num">$35</td>
-                <td>فيزا ••42</td>
-                <td><span class="badge badge--growth">مكتمل</span></td>
-                <td><a class="link-arrow" href="#">تحميل</a></td>
-              </tr>
+            <tbody data-portal-payments>
+              <tr><td colspan="6" class="muted">جارٍ التحميل…</td></tr>
             </tbody>
           </table>
         </div>
@@ -250,21 +196,16 @@
       </button>
 
       <div class="modal__head">
-        <h2 id="reportModalTitle" style="font-size:var(--text-lg)">تقرير الربع الثالث — أحمد</h2>
-        <p>يوليو ٢٠٢٦ · وثّقه المشرف الميداني بعد زيارة بتاريخ ١٨ يوليو</p>
+        <h2 id="reportModalTitle" style="font-size:var(--text-lg)">التقرير</h2>
+        <p data-report-meta></p>
       </div>
 
       <div class="stack stack--lg">
-        <div class="frame" style="aspect-ratio:16/10">
-          <img class="frame__img" src="assets/img/orphan-ahmad.webp" alt="أحمد في فناء مدرسته" loading="lazy">
+        <div class="frame" style="aspect-ratio:16/10" data-report-photo hidden>
+          <img class="frame__img" src="" alt="" loading="lazy">
         </div>
 
-        <ul class="check-list" role="list">
-          <li><strong>الدراسة</strong> — معدّل ٨٧٪، تحسّن ٩ نقاط عن الفصل الماضي.</li>
-          <li><strong>الصحة</strong> — فحص دوري بلا ملاحظات، ووزنه ضمن المعدّل الطبيعي.</li>
-          <li><strong>الحالة النفسية</strong> — اندماج جيد مع أقرانه، وشارك في نادي الرسم.</li>
-          <li><strong>ما صُرف</strong> — ‎$65 شهرياً: غذاء ‎$26، تعليم ‎$18، صحة ‎$12، أنشطة ‎$9.</li>
-        </ul>
+        <ul class="check-list" role="list" data-report-body></ul>
 
         <div class="secure-note">
           <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
@@ -272,10 +213,7 @@
         </div>
 
         <div class="cluster">
-          <button class="btn btn--primary" type="button" data-modal-close>
-            <i class="fa-solid fa-download" aria-hidden="true"></i> تحميل PDF
-          </button>
-          <button class="btn btn--outline" type="button" data-modal-close>أرسل رسالة لأحمد</button>
+          <button class="btn btn--outline" type="button" data-modal-close>إغلاق</button>
         </div>
       </div>
     </div>

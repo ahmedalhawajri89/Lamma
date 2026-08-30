@@ -37,9 +37,19 @@ enum SponsorshipStatus: string
         return in_array($this, [self::Pending, self::Active, self::Paused], true);
     }
 
-    /** هل تُحتسب ضمن تمويل اليتيم؟ */
+    /**
+     * هل تُحتسب ضمن تمويل اليتيم؟
+     *
+     * `Pending` تُحتسب وإن لم تصل دفعتها بعد — فهي حجزٌ للطفل خلال إتمام
+     * الدفع. واستثناؤها كان يفتح سباقاً حقيقياً: كافلان يفتحان صفحة الطفل
+     * نفسها ويكمل كلٌّ منهما نموذج الدفع، فيمرّ الاثنان من فحص التمويل
+     * لأن أياً منهما لم يغيّره بعد، ويصير الطفل ممولاً مرتين.
+     *
+     * وثمن ذلك أن حجزاً مهجوراً يحجب الطفل — يعالجه `billing:run` بإلغاء
+     * المعلّق الذي تجاوز مهلة السماح.
+     */
     public function countsTowardFunding(): bool
     {
-        return in_array($this, [self::Active, self::Paused], true);
+        return in_array($this, [self::Pending, self::Active, self::Paused], true);
     }
 }

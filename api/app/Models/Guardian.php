@@ -14,6 +14,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  *
  * رقم الهوية لا يُخزَّن — تُخزَّن تجزئته فقط، فيمكن كشف التكرار
  * دون الاحتفاظ برقم قابل للتسريب.
+ *
+ * @property int $id
+ * @property string $full_name
+ * @property GuardianRelation $relation
+ * @property string|null $phone
+ * @property string|null $national_id_hash
+ * @property string|null $occupation
+ * @property string|null $monthly_income
  */
 class Guardian extends Model
 {
@@ -35,6 +43,7 @@ class Guardian extends Model
         ];
     }
 
+    /** @return HasMany<Family, $this> */
     public function families(): HasMany
     {
         return $this->hasMany(Family::class);

@@ -58,7 +58,10 @@ class MetricsService
                 ->whereBetween('paid_at', [$prevStart, $prevEnd])
                 ->sum('amount_base');
 
-            $sponsoredNow = Orphan::whereHas('sponsorships', fn ($q) => $q->active())->count();
+            $sponsoredNow = Orphan::whereHas(
+                'sponsorships',
+                fn ($q) => $q->where('status', SponsorshipStatus::Active),
+            )->count();
 
             return [
                 'orphans_total' => Orphan::count(),
@@ -232,6 +235,7 @@ class MetricsService
              */
             $row = Orphan::query()
                 ->whereIn('status', [OrphanStatus::Active, OrphanStatus::FullyFunded])
+                ->toBase()
                 ->selectRaw('SUM(funded_percent = 0) as none')
                 ->selectRaw('SUM(funded_percent > 0 AND funded_percent < 50) as low')
                 ->selectRaw('SUM(funded_percent >= 50 AND funded_percent < 100) as mid')
@@ -259,13 +263,14 @@ class MetricsService
             $ended = Sponsorship::query()
                 ->whereNotNull('ended_at')
                 ->whereNotNull('started_at')
+                ->toBase()
                 ->selectRaw('COUNT(*) as n')
                 ->selectRaw('AVG(TIMESTAMPDIFF(MONTH, started_at, ended_at)) as avg_months')
                 ->first();
 
             $live = Sponsorship::query()
                 ->live()
-                ->whereNotNull('started_at')
+                ->toBase()
                 ->selectRaw('COUNT(*) as n')
                 ->selectRaw('AVG(TIMESTAMPDIFF(MONTH, started_at, NOW())) as avg_months')
                 ->first();
@@ -280,6 +285,7 @@ class MetricsService
                 'avg_lifetime_months' => round((float) $ended->avg_months, 1),
                 'reasons' => Sponsorship::query()
                     ->whereNotNull('cancellation_reason')
+                    ->toBase()
                     ->selectRaw('cancellation_reason as label, COUNT(*) as value')
                     ->groupBy('cancellation_reason')
                     ->orderByDesc('value')

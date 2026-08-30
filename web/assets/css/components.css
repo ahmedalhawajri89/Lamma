@@ -1113,3 +1113,17 @@
 @media (prefers-reduced-motion: reduce) {
   [data-reveal] { opacity: 1; transform: none; }
 }
+
+/* نائب الصورة حين لا صورة منشورة للحالة.
+   حرفٌ واحد على تدرّج العلامة — أهدأ من أيقونة «صورة مفقودة»،
+   ولا يوحي بخطأ لأنه ليس خطأً. */
+.orphan-card__img--empty {
+  display: grid;
+  place-items: center;
+  background: linear-gradient(150deg, var(--clay-100), var(--sand-200));
+  color: var(--clay-600);
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 6vw, 3.5rem);
+  font-weight: 600;
+  user-select: none;
+}
