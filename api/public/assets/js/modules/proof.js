@@ -24,6 +24,20 @@ function dotGrid(total, perDot) {
     (_, i) => `<span style="--i:${i}"></span>`).join('');
 }
 
+/**
+ * صياغة المعدود بالعربية.
+ *
+ * العدد يأتي من الخادم مشتقاً من عدد المكفولين، فقد يكون ١ أو ٢ أو ٥٠.
+ * وقالبٌ واحد يُخرج «كل نقطة تمثّل 1 طفلاً» — عربية مكسورة تُفسد أثر
+ * الرقم كله. والقاعدة هنا مبسّطة لكنها تغطي كل ما يُنتجه سلّم المقياس.
+ */
+function children(n) {
+  if (n === 1) return 'طفلاً واحداً';
+  if (n === 2) return 'طفلين';
+  if (n <= 10) return `${n} أطفال`;
+  return `${n} طفلاً`;
+}
+
 /** حلقة النسبة — تُرسم بـ stroke-dashoffset عند دخولها الشاشة. */
 function ring(percent) {
   const circumference = 2 * Math.PI * RING_RADIUS;
@@ -71,12 +85,12 @@ export function initProofBoard() {
   </div>
 
   <div class="dot-grid" role="img"
-       aria-label="شبكة تمثّل ${PROOF.sponsored} يتيماً مكفولاً، كل نقطة ${PROOF.perDot} طفلاً">
+       aria-label="شبكة تمثّل ${PROOF.sponsored} يتيماً مكفولاً، كل نقطة ${children(PROOF.perDot)}">
     ${dotGrid(PROOF.sponsored, PROOF.perDot)}
   </div>
 
   <p class="bento__note">
-    كل نقطة تمثّل ${PROOF.perDot} طفلاً — ولكل واحد منهم اسمٌ وملفٌّ وتقرير.
+    كل نقطة تمثّل ${children(PROOF.perDot)} — ولكل واحد منهم اسمٌ وملفٌّ وتقرير.
   </p>
 </article>
 

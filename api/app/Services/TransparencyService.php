@@ -68,12 +68,14 @@ class TransparencyService
 
             $total = (float) Disbursement::approved()->sum('amount_base');
 
+            $sponsored = Orphan::whereHas(
+                'sponsorships',
+                fn ($q) => $q->where('status', SponsorshipStatus::Active),
+            )->count();
+
             return [
-                'sponsored' => Orphan::whereHas(
-                    'sponsorships',
-                    fn ($q) => $q->where('status', SponsorshipStatus::Active),
-                )->count(),
-                'perDot' => 40,
+                'sponsored' => $sponsored,
+                'perDot' => $this->dotScale($sponsored),
                 'toChild' => $total > 0 ? (int) round(100 - $overhead * 100 / $total) : 93,
                 'startYear' => (int) (Setting::cached()['site.start_year'] ?? 2012),
                 'visits' => FieldVisit::count(),
@@ -84,6 +86,30 @@ class TransparencyService
                 'monthlyCommitment' => round((float) Sponsorship::active()->sum('monthly_amount'), 2),
             ];
         });
+    }
+
+    /**
+     * كم طفلاً تمثّل النقطة الواحدة في شبكة لوحة الثقة.
+     *
+     * كان هذا الرقم ثابتاً (‏٤٠) مضبوطاً على عدد وهمي مكتوب في `data.js`،
+     * فلمّا صار العدد يأتي من قاعدة البيانات انهارت الشبكة إلى ثلاث نقاط في
+     * بطاقة كبيرة فارغة. **هذا ما يحدث حين تُربط واجهة بمقياس ثابت ببيانات
+     * متغيّرة** — والعلاج أن يُشتق المقياس من العدد لا أن يُفترض.
+     *
+     * ونختار من سلّم أرقام مألوفة لأن التسمية تحت الشبكة تُقرأ: «كل نقطة
+     * تمثّل ٥٠ طفلاً» مفهومة، و«كل نقطة تمثّل ٤١ طفلاً» تبدو خطأً.
+     *
+     * والحدّ ١٢٠ نقطة يبقي الشبكة ممتلئة ومقروءة معاً.
+     */
+    private function dotScale(int $sponsored): int
+    {
+        foreach ([1, 2, 5, 10, 20, 25, 50, 100, 250, 500, 1000] as $step) {
+            if ($sponsored / $step <= 120) {
+                return $step;
+            }
+        }
+
+        return 1000;
     }
 
     /** الميزانية السنوية المنشورة — صفحة الشفافية. */
