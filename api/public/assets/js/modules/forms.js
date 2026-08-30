@@ -10,7 +10,7 @@
  *   • كل رسائل الخطأ نصية (textContent) فلا مجال لحقن HTML.
  */
 
-import { login, register } from './auth.js';
+import { login, register, forgotPassword, resetPassword } from './auth.js';
 import { submitContact, subscribeNewsletter } from './api.js';
 import { toast } from './ui.js';
 import { $, $$, clamp } from './utils.js';
@@ -211,7 +211,7 @@ async function submit(form, button, original) {
    * نموذجا التواصل والنشرة لا ينتقلان بعد النجاح: المستخدم يبقى مكانه
    * ويحتاج تأكيداً في الصفحة. أما الدخول والتسجيل فينتهيان بانتقال.
    */
-  const staysOnPage = action === 'contact' || action === 'newsletter';
+  const staysOnPage = action === 'contact' || action === 'newsletter' || action === 'forgot';
 
   try {
     if (action === 'contact') {
@@ -240,6 +240,40 @@ async function submit(form, button, original) {
       restore();
       form.reset();
       toast(message || form.dataset.successMessage, 'success');
+
+      return;
+    }
+
+    /**
+     * طلب رابط الاستعادة.
+     *
+     * الرسالة تأتي من الخادم لا من `data-success-message`: صياغتها مقصودة
+     * («إن كان هذا البريد مسجّلاً…») كي لا تكشف الشاشة أي البُرد لدينا.
+     * ورسالةٌ محلية مبهجة تنقض ذلك بلا أن ينتبه أحد.
+     */
+    if (action === 'forgot') {
+      const { message } = await forgotPassword(values.email);
+
+      restore();
+      form.reset();
+      $$('.field', form).forEach((fl) => fl.classList.remove('is-invalid'));
+      toast(message, 'success');
+
+      return;
+    }
+
+    if (action === 'reset') {
+      const { message } = await resetPassword({
+        token: values.token,
+        email: values.email,
+        password: values.password,
+        password_confirmation: values.password_confirmation,
+      });
+
+      toast(message, 'success');
+
+      // مهلة قصيرة ليُقرأ التأكيد قبل أن تنتقل الصفحة
+      setTimeout(() => { window.location.href = 'login.html'; }, 1400);
 
       return;
     }
@@ -273,20 +307,38 @@ async function submit(form, button, original) {
     const fields = error.errors ?? {};
     let focused = false;
 
+    /**
+     * رسالة لا تجد حقلاً ظاهراً تُعرض كإشعار.
+     *
+     * الخادم يعلّق الخطأ على اسم حقل، وقد يكون ذلك الحقل مخفياً: صفحة تعيين
+     * كلمة المرور تحمل `token` و`email` مخفيَّين، فرسالة «الرابط منتهي
+     * الصلاحية» كانت تُكتب في عنصرٍ غير موجود وتضيع — يضغط المستخدم «حفظ»
+     * فلا يحدث شيء ولا يُقال له لماذا. الصمت أسوأ من أي رسالة.
+     */
+    const orphaned = [];
+
     Object.entries(fields).forEach(([name, messages]) => {
       const input = form.querySelector(`[name="${name}"]`);
       const wrapper = input?.closest('.field');
       const errorEl = wrapper?.querySelector('.field__error');
 
       if (wrapper) wrapper.classList.add('is-invalid');
-      if (errorEl) errorEl.textContent = messages[0];
-      if (input && !focused) {
+
+      if (errorEl && input?.type !== 'hidden') {
+        errorEl.textContent = messages[0];
+      } else {
+        orphaned.push(messages[0]);
+      }
+
+      if (input && input.type !== 'hidden' && !focused) {
         input.focus();
         focused = true;
       }
     });
 
-    if (!Object.keys(fields).length) {
+    if (orphaned.length) {
+      toast(orphaned[0], 'error');
+    } else if (!Object.keys(fields).length) {
       toast(error.message ?? 'تعذّر إتمام الطلب.', 'error');
     }
   }

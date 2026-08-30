@@ -23,6 +23,13 @@ export const register = (payload) =>
 
 export const logout = () => request('/auth/logout', { method: 'POST' });
 
+/** طلب رابط الاستعادة. الردّ واحد سواء وُجد البريد أم لا — بقصد. */
+export const forgotPassword = (email) =>
+  request('/auth/forgot-password', { method: 'POST', body: { email } });
+
+export const resetPassword = (payload) =>
+  request('/auth/reset-password', { method: 'POST', body: payload });
+
 /** يُرجع المستخدم أو `null` — والـ 401 هنا حالة طبيعية لا خطأ. */
 export async function me() {
   try {

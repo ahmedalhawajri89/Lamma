@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Api\V1\Admin;
 use App\Http\Controllers\Api\V1\Auth\AuthController;
+use App\Http\Controllers\Api\V1\Auth\PasswordResetController;
 use App\Http\Controllers\Api\V1\Portal;
 use App\Http\Controllers\Api\V1\Public as Pub;
 use Illuminate\Support\Facades\Route;
@@ -63,6 +64,11 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
         Route::middleware('throttle:10,1')->group(function (): void {
             Route::post('login', [AuthController::class, 'login'])->name('login');
             Route::post('register', [AuthController::class, 'register'])->name('register');
+
+            // الاستعادة تحت الحدّ نفسه: طلب رابط رخيص علينا، لكنه يُرسل
+            // بريداً باسمنا إلى عنوانٍ يختاره الطالب — فهو سلاح إزعاج بلا حدّ
+            Route::post('forgot-password', [PasswordResetController::class, 'sendLink'])->name('password.email');
+            Route::post('reset-password', [PasswordResetController::class, 'reset'])->name('password.update');
         });
 
         Route::middleware('auth:sanctum')->group(function (): void {

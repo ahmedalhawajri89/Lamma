@@ -57,16 +57,6 @@
           <p>ادخل لمتابعة كفالاتك وتقاريرها.</p>
         </div>
 
-        <div class="auth__social">
-          <button class="social-btn" type="button">
-            <i class="fa-brands fa-google" style="color:#db4437" aria-hidden="true"></i> Google
-          </button>
-          <button class="social-btn" type="button">
-            <i class="fa-brands fa-apple" aria-hidden="true"></i> Apple
-          </button>
-        </div>
-
-        <p class="auth__divider">أو عبر البريد الإلكتروني</p>
 
         <form data-validate-form data-action="login" data-redirect="dashboard.html" novalidate>
 
@@ -101,7 +91,7 @@
               <input type="checkbox" name="remember" checked>
               <span>ابقني مسجّلاً</span>
             </label>
-            <a href="#" data-modal-open="resetModal">نسيت كلمة المرور؟</a>
+            <button class="link-button" type="button" data-modal-open="resetModal">نسيت كلمة المرور؟</button>
           </div>
 
           <button class="btn btn--primary btn--lg btn--block" type="submit">تسجيل الدخول</button>
@@ -141,7 +131,7 @@
         <p>أدخل بريدك وسنرسل لك رابط إعادة التعيين خلال دقائق.</p>
       </div>
 
-      <form data-validate-form data-success-message="أرسلنا لك رابط إعادة التعيين، تفقّد بريدك" novalidate>
+      <form data-validate-form data-action="forgot" novalidate>
         <div class="field" style="margin-block-end:var(--space-6)">
           <label class="field__label" for="resetEmail">البريد الإلكتروني</label>
           <div class="field__control">

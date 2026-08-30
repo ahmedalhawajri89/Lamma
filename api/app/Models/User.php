@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Enums\UserRole;
 use App\Enums\UserStatus;
+use App\Notifications\ResetPasswordNotification;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -41,6 +42,13 @@ class User extends Authenticatable
     use HasFactory;
     use HasRoles;
     use Notifiable;
+
+    /** رسالة الاستعادة بالعربية وبرابط يقصد صفحة الموقع لا مساراً مُسمّى. */
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new ResetPasswordNotification($token));
+    }
+
     use SoftDeletes;
 
     protected $fillable = [

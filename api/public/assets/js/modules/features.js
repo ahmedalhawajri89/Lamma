@@ -438,3 +438,39 @@ export function initPostsPager() {
     button.hidden = page >= lastPage;
   });
 }
+
+
+/* =========================================================================
+   8. صفحة تعيين كلمة المرور
+   ========================================================================= */
+
+/**
+ * يملأ الرمز والبريد من رابط البريد الإلكتروني.
+ *
+ * النموذج يبدأ `hidden` ولا يظهر إلا بوجود الرمز: عرض حقول كلمة مرور
+ * لطلبٍ يُرفض حتماً يجعل المستخدم يجرّب ثلاث مرات قبل أن يفهم أن العطب
+ * في الرابط لا في كلمته.
+ */
+export function initResetPassword() {
+  const form = $('#resetPasswordForm');
+  const invalid = $('#resetInvalid');
+  if (!form || !invalid) return;
+
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get('token');
+  const email = params.get('email');
+
+  if (!token || !email) {
+    invalid.hidden = false;
+    return;
+  }
+
+  $('#resetToken').value = token;
+  $('#resetEmailHidden').value = email;
+
+  const label = $('[data-reset-email]');
+  if (label) label.textContent = email;
+
+  form.hidden = false;
+  $('#newPassword')?.focus();
+}

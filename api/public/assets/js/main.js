@@ -38,6 +38,7 @@ import {
   initThankYou,
   initPostDetail,
   initPostsPager,
+  initResetPassword,
 } from './modules/features.js';
 import { renderHomeSections } from './modules/home.js';
 import { initProofBoard, initCredentials, initFinanceBoard } from './modules/proof.js';
@@ -57,6 +58,7 @@ function boot() {
   initCheckoutSummary();
   initPostDetail();
   initPostsPager();
+  initResetPassword();
   initThankYou();
   initPortal();
 
