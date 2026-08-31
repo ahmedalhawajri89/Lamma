@@ -138,6 +138,7 @@ export const admin = {
   contacts: (params) => client.get(`${v1}/admin/contacts`, { params }),
   updateContact: (id, status) => client.patch(`${v1}/admin/contacts/${id}`, { status }),
   settings: () => client.get(`${v1}/admin/settings`),
+  updateSettings: (settings) => client.put(`${v1}/admin/settings`, { settings }),
 }
 
 export const portal = {

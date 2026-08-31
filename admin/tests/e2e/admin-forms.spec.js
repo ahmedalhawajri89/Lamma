@@ -61,6 +61,20 @@ async function fill(page, labelText, value) {
   )
 }
 
+/** يختار بالقيمة لا بالترتيب — الترتيب يتغيّر مع البيانات. */
+async function selectValue(page, labelText, value) {
+  await page.evaluate(
+    ([label, v]) => {
+      const el = [...document.querySelectorAll('[role=dialog] label')]
+        .find((x) => x.textContent.trim().startsWith(label))
+      const select = document.getElementById(el.getAttribute('for'))
+      select.value = v
+      select.dispatchEvent(new Event('change', { bubbles: true }))
+    },
+    [labelText, value],
+  )
+}
+
 async function pick(page, labelText, index) {
   await page.evaluate(
     ([label, i]) => {
@@ -87,6 +101,9 @@ test.describe('نموذج اليتيم', () => {
 
     const dialog = page.locator('[role=dialog]')
     await expect(dialog).toBeVisible()
+
+    await expect.poll(() => field(page, 'الأسرة', 'options'), { timeout: 20_000 })
+      .toBeGreaterThan(1)
 
     /**
      * أخطاء الخادم تحت الحقول لا في إشعار عائم.
@@ -330,7 +347,10 @@ test.describe('الدفعة اليدوية', () => {
     await page.waitForTimeout(2000)
     await page.getByRole('button', { name: 'دفعة يدوية' }).click()
 
-    expect(await field(page, 'الكفالة', 'options')).toBeGreaterThan(1)
+    // القوائم المرجعية تُجلب موازيةً للجدول وتصل بعده تحت الحمل
+    await expect.poll(() => field(page, 'الكفالة', 'options'), { timeout: 20_000 })
+      .toBeGreaterThan(1)
+
     await pick(page, 'الكفالة', 1)
 
     // مبلغ الكفالة يظهر تلميحاً — فلا يحزر المحاسب رقماً يعرفه النظام
@@ -369,6 +389,9 @@ test.describe('الزيارة الميدانية', () => {
 
     // الوقت معبّأ سلفاً — والمشرف لا يكتبه بيده بعد كل زيارة
     expect((await field(page, 'وقت الزيارة'))?.length).toBeGreaterThan(10)
+
+    await expect.poll(() => field(page, 'الطفل', 'options'), { timeout: 20_000 })
+      .toBeGreaterThan(1)
 
     await pick(page, 'الطفل', 1)
     await fill(page, 'الملاحظات', 'قصير')
@@ -419,6 +442,9 @@ test.describe('التقرير الربعي', () => {
     await pick(page, 'السنة', 4)
     await fill(page, 'العنوان', 'تقرير اختباري — تحسّن في الرياضيات')
 
+    await expect.poll(() => field(page, 'الطفل', 'options'), { timeout: 20_000 })
+      .toBeGreaterThan(1)
+
     const total = await field(page, 'الطفل', 'options')
     let chosen = 0
 
@@ -451,5 +477,92 @@ test.describe('التقرير الربعي', () => {
 
     await expect(page.locator('[role=dialog]').getByText(/يوجد تقرير لهذا الطفل في هذا الربع/))
       .toBeVisible({ timeout: 20_000 })
+  })
+})
+
+/**
+ * المستخدمون والإعدادات.
+ *
+ * شاشة الإعدادات لم تكن موجودة إطلاقاً رغم أن نقطتيها جاهزتان: يُغيَّر اسم
+ * المنصة أو نسبة التشغيل المستهدَفة بتحرير قاعدة البيانات يدوياً.
+ */
+test.describe('المستخدمون', () => {
+  test('حقولٌ تتبع الدور، وحسابٌ بلا كلمة مرور يكتبها المدير', async ({ page }) => {
+    await login(page)
+    await page.goto('/users')
+    await expect(page.locator('table tbody tr td').first()).toBeVisible({ timeout: 20_000 })
+
+    await expect(page.getByRole('button', { name: 'موظف جديد' })).toBeVisible({ timeout: 15_000 })
+    await page.waitForTimeout(2000)
+    await page.getByRole('button', { name: 'موظف جديد' }).click()
+
+    const label = (text) => page.locator('[role=dialog] label').filter({ hasText: text })
+
+    /**
+     * لا حقل كلمة مرور — وهذا مقصود.
+     *
+     * الخادم يولّد كلمةً عشوائية لا تُعرض لأحد، والموظف يضبطها عبر رابط
+     * الاستعادة. كلمةٌ مؤقتة يكتبها المدير تمرّ في بريد أو محادثة وتبقى
+     * هناك إلى الأبد.
+     */
+    await expect(label('كلمة المرور')).toHaveCount(0)
+
+    /**
+     * البلد المُسنَد يعني شيئاً للمشرف الميداني وحده.
+     * `OrphanPolicy` تحصره في بلده؛ والمدير والمحاسب بلا نطاق جغرافي،
+     * وإسناد بلدٍ لهما يوحي بحدٍّ لا وجود له.
+     */
+    await expect(label('البلد المُسنَد')).toHaveCount(0)
+    await selectValue(page, 'الدور', 'field_supervisor')
+    await expect(label('البلد المُسنَد')).toHaveCount(1)
+    await selectValue(page, 'الدور', 'accountant')
+    await expect(label('البلد المُسنَد')).toHaveCount(0)
+
+    await fill(page, 'الاسم', 'موظف اختباري')
+    await fill(page, 'البريد', `staff${Date.now().toString().slice(-7)}@kafala.org`)
+    await page.getByRole('button', { name: 'حفظ' }).click()
+
+    await expect(page.locator('[role=dialog]')).toBeHidden({ timeout: 25_000 })
+    await expect(page.getByText(/رابط تعيين كلمة المرور/)).toBeVisible()
+  })
+})
+
+test.describe('الإعدادات', () => {
+  test('تُحمَّل من الخادم وتُحفظ، والزرّ صامت حتى يتغيّر شيء', async ({ page }) => {
+    await login(page)
+    await page.goto('/settings')
+
+    await expect(page.locator('section.card')).toHaveCount(3, { timeout: 20_000 })
+
+    // القيم من قاعدة البيانات لا فارغة
+    await expect
+      .poll(() => page.evaluate(() => {
+        const el = [...document.querySelectorAll('label')]
+          .find((x) => x.textContent.trim().startsWith('اسم المنصة'))
+        return document.getElementById(el.getAttribute('for')).value
+      }), { timeout: 20_000 })
+      .not.toBe('')
+
+    /**
+     * الزرّ معطّل حتى يتغيّر شيء.
+     *
+     * حفظٌ بلا تعديل يكتب الصفوف كلها ويمسح ذاكرة الموقع العام بلا سبب —
+     * ويجعل سجل النشاط يمتلئ بتغييرات لم تقع.
+     */
+    const save = page.getByRole('button', { name: 'حفظ الإعدادات' })
+    await expect(save).toBeDisabled()
+
+    await page.evaluate(() => {
+      const el = [...document.querySelectorAll('label')]
+        .find((x) => x.textContent.trim().startsWith('الوصف المختصر'))
+      const input = document.getElementById(el.getAttribute('for'))
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set
+        .call(input, 'منصة كفالة الأيتام')
+      input.dispatchEvent(new Event('input', { bubbles: true }))
+    })
+
+    await expect(save).toBeEnabled()
+    await save.click()
+    await expect(page.getByText('حُفظت الإعدادات.')).toBeVisible({ timeout: 20_000 })
   })
 })

@@ -98,6 +98,12 @@ const routes = [
     meta: { title: 'المستخدمون', icon: 'shield', permission: 'users.manage' },
   },
   {
+    path: '/settings',
+    name: 'settings',
+    component: () => import('@/views/SettingsView.vue'),
+    meta: { title: 'الإعدادات', icon: 'gauge', permission: 'settings.manage' },
+  },
+  {
     path: '/activity',
     name: 'activity',
     component: () => import('@/views/ActivityView.vue'),
