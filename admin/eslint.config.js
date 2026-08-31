@@ -37,6 +37,13 @@ export default [
         args: 'none',
         caughtErrors: 'none',
         varsIgnorePattern: '^_',
+
+        /**
+         * `const { secret, ...rest } = obj` اصطلاحٌ لحذف مفتاح، لا نسيان.
+         * والمتغيّر فيه غير مستعمل بطبيعته — منعه يدفع إلى بادئة شرطة سفلية
+         * تُخفي النيّة بدل أن توضّحها.
+         */
+        ignoreRestSiblings: true,
       }],
 
       'no-console': ['warn', { allow: ['warn', 'error'] }],

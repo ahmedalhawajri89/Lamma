@@ -170,3 +170,69 @@ test.describe('نموذج اليتيم', () => {
     await expect(page.locator('[role=dialog]')).toBeHidden()
   })
 })
+
+/**
+ * الأسرة أسبق من اليتيم — ولا يُنشأ ملف بلا واحدة.
+ *
+ * وهذا النموذج كشف عيبين: `national_id` مستثنى من الإسناد الجماعي بقصد
+ * والمتحكّم يمرّره في المُنشئ فيسقط الطلب بـ٥٠٠، و`structuredClone` على
+ * كائن Vue التفاعلي يرمي `DataCloneError` فلا يغادر الطلبُ المتصفحَ أصلاً.
+ */
+test.describe('نموذج الأسرة', () => {
+  test('ينشئ أسرة وتتبع المدنُ الدولةَ', async ({ page }) => {
+    await login(page)
+    await page.goto('/families')
+    await expect(page.locator('table tbody tr', { hasText: /FAM-\d+/ }).first())
+      .toBeVisible({ timeout: 20_000 })
+
+    await expect(page.getByRole('button', { name: 'أسرة جديدة' })).toBeVisible({ timeout: 15_000 })
+    await page.waitForTimeout(2000)
+    await page.getByRole('button', { name: 'أسرة جديدة' }).click()
+
+    const cityCount = async () => page.evaluate(() => {
+      const el = [...document.querySelectorAll('[role=dialog] label')]
+        .find((x) => x.textContent.trim().startsWith('المدينة'))
+      return document.getElementById(el.getAttribute('for')).options.length
+    })
+
+    // قبل اختيار الدولة: خيار العنصر النائب وحده، والحقل معطّل
+    expect(await cityCount()).toBe(1)
+
+    await pick(page, 'الدولة', 1)
+    await expect.poll(cityCount).toBeGreaterThan(1)
+
+    const guardian = `أم خالد ${Date.now().toString().slice(-5)}`
+    await fill(page, 'الاسم الكامل', guardian)
+    await pick(page, 'صلته بالأطفال', 1)
+    await fill(page, 'عدد الأفراد', '6')
+    await pick(page, 'وضع السكن', 1)
+    await pick(page, 'المدينة', 1)
+
+    // رقم الهوية يُقبل ويُخزَّن بصمةً — وتمريره كان يُسقط الطلب بـ٥٠٠
+    await fill(page, 'رقم الهوية', '900112233')
+
+    await page.getByRole('button', { name: 'حفظ' }).click()
+    await expect(page.locator('[role=dialog]')).toBeHidden({ timeout: 20_000 })
+    await expect(page.getByText('أُنشئت الأسرة.')).toBeVisible()
+
+    // ── التحرير: الصفّ يفتح النافذة مملوءة ──
+    const row = page.locator('table tbody tr', { hasText: guardian }).first()
+    await expect(row).toBeVisible({ timeout: 20_000 })
+    await row.locator('td').first().click()
+
+    await expect(page.locator('[role=dialog]')).toBeVisible()
+    expect(await page.evaluate(() => {
+      const el = [...document.querySelectorAll('[role=dialog] label')]
+        .find((x) => x.textContent.trim().startsWith('الاسم الكامل'))
+      return document.getElementById(el.getAttribute('for')).value
+    })).toBe(guardian)
+
+    /**
+     * حقل رقم الهوية غائب عند التحرير.
+     *
+     * الخادم يخزّن بصمةً لا رقماً، فلا شيء يُعاد ليُملأ به — وحقلٌ فارغ هنا
+     * يوحي بأن الرقم ضاع.
+     */
+    await expect(page.locator('[role=dialog] label').filter({ hasText: 'رقم الهوية' })).toHaveCount(0)
+  })
+})

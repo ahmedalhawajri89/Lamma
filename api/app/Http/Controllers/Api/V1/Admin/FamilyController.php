@@ -85,9 +85,16 @@ class FamilyController extends Controller
         ]);
 
         $family = DB::transaction(function () use ($validated): Family {
-            $guardian = new Guardian($validated['guardian']);
-
-            // التجزئة داخل الموديل — الرقم الخام لا يصل قاعدة البيانات أبداً
+            /**
+             * `national_id` يُستثنى من الإسناد الجماعي بقصد.
+             *
+             * الحقل ليس في `$fillable` لأن الرقم الخام لا يُخزَّن أبداً؛
+             * `setNationalId` وحدها تكتب البصمة المُملَّحة. وتمريره في
+             * المُنشئ كان يُسقط الطلب بـ`MassAssignmentException` تحت الوضع
+             * الصارم — لكن فقط حين يرسله العميل، ولم يكن أي عميل يرسله قبل
+             * أن يوجد هذا النموذج في اللوحة.
+             */
+            $guardian = new Guardian(collect($validated['guardian'])->except('national_id')->all());
             $guardian->setNationalId($validated['guardian']['national_id'] ?? null);
             $guardian->save();
 
