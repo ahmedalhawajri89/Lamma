@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/cover.png" alt="Kafala — كفالة" width="900">
+</p>
+
 # Kafala — كفالة
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-Open%20the%20site-c2410c?style=for-the-badge&logo=vercel&logoColor=white)](https://kafala-orphan-sponsorship.vercel.app/)
