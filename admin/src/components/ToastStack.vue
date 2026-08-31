@@ -6,10 +6,19 @@ const ui = useUiStore()
 </script>
 
 <template>
-  <!-- aria-live: قارئ الشاشة يعلن التنبيه بلا نقل التركيز إليه -->
+  <!--
+    `aria-live`: قارئ الشاشة يعلن التنبيه بلا نقل التركيز إليه.
+
+    و`inset-inline-end` لا `start`: الشريط الجانبي على بداية السطر، وفي أسفله
+    اسم المستخدم وزرّ الخروج — فتنبيهٌ هناك يغطّي زرّ الخروج نفسه، ومن أراد
+    الخروج بعد عملية ناجحة وجد تأكيدها واقفاً في طريقه.
+
+    والموضع بالنمط لا بصنف Tailwind: `inset-inline-start-4` ليس صنفاً موجوداً،
+    فكان يُكتب ولا يفعل شيئاً.
+  -->
   <div
-    class="fixed bottom-4 inset-inline-start-4 z-50 flex flex-col gap-2 max-w-sm"
-    style="inset-inline-start: 1rem"
+    class="fixed bottom-4 z-50 flex flex-col gap-2 max-w-sm"
+    style="inset-inline-end: 1rem"
     role="status" aria-live="polite"
   >
     <TransitionGroup name="toast">

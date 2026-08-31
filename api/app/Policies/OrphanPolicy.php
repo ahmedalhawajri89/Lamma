@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Policies;
 
 use App\Enums\OrphanStatus;
+use App\Models\Family;
 use App\Models\Orphan;
 use App\Models\User;
 
@@ -27,9 +28,26 @@ class OrphanPolicy
         return $user->can('orphans.view') && $this->withinScope($user, $orphan);
     }
 
-    public function create(User $user): bool
+    /**
+     * الإنشاء يُفحص على الأسرة لا على اليتيم — فاليتيم لم يوجد بعد.
+     *
+     * والأسرة هي ما يحمل البلد، فبلا هذا الفحص يستطيع مشرف غزّة أن يُنشئ
+     * ملفاً تحت أسرة في بلد آخر، ثم لا يراه بعد ذلك: `view` تحجبه عنه.
+     * سجلٌّ يُنشئه من لا يملك رؤيته ليس ثغرة أمنية وحدها، بل بيانات يتيمة.
+     */
+    public function create(User $user, ?Family $family = null): bool
     {
-        return $user->can('orphans.create');
+        if (! $user->can('orphans.create')) {
+            return false;
+        }
+
+        $assigned = $user->assignedCountryId();
+
+        if ($assigned === null || $user->isAdmin() || $family === null) {
+            return true;
+        }
+
+        return $family->country_id === $assigned;
     }
 
     public function update(User $user, Orphan $orphan): bool

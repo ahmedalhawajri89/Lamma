@@ -1,7 +1,7 @@
 <script setup>
 import { fundingTone } from '@/utils/format'
 
-const props = defineProps({
+defineProps({
   percent: { type: Number, default: 0 },
   showLabel: { type: Boolean, default: true },
 })

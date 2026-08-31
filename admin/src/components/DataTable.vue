@@ -35,11 +35,20 @@ defineEmits(['row-click'])
         </thead>
 
         <tbody>
-          <tr v-if="loading" v-for="n in 5" :key="`sk-${n}`" class="border-b border-sand-100">
-            <td v-for="col in columns" :key="col.key" class="px-4 py-3.5">
-              <div class="h-3 rounded bg-sand-100 animate-pulse" :style="{ width: `${40 + (n * 7) % 45}%` }" />
-            </td>
-          </tr>
+          <!--
+            الشرط على غلافٍ لا على `<tr>` نفسه.
+            `v-if` و`v-for` على العنصر الواحد يعملان في Vue 3 (‏`v-if` أسبق)
+            لكنهما يُخفيان نيّة الكود، والأهمّ أن الصفوف الهيكلية بلا `@click`:
+            فأي شيء يستهدف `tr:first` — اختباراً كان أو نقرة مستخدم سريعة —
+            يصيب صفّاً لا يستجيب، ولا يقول أحد لماذا.
+          -->
+          <template v-if="loading">
+            <tr v-for="n in 5" :key="`sk-${n}`" class="border-b border-sand-100">
+              <td v-for="col in columns" :key="col.key" class="px-4 py-3.5">
+                <div class="h-3 rounded bg-sand-100 animate-pulse" :style="{ width: `${40 + (n * 7) % 45}%` }" />
+              </td>
+            </tr>
+          </template>
 
           <tr v-else-if="!rows.length">
             <td :colspan="columns.length" class="px-4 py-14 text-center">

@@ -78,7 +78,22 @@ class Orphan extends Model
     ];
 
     /** يطابق DEFAULT 0 في المخطّط، فلا يخرج الكائن الجديد بنسبة null. */
-    protected $attributes = ['funded_percent' => 0];
+    /**
+     * القيم الافتراضية على الموديل لا على الجدول وحده.
+     *
+     * `default('draft')` في الهجرة تخصّ MySQL: تملأ العمود عند الإدراج، ولا
+     * تصل النسخة التي في الذاكرة. فيرجع `Orphan::create()` نموذجاً حالته
+     * `null`، ويسقط `$this->status->value` في المورد بخطأ ٥٠٠ — عند الإنشاء
+     * وحده، وهو المسار الذي لم تكن له واجهة فلم يمرّ به أحد.
+     *
+     * تكرار القيمة هنا ليس ازدواجاً بل مطابقة: الجدول يحرس البيانات،
+     * والموديل يحرس السطر التالي من الكود.
+     */
+    protected $attributes = [
+        'funded_percent' => 0,
+        'status' => OrphanStatus::Draft->value,
+        'is_urgent' => false,
+    ];
 
     protected function casts(): array
     {

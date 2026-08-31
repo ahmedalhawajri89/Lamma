@@ -1,8 +1,10 @@
 <script setup>
+import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { admin } from '@/api/endpoints'
 import { useResource } from '@/composables/useResource'
-import { money, date } from '@/utils/format'
+import { useAuthStore } from '@/stores/auth'
+import { money } from '@/utils/format'
 import PageHeader from '@/components/PageHeader.vue'
 import FilterBar from '@/components/FilterBar.vue'
 import DataTable from '@/components/DataTable.vue'
@@ -10,10 +12,12 @@ import PaginationBar from '@/components/PaginationBar.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
 import FundingBar from '@/components/FundingBar.vue'
 import BaseIcon from '@/components/BaseIcon.vue'
+import OrphanFormModal from '@/components/OrphanFormModal.vue'
 
 const router = useRouter()
+const auth = useAuthStore()
 
-const { items, meta, loading, filters, reset } = useResource(admin.orphans.list, {
+const { items, meta, loading, filters, reset, load } = useResource(admin.orphans.list, {
   q: '', status: '', urgent: false, unfunded: false, unverified: false, sort: 'created_at', dir: 'desc',
 })
 
@@ -27,11 +31,56 @@ const columns = [
   { key: 'monthly_need', label: 'الحاجة الشهرية', align: 'end' },
   { key: 'status', label: 'الحالة' },
 ]
+
+/* ── الإنشاء ─────────────────────────────────────────────────────────── */
+
+const formOpen = ref(false)
+const references = ref({})
+const families = ref([])
+
+/**
+ * القوائم المرجعية تُجلب مرة عند فتح الشاشة لا عند كل فتح للنافذة.
+ *
+ * البرامج والأسر لا تتغيّر بين نقرتين، وإعادة جلبها في كل مرة تُبطئ فتح
+ * النافذة بلا أن تعطي المستخدم شيئاً.
+ */
+async function loadReferences() {
+  if (!auth.can('orphans.create')) return
+
+  try {
+    const [refs, fams] = await Promise.all([
+      admin.references(),
+      admin.families.list({ per_page: 200 }),
+    ])
+    references.value = refs.data.data ?? {}
+    families.value = fams.data.data ?? []
+  } catch {
+    // الصمت مقصود: فشل القوائم لا يمنع تصفّح الجدول، والنافذة وحدها تتعطّل
+  }
+}
+
+function onSaved(orphan) {
+  formOpen.value = false
+  if (orphan?.id) router.push(`/orphans/${orphan.id}`)
+  else load()
+}
+
+onMounted(loadReferences)
 </script>
 
 <template>
   <div>
-    <PageHeader title="الأيتام" :subtitle="`${meta.total} حالة`" />
+    <PageHeader title="الأيتام" :subtitle="`${meta.total} حالة`">
+      <template #actions>
+        <button
+          v-if="auth.can('orphans.create')" class="btn btn-primary" type="button"
+          @click="formOpen = true"
+        >
+          <BaseIcon name="plus" :size="16" />
+          ملف جديد
+        </button>
+      </template>
+    </PageHeader>
 
     <FilterBar v-model:search="filters.q" search-placeholder="ابحث بالاسم أو المعرّف…" @reset="reset">
       <select v-model="filters.status" class="input !w-auto text-sm" aria-label="الحالة">
@@ -85,5 +134,10 @@ const columns = [
     </DataTable>
 
     <PaginationBar v-model="filters.page" :meta="meta" />
+
+    <OrphanFormModal
+      :open="formOpen" :references="references" :families="families"
+      @close="formOpen = false" @saved="onSaved"
+    />
   </div>
 </template>

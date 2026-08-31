@@ -10,6 +10,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreOrphanRequest;
 use App\Http\Requests\Admin\UpdateOrphanRequest;
 use App\Http\Resources\OrphanResource;
+use App\Models\Family;
 use App\Models\Orphan;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -95,6 +96,17 @@ class OrphanController extends Controller
 
     public function store(StoreOrphanRequest $request, VerifyOrphan $action): JsonResponse
     {
+        /**
+         * السياسة كانت معرَّفة ولا تُستدعى.
+         *
+         * حراسة المسار `role:admin|accountant|field_supervisor` تمرّر المحاسبَ
+         * إلى هنا، وهو لا يملك `orphans.create`. فكان بابٌ مفتوحاً على مصراعيه
+         * خلف سياسةٍ مكتوبة لا تعمل — وهو أسوأ من غياب السياسة، لأنه يبدو
+         * محروساً في المراجعة.
+         */
+        $family = Family::findOrFail($request->validated('family_id'));
+        $this->authorize('create', [Orphan::class, $family]);
+
         $orphan = DB::transaction(function () use ($request): Orphan {
             $data = $request->safe()->except('photo');
             $data['reference_code'] = $this->nextReference();

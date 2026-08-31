@@ -12,6 +12,19 @@ import { defineConfig, devices } from '@playwright/test'
 export default defineConfig({
   testDir: './tests/e2e',
   fullyParallel: false,
+
+  /**
+   * عامل واحد.
+   *
+   * `fullyParallel: false` يُسلسل الاختبارات داخل الملف الواحد فقط؛ والملفات
+   * تبقى متوازية على عدة عمّال. وخادم `artisan serve` أحادي الخيط، فملفّان
+   * يتسابقان عليه يضاعفان زمن كل طلب حتى تتجاوز المهلات — فتسقط اختبارات
+   * تمرّ كلها منفردةً.
+   *
+   * وإخفاقٌ يعتمد على عدد أنوية الجهاز أسوأ من بطء: يُعلّم الفريق أن السقوط
+   * الأحمر قد لا يعني شيئاً، فيُتجاهل يوم يعني شيئاً فعلاً.
+   */
+  workers: 1,
   retries: 0,
   reporter: [['list']],
 

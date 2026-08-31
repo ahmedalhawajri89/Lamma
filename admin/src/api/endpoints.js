@@ -27,13 +27,39 @@ export const admin = {
     publish: (id) => client.post(`${v1}/admin/orphans/${id}/publish`),
     unpublish: (id) => client.post(`${v1}/admin/orphans/${id}/unpublish`),
     documents: (id) => client.get(`${v1}/admin/orphans/${id}/documents`),
+    remove: (id) => client.delete(`${v1}/admin/orphans/${id}`),
+  },
+
+  documents: {
+    /**
+     * الرفع `FormData` لا JSON: الملف بايتات لا نصّ، وترميزه base64 داخل
+     * JSON يضخّمه الثلث ويحمّل الخادم فكّه.
+     *
+     * ولا نضبط `Content-Type` يدوياً — المتصفح وحده يعرف حدّ الفصل
+     * (`boundary`) الذي يفصل أجزاء الرسالة، وكتابته بأيدينا تكسر التحليل.
+     */
+    upload: (orphanId, payload) => {
+      const body = new FormData()
+      body.append('type', payload.type)
+      body.append('file', payload.file)
+
+      return client.post(`${v1}/admin/orphans/${orphanId}/documents`, body)
+    },
+
+    verify: (id) => client.post(`${v1}/admin/documents/${id}/verify`),
+    remove: (id) => client.delete(`${v1}/admin/documents/${id}`),
+    downloadUrl: (id) => `${v1}/admin/documents/${id}/download`,
   },
 
   families: {
     list: (params) => client.get(`${v1}/admin/families`, { params }),
     show: (id) => client.get(`${v1}/admin/families/${id}`),
     create: (payload) => client.post(`${v1}/admin/families`, payload),
+    update: (id, payload) => client.patch(`${v1}/admin/families/${id}`, payload),
   },
+
+  /** القوائم المرجعية للنماذج: البلدان والمدن والبرامج والتعدادات. */
+  references: () => client.get(`${v1}/admin/references`),
 
   sponsors: {
     list: (params) => client.get(`${v1}/admin/sponsors`, { params }),

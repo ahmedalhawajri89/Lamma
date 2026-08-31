@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { admin } from '@/api/endpoints'
 import { useAuthStore } from '@/stores/auth'
@@ -9,6 +9,8 @@ import PageHeader from '@/components/PageHeader.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
 import FundingBar from '@/components/FundingBar.vue'
 import BaseIcon from '@/components/BaseIcon.vue'
+import DocumentsPanel from '@/components/DocumentsPanel.vue'
+import OrphanFormModal from '@/components/OrphanFormModal.vue'
 
 const route = useRoute()
 const auth = useAuthStore()
@@ -48,7 +50,51 @@ async function act(fn, successMessage) {
   }
 }
 
-onMounted(load)
+/**
+ * جاهزية التوثيق تُحسب هنا لا في لوحة المستندات.
+ *
+ * زرّ «توثيق الملف» يعيش في الترويسة، والخادم يرفضه بخطأ ما لم تكن
+ * المستندات الثلاثة مُتحقَّقاً منها. زرٌّ يُعرض ليُرفض ليس واجهة، بل فخّ:
+ * المستخدم يضغطه فيقرأ خطأً لا يدلّه على المطلوب.
+ */
+const REQUIRED_DOCUMENTS = ['birth_certificate', 'death_certificate', 'guardianship_proof']
+
+const documentsReady = computed(() =>
+  REQUIRED_DOCUMENTS.every((type) =>
+    (orphan.value?.documents ?? []).some((d) => d.type === type && d.is_verified),
+  ),
+)
+
+/* ── التحرير ─────────────────────────────────────────────────────────── */
+
+const formOpen = ref(false)
+const references = ref({})
+const families = ref([])
+
+async function loadReferences() {
+  if (!auth.can('orphans.update')) return
+
+  try {
+    const [refs, fams] = await Promise.all([
+      admin.references(),
+      admin.families.list({ per_page: 200 }),
+    ])
+    references.value = refs.data.data ?? {}
+    families.value = fams.data.data ?? []
+  } catch {
+    // فشل القوائم لا يمنع عرض الملف — نافذة التحرير وحدها تتعطّل
+  }
+}
+
+async function onSaved() {
+  formOpen.value = false
+  await load()
+}
+
+onMounted(() => {
+  load()
+  loadReferences()
+})
 </script>
 
 <template>
@@ -61,8 +107,16 @@ onMounted(load)
     <PageHeader :title="orphan.full_name" :subtitle="`${orphan.reference_code} · ${orphan.age} سنوات`">
       <template #actions>
         <button
+          v-if="auth.can('orphans.update')" class="btn btn-outline" type="button"
+          :disabled="busy" @click="formOpen = true"
+        >
+          <BaseIcon name="edit" :size="16" /> تحرير
+        </button>
+
+        <button
           v-if="!orphan.verified_at && auth.can('orphans.verify')"
-          class="btn btn-outline" type="button" :disabled="busy"
+          class="btn btn-outline" type="button" :disabled="busy || !documentsReady"
+          :title="documentsReady ? 'توثيق الملف' : 'المستندات الثلاثة يجب أن تكون مرفوعة ومُتحقَّقاً منها'"
           @click="act(admin.orphans.verify, 'وُثّق الملف.')"
         >
           <BaseIcon name="shield" :size="16" /> توثيق الملف
@@ -192,22 +246,13 @@ onMounted(load)
         </div>
 
         <!-- المستندات: ما يجعل «ثلاث مراحل تحقّق» قابلاً للإثبات -->
-        <div class="card p-4">
-          <h2 class="text-sm font-semibold mb-3">مستندات التحقق</h2>
-          <ul v-if="orphan.documents?.length" class="space-y-1.5">
-            <li v-for="d in orphan.documents" :key="d.id" class="flex items-center gap-2 text-sm">
-              <BaseIcon
-                :name="d.is_verified ? 'check' : 'clock'" :size="15"
-                :class="d.is_verified ? 'text-olive-600' : 'text-amber-600'"
-              />
-              <span class="flex-1 truncate">{{ d.type_label }}</span>
-            </li>
-          </ul>
-          <p v-else class="text-sm text-sand-500 py-2">لا مستندات مرفوعة.</p>
-          <p v-if="!orphan.verified_at" class="text-xs text-amber-700 mt-3 pt-3 border-t border-sand-100">
-            التوثيق يحتاج شهادة ميلاد وشهادة وفاة وإثبات وصاية، كلها مُتحقَّقاً منها.
-          </p>
-        </div>
+        <DocumentsPanel
+          ref="documents"
+          :orphan-id="orphan.id"
+          :verified="Boolean(orphan.verified_at)"
+          :types="references.document_types ?? []"
+          @changed="load"
+        />
 
         <div class="card p-4">
           <h2 class="text-sm font-semibold mb-3">الكفالات</h2>
@@ -224,5 +269,10 @@ onMounted(load)
         </div>
       </div>
     </div>
+
+    <OrphanFormModal
+      :open="formOpen" :orphan="orphan" :references="references" :families="families"
+      @close="formOpen = false" @saved="onSaved"
+    />
   </div>
 </template>
