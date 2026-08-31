@@ -18,3 +18,7 @@ Thumbs.db
 /admin/shots/
 /admin/test-results/
 /admin/playwright-report/
+
+# وثائق عمل داخلية: تبقى على القرص ولا تُنشر.
+# PROGRESS.md فيه مسارات الجهاز وقائمة بما لم يُنجَز بعد.
+/docs/

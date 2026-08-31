@@ -34,8 +34,7 @@ kafala-orphan-sponsorship/
 │       ├── assets/
 │       └── admin-app/      ← ناتج بناء لوحة Vue (لا يُحفظ في المستودع)
 │
-├── admin/                  مصدر اللوحة: Vue 3 · Vite · Pinia · Chart.js
-└── docs/                   ARCHITECTURE.md · DATABASE.md · PROGRESS.md
+└── admin/                  مصدر اللوحة: Vue 3 · Vite · Pinia · Chart.js
 ```
 
 **نشرٌ واحد لكل شيء.** الموقع العام ولوحة الإدارة والـ API على أصل واحد:
@@ -62,8 +61,7 @@ kafala-orphan-sponsorship/
 
 ## 🗄 قاعدة البيانات
 
-التصميم الكامل وسببُ كل قرار في **[`docs/DATABASE.md`](docs/DATABASE.md)**. وهذه
-أبرز خمسة قرارات:
+أربعة وأربعون جدولاً. وهذه أبرز خمسة قرارات في تصميمها:
 
 **١. القيد الجزئي على الكفالات.**
 لا يجوز لكافل أن يكفل الطفل نفسه مرتين *في وقت واحد*، لكنه **يجوز** أن يعود بعد
