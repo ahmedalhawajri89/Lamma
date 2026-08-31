@@ -225,14 +225,51 @@ export function initCheckoutSummary() {
   $$('[data-checkout="price"]').forEach((el) => { el.textContent = `$${orphan.monthly}`; });
   $$('[data-checkout="id"]').forEach((el) => { el.textContent = orphan.id; });
 
+  /**
+   * المجموع يتبع دورية الكفالة.
+   *
+   * `ui.js` يُبدّل شكل الأزرار ويُطلق `chip:change`، ولم يكن أحد يستمع:
+   * يختار الزائر «سنوية» فيتلوّن الزرّ ويبقى المبلغ سعر شهر واحد. وهذه
+   * صفحة الدفع — أسوأ مكان يختلف فيه ما يُعرض عمّا يُقصد.
+   */
+  const CYCLES = {
+    monthly: { months: 1, note: '' },
+    quarterly: { months: 3, note: 'عن ثلاثة أشهر' },
+    yearly: { months: 12, note: 'عن سنة' },
+  };
+
+  const chips = $('[data-chips]');
+
+  function renderTotal(cycle) {
+    const { months, note } = CYCLES[cycle] ?? CYCLES.monthly;
+
+    $$('[data-checkout="total"]').forEach((el) => {
+      el.textContent = `$${orphan.monthly * months}`;
+    });
+
+    $$('[data-checkout="cycle"]').forEach((el) => { el.textContent = note; });
+
+    // الدورية تعبر إلى صفحة الشكر فيتطابق التأكيد مع ما اختاره الزائر
+    const target = $('#checkoutForm');
+    if (target) {
+      target.dataset.redirect =
+        `thank-you.html?id=${encodeURIComponent(orphan.id)}&cycle=${cycle}`;
+    }
+  }
+
+  renderTotal($('.chip.is-active', chips ?? document)?.dataset.value ?? 'monthly');
+
+  if (chips) {
+    chips.addEventListener('chip:change', (event) => {
+      renderTotal(event.detail?.value ?? 'monthly');
+    });
+  }
+
   const photo = $('[data-checkout="photo"]');
   if (photo) {
     photo.src = orphan.photo;
     photo.alt = `صورة ${orphan.name}`;
   }
-
-  const form = $('#checkoutForm');
-  if (form) form.dataset.redirect = `thank-you.html?id=${encodeURIComponent(orphan.id)}`;
 }
 
 /* =========================================================================
@@ -250,6 +287,19 @@ export function initThankYou() {
   $$('[data-thanks="program"]').forEach((el) => { el.textContent = program.name; });
   $$('[data-thanks="price"]').forEach((el) => { el.textContent = `$${orphan.monthly}`; });
   $$('[data-thanks="ref"]').forEach((el) => { el.textContent = orphan.id; });
+
+  // ما اختاره الزائر في الدفع، لا «شهرياً» دائماً
+  const CYCLE_WORDS = {
+    monthly: 'شهرياً',
+    quarterly: 'كل ثلاثة أشهر',
+    yearly: 'سنوياً',
+  };
+
+  const cycle = new URLSearchParams(window.location.search).get('cycle');
+
+  $$('[data-thanks="cycle"]').forEach((el) => {
+    el.textContent = CYCLE_WORDS[cycle] ?? CYCLE_WORDS.monthly;
+  });
 
   const photo = $('[data-thanks="photo"]');
   if (photo) {

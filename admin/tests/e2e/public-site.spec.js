@@ -245,3 +245,54 @@ test.describe('المدونة وصفحة المقال', () => {
     await expect(button).toBeHidden()
   })
 })
+
+/**
+ * دورية الكفالة على صفحة الدفع.
+ *
+ * كانت أزرار «شهرية / كل ٣ أشهر / سنوية» تُبدّل شكلها ولا شيء غير ذلك:
+ * `ui.js` يُطلق `chip:change` ولم يكن أحد يستمع، وسطرا «الكفالة الشهرية»
+ * و«الإجمالي الآن» يتقاسمان الخطّاف نفسه. فيختار الزائر «سنوية» ويقرأ سعر
+ * شهر واحد — على صفحة الدفع، أسوأ مكان يختلف فيه ما يُعرض عمّا يُقصد.
+ */
+test.describe('دورية الكفالة', () => {
+  test('الإجمالي يتبع الدورية، ويعبر إلى صفحة الشكر', async ({ page }) => {
+    await page.goto(`${WEB}/checkout`)
+
+    const monthly = page.locator('[data-checkout="price"]')
+    const total = page.locator('[data-checkout="total"]')
+
+    await expect(monthly).not.toHaveText('…', { timeout: 15_000 })
+
+    const amount = Number((await monthly.textContent()).replace(/[^\d.]/g, ''))
+    expect(amount).toBeGreaterThan(0)
+
+    // شهرية: الإجمالي = المبلغ الشهري
+    await expect(total).toHaveText(`$${amount}`)
+
+    await page.getByRole('button', { name: 'كل ٣ أشهر' }).click()
+    await expect(total).toHaveText(`$${amount * 3}`)
+    await expect(page.locator('[data-checkout="cycle"]')).toHaveText('عن ثلاثة أشهر')
+
+    await page.getByRole('button', { name: 'سنوية' }).click()
+    await expect(total).toHaveText(`$${amount * 12}`)
+
+    // والسطر الشهري لا يتحرّك: هو ما يُخصم كل شهر لا ما يُدفع الآن
+    await expect(monthly).toHaveText(`$${amount}`)
+
+    /**
+     * الاختيار يعبر إلى التأكيد.
+     *
+     * صفحة شكر تقول «شهرياً» لمن دفع سنةً كاملة تناقض إيصاله.
+     */
+    const redirect = await page.locator('#checkoutForm').getAttribute('data-redirect')
+    expect(redirect).toContain('cycle=yearly')
+
+    await page.goto(`${WEB}/${redirect}`)
+    await expect(page.locator('[data-thanks="cycle"]')).toHaveText('سنوياً', { timeout: 15_000 })
+  })
+
+  test('صفحة الشكر بلا دورية تقول شهرياً', async ({ page }) => {
+    await page.goto(`${WEB}/thank-you.html?id=KFL-1042`)
+    await expect(page.locator('[data-thanks="cycle"]')).toHaveText('شهرياً', { timeout: 15_000 })
+  })
+})

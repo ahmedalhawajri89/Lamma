@@ -267,9 +267,14 @@
               </div>
             </div>
 
+            <!--
+              للمجموع خطّافه الخاص: كان يشترك مع سطر «الكفالة الشهرية» في
+              `data-checkout="price"`، فيعرض المبلغ الشهري مهما اختار الزائر
+              من دورية — يختار «سنوية» ويقرأ سعر شهر.
+            -->
             <div class="summary__total">
-              <span>الإجمالي الآن</span>
-              <strong class="num" data-checkout="price">…</strong>
+              <span>الإجمالي الآن <span class="muted" data-checkout="cycle"></span></span>
+              <strong class="num" data-checkout="total">…</strong>
             </div>
 
             <div class="secure-note">
