@@ -1,8 +1,12 @@
 # كفالة — Kafala
 
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-Open%20the%20site-C2410C?style=for-the-badge&logo=vercel&logoColor=white)](https://kafala-orphan-sponsorship.vercel.app/)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-%D8%A7%D9%84%D9%85%D9%88%D9%82%D8%B9%20%D8%A7%D9%84%D8%B9%D8%A7%D9%85-C2410C?style=for-the-badge&logo=vercel&logoColor=white)](https://kafala-orphan-sponsorship.vercel.app/)
 
 <div dir="rtl">
+
+> الديمو أعلاه نسخة **ساكنة من الموقع العام وحده** — لعرض التصميم والحركة.
+> أما الـ API ولوحة الإدارة وبوابة الكافل فتحتاج PHP و MySQL، وتُشغَّل محلياً
+> بخطوتين في [التشغيل](#-التشغيل).
 
 منصة كفالة أيتام كاملة: موقع عام بالعربية (RTL أولاً)، وخادم Laravel 12 على
 MySQL، ولوحة إدارة Vue 3، وبوابة للكافل.
@@ -26,7 +30,7 @@ kafala-orphan-sponsorship/
 ├── api/                    Laravel 12 · PHP 8.2 · MySQL · Sanctum
 │   ├── app/  database/     ١٢٬٤٠٠ سطر
 │   └── public/             ← الموقع العام: HTML و CSS و JS بلا إطار
-│       ├── index.html …    ١٥ صفحة · ١٠٬٩٠٠ سطر
+│       ├── index.html …    ١٧ صفحة · ١٠٬٩٠٠ سطر
 │       ├── assets/
 │       └── admin-app/      ← ناتج بناء لوحة Vue (لا يُحفظ في المستودع)
 │
@@ -52,7 +56,7 @@ kafala-orphan-sponsorship/
 | مسارات الـ API | **٨٨** في أربع مجموعات |
 | موديلات Eloquent | ٢٩ · و١٥ enum |
 | شاشات لوحة الإدارة | ١٦ |
-| اختبارات | ٤٨ Pest · ١٤ Playwright · ٦ Vitest |
+| اختبارات | ٨٠ Pest · ٢٩ Playwright · ١٢ Vitest |
 
 ---
 
