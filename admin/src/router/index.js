@@ -98,6 +98,12 @@ const routes = [
     meta: { title: 'المستخدمون', icon: 'shield', permission: 'users.manage' },
   },
   {
+    path: '/content',
+    name: 'content',
+    component: () => import('@/views/ContentView.vue'),
+    meta: { title: 'محتوى الموقع', icon: 'file', permission: 'content.manage' },
+  },
+  {
     path: '/settings',
     name: 'settings',
     component: () => import('@/views/SettingsView.vue'),

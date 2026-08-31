@@ -1,6 +1,8 @@
 <script setup>
+import { ref } from 'vue'
 import { admin } from '@/api/endpoints'
 import { useResource } from '@/composables/useResource'
+import { useAuthStore } from '@/stores/auth'
 import { useUiStore } from '@/stores/ui'
 import { money, date } from '@/utils/format'
 import PageHeader from '@/components/PageHeader.vue'
@@ -8,7 +10,10 @@ import FilterBar from '@/components/FilterBar.vue'
 import DataTable from '@/components/DataTable.vue'
 import PaginationBar from '@/components/PaginationBar.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
+import BaseIcon from '@/components/BaseIcon.vue'
+import SponsorshipFormModal from '@/components/SponsorshipFormModal.vue'
 
+const auth = useAuthStore()
 const ui = useUiStore()
 const { items, meta, loading, filters, reset, load } = useResource(admin.sponsorships.list, {
   q: '', status: '', zakat_only: false, due_soon: false,
@@ -23,6 +28,24 @@ const columns = [
   { key: 'status', label: 'الحالة' },
   { key: 'actions', label: '', align: 'end' },
 ]
+
+const formOpen = ref(false)
+const editing = ref(null)
+
+/** الكفالة الملغاة سجلٌّ تاريخي لا تُعدَّل. */
+const editable = (row) => auth.can('sponsorships.manage')
+  && ['active', 'pending', 'paused'].includes(row.status)
+
+function edit(row) {
+  if (!editable(row)) return
+  editing.value = row
+  formOpen.value = true
+}
+
+function onSaved() {
+  formOpen.value = false
+  load()
+}
 
 async function cancel(row) {
   const reason = prompt('سبب الإلغاء (اختياري):')
@@ -75,15 +98,30 @@ async function cancel(row) {
       <template #next_due_at="{ row }">{{ date(row.next_due_at) }}</template>
       <template #status="{ row }"><StatusBadge :label="row.status_label" :value="row.status" /></template>
       <template #actions="{ row }">
-        <button
-          v-if="['active', 'pending', 'paused'].includes(row.status)"
-          class="btn btn-ghost !py-1 !px-2 text-xs text-rose-700" type="button" @click="cancel(row)"
-        >
-          إلغاء
-        </button>
+        <span class="inline-flex items-center gap-0.5">
+          <button
+            v-if="editable(row)" class="btn btn-ghost p-1.5" type="button"
+            title="تعديل" @click.stop="edit(row)"
+          >
+            <BaseIcon name="edit" :size="14" />
+          </button>
+
+          <button
+            v-if="editable(row)"
+            class="btn btn-ghost !py-1 !px-2 text-xs text-rose-700" type="button"
+            @click.stop="cancel(row)"
+          >
+            إلغاء
+          </button>
+        </span>
       </template>
     </DataTable>
 
     <PaginationBar v-model="filters.page" :meta="meta" />
+
+    <SponsorshipFormModal
+      :open="formOpen" :sponsorship="editing"
+      @close="formOpen = false" @saved="onSaved"
+    />
   </div>
 </template>

@@ -62,7 +62,7 @@ class ContentController extends Controller
         ]);
 
         $post = Post::create([
-            ...collect($validated)->except('cover')->all(),
+            ...$this->withPublishDate(collect($validated)->except('cover')->all()),
             'slug' => $this->uniqueSlug($validated['title']),
             'author_id' => $request->user()->id,
             'cover_path' => $request->hasFile('cover')
@@ -91,7 +91,12 @@ class ContentController extends Controller
             'is_featured' => ['sometimes', 'boolean'],
         ]);
 
-        $post->update($validated);
+        // النشر لاحقاً من مسوّدة يمرّ من هنا لا من الإنشاء
+        $post->update($this->withPublishDate([
+            ...$validated,
+            'status' => $validated['status'] ?? $post->status->value,
+            'published_at' => $validated['published_at'] ?? $post->published_at,
+        ]));
 
         return response()->json([
             'message' => 'حُفظت التعديلات.',
@@ -212,6 +217,26 @@ class ContentController extends Controller
         Cache::forget('public.bootstrap');
 
         return response()->json(['message' => 'حُفظت الإعدادات.', 'data' => Setting::cached()]);
+    }
+
+    /**
+     * «منشور» بلا تاريخ نشر يعني الآن.
+     *
+     * `scopePublished` تشترط `published_at <= now()`، و`NULL` لا تجتاز
+     * المقارنة. فمقالٌ حالته «منشور» وتاريخه فارغ يختفي عن المدونة إلى
+     * الأبد — ويرى المحرّر في اللوحة أنه منشور فلا يشكّ في شيء.
+     *
+     * والثابتة هنا لا في الواجهة: أي عميل يستطيع النشر، والواجهة التي
+     * تُصلح ما يكسره الخادم تُصلحه لنفسها وحدها.
+     */
+    private function withPublishDate(array $data): array
+    {
+        if (($data['status'] ?? null) === PostStatus::Published->value
+            && empty($data['published_at'])) {
+            $data['published_at'] = now();
+        }
+
+        return $data;
     }
 
     /** @return class-string */

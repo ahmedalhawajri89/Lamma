@@ -216,14 +216,32 @@ test.describe('المدونة وصفحة المقال', () => {
     await expect(page.locator('#postDetail h1')).toHaveText('لم نجد هذا المقال', { timeout: 20_000 })
   })
 
-  test('زرّ «تحميل أقدم» يختفي حين لا مزيد', async ({ page }) => {
+  test('زرّ «تحميل أقدم» يجلب المزيد ثم يختفي', async ({ page }) => {
     await page.goto(`${WEB}/blog`)
     await expect(page.locator('.post-card').first()).toBeVisible({ timeout: 15_000 })
 
+    const button = page.locator('#loadMorePosts')
+    const cards = () => page.locator('.post-card').count()
+
     /**
-     * `[hidden]` وحده لا يكفي في هذا المشروع: `.btn` تضبط `display`
-     * فتهزم قاعدة المتصفح. القاعدة الصريحة في base.css هي ما يجعل هذا يمرّ.
+     * نختبر السلوك لا حالةً بعينها.
+     *
+     * عدد المقالات يتغيّر: بذرةٌ من ستة، ثم تضيف اختبارات اللوحة إليها.
+     * فتأكيدٌ على «الزرّ مخفي» يمرّ اليوم ويسقط غداً بلا أن ينكسر شيء —
+     * والعقد الحقيقي أنه يظهر ما بقي شيء، ويجلبه، ثم يختفي.
+     *
+     * و`[hidden]` وحده لا يكفي هنا: `.btn` تضبط `display` فتهزم قاعدة
+     * المتصفح ذات الأولوية الصفرية — والقاعدة الصريحة في base.css هي ما
+     * يجعل الاختفاء اختفاءً.
      */
-    await expect(page.locator('#loadMorePosts')).toBeHidden({ timeout: 15_000 })
+    await page.waitForTimeout(1500)
+
+    while (await button.isVisible()) {
+      const before = await cards()
+      await button.click()
+      await expect.poll(cards, { timeout: 20_000 }).toBeGreaterThan(before)
+    }
+
+    await expect(button).toBeHidden()
   })
 })

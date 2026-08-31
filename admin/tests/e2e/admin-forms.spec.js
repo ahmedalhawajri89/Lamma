@@ -39,6 +39,24 @@ function field(page, labelText, prop = 'value') {
   )
 }
 
+/**
+ * ينتظر انتهاء تحميل الجدول.
+ *
+ * `DataTable` يرسم خمسة صفوف هيكلية أثناء الجلب، وهي `<tr>` كاملة — فعدّ
+ * الصفوف أثناءها يُرجع خمسة، ثم يُقارَن بعدد الصفوف الحقيقية فيسقط
+ * الاختبار بفارقٍ لا معنى له.
+ */
+async function tableReady(page) {
+  await expect(page.locator('table .animate-pulse')).toHaveCount(0, { timeout: 20_000 })
+}
+
+/** صورة WebP صغيرة صالحة — الخادم يفحص الـmime لا الامتداد. */
+function sampleImage() {
+  const file = path.join(os.tmpdir(), 'kafala-e2e-cover.webp')
+  fs.writeFileSync(file, Buffer.from('UklGRiIAAABXRUJQVlA4TBUAAAAvAAAAAAfQ//73v/+BiOh/AAA=', 'base64'))
+  return file
+}
+
 /** ملف PDF صغير حقيقي — الخادم يفحص الـmime لا الامتداد. */
 function samplePdf() {
   const file = path.join(os.tmpdir(), 'kafala-e2e-document.pdf')
@@ -564,5 +582,180 @@ test.describe('الإعدادات', () => {
     await expect(save).toBeEnabled()
     await save.click()
     await expect(page.getByText('حُفظت الإعدادات.')).toBeVisible({ timeout: 20_000 })
+  })
+})
+
+/**
+ * محتوى الموقع العام.
+ *
+ * هذه الشاشة لم تكن موجودة: كل ما يقرأه الزائر كان يُكتب في بذرة قاعدة
+ * البيانات وحدها. وكشفت ثلاثة عيوب — أخطرها أن فتح مقال لتغيير حالته كان
+ * يمحو نصّه، لأن قائمة اللوحة لا تحمل `body` فتُرسله النافذة فارغاً.
+ */
+test.describe('محتوى الموقع', () => {
+  test('مسوّدة ← نشر ← تظهر على الموقع بنصّها كاملاً', async ({ page }) => {
+    await login(page)
+    await page.goto('/content')
+
+    await expect(page.locator('[role=tab]')).toHaveCount(4)
+    await tableReady(page)
+    await page.waitForTimeout(1000)
+
+    const title = `مقال اختباري ${Date.now().toString().slice(-6)}`
+    await page.getByRole('button', { name: 'مقال جديد' }).click()
+
+    await fill(page, 'العنوان', title)
+    await fill(page, 'المقتطف', 'مقتطف قصير.')
+    await fill(page, 'النصّ', ['الفقرة الأولى.', 'الفقرة الثانية.', 'والثالثة.'].join('\n\n'))
+    await page.setInputFiles('#coverFile', sampleImage())
+
+    // زمن القراءة يُقترح من طول النصّ — رقمٌ يُكتب باليد يكذب أول تحرير
+    await expect.poll(() => field(page, 'زمن القراءة')).not.toBe('')
+
+    await page.getByRole('button', { name: 'حفظ' }).click()
+    await expect(page.locator('[role=dialog]')).toBeHidden({ timeout: 25_000 })
+
+    await expect(page.locator('table tbody tr', { hasText: title }).first())
+      .toBeVisible({ timeout: 20_000 })
+
+    /**
+     * المسوّدة لا تظهر على الموقع.
+     *
+     * وهذا نصف الاختبار: النصف الآخر أنها تظهر بعد النشر — ولو غاب أحدهما
+     * لمرّ عيبٌ يجعل كل مقال ظاهراً أو كلّه مخفياً.
+     */
+    await page.goto('http://127.0.0.1:8000/blog')
+    await expect(page.locator('.post-card').first()).toBeVisible({ timeout: 20_000 })
+    await expect(page.locator('.post-card', { hasText: title })).toHaveCount(0)
+
+    // ── النشر من نافذة التحرير ──
+    await page.goto('/content')
+    await expect(page.locator('table tbody tr', { hasText: title }).first())
+      .toBeVisible({ timeout: 20_000 })
+    await page.locator('table tbody tr', { hasText: title }).first().locator('td').first().click()
+
+    /**
+     * النصّ يصل نافذة التحرير.
+     *
+     * كان `PostResource` يحجب `body` عن كل ما ليس `*.show`، فتفتح النافذة
+     * بحقلٍ فارغ وتحفظه فارغاً: من فتح مقالاً ليغيّر حالته فقد نصّه كلّه.
+     */
+    await expect.poll(async () => ((await field(page, 'النصّ')) ?? '').length)
+      .toBeGreaterThan(20)
+
+    await selectValue(page, 'الحالة', 'published')
+    await page.getByRole('button', { name: 'حفظ' }).click()
+    await expect(page.locator('[role=dialog]')).toBeHidden({ timeout: 25_000 })
+
+    // ── وعلى الموقع العام ──
+    await page.goto('http://127.0.0.1:8000/blog')
+    const card = page.locator('.post-card', { hasText: title })
+    await expect(card).toHaveCount(1, { timeout: 20_000 })
+
+    await card.locator('a').first().click()
+    await page.waitForSelector('#postDetail:not([aria-busy])', { timeout: 20_000 })
+    await expect(page.locator('h1')).toHaveText(title)
+
+    /**
+     * ثلاث فقرات لا واحدة.
+     *
+     * مربّع النصّ يُطبّع أسطره إلى CRLF، فيصير فاصل الفقرات سطرين غير
+     * متجاورين — ولا يطابقهما تعبيرٌ يبحث عن `\n` مرتين متتاليتين، فتنهار
+     * المقالة إلى فقرة واحدة طويلة بلا سبب ظاهر.
+     */
+    await expect(page.locator('.prose p')).toHaveCount(3)
+    expect(await page.locator('.frame__img').evaluate((e) => e.naturalWidth)).toBeGreaterThan(0)
+  })
+
+  test('سؤال شائع يُضاف ويُحرَّر ويُحذف', async ({ page }) => {
+    await login(page)
+    await page.goto('/content')
+    await page.locator('[role=tab]', { hasText: 'الأسئلة' }).click()
+
+    /**
+     * ننتظر جدول الأسئلة نفسه لا أي جدول.
+     *
+     * تبديل اللسان يُفرغ الصفوف ثم يجلب، وبين النقرة وإعادة الرسم تبقى
+     * صفوف اللسان السابق معروضة بلا أي مؤشّر تحميل. فالانتظار العام يمرّ
+     * فوق بيانات لسانٍ آخر.
+     */
+    await expect(page.locator('table thead')).toContainText('السؤال', { timeout: 20_000 })
+    await tableReady(page)
+
+    const question = `سؤال اختباري ${Date.now().toString().slice(-5)}؟`
+
+    await page.getByRole('button', { name: 'إضافة' }).click()
+    await fill(page, 'السؤال', question)
+    await fill(page, 'الإجابة', 'جواب اختباري.')
+    await page.getByRole('button', { name: 'حفظ' }).click()
+
+    await expect(page.locator('[role=dialog]')).toBeHidden({ timeout: 25_000 })
+
+    // الصفّ نفسه لا عددُ الصفوف: العدد يتغيّر بين التشغيلات، والصفّ لا
+    const row = page.locator('table tbody tr', { hasText: question })
+    await expect(row).toHaveCount(1, { timeout: 20_000 })
+
+    // التحرير يفتح النافذة مملوءة
+    await row.first().locator('td').first().click()
+    expect(await field(page, 'السؤال')).toBe(question)
+    await page.keyboard.press('Escape')
+    await expect(page.locator('[role=dialog]')).toBeHidden()
+
+    page.once('dialog', (d) => d.accept())
+    await row.first().locator('button[title="حذف"]').click()
+
+    await expect(row).toHaveCount(0, { timeout: 20_000 })
+  })
+})
+
+/**
+ * صورة اليتيم.
+ *
+ * كشف هذا الحقل مزلقين لا يظهر أيّهما بلا واجهة:
+ *
+ *  ١) `ProgramResource` تُرجع الـslug في حقل `id` عمداً (الموقع العام يعرف
+ *     البرامج بأسمائها اللاتينية). فنافذة التحرير كانت تُسند `"comprehensive"`
+ *     إلى `program_id`: لا يطابق أي خيار فيبقى الحقل فارغاً، ويردّ الخادم
+ *     «يجب أن يكون عدداً صحيحاً» عند الحفظ — عن حقلٍ لم يلمسه المستخدم.
+ *
+ *  ٢) PHP لا يحلّل جسم `multipart` إلا في `POST`، فـ`PATCH` بـ`FormData`
+ *     يصل بحقول فارغة وملفٍ مفقود. والحلّ انتحال الأسلوب بـ`_method`.
+ */
+test.describe('صورة اليتيم', () => {
+  test('تُرفع من نافذة التحرير، والبرنامج يبقى محدَّداً', async ({ page }) => {
+    await login(page)
+    await page.goto('/orphans')
+
+    const row = page.locator('table tbody tr', { hasText: /KFL-\d+/ }).first()
+    await expect(row).toBeVisible({ timeout: 20_000 })
+    await row.locator('td').first().click()
+    await page.waitForURL(/\/orphans\/\d+/, { timeout: 20_000 })
+
+    const edit = page.getByRole('button', { name: 'تحرير' })
+    await expect(edit).toBeVisible({ timeout: 20_000 })
+    await page.waitForTimeout(2000)
+    await edit.click()
+
+    /**
+     * البرنامج محدَّد سلفاً.
+     *
+     * حقلٌ إجباري يفتح فارغاً يجعل الحفظ يسقط على شيء لم يلمسه المستخدم —
+     * ولا يدلّه شيء على أن السبب في تحميل النافذة لا في إدخاله.
+     */
+    await expect.poll(() => field(page, 'البرنامج'), { timeout: 20_000 }).not.toBe('')
+
+    await page.setInputFiles('#orphanPhoto', sampleImage())
+    await page.getByRole('button', { name: 'حفظ' }).click()
+
+    await expect(page.locator('[role=dialog]')).toBeHidden({ timeout: 25_000 })
+    await expect(page.getByText('حُفظت التعديلات.')).toBeVisible()
+
+    // الصورة وصلت القرص فعلاً لا مجرّد ردٍّ ناجح
+    const photo = page.locator('img[src*="storage/orphans"]').first()
+    await expect(photo).toBeVisible({ timeout: 20_000 })
+
+    // `naturalWidth` يبقى صفراً حتى يكتمل التنزيل — فالانتظار لا القراءة مرة
+    await expect.poll(() => photo.evaluate((e) => e.naturalWidth), { timeout: 20_000 })
+      .toBeGreaterThan(0)
   })
 })

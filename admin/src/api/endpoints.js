@@ -8,6 +8,37 @@ import client from './client'
  */
 const v1 = '/api/v1'
 
+/**
+ * يبني `FormData` من حمولة عادية.
+ *
+ * ثلاث قواعد لا يمكن تركها لكل نقطة على حدة:
+ *
+ *  1. **المنطقي يصير `'1'`/`'0'`.** `FormData` يحوّل كل قيمة إلى نصّ، و
+ *     `append(key, false)` يُرسل النصّ `"false"` — وقاعدة `boolean` في
+ *     لارافل تقبل `1` و`0` و`"1"` و`"0"` ولا تقبل `"false"`. فيُردّ الطلب
+ *     بـ«يجب أن يكون صحيحاً أو خطأ» عن حقلٍ قيمته `false` فعلاً.
+ *  2. **الفارغ يُسقَط.** `null` يصل نصَّ `"null"`، و`""` يصل فراغاً —
+ *     و`nullable|numeric` ترفض كليهما.
+ *  3. **الملفات تُلحَق كما هي.**
+ *
+ * ولا نضبط `Content-Type`: المتصفح وحده يعرف حدّ الفصل (`boundary`)،
+ * وكتابته بأيدينا تكسر التحليل على الخادم.
+ */
+function toFormData(payload, files = {}) {
+  const body = new FormData()
+
+  Object.entries(payload).forEach(([key, value]) => {
+    if (value === null || value === undefined || value === '') return
+    body.append(key, typeof value === 'boolean' ? (value ? '1' : '0') : value)
+  })
+
+  Object.entries(files).forEach(([key, file]) => {
+    if (file) body.append(key, file)
+  })
+
+  return body
+}
+
 export const auth = {
   csrf: () => client.get('/sanctum/csrf-cookie'),
   login: (payload) => client.post(`${v1}/auth/login`, payload),
@@ -21,8 +52,21 @@ export const admin = {
   orphans: {
     list: (params) => client.get(`${v1}/admin/orphans`, { params }),
     show: (id) => client.get(`${v1}/admin/orphans/${id}`),
-    create: (payload) => client.post(`${v1}/admin/orphans`, payload),
-    update: (id, payload) => client.patch(`${v1}/admin/orphans/${id}`, payload),
+    create: (payload, photo = null) => client.post(
+      `${v1}/admin/orphans`,
+      photo ? toFormData(payload, { photo }) : payload,
+    ),
+
+    /**
+     * التعديل مع صورة يمرّ بـ`POST` مع `_method=PATCH`.
+     *
+     * وهذا ليس تجميلاً: PHP لا يحلّل جسم `multipart` إلا في `POST` —
+     * فـ`PATCH` بـ`FormData` يصل الخادمَ بحقول فارغة وملفٍ مفقود، ولا
+     * يقول شيء لماذا. وانتحال الأسلوب يعيد التوجيه إلى `PATCH` نفسها.
+     */
+    update: (id, payload, photo = null) => (photo
+      ? client.post(`${v1}/admin/orphans/${id}`, toFormData({ ...payload, _method: 'PATCH' }, { photo }))
+      : client.patch(`${v1}/admin/orphans/${id}`, payload)),
     verify: (id) => client.post(`${v1}/admin/orphans/${id}/verify`),
     publish: (id) => client.post(`${v1}/admin/orphans/${id}/publish`),
     unpublish: (id) => client.post(`${v1}/admin/orphans/${id}/unpublish`),
@@ -34,17 +78,11 @@ export const admin = {
     /**
      * الرفع `FormData` لا JSON: الملف بايتات لا نصّ، وترميزه base64 داخل
      * JSON يضخّمه الثلث ويحمّل الخادم فكّه.
-     *
-     * ولا نضبط `Content-Type` يدوياً — المتصفح وحده يعرف حدّ الفصل
-     * (`boundary`) الذي يفصل أجزاء الرسالة، وكتابته بأيدينا تكسر التحليل.
      */
-    upload: (orphanId, payload) => {
-      const body = new FormData()
-      body.append('type', payload.type)
-      body.append('file', payload.file)
-
-      return client.post(`${v1}/admin/orphans/${orphanId}/documents`, body)
-    },
+    upload: (orphanId, payload) => client.post(
+      `${v1}/admin/orphans/${orphanId}/documents`,
+      toFormData({ type: payload.type }, { file: payload.file }),
+    ),
 
     verify: (id) => client.post(`${v1}/admin/documents/${id}/verify`),
     remove: (id) => client.delete(`${v1}/admin/documents/${id}`),
@@ -85,22 +123,13 @@ export const admin = {
     /**
      * ‏`multipart` عند وجود إيصال، وJSON بدونه.
      *
-     * إرسال كل صرف بـ`FormData` كان أبسط، لكنه يحوّل كل قيمة إلى نصّ: فيصل
-     * `null` نصَّ `"null"`، ويصل `fx_rate` الفارغ `""` — و`nullable|numeric`
-     * ترفض كليهما. فنُبقي JSON هو الأصل، ولا نلجأ إلى `FormData` إلا حين
-     * يوجد ملفٌ يوجبها.
+     * JSON هو الأصل لأنه يحفظ الأنواع؛ ولا نلجأ إلى `FormData` إلا حين يوجد
+     * ملفٌ يوجبها — وعندها يتولّى `toFormData` ترجمة الأنواع.
      */
-    create: (payload, receipt = null) => {
-      if (!receipt) return client.post(`${v1}/admin/disbursements`, payload)
-
-      const body = new FormData()
-      Object.entries(payload).forEach(([key, value]) => {
-        if (value !== null && value !== '') body.append(key, value)
-      })
-      body.append('receipt', receipt)
-
-      return client.post(`${v1}/admin/disbursements`, body)
-    },
+    create: (payload, receipt = null) => client.post(
+      `${v1}/admin/disbursements`,
+      receipt ? toFormData(payload, { receipt }) : payload,
+    ),
 
     approve: (id) => client.post(`${v1}/admin/disbursements/${id}/approve`),
   },
@@ -133,8 +162,32 @@ export const admin = {
   },
 
   activity: (params) => client.get(`${v1}/admin/activity`, { params }),
-  posts: (params) => client.get(`${v1}/admin/posts`, { params }),
-  content: (type) => client.get(`${v1}/admin/content/${type}`),
+
+  posts: {
+    list: (params) => client.get(`${v1}/admin/posts`, { params }),
+
+    /**
+     * الغلاف صورة، فالإنشاء `multipart` عند وجودها وJSON بدونها.
+     *
+     * والتحرير JSON دائماً: نقطة التعديل لا تقبل ملفاً أصلاً — الغلاف
+     * يُضبط عند الإنشاء وحده. وإرسال `FormData` إلى `PATCH` يصل PHP فارغاً
+     * لأنه لا يحلّل جسم الطلب إلا في `POST`.
+     */
+    create: (payload, cover = null) => client.post(
+      `${v1}/admin/posts`,
+      cover ? toFormData(payload, { cover }) : payload,
+    ),
+
+    update: (id, payload) => client.patch(`${v1}/admin/posts/${id}`, payload),
+  },
+
+  /** الأسئلة الشائعة والشهادات والشركاء — بنية واحدة وقواعد مختلفة. */
+  content: {
+    list: (type) => client.get(`${v1}/admin/content/${type}`),
+    create: (type, payload) => client.post(`${v1}/admin/content/${type}`, payload),
+    update: (type, id, payload) => client.patch(`${v1}/admin/content/${type}/${id}`, payload),
+    remove: (type, id) => client.delete(`${v1}/admin/content/${type}/${id}`),
+  },
   contacts: (params) => client.get(`${v1}/admin/contacts`, { params }),
   updateContact: (id, status) => client.patch(`${v1}/admin/contacts/${id}`, { status }),
   settings: () => client.get(`${v1}/admin/settings`),

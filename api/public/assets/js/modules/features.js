@@ -333,7 +333,12 @@ export async function initPostDetail() {
 
   // النصّ يصل فقرات مفصولة بأسطر فارغة؛ نحوّلها إلى <p> بعد التهريب
   const body = String(post.body ?? post.excerpt ?? '')
-    .split(/\n{2,}/)
+    /*
+      الفاصل يحتمل CRLF: مربّع النصّ في المتصفح يُطبّع أسطره إلى \r\n،
+      فيصير فاصل الفقرات \r\n\r\n — ولا يطابقه /\n{2,}/ لأن السطرين فيه
+      غير متجاورين. فتنهار مقالة كاملة إلى فقرة واحدة طويلة بلا سبب ظاهر.
+    */
+    .split(/(?:\r?\n[ \t]*){2,}/)
     .map((para) => para.trim())
     .filter(Boolean)
     .map((para) => `<p>${escapeHtml(para)}</p>`)

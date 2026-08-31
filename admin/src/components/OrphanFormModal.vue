@@ -9,7 +9,7 @@
  * ولا حقل «العمر»: العمر يتغيّر كل عام وتاريخ الميلاد لا. حفظ العمر يعني
  * بياناتٍ تكذب صامتةً بعد أول عيد ميلاد.
  */
-import { computed, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { admin } from '@/api/endpoints'
 import { useForm } from '@/composables/useForm'
 import FormModal from './FormModal.vue'
@@ -47,9 +47,17 @@ const BLANK = {
   story: '',
 }
 
-const form = useForm(BLANK, (values) =>
-  editing.value ? admin.orphans.update(props.orphan.id, values) : admin.orphans.create(values),
-)
+const photo = ref(null)
+const photoInput = ref(null)
+
+const form = useForm(BLANK, (values) => (editing.value
+  ? admin.orphans.update(props.orphan.id, values, photo.value)
+  : admin.orphans.create(values, photo.value)))
+
+function onPhoto(event) {
+  photo.value = event.target.files?.[0] ?? null
+  form.touch('photo')
+}
 
 /**
  * حدّا تاريخ الميلاد يُشتقّان من قاعدة الخادم (`before:today` و
@@ -107,6 +115,9 @@ watch(
   (isOpen) => {
     if (!isOpen) return
 
+    photo.value = null
+    if (photoInput.value) photoInput.value.value = ''
+
     if (editing.value) {
       const o = props.orphan
       form.setValues({
@@ -115,7 +126,16 @@ watch(
         gender: o.gender ?? '',
         date_of_birth: o.date_of_birth ?? '',
         family_id: o.family?.id ?? '',
-        program_id: o.program?.id ?? '',
+
+        /**
+         * `db_id` لا `id`.
+         *
+         * `ProgramResource` تُرجع الـslug في حقل `id` عمداً — الموقع العام
+         * يعرف البرامج بأسمائها اللاتينية كما في `data.js`. فالنافذة كانت
+         * تُسند `"comprehensive"` إلى `program_id`: لا يُطابق أي خيار فيبقى
+         * الحقل فارغاً، ويردّ الخادم «يجب أن يكون عدداً صحيحاً» عند الحفظ.
+         */
+        program_id: o.program?.db_id ?? '',
         monthly_need: o.monthly_need ?? null,
         is_urgent: Boolean(o.is_urgent),
         grade_level: o.grade_level ?? '',
@@ -211,6 +231,35 @@ async function save() {
       :error="form.errors.value.story" @update:model-value="form.touch('story')"
     />
 
+    <div>
+      <label class="block text-sm font-medium mb-1.5" for="orphanPhoto">
+        {{ editing ? 'استبدال الصورة' : 'الصورة' }}
+      </label>
+
+      <div class="flex items-center gap-3">
+        <img
+          v-if="editing && orphan.photo_url" :src="orphan.photo_url" alt=""
+          class="size-12 rounded-lg object-cover shrink-0" width="48" height="48"
+        >
+        <input
+          id="orphanPhoto" ref="photoInput" class="input" type="file"
+          accept="image/jpeg,image/png,image/webp"
+          aria-describedby="orphanPhotoHelp" @change="onPhoto"
+        >
+      </div>
+
+      <!--
+        سياسة الصور مكتوبة على الموقع العام، وهذا مكان تطبيقها: لا بكاء
+        ولا جوع ولا جسد مكشوف. والبطاقة بلا صورة أفضل من صورة تسيء لصاحبها.
+      -->
+      <p id="orphanPhotoHelp" class="text-xs text-sand-500 mt-1">
+        بموافقة الوصيّ المكتوبة. لا بكاء ولا جوع — والبطاقة بلا صورة أفضل من
+        صورة تسيء إلى صاحبها.
+      </p>
+      <p v-if="form.errors.value.photo" class="text-xs text-clay-700 mt-1" role="alert">
+        {{ form.errors.value.photo[0] }}
+      </p>
+    </div>
     <FormField
       v-model="form.values.is_urgent" label="حالة عاجلة — تُعرض في مقدمة الموقع"
       type="checkbox"

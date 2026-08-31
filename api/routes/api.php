@@ -206,7 +206,15 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
             /* --- المحتوى --- */
             Route::get('posts', [Admin\ContentController::class, 'posts'])->name('posts.index');
             Route::post('posts', [Admin\ContentController::class, 'storePost'])->name('posts.store');
-            Route::match(['put', 'patch'], 'posts/{post}', [Admin\ContentController::class, 'updatePost'])->name('posts.update');
+            /**
+             * الربط بالمعرّف صراحةً.
+             *
+             * `Post::getRouteKeyName()` تُرجع `slug` من أجل روابط الموقع
+             * العام، فيرث هذا المسار الإداري ذلك بلا قصد: تُرسل اللوحة
+             * معرّفاً رقمياً فيردّ ٤٠٤ — ولا شيء في المسار يشي بالسبب.
+             * والمعرّف أصحّ هنا على أي حال: عنوان اللوحة ليس رابطاً يُشارَك.
+             */
+            Route::match(['put', 'patch'], 'posts/{post:id}', [Admin\ContentController::class, 'updatePost'])->name('posts.update');
 
             // نوع واحد من ثلاثة: faqs أو testimonials أو partners
             Route::whereIn('type', ['faqs', 'testimonials', 'partners'])->group(function (): void {
