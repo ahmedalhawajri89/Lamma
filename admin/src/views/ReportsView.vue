@@ -1,4 +1,5 @@
 <script setup>
+import { onMounted, ref } from 'vue'
 import { admin } from '@/api/endpoints'
 import { useResource } from '@/composables/useResource'
 import { useAuthStore } from '@/stores/auth'
@@ -9,6 +10,8 @@ import FilterBar from '@/components/FilterBar.vue'
 import DataTable from '@/components/DataTable.vue'
 import PaginationBar from '@/components/PaginationBar.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
+import BaseIcon from '@/components/BaseIcon.vue'
+import ReportFormModal from '@/components/ReportFormModal.vue'
 
 const auth = useAuthStore()
 const ui = useUiStore()
@@ -27,6 +30,27 @@ const columns = [
   { key: 'actions', label: '', align: 'end' },
 ]
 
+const formOpen = ref(false)
+const orphans = ref([])
+
+async function loadOrphans() {
+  if (!auth.can('reports.create')) return
+
+  try {
+    const { data } = await admin.orphans.list({ per_page: 200, sort: 'first_name', dir: 'asc' })
+    orphans.value = data.data ?? []
+  } catch {
+    // فشل القائمة لا يمنع تصفّح الجدول — النافذة وحدها تتعطّل
+  }
+}
+
+function onSaved() {
+  formOpen.value = false
+  load()
+}
+
+onMounted(loadOrphans)
+
 async function act(fn, row, message) {
   try {
     await fn(row.id)
@@ -40,7 +64,17 @@ async function act(fn, row, message) {
 
 <template>
   <div>
-    <PageHeader title="التقارير الربعية" :subtitle="`${meta.total} تقرير`" />
+    <PageHeader title="التقارير الربعية" :subtitle="`${meta.total} تقرير`">
+      <template #actions>
+        <button
+          v-if="auth.can('reports.create')" class="btn btn-primary" type="button"
+          @click="formOpen = true"
+        >
+          <BaseIcon name="plus" :size="16" />
+          تقرير جديد
+        </button>
+      </template>
+    </PageHeader>
 
     <div class="card p-3 mb-4 bg-sand-100 text-sm text-sand-700">
       المسار: يكتبه المشرف مسوّدةً، ثم يرسله للمراجعة، ثم يعتمده غيره، ثم يُنشر للكافل.
@@ -93,5 +127,10 @@ async function act(fn, row, message) {
     </DataTable>
 
     <PaginationBar v-model="filters.page" :meta="meta" />
+
+    <ReportFormModal
+      :open="formOpen" :orphans="orphans"
+      @close="formOpen = false" @saved="onSaved"
+    />
   </div>
 </template>

@@ -15,6 +15,7 @@ import os from 'node:os'
 
 const ADMIN = { email: 'admin@kafala.org', password: 'password' }
 const ACCOUNTANT = { email: 'accountant@kafala.org', password: 'password' }
+const SUPERVISOR = { email: 'supervisor0@kafala.org', password: 'password' }
 
 async function login(page, user = ADMIN) {
   await page.goto('/login')
@@ -287,6 +288,16 @@ test.describe('تسجيل الصرف', () => {
      * المصروف الإداري لا يخصّ طفلاً بعينه، وربطه بواحد يفسد نسبة «ما وصل
      * الطفل» في تقرير الشفافية — وهي النسبة التي تقوم عليها دعوى المنصة كلها.
      */
+    /**
+     * ننتظر وصول البنود قبل قراءتها.
+     *
+     * القوائم المرجعية تُجلب موازيةً لجدول الشاشة، وتحت حمل الحزمة كاملةً
+     * تصل بعدها. وقراءةُ `<select>` قبل ذلك تُرجع العنصر النائب وحده —
+     * فيسقط الاختبار بـ`-1` في سطرٍ لا علاقة له بما يُختبَر.
+     */
+    await expect.poll(() => field(page, 'بند الصرف', 'options'), { timeout: 20_000 })
+      .toBeGreaterThan(3)
+
     const categories = await page.evaluate(() => {
       const el = [...document.querySelectorAll('[role=dialog] label')]
         .find((x) => x.textContent.trim().startsWith('بند'))
@@ -334,6 +345,111 @@ test.describe('الدفعة اليدوية', () => {
 
     // الاسترداد للناجحة وحدها — `PaymentPolicy::refund` تشترط ذلك
     await expect(page.locator('table tbody button', { hasText: 'استرداد' }).first())
+      .toBeVisible({ timeout: 20_000 })
+  })
+})
+
+/**
+ * الزيارة الميدانية.
+ *
+ * كشف هذا النموذج عيباً لا يظهر أبداً لمن يطوّر على خادمٍ بتوقيته: الحقل
+ * `datetime-local` يُخرج وقتاً محلياً بلا منطقة زمنية، والخادم يقرؤه
+ * بتوقيته (‏UTC). فمشرفٌ شرق غرينتش يفتح النافذة ويضغط «سجّل» فوراً
+ * فيُردّ بـ«لا تُسجَّل زيارة بتاريخ مستقبلي» — عن وقتٍ مضى فعلاً.
+ */
+test.describe('الزيارة الميدانية', () => {
+  test('تُسجَّل بالوقت المعبّأ تلقائياً، وترفض ملاحظةً سطراً واحداً', async ({ page }) => {
+    await login(page, SUPERVISOR)
+    await page.goto('/visits')
+    await expect(page.locator('table tbody tr td').first()).toBeVisible({ timeout: 20_000 })
+
+    await expect(page.getByRole('button', { name: 'تسجيل زيارة' })).toBeVisible({ timeout: 15_000 })
+    await page.waitForTimeout(2000)
+    await page.getByRole('button', { name: 'تسجيل زيارة' }).click()
+
+    // الوقت معبّأ سلفاً — والمشرف لا يكتبه بيده بعد كل زيارة
+    expect((await field(page, 'وقت الزيارة'))?.length).toBeGreaterThan(10)
+
+    await pick(page, 'الطفل', 1)
+    await fill(page, 'الملاحظات', 'قصير')
+    await page.getByRole('button', { name: 'سجّل الزيارة' }).click()
+
+    await expect(page.locator('[role=dialog]').getByText(/سطر واحد لا يوثّق/))
+      .toBeVisible({ timeout: 20_000 })
+
+    /**
+     * وهذا هو الاختبار الحقيقي: الوقت الافتراضي لا يُردّ «مستقبلياً».
+     * لم نلمس الحقل، فما يُرسل هو ما ملأته الواجهة.
+     */
+    await fill(page, 'الملاحظات', 'زرت البيت صباحاً. الأسرة بخير، والطفلة تنتظم في المدرسة.')
+    await page.locator('[role=dialog] button', { hasText: 'ملابس شتوية' }).click()
+    await page.getByRole('button', { name: 'سجّل الزيارة' }).click()
+
+    await expect(page.locator('[role=dialog]')).toBeHidden({ timeout: 25_000 })
+    await expect(page.getByText('سُجّلت الزيارة.')).toBeVisible()
+  })
+})
+
+test.describe('التقرير الربعي', () => {
+  test('يُحفظ مسوّدةً، ويرفض تقريراً ثانياً للربع نفسه', async ({ page }) => {
+    await login(page, SUPERVISOR)
+    await page.goto('/reports')
+    await expect(page.locator('table tbody tr td').first()).toBeVisible({ timeout: 20_000 })
+
+    await expect(page.getByRole('button', { name: 'تقرير جديد' })).toBeVisible({ timeout: 15_000 })
+    await page.waitForTimeout(2000)
+    await page.getByRole('button', { name: 'تقرير جديد' }).click()
+
+    /**
+     * الربع المقترح هو المنقضي لا الجاري.
+     * التقرير الربعي يُكتب عن فترة انتهت، واقتراح الجاري يدفع إلى كتابة
+     * تقرير عن شهرٍ لم يمضِ.
+     */
+    const quarter = Number(await field(page, 'الربع'))
+    const currentQuarter = Math.floor(new Date().getMonth() / 3) + 1
+    expect(quarter).not.toBe(currentQuarter)
+
+    /**
+     * نبحث عن طفلٍ بلا تقرير في هذه الفترة.
+     *
+     * الحزمة تصيب قاعدة بيانات حقيقية لا تُصفَّر بين التشغيلات، وقاعدةُ
+     * «تقرير واحد لكل طفل في كل ربع» تجعل رقماً ثابتاً هنا يمرّ أول مرة
+     * ويسقط في الثانية — فيبدو العطب في الكود وهو في الاختبار.
+     */
+    await pick(page, 'السنة', 4)
+    await fill(page, 'العنوان', 'تقرير اختباري — تحسّن في الرياضيات')
+
+    const total = await field(page, 'الطفل', 'options')
+    let chosen = 0
+
+    for (let index = 1; index < Math.min(total, 12); index += 1) {
+      await pick(page, 'الطفل', index)
+      await page.getByRole('button', { name: 'احفظ مسوّدة' }).click()
+
+      // النافذة تُغلق عند النجاح؛ وإلا فالخطأ ظاهر تحت الحقل
+      await expect
+        .poll(async () => (await page.locator('[role=dialog]').isVisible())
+          ? (await page.locator('[role=dialog] [role=alert]').count()) > 0
+          : 'saved', { timeout: 25_000 })
+        .not.toBe(false)
+
+      if (!(await page.locator('[role=dialog]').isVisible())) {
+        chosen = index
+        break
+      }
+    }
+
+    expect(chosen, 'لم نجد طفلاً بلا تقرير في هذه الفترة').toBeGreaterThan(0)
+    await expect(page.getByText(/مسوّدة التقرير/)).toBeVisible()
+
+    // ثانٍ للطفل والربع نفسيهما يُرفض — والرسالة تحت الحقل لا في إشعار عابر
+    await page.getByRole('button', { name: 'تقرير جديد' }).click()
+    await pick(page, 'الطفل', chosen)
+    await pick(page, 'السنة', 4)
+    await fill(page, 'العنوان', 'تقرير مكرّر')
+    await page.getByRole('button', { name: 'احفظ مسوّدة' }).click()
+
+    await expect(page.locator('[role=dialog]').getByText(/يوجد تقرير لهذا الطفل في هذا الربع/))
       .toBeVisible({ timeout: 20_000 })
   })
 })

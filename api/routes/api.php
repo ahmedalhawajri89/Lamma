@@ -47,11 +47,19 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
         Route::get('posts', [Pub\PostController::class, 'index'])->name('posts.index');
         Route::get('posts/{slug}', [Pub\PostController::class, 'show'])->name('posts.show');
 
-        // نموذجان مفتوحان للعالم: ستّ محاولات في الدقيقة تكفي أي إنسان
-        Route::middleware('throttle:6,1')->group(function (): void {
-            Route::post('contact', [Pub\ContactController::class, 'store'])->name('contact');
-            Route::post('newsletter', [Pub\ContactController::class, 'subscribe'])->name('newsletter');
-        });
+        /**
+         * نموذجان مفتوحان للعالم: ستّ محاولات في الدقيقة تكفي أي إنسان.
+         *
+         * ولكلٍّ دلوه (‏المعامل الثالث بادئة المفتاح). فمُحدِّد لارافل يبني
+         * مفتاحه من النطاق والـIP لا من المسار، وجمعهما في مجموعة واحدة
+         * يجعلهما يتقاسمان الرصيد: من اشترك في النشرة ثم أراد أن يكتب لنا
+         * يجد الباب مغلقاً — وهما فعلان مختلفان بإساءتين مختلفتين.
+         */
+        Route::post('contact', [Pub\ContactController::class, 'store'])
+            ->middleware('throttle:6,1,contact')->name('contact');
+
+        Route::post('newsletter', [Pub\ContactController::class, 'subscribe'])
+            ->middleware('throttle:6,1,newsletter')->name('newsletter');
     });
 
     /* ==================================================================

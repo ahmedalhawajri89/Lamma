@@ -1,13 +1,19 @@
 <script setup>
+import { onMounted, ref } from 'vue'
 import { admin } from '@/api/endpoints'
 import { useResource } from '@/composables/useResource'
+import { useAuthStore } from '@/stores/auth'
 import { date, dateTime } from '@/utils/format'
 import PageHeader from '@/components/PageHeader.vue'
 import FilterBar from '@/components/FilterBar.vue'
 import DataTable from '@/components/DataTable.vue'
 import PaginationBar from '@/components/PaginationBar.vue'
+import BaseIcon from '@/components/BaseIcon.vue'
+import VisitFormModal from '@/components/VisitFormModal.vue'
 
-const { items, meta, loading, filters, reset } = useResource(admin.visits.list, { overdue: false })
+const auth = useAuthStore()
+
+const { items, meta, loading, filters, reset, load } = useResource(admin.visits.list, { overdue: false })
 
 const columns = [
   { key: 'visited_at', label: 'تاريخ الزيارة' },
@@ -16,11 +22,42 @@ const columns = [
   { key: 'findings', label: 'الملاحظات' },
   { key: 'next_visit_due', label: 'الزيارة القادمة' },
 ]
+
+const formOpen = ref(false)
+const orphans = ref([])
+
+async function loadOrphans() {
+  if (!auth.can('visits.record')) return
+
+  try {
+    const { data } = await admin.orphans.list({ per_page: 200, sort: 'first_name', dir: 'asc' })
+    orphans.value = data.data ?? []
+  } catch {
+    // فشل القائمة لا يمنع تصفّح الجدول — النافذة وحدها تتعطّل
+  }
+}
+
+function onSaved() {
+  formOpen.value = false
+  load()
+}
+
+onMounted(loadOrphans)
 </script>
 
 <template>
   <div>
-    <PageHeader title="الزيارات الميدانية" :subtitle="`${meta.total} زيارة موثّقة · ${meta.overdue ?? 0} متأخرة`" />
+    <PageHeader title="الزيارات الميدانية" :subtitle="`${meta.total} زيارة موثّقة · ${meta.overdue ?? 0} متأخرة`">
+      <template #actions>
+        <button
+          v-if="auth.can('visits.record')" class="btn btn-primary" type="button"
+          @click="formOpen = true"
+        >
+          <BaseIcon name="plus" :size="16" />
+          تسجيل زيارة
+        </button>
+      </template>
+    </PageHeader>
 
     <FilterBar :has-search="false" @reset="reset">
       <label class="flex items-center gap-1.5 text-sm cursor-pointer">
@@ -45,5 +82,10 @@ const columns = [
     </DataTable>
 
     <PaginationBar v-model="filters.page" :meta="meta" />
+
+    <VisitFormModal
+      :open="formOpen" :orphans="orphans"
+      @close="formOpen = false" @saved="onSaved"
+    />
   </div>
 </template>

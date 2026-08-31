@@ -108,6 +108,8 @@ export const admin = {
   reports: {
     list: (params) => client.get(`${v1}/admin/reports`, { params }),
     show: (id) => client.get(`${v1}/admin/reports/${id}`),
+    create: (payload) => client.post(`${v1}/admin/reports`, payload),
+    update: (id, payload) => client.patch(`${v1}/admin/reports/${id}`, payload),
     submit: (id) => client.post(`${v1}/admin/reports/${id}/submit`),
     approve: (id) => client.post(`${v1}/admin/reports/${id}/approve`),
     publish: (id) => client.post(`${v1}/admin/reports/${id}/publish`),
