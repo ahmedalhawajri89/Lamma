@@ -82,7 +82,26 @@ export const admin = {
   disbursements: {
     list: (params) => client.get(`${v1}/admin/disbursements`, { params }),
     categories: () => client.get(`${v1}/admin/disbursement-categories`),
-    create: (payload) => client.post(`${v1}/admin/disbursements`, payload),
+    /**
+     * ‏`multipart` عند وجود إيصال، وJSON بدونه.
+     *
+     * إرسال كل صرف بـ`FormData` كان أبسط، لكنه يحوّل كل قيمة إلى نصّ: فيصل
+     * `null` نصَّ `"null"`، ويصل `fx_rate` الفارغ `""` — و`nullable|numeric`
+     * ترفض كليهما. فنُبقي JSON هو الأصل، ولا نلجأ إلى `FormData` إلا حين
+     * يوجد ملفٌ يوجبها.
+     */
+    create: (payload, receipt = null) => {
+      if (!receipt) return client.post(`${v1}/admin/disbursements`, payload)
+
+      const body = new FormData()
+      Object.entries(payload).forEach(([key, value]) => {
+        if (value !== null && value !== '') body.append(key, value)
+      })
+      body.append('receipt', receipt)
+
+      return client.post(`${v1}/admin/disbursements`, body)
+    },
+
     approve: (id) => client.post(`${v1}/admin/disbursements/${id}/approve`),
   },
 

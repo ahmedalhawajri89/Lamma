@@ -1,4 +1,5 @@
 <script setup>
+import { onMounted, ref } from 'vue'
 import { admin } from '@/api/endpoints'
 import { useResource } from '@/composables/useResource'
 import { useAuthStore } from '@/stores/auth'
@@ -8,6 +9,8 @@ import PageHeader from '@/components/PageHeader.vue'
 import FilterBar from '@/components/FilterBar.vue'
 import DataTable from '@/components/DataTable.vue'
 import PaginationBar from '@/components/PaginationBar.vue'
+import BaseIcon from '@/components/BaseIcon.vue'
+import DisbursementFormModal from '@/components/DisbursementFormModal.vue'
 
 const auth = useAuthStore()
 const ui = useUiStore()
@@ -25,6 +28,43 @@ const columns = [
   { key: 'status', label: 'الاعتماد' },
 ]
 
+const formOpen = ref(false)
+const categories = ref([])
+const orphans = ref([])
+
+async function loadReferences() {
+  if (!auth.can('disbursements.record')) return
+
+  try {
+    const [cats, list] = await Promise.all([
+      admin.disbursements.categories(),
+      admin.orphans.list({ per_page: 200, sort: 'first_name', dir: 'asc' }),
+    ])
+    categories.value = cats.data.data ?? []
+    orphans.value = list.data.data ?? []
+  } catch {
+    // فشل القوائم لا يمنع تصفّح الجدول — النافذة وحدها تتعطّل
+  }
+}
+
+function onSaved() {
+  formOpen.value = false
+  load()
+}
+
+/**
+ * الزرّ يظهر لمن يستطيع الاعتماد فعلاً.
+ *
+ * `DisbursementPolicy` تمنع من سجّل الصرف أن يعتمده — مبدأ العينين، وهو
+ * الحارس الوحيد بين خطأٍ في الإدخال ورقمٍ منشور على صفحة الشفافية. وعرضُ
+ * الزرّ لصاحب الصرف يعني نقرةً يردّها الخادم بـ٤٠٣ بلا سبب مفهوم.
+ */
+function canApprove(row) {
+  return auth.can('disbursements.approve') && row.recorded_by !== auth.user?.id
+}
+
+onMounted(loadReferences)
+
 async function approve(row) {
   try {
     await admin.disbursements.approve(row.id)
@@ -41,7 +81,17 @@ async function approve(row) {
     <PageHeader
       title="الصرف"
       :subtitle="`${money(meta.sum_all)} إجمالاً · ${money(meta.sum_pending)} بانتظار الاعتماد`"
-    />
+    >
+      <template #actions>
+        <button
+          v-if="auth.can('disbursements.record')" class="btn btn-primary" type="button"
+          @click="formOpen = true"
+        >
+          <BaseIcon name="plus" :size="16" />
+          تسجيل صرف
+        </button>
+      </template>
+    </PageHeader>
 
     <div class="card p-3 mb-4 bg-clay-50 border-clay-200 text-sm text-clay-800">
       الصرف المعتمَد وحده هو ما تُحسب منه نسب الشفافية المنشورة على الموقع.
@@ -72,15 +122,23 @@ async function approve(row) {
       <template #status="{ row }">
         <span v-if="row.is_approved" class="badge bg-olive-100 text-olive-700">معتمَد</span>
         <button
-          v-else-if="auth.can('disbursements.approve')"
+          v-else-if="canApprove(row)"
           class="btn btn-outline !py-1 !px-2 text-xs" type="button" @click="approve(row)"
         >
           اعتماد
         </button>
-        <span v-else class="badge bg-amber-100 text-amber-700">بانتظار الاعتماد</span>
+        <span
+          v-else class="badge bg-amber-100 text-amber-700"
+          :title="row.recorded_by === auth.user?.id ? 'أنت سجّلته — يعتمده غيرك' : undefined"
+        >بانتظار الاعتماد</span>
       </template>
     </DataTable>
 
     <PaginationBar v-model="filters.page" :meta="meta" />
+
+    <DisbursementFormModal
+      :open="formOpen" :categories="categories" :orphans="orphans"
+      @close="formOpen = false" @saved="onSaved"
+    />
   </div>
 </template>

@@ -1,14 +1,22 @@
 <script setup>
+import { onMounted, ref } from 'vue'
 import { admin } from '@/api/endpoints'
 import { useResource } from '@/composables/useResource'
+import { useAuthStore } from '@/stores/auth'
+import { useUiStore } from '@/stores/ui'
 import { money, dateTime } from '@/utils/format'
 import PageHeader from '@/components/PageHeader.vue'
 import FilterBar from '@/components/FilterBar.vue'
 import DataTable from '@/components/DataTable.vue'
 import PaginationBar from '@/components/PaginationBar.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
+import BaseIcon from '@/components/BaseIcon.vue'
+import PaymentFormModal from '@/components/PaymentFormModal.vue'
 
-const { items, meta, loading, filters, reset } = useResource(admin.payments.list, {
+const auth = useAuthStore()
+const ui = useUiStore()
+
+const { items, meta, loading, filters, reset, load } = useResource(admin.payments.list, {
   q: '', status: '', method: '', from: '', to: '',
 })
 
@@ -21,11 +29,65 @@ const columns = [
   { key: 'paid_at', label: 'تاريخ الدفع' },
   { key: 'status', label: 'الحالة' },
 ]
+
+const formOpen = ref(false)
+const sponsorships = ref([])
+const busyId = ref(null)
+
+async function loadSponsorships() {
+  if (!auth.can('payments.record')) return
+
+  try {
+    const { data } = await admin.sponsorships.list({ per_page: 200, status: 'active' })
+    sponsorships.value = data.data ?? []
+  } catch {
+    // فشل القائمة لا يمنع تصفّح الجدول — النافذة وحدها تتعطّل
+  }
+}
+
+function onSaved() {
+  formOpen.value = false
+  load()
+}
+
+/**
+ * الاسترداد لا يحذف الدفعة: يغيّر حالتها.
+ *
+ * حذف صفٍّ مالي يجعل التدقيق مستحيلاً — لا يبقى أثرٌ لما وقع ثم رُدّ.
+ * والسبب مطلوب لأنه ما سيقرأه المدقّق بعد سنة، لا نحن اليوم.
+ */
+async function refund(row) {
+  const reason = window.prompt(`سبب استرداد ${row.reference_code}؟`)
+  if (!reason?.trim()) return
+
+  busyId.value = row.id
+  try {
+    const { data } = await admin.payments.refund(row.id, reason.trim())
+    ui.success(data.message ?? 'سُجّل الاسترداد.')
+    await load()
+  } catch (e) {
+    ui.error(e.fieldErrors?.reason?.[0] ?? e.userMessage ?? 'تعذّر الاسترداد.')
+  } finally {
+    busyId.value = null
+  }
+}
+
+onMounted(loadSponsorships)
 </script>
 
 <template>
   <div>
-    <PageHeader title="المدفوعات" :subtitle="`${meta.settled_count ?? 0} دفعة ناجحة · ${money(meta.settled_amount)}`" />
+    <PageHeader title="المدفوعات" :subtitle="`${meta.settled_count ?? 0} دفعة ناجحة · ${money(meta.settled_amount)}`">
+      <template #actions>
+        <button
+          v-if="auth.can('payments.record')" class="btn btn-primary" type="button"
+          @click="formOpen = true"
+        >
+          <BaseIcon name="plus" :size="16" />
+          دفعة يدوية
+        </button>
+      </template>
+    </PageHeader>
 
     <FilterBar v-model:search="filters.q" search-placeholder="مرجع أو رقم إيصال…" @reset="reset">
       <select v-model="filters.status" class="input !w-auto text-sm" aria-label="الحالة">
@@ -58,11 +120,27 @@ const columns = [
       </template>
       <template #paid_at="{ row }">{{ dateTime(row.paid_at) }}</template>
       <template #status="{ row }">
-        <StatusBadge :label="row.status_label" :value="row.status" />
+        <span class="inline-flex items-center gap-2">
+          <StatusBadge :label="row.status_label" :value="row.status" />
+
+          <!-- الاسترداد للناجحة وحدها: `PaymentPolicy::refund` تشترط ذلك -->
+          <button
+            v-if="auth.can('payments.refund') && row.status === 'succeeded'"
+            class="btn btn-ghost !py-0.5 !px-1.5 text-xs text-clay-700"
+            type="button" :disabled="busyId === row.id" @click="refund(row)"
+          >
+            استرداد
+          </button>
+        </span>
         <p v-if="row.failure_reason" class="text-xs text-sand-500 mt-0.5">{{ row.failure_reason }}</p>
       </template>
     </DataTable>
 
     <PaginationBar v-model="filters.page" :meta="meta" />
+
+    <PaymentFormModal
+      :open="formOpen" :sponsorships="sponsorships"
+      @close="formOpen = false" @saved="onSaved"
+    />
   </div>
 </template>

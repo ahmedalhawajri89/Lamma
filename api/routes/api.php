@@ -59,14 +59,31 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
        ================================================================== */
     Route::prefix('auth')->name('auth.')->group(function (): void {
 
-        // تحديد إضافي فوق ما في LoginRequest: ذاك بمفتاح البريد+IP،
-        // وهذا بالـ IP وحده — فيمنع مسحاً واسعاً بمئات البُرد المختلفة
-        Route::middleware('throttle:10,1')->group(function (): void {
+        /**
+         * الدخول: حدّ أوسع، لأن الحدّ الدقيق في مكانه الصحيح.
+         *
+         * `LoginRequest` يحدّ بمفتاح «البريد + IP» ويعدّ المحاولات الفاشلة
+         * وحدها — وهو الحارس الفعلي ضد التخمين. أما هذا فبالـ IP وحده،
+         * ويعدّ **كل** طلب بما فيه الناجح، فعشرة في الدقيقة تقفل مكتباً خلف
+         * NAT عند الحضور صباحاً: خمسة عشر موظفاً يدخلون فيُردّ آخرهم.
+         *
+         * وهو ما يحذّر منه تعليق `LoginRequest` حرفياً. فيبقى هنا بوصفه
+         * سدّاً أمام مسحٍ واسع بمئات البُرد — والمسح يحتاج آلاف الطلبات،
+         * فثلاثون في الدقيقة تكفي لإيقافه ولا تؤذي أحداً.
+         */
+        Route::middleware('throttle:30,1')->group(function (): void {
             Route::post('login', [AuthController::class, 'login'])->name('login');
-            Route::post('register', [AuthController::class, 'register'])->name('register');
+        });
 
-            // الاستعادة تحت الحدّ نفسه: طلب رابط رخيص علينا، لكنه يُرسل
-            // بريداً باسمنا إلى عنوانٍ يختاره الطالب — فهو سلاح إزعاج بلا حدّ
+        /**
+         * التسجيل والاستعادة: الحدّ الضيّق يبقى.
+         *
+         * لهذين أثرٌ خارج الخادم — أحدهما يُنشئ حساباً، والآخر يُرسل بريداً
+         * باسمنا إلى عنوانٍ يختاره الطالب. وليس لهما نظير `LoginRequest`
+         * يحدّ بمفتاح دقيق، فهذا هو حارسهما الوحيد.
+         */
+        Route::middleware('throttle:10,1')->group(function (): void {
+            Route::post('register', [AuthController::class, 'register'])->name('register');
             Route::post('forgot-password', [PasswordResetController::class, 'sendLink'])->name('password.email');
             Route::post('reset-password', [PasswordResetController::class, 'reset'])->name('password.update');
         });

@@ -35,6 +35,14 @@ class DisbursementResource extends JsonResource
                 'reference_code' => $this->orphan->reference_code,
                 'name' => $this->orphan->first_name,
             ] : null),
+            /**
+             * المعرّف إلى جانب الاسم.
+             *
+             * `DisbursementPolicy::approve` تمنع من سجّل الصرف أن يعتمده —
+             * مبدأ العينين. وبلا المعرّف لا تعرف الواجهة أن الزرّ أمام صاحبه،
+             * فتعرضه ليردّه الخادم بـ٤٠٣: زرٌّ يُعرض ليُرفض فخّ لا واجهة.
+             */
+            'recorded_by' => $this->recorded_by,
             'recorder' => $this->whenLoaded('recorder', fn () => $this->recorder?->name),
             'approver' => $this->whenLoaded('approver', fn () => $this->approver?->name),
         ];

@@ -14,13 +14,28 @@ import os from 'node:os'
  */
 
 const ADMIN = { email: 'admin@kafala.org', password: 'password' }
+const ACCOUNTANT = { email: 'accountant@kafala.org', password: 'password' }
 
-async function login(page) {
+async function login(page, user = ADMIN) {
   await page.goto('/login')
-  await page.getByLabel('البريد الإلكتروني').fill(ADMIN.email)
-  await page.getByLabel('كلمة المرور', { exact: true }).fill(ADMIN.password)
+  await page.getByLabel('البريد الإلكتروني').fill(user.email)
+  await page.getByLabel('كلمة المرور', { exact: true }).fill(user.password)
   await page.getByRole('button', { name: 'دخول' }).click()
   await page.waitForURL('**/dashboard')
+}
+
+/** يقرأ خاصية من مدخلٍ يُعثر عليه بتسميته. */
+function field(page, labelText, prop = 'value') {
+  return page.evaluate(
+    ([label, key]) => {
+      const el = [...document.querySelectorAll('[role=dialog] label')]
+        .find((x) => x.textContent.trim().startsWith(label))
+      if (!el) return null
+      const input = document.getElementById(el.getAttribute('for'))
+      return key === 'options' ? input.options.length : input[key]
+    },
+    [labelText, prop],
+  )
 }
 
 /** ملف PDF صغير حقيقي — الخادم يفحص الـmime لا الامتداد. */
@@ -234,5 +249,91 @@ test.describe('نموذج الأسرة', () => {
      * يوحي بأن الرقم ضاع.
      */
     await expect(page.locator('[role=dialog] label').filter({ hasText: 'رقم الهوية' })).toHaveCount(0)
+  })
+})
+
+/**
+ * شاشات المال.
+ *
+ * كل رقم على صفحة الشفافية العامة يبدأ من نافذة تسجيل الصرف، وكانت الشاشة
+ * تعرض ولا تسجّل — فالأرقام المنشورة لا سبيل لتحديثها من اللوحة أصلاً.
+ */
+test.describe('تسجيل الصرف', () => {
+  test('يسجّل صرفاً بإيصال، والحقول تتبع البند والعملة', async ({ page }) => {
+    await login(page, ACCOUNTANT)
+    await page.goto('/disbursements')
+    await expect(page.locator('table tbody tr td').first()).toBeVisible({ timeout: 20_000 })
+
+    await expect(page.getByRole('button', { name: 'تسجيل صرف' })).toBeVisible({ timeout: 15_000 })
+    await page.waitForTimeout(2000)
+    await page.getByRole('button', { name: 'تسجيل صرف' }).click()
+
+    /**
+     * سعر الصرف يظهر لغير الدولار وحده.
+     *
+     * الدولار عملة الأساس، وحقلٌ يسأل عن سعر صرف الدولار إلى الدولار
+     * سؤالٌ بلا معنى — ويُغري بكتابة رقم خاطئ فيه.
+     */
+    const rateLabel = page.locator('[role=dialog] label').filter({ hasText: 'سعر الصرف' })
+    await expect(rateLabel).toHaveCount(0)
+
+    await pick(page, 'العملة', 2)
+    await expect(rateLabel).toHaveCount(1)
+    await pick(page, 'العملة', 1)
+
+    /**
+     * البند التشغيلي يعطّل حقل الطفل.
+     *
+     * المصروف الإداري لا يخصّ طفلاً بعينه، وربطه بواحد يفسد نسبة «ما وصل
+     * الطفل» في تقرير الشفافية — وهي النسبة التي تقوم عليها دعوى المنصة كلها.
+     */
+    const categories = await page.evaluate(() => {
+      const el = [...document.querySelectorAll('[role=dialog] label')]
+        .find((x) => x.textContent.trim().startsWith('بند'))
+      return [...document.getElementById(el.getAttribute('for')).options].map((o) => o.text)
+    })
+    const overhead = categories.findIndex((t) => t.includes('تشغيلي'))
+    expect(overhead).toBeGreaterThan(0)
+
+    await pick(page, 'بند الصرف', overhead)
+    await expect.poll(() => field(page, 'الطفل', 'disabled')).toBe(true)
+
+    await pick(page, 'بند الصرف', 1)
+    await fill(page, 'المبلغ', '125.50')
+    await fill(page, 'البيان', `اختبار ${Date.now().toString().slice(-5)}`)
+    await page.setInputFiles('#receiptFile', samplePdf())
+
+    await page.getByRole('button', { name: 'سجّل الصرف' }).click()
+    await expect(page.locator('[role=dialog]')).toBeHidden({ timeout: 25_000 })
+    await expect(page.getByText(/يحتاج اعتماداً/)).toBeVisible()
+  })
+})
+
+test.describe('الدفعة اليدوية', () => {
+  test('تُسجَّل، ويظهر لها زرّ استرداد', async ({ page }) => {
+    await login(page, ACCOUNTANT)
+    await page.goto('/payments')
+    await expect(page.locator('table tbody tr td').first()).toBeVisible({ timeout: 20_000 })
+
+    await expect(page.getByRole('button', { name: 'دفعة يدوية' })).toBeVisible({ timeout: 15_000 })
+    await page.waitForTimeout(2000)
+    await page.getByRole('button', { name: 'دفعة يدوية' }).click()
+
+    expect(await field(page, 'الكفالة', 'options')).toBeGreaterThan(1)
+    await pick(page, 'الكفالة', 1)
+
+    // مبلغ الكفالة يظهر تلميحاً — فلا يحزر المحاسب رقماً يعرفه النظام
+    await expect(page.locator('[role=dialog]').getByText(/اتركه فارغاً ليُسجَّل مبلغ الكفالة \$/))
+      .toBeVisible()
+
+    await fill(page, 'رقم الحوالة', `TRX-${Date.now().toString().slice(-7)}`)
+    await page.getByRole('button', { name: 'سجّل الدفعة' }).click()
+
+    await expect(page.locator('[role=dialog]')).toBeHidden({ timeout: 25_000 })
+    await expect(page.getByText('سُجّلت الدفعة.')).toBeVisible()
+
+    // الاسترداد للناجحة وحدها — `PaymentPolicy::refund` تشترط ذلك
+    await expect(page.locator('table tbody button', { hasText: 'استرداد' }).first())
+      .toBeVisible({ timeout: 20_000 })
   })
 })
