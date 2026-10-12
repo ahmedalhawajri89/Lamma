@@ -10,6 +10,8 @@
 
 import { hydrate } from './modules/data.js';
 import { mountLayout } from './modules/layout.js';
+import { initThemeToggle } from './modules/theme.js';
+import { initHowSteps } from './modules/how.js';
 import {
   initReveal,
   initCounters,
@@ -21,7 +23,6 @@ import {
   initActionBar,
 } from './modules/motion.js';
 import { initSliders } from './modules/slider.js';
-import { initHeroSlider } from './modules/hero.js';
 import {
   initAccordions,
   initTabs,
@@ -46,7 +47,8 @@ import { initPortal } from './modules/portal.js';
 
 function boot() {
   // ١) الهيكل أولاً — بقية الوحدات قد تحتاج عناصره
-  mountLayout({ solid: document.body.dataset.header === 'solid' });
+  mountLayout();
+  initThemeToggle();
 
   // ٢) المحتوى المُولَّد من البيانات قبل تشغيل الحركات عليه
   renderHomeSections();
@@ -65,10 +67,10 @@ function boot() {
   // ٣) مكونات الواجهة
   initAccordions();
   initTabs();
+  initHowSteps();
   initModals();
   initChipGroups();
   initPasswordToggles();
-  initHeroSlider();
   initSliders();
 
   // ٤) النماذج

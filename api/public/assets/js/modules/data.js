@@ -36,13 +36,15 @@ export let SITE = {
   ],
 };
 
+/**
+ * التنقل الرئيسي: خمسة روابط بترتيب نية الزائر، الأيتام أولاً.
+ * الشعار يكفي للعودة للرئيسية، والمدونة في الفوتر.
+ */
 export const NAV_LINKS = [
-  { label: 'الرئيسية', href: 'index.html' },
-  { label: 'من نحن', href: 'about.html' },
-  { label: 'برامج الكفالة', href: 'programs.html' },
   { label: 'الأيتام', href: 'orphans.html' },
+  { label: 'برامج الكفالة', href: 'programs.html' },
   { label: 'الشفافية', href: 'transparency.html' },
-  { label: 'المدونة', href: 'blog.html' },
+  { label: 'من نحن', href: 'about.html' },
   { label: 'تواصل معنا', href: 'contact.html' },
 ];
 
@@ -52,7 +54,7 @@ export let PROGRAMS = [
     id: 'comprehensive',
     name: 'الكفالة الشاملة',
     icon: 'fa-hands-holding-child',
-    accent: 'var(--gradient-brand)',
+    accent: 'var(--program-full)',
     price: 65,
     summary: 'رعاية كاملة تغطي كل جوانب حياة اليتيم: المعيشة والتعليم والصحة والدعم النفسي.',
     features: ['غذاء وكسوة شهرية', 'رسوم ومستلزمات دراسية', 'تأمين صحي ومتابعة طبية', 'دعم نفسي واجتماعي', 'تقرير مصوّر كل ٣ أشهر'],
@@ -62,7 +64,7 @@ export let PROGRAMS = [
     id: 'education',
     name: 'الكفالة التعليمية',
     icon: 'fa-book-open-reader',
-    accent: 'linear-gradient(135deg, var(--teal-700), var(--teal-600))',
+    accent: 'var(--program-education)',
     price: 35,
     summary: 'تبقي الطفل على مقعد الدراسة: رسوم، كتب، زي، ودروس تقوية عند الحاجة.',
     features: ['الرسوم الدراسية', 'حقيبة وقرطاسية', 'الزي المدرسي', 'دروس تقوية', 'تقرير أكاديمي فصلي'],
@@ -71,7 +73,7 @@ export let PROGRAMS = [
     id: 'health',
     name: 'الكفالة الصحية',
     icon: 'fa-heart-pulse',
-    accent: 'linear-gradient(135deg, var(--rose-700), var(--rose-600))',
+    accent: 'var(--program-health)',
     price: 45,
     summary: 'رعاية طبية لأيتام يواجهون ظروفاً صحية تحتاج متابعة مستمرة أو تدخلاً عاجلاً.',
     features: ['فحص دوري شامل', 'الأدوية والمستلزمات', 'جلسات علاج طبيعي', 'تغطية العمليات', 'ملف طبي محدّث'],
@@ -80,7 +82,7 @@ export let PROGRAMS = [
     id: 'family',
     name: 'كفالة الأسرة',
     icon: 'fa-house-chimney-user',
-    accent: 'linear-gradient(135deg, var(--olive-600), var(--olive-500))',
+    accent: 'var(--program-family)',
     price: 90,
     summary: 'دعم الأسرة كاملةً حتى تبقى مجتمعة، فبقاء الطفل بين أهله خيرٌ من أي بديل.',
     features: ['سلة غذائية شهرية', 'مساهمة في الإيجار', 'مشروع صغير مدرّ للدخل', 'تعليم كل الأبناء', 'زيارة ميدانية شهرية'],
@@ -229,11 +231,11 @@ export let ORPHANS = [
 
 /** توزيع الإنفاق — تُستعمل في حلقة الشفافية. */
 export let SPENDING = [
-  { label: 'معيشة وغذاء', value: 38, color: 'var(--clay-600)' },
-  { label: 'تعليم', value: 27, color: 'var(--amber-500)' },
-  { label: 'صحة', value: 19, color: 'var(--olive-600)' },
-  { label: 'دعم نفسي وأنشطة', value: 9, color: 'var(--teal-700)' },
-  { label: 'مصاريف إدارية', value: 7, color: 'var(--sand-400)' },
+  { label: 'معيشة وغذاء', value: 38, color: 'var(--chart-1)' },
+  { label: 'تعليم', value: 27, color: 'var(--chart-4)' },
+  { label: 'صحة', value: 19, color: 'var(--chart-2)' },
+  { label: 'دعم نفسي وأنشطة', value: 9, color: 'var(--chart-5)' },
+  { label: 'مصاريف إدارية', value: 7, color: 'var(--chart-muted)' },
 ];
 
 /** ما يوفّره المبلغ الشهري — تعتمد عليه حاسبة الأثر. */
@@ -249,7 +251,7 @@ export const IMPACT_TIERS = [
 /** شهادات الكفلاء. */
 export let STORIES = [
   {
-    quote: 'كنت أظن أن الكفالة مجرد مبلغ يُخصم شهرياً. أول تقرير وصلني كان فيديو لأحمد يقرأ نصاً كتبه بنفسه — يومها فهمت ما الذي أشارك فيه فعلاً.',
+    quote: 'كنت أظن أن الكفالة مجرد مبلغ يُخصم شهرياً. أول تقرير وصلني كان فيديو لأحمد يقرأ نصاً كتبه بنفسه. يومها فهمت في ماذا أشارك.',
     name: 'عبدالله المطيري',
     role: 'كافل منذ ٣ سنوات',
   },
@@ -306,7 +308,7 @@ export let POSTS = [
     date: '2026-07-28',
     dateLabel: '٢٨ يوليو ٢٠٢٦',
     readMin: 6,
-    excerpt: 'ثلاث مراحل تحقّق ميدانية ووثائقية تمرّ بها كل حالة قبل أن تظهر على المنصة — نشرحها بالتفصيل خطوةً بخطوة.',
+    excerpt: 'ثلاث مراحل تحقّق ميدانية ووثائقية تمرّ بها كل حالة قبل أن تظهر على المنصة، نشرحها هنا خطوةً بخطوة.',
     image: 'assets/img/post-01.webp',
     featured: true,
   },
@@ -431,7 +433,7 @@ export async function hydrate() {
   const has = (selectors) => selectors.some((s) => document.querySelector(s) !== null);
 
   const needsOrphans = has([
-    '#orphansGrid', '#urgentOrphans', '#orphanDetail', '#similarOrphans', '#checkoutSummary',
+    '#orphansGrid', '#homeOrphans', '#orphanDetail', '#similarOrphans', '#checkoutSummary',
   ]);
   const needsTransparency = has(['#spendingDonut', '#spendingLegend', '#financeBoard', '#proofBoard']);
   const needsPosts = has(['#postsGrid']);

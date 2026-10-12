@@ -6,7 +6,7 @@
 
   <title>برامج الكفالة | كفالة</title>
   <meta name="description" content="أربعة برامج كفالة: شاملة، تعليمية، صحية، وكفالة أسرة. تعرّف على ما يغطيه كل برنامج ومبلغه الشهري.">
-  <meta name="theme-color" content="#c2410c">
+  <meta name="theme-color" content="#0f5c5c">
 
   <meta http-equiv="Content-Security-Policy"
         content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self'; connect-src 'self'; form-action 'self'; base-uri 'self'; object-src 'none'">
@@ -22,6 +22,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300;400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Aref+Ruqaa:wght@400;700&display=swap">
+
+  <!-- السمة قبل أي رسم — يمنع وميض الوضع الفاتح لمن اختار الليلي -->
+  <script src="assets/js/theme-init.js"></script>
 
   <link rel="stylesheet" href="assets/vendor/fontawesome/css/all.min.css">
   <link rel="stylesheet" href="assets/css/tokens.css">
@@ -40,8 +43,7 @@
 
   <main id="main">
 
-    <section class="page-hero page-hero--center">
-      <div class="glow" aria-hidden="true"></div>
+    <section class="page-hero">
       <div class="container">
         <div class="page-hero__inner">
           <nav aria-label="مسار التنقل">
@@ -50,8 +52,7 @@
               <li><span aria-current="page">برامج الكفالة</span></li>
             </ol>
           </nav>
-          <span class="eyebrow">البرامج</span>
-          <h1 class="page-hero__title">اختر شكل الوقوف معه</h1>
+          <h1 class="page-hero__title">برامج الكفالة وأسعارها</h1>
           <p class="page-hero__lede">
             كل برنامج يغطي احتياجاً مختلفاً، وكلها موثّقة وتصلك تقاريرها.
             المبالغ محسوبة على تكلفة فعلية، لا مقدّرة جزافاً.
@@ -64,19 +65,58 @@
     <section class="section">
       <div class="container">
         <h2 class="sr-only">برامج الكفالة المتاحة</h2>
-        <div class="grid grid--auto" id="programsGrid"></div>
+        <div class="plans" id="programsGrid"></div>
+      </div>
+    </section>
+
+    <!-- حاسبة الأثر: مكانها هنا بجانب البرامج، حيث يقرر الزائر المبلغ -->
+    <section class="section section--surface" aria-labelledby="calcTitle">
+      <div class="container">
+        <header class="block-head">
+          <div class="block-head__text">
+            <h2 id="calcTitle">ما الذي يغطيه مبلغك كل شهر</h2>
+            <p class="block-lede">حرّك الشريط لترى ما يغطيه المبلغ في حياة طفل واحد.</p>
+          </div>
+        </header>
+        <div class="calculator">
+          <div>
+            <label class="field__label" for="impactRange">مبلغ الكفالة الشهرية</label>
+            <div class="calculator__amount">
+              <span>$</span>
+              <output class="num" id="impactAmount" for="impactRange">45</output>
+              <span>في الشهر</span>
+            </div>
+            <input class="range" type="range" id="impactRange"
+                   min="15" max="150" step="5" value="45"
+                   aria-describedby="impactSuggestion">
+            <div class="range__scale">
+              <span class="num">$15</span>
+              <span class="num">$150</span>
+            </div>
+            <p class="field__hint" id="impactSuggestion" role="status" aria-live="polite"></p>
+            <a class="btn btn--cta btn--lg calculator__cta" href="orphans.html">
+              اكفل يتيماً
+              <i class="fa-solid fa-arrow-left btn__icon btn__icon--arrow" aria-hidden="true"></i>
+            </a>
+          </div>
+          <div>
+            <p class="field__label calculator__list-label">هذا المبلغ يغطي:</p>
+            <ul class="impact-list" role="list" id="impactList"></ul>
+          </div>
+        </div>
       </div>
     </section>
 
     <!-- مقارنة سريعة -->
-    <section class="section section--surface">
+    <section class="section">
       <div class="container">
-        <div class="section-head section-head--center" data-reveal>
-          <span class="eyebrow">مقارنة</span>
-          <h2>ما الذي يشمله كل برنامج؟</h2>
+        <div class="block-head">
+          <div class="block-head__text">
+            <h2>ما الذي يشمله كل برنامج؟</h2>
+          </div>
         </div>
 
-        <div class="table-wrap" data-reveal>
+        <div class="table-wrap">
           <table class="table">
             <caption class="sr-only">مقارنة بين برامج الكفالة الأربعة وما يشمله كل منها</caption>
             <thead>
@@ -91,35 +131,35 @@
             <tbody>
               <tr>
                 <th scope="row">غذاء وكسوة</th>
-                <td>—</td><td>—</td>
-                <td><i class="fa-solid fa-check" style="color:var(--color-success)" aria-label="مشمول"></i></td>
-                <td><i class="fa-solid fa-check" style="color:var(--color-success)" aria-label="مشمول"></i></td>
+                <td><span class="muted">غير مشمول</span></td><td><span class="muted">غير مشمول</span></td>
+                <td><i class="fa-solid fa-check is-yes" aria-label="مشمول"></i></td>
+                <td><i class="fa-solid fa-check is-yes" aria-label="مشمول"></i></td>
               </tr>
               <tr>
                 <th scope="row">رسوم ومستلزمات دراسية</th>
-                <td><i class="fa-solid fa-check" style="color:var(--color-success)" aria-label="مشمول"></i></td>
-                <td>—</td>
-                <td><i class="fa-solid fa-check" style="color:var(--color-success)" aria-label="مشمول"></i></td>
-                <td><i class="fa-solid fa-check" style="color:var(--color-success)" aria-label="مشمول"></i></td>
+                <td><i class="fa-solid fa-check is-yes" aria-label="مشمول"></i></td>
+                <td><span class="muted">غير مشمول</span></td>
+                <td><i class="fa-solid fa-check is-yes" aria-label="مشمول"></i></td>
+                <td><i class="fa-solid fa-check is-yes" aria-label="مشمول"></i></td>
               </tr>
               <tr>
                 <th scope="row">رعاية طبية ومتابعة</th>
-                <td>—</td>
-                <td><i class="fa-solid fa-check" style="color:var(--color-success)" aria-label="مشمول"></i></td>
-                <td><i class="fa-solid fa-check" style="color:var(--color-success)" aria-label="مشمول"></i></td>
+                <td><span class="muted">غير مشمول</span></td>
+                <td><i class="fa-solid fa-check is-yes" aria-label="مشمول"></i></td>
+                <td><i class="fa-solid fa-check is-yes" aria-label="مشمول"></i></td>
                 <td>جزئياً</td>
               </tr>
               <tr>
                 <th scope="row">دعم نفسي واجتماعي</th>
-                <td>—</td>
-                <td><i class="fa-solid fa-check" style="color:var(--color-success)" aria-label="مشمول"></i></td>
-                <td><i class="fa-solid fa-check" style="color:var(--color-success)" aria-label="مشمول"></i></td>
-                <td><i class="fa-solid fa-check" style="color:var(--color-success)" aria-label="مشمول"></i></td>
+                <td><span class="muted">غير مشمول</span></td>
+                <td><i class="fa-solid fa-check is-yes" aria-label="مشمول"></i></td>
+                <td><i class="fa-solid fa-check is-yes" aria-label="مشمول"></i></td>
+                <td><i class="fa-solid fa-check is-yes" aria-label="مشمول"></i></td>
               </tr>
               <tr>
                 <th scope="row">دعم الإخوة والأسرة</th>
-                <td>—</td><td>—</td><td>—</td>
-                <td><i class="fa-solid fa-check" style="color:var(--color-success)" aria-label="مشمول"></i></td>
+                <td><span class="muted">غير مشمول</span></td><td><span class="muted">غير مشمول</span></td><td><span class="muted">غير مشمول</span></td>
+                <td><i class="fa-solid fa-check is-yes" aria-label="مشمول"></i></td>
               </tr>
               <tr>
                 <th scope="row">تقرير دوري مصوّر</th>
@@ -136,17 +176,17 @@
     </section>
 
     <!-- الزكاة -->
-    <section class="section">
+    <section class="section section--surface">
       <div class="container">
         <div class="split">
-          <div class="stack stack--lg" data-reveal="start">
-            <span class="eyebrow">مسألة فقهية</span>
+          <div class="prose-block">
+            <p class="meta-label">مسألة فقهية</p>
             <h2>هل تُحتسب الكفالة من الزكاة؟</h2>
-            <p class="section-lede">
-              كفالة اليتيم في أصلها صدقة عامة. لكن إن كان الطفل وأسرته من الفقراء أو المساكين
-              — وهو حال معظم حالاتنا — جاز صرف الزكاة إليهم.
+            <p>
+              كفالة اليتيم في أصلها صدقة عامة. لكن إن كان الطفل وأسرته من الفقراء أو المساكين،
+              وهذا حال معظم الحالات عندنا، جاز صرف الزكاة إليهم.
             </p>
-            <p class="section-lede">
+            <p>
               لذلك نفصل الحسابين تماماً: أموال الزكاة تُصرف حصراً على الحالات المستحقة زكوياً،
               ولا يُخصم منها أي مصروف إداري إطلاقاً.
             </p>
@@ -156,49 +196,49 @@
               <li>صفر مصاريف إدارية على الزكاة</li>
               <li>تقرير زكاة سنوي مستقل ومدقّق</li>
             </ul>
-            <a class="btn btn--outline" href="faq.html">
+            <a class="link-arrow" href="faq.html">
               اقرأ التفاصيل الفقهية
-              <i class="fa-solid fa-arrow-left btn__icon btn__icon--arrow" aria-hidden="true"></i>
+              <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
             </a>
           </div>
 
-          <div class="split__media" data-reveal="end">
-            <div class="card" style="padding:var(--space-8)">
-              <div class="icon-box icon-box--growth icon-box--soft">
-                <i class="fa-solid fa-scale-balanced" aria-hidden="true"></i>
-              </div>
-              <h3 class="card__title">آلية توزيع الزكاة لدينا</h3>
-              <ul class="timeline" role="list" style="margin-block-start:var(--space-4)">
-                <li>
-                  <strong>الحالات المستحقة زكوياً أولاً</strong>
-                  <p>الأشد فقراً وفق تقييم المشرف الميداني.</p>
-                </li>
-                <li>
-                  <strong>صرف كامل بلا خصم</strong>
-                  <p>١٠٠٪ من مبلغ الزكاة يصل للمستحق.</p>
-                </li>
-                <li>
-                  <strong>توثيق منفصل</strong>
-                  <p>سجل مستقل يُراجعه المدقق الخارجي سنوياً.</p>
-                </li>
-              </ul>
-            </div>
+          <div class="zakat-flow">
+            <h3>آلية توزيع الزكاة لدينا</h3>
+            <ol class="columns" style="--cols:1">
+              <li>
+                <span class="columns__num num">01</span>
+                <h3>الحالات المستحقة زكوياً أولاً</h3>
+                <p>الأشد فقراً وفق تقييم المشرف الميداني.</p>
+              </li>
+              <li>
+                <span class="columns__num num">02</span>
+                <h3>صرف كامل بلا خصم</h3>
+                <p>١٠٠٪ من مبلغ الزكاة يصل للمستحق.</p>
+              </li>
+              <li>
+                <span class="columns__num num">03</span>
+                <h3>توثيق منفصل</h3>
+                <p>سجل مستقل يُراجعه المدقق الخارجي سنوياً.</p>
+              </li>
+            </ol>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- النداء -->
-    <section class="section section--flush-t">
+    <!-- الخاتمة -->
+    <section class="closing" aria-labelledby="closingTitle">
       <div class="container">
-        <div class="cta-band" data-reveal="scale">
-          <div class="cta-band__inner">
-            <h2>حددت البرنامج؟ اختر الطفل الآن</h2>
-            <p>كل الحالات المعروضة موثّقة ومزارة ميدانياً، وتنتظر من يقف معها.</p>
-            <a class="btn btn--invert btn--lg" href="orphans.html">
-              تصفّح الحالات
-              <i class="fa-solid fa-arrow-left btn__icon btn__icon--arrow" aria-hidden="true"></i>
-            </a>
+        <div class="closing__inner closing__inner--solo">
+          <div class="closing__pitch">
+            <h2 id="closingTitle">حددت البرنامج؟ اختر الطفل الآن</h2>
+            <p class="closing__lede">كل الحالات المعروضة موثّقة ومزارة ميدانياً، وتنتظر من يقف معها.</p>
+            <div class="closing__actions">
+              <a class="btn btn--cta btn--lg" href="orphans.html">
+                تصفّح كل الأطفال
+                <i class="fa-solid fa-arrow-left btn__icon btn__icon--arrow" aria-hidden="true"></i>
+              </a>
+            </div>
           </div>
         </div>
       </div>

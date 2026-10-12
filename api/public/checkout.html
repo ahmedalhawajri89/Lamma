@@ -6,7 +6,7 @@
 
   <title>إتمام الكفالة | كفالة</title>
   <meta name="description" content="خطوة أخيرة لتفعيل كفالتك. دفع مشفّر، ولا نحتفظ ببيانات بطاقتك.">
-  <meta name="theme-color" content="#c2410c">
+  <meta name="theme-color" content="#0f5c5c">
 
   <meta http-equiv="Content-Security-Policy"
         content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self'; connect-src 'self'; form-action 'self'; base-uri 'self'; object-src 'none'">
@@ -22,6 +22,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300;400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Aref+Ruqaa:wght@400;700&display=swap">
+
+  <!-- السمة قبل أي رسم — يمنع وميض الوضع الفاتح لمن اختار الليلي -->
+  <script src="assets/js/theme-init.js"></script>
 
   <link rel="stylesheet" href="assets/vendor/fontawesome/css/all.min.css">
   <link rel="stylesheet" href="assets/css/tokens.css">
@@ -126,7 +129,7 @@
                            autocomplete="tel" inputmode="tel" dir="ltr"
                            data-validate="phone" aria-describedby="err-donorPhone hint-phone">
                   </div>
-                  <p class="field__hint" id="hint-phone">اختياري — نستخدمه فقط لإشعارك بوصول التقارير.</p>
+                  <p class="field__hint" id="hint-phone">اختياري. نستخدمه فقط لإشعارك بوصول التقارير.</p>
                   <p class="field__error" id="err-donorPhone" role="alert"></p>
                 </div>
 
@@ -220,12 +223,12 @@
                 <div class="secure-note" style="margin-block-end:var(--space-6)">
                   <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
                   <span>
-                    الاتصال مشفّر، وبيانات بطاقتك تُعالَج لدى بوابة الدفع مباشرة —
-                    لا تمرّ بخوادمنا ولا نحتفظ بها إطلاقاً.
+                    الاتصال مشفّر، وبيانات بطاقتك تُعالَج لدى بوابة الدفع مباشرة.
+                    لا تمرّ بخوادمنا ولا نحتفظ بها.
                   </span>
                 </div>
 
-                <button class="btn btn--primary btn--lg btn--block" type="submit">
+                <button class="btn btn--cta btn--lg btn--block" type="submit">
                   <i class="fa-solid fa-lock" aria-hidden="true"></i>
                   تفعيل الكفالة
                 </button>

@@ -176,15 +176,28 @@ export function initToTop() {
 
 /* -------------------------------------------------------------------------
    8. شريط الإجراء السفلي على الجوال
-   يظهر بعد تجاوز الهيرو حتى لا يزاحم زر "اكفل الآن" الرئيسي.
+   يظهر بعد تجاوز الهيرو، ويختفي حين يكون زر «اكفل» ظاهراً أصلاً على الشاشة
+   (الهيرو والخاتمة والفوتر)، فلا يتزاحم زرّان للفعل نفسه.
    ------------------------------------------------------------------------- */
 export function initActionBar() {
   const bar = $('#actionBar');
   if (!bar) return;
 
+  const zones = $$('.hero, .closing, .site-footer');
+  const inView = new Set();
+
   const update = rafThrottle(() => {
-    bar.classList.toggle('is-visible', window.scrollY > window.innerHeight * 0.7);
+    const pastHero = window.scrollY > window.innerHeight * 0.7;
+    bar.classList.toggle('is-visible', pastHero && inView.size === 0);
   });
+
+  if ('IntersectionObserver' in window && zones.length) {
+    const watch = new IntersectionObserver((entries) => {
+      entries.forEach((e) => (e.isIntersecting ? inView.add(e.target) : inView.delete(e.target)));
+      update();
+    }, { threshold: 0.15 });
+    zones.forEach((zone) => watch.observe(zone));
+  }
 
   update();
   window.addEventListener('scroll', update, { passive: true });

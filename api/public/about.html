@@ -6,7 +6,7 @@
 
   <title>من نحن | كفالة</title>
   <meta name="description" content="١٤ عاماً من العمل الموثّق في ١٢ دولة. تعرّف على قصتنا، وقيمنا، وكيف نتحقق من كل حالة قبل نشرها.">
-  <meta name="theme-color" content="#c2410c">
+  <meta name="theme-color" content="#0f5c5c">
 
   <meta http-equiv="Content-Security-Policy"
         content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self'; connect-src 'self'; form-action 'self'; base-uri 'self'; object-src 'none'">
@@ -22,6 +22,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300;400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Aref+Ruqaa:wght@400;700&display=swap">
+
+  <!-- السمة قبل أي رسم — يمنع وميض الوضع الفاتح لمن اختار الليلي -->
+  <script src="assets/js/theme-init.js"></script>
 
   <link rel="stylesheet" href="assets/vendor/fontawesome/css/all.min.css">
   <link rel="stylesheet" href="assets/css/tokens.css">
@@ -41,7 +44,6 @@
   <main id="main">
 
     <section class="page-hero">
-      <div class="glow" aria-hidden="true"></div>
       <div class="container">
         <div class="page-hero__inner">
           <nav aria-label="مسار التنقل">
@@ -50,8 +52,7 @@
               <li><span aria-current="page">من نحن</span></li>
             </ol>
           </nav>
-          <span class="eyebrow">من نحن</span>
-          <h1 class="page-hero__title">لسنا وسيطاً بينك وبينه. نحن الشاهد على أن كفالتك وصلت.</h1>
+          <h1 class="page-hero__title">نوصل كفالتك إلى طفل بعينه، ونتابع أثرها معك.</h1>
           <p class="page-hero__lede">
             بدأنا عام ٢٠١٢ بأربعة عشر طفلاً في مخيم واحد. اليوم نعمل في ١٢ دولة،
             ولم نغيّر القاعدة التي بدأنا بها: لا نُظهر حالة لم نزرها بأنفسنا.
@@ -61,26 +62,14 @@
     </section>
 
     <!-- الأرقام -->
-    <section class="section section--tight section--surface">
+    <section class="section section--tight section--surface" aria-label="المنصة بالأرقام">
       <div class="container">
-        <div class="grid grid--auto-sm">
-          <div class="stat" data-reveal>
-            <div class="stat__value"><span data-count="3280" data-suffix="+">0</span></div>
-            <p class="stat__label">يتيم مكفول اليوم</p>
-          </div>
-          <div class="stat" data-reveal data-reveal-delay="80">
-            <div class="stat__value"><span data-count="14">0</span></div>
-            <p class="stat__label">سنة من العمل الموثّق</p>
-          </div>
-          <div class="stat" data-reveal data-reveal-delay="160">
-            <div class="stat__value"><span data-count="12">0</span></div>
-            <p class="stat__label">دولة نعمل فيها</p>
-          </div>
-          <div class="stat" data-reveal data-reveal-delay="240">
-            <div class="stat__value"><span data-count="86">0</span></div>
-            <p class="stat__label">مشرفاً ميدانياً</p>
-          </div>
-        </div>
+        <dl class="figures">
+          <div><dt>يتيم مكفول اليوم</dt><dd class="num"><span data-count="3280" data-suffix="+">0</span></dd></div>
+          <div><dt>سنة من العمل الموثّق</dt><dd class="num"><span data-count="14">0</span></dd></div>
+          <div><dt>دولة نعمل فيها</dt><dd class="num"><span data-count="12">0</span></dd></div>
+          <div><dt>مشرفاً ميدانياً</dt><dd class="num"><span data-count="86">0</span></dd></div>
+        </dl>
       </div>
     </section>
 
@@ -88,39 +77,34 @@
     <section class="section">
       <div class="container">
         <div class="split">
-          <div class="split__media" data-reveal="start">
-            <div class="frame-set" style="max-inline-size:26rem;margin-inline:auto">
-              <div class="frame" style="aspect-ratio:4/5">
-                <img class="frame__img" src="assets/img/about-classroom.webp" alt="فريق ميداني في زيارة أسرة"
+          <div class="split__media">
+            <figure class="doc-figure">
+              <img src="assets/img/about-classroom.webp" alt="طفلة في فصلها الدراسي"
                    loading="lazy" width="420" height="525">
-              </div>
-            </div>
+            </figure>
           </div>
 
-          <div class="stack stack--lg" data-reveal="end">
-            <span class="eyebrow">قصتنا</span>
+          <div class="prose-block">
             <h2>بدأت بسؤال واحد لم نجد له جواباً مقنعاً</h2>
-            <p class="section-lede">
+            <p>
               في ٢٠١٢ تبرّع مؤسسنا لجمعية، وحين سأل بعد ستة أشهر «أين ذهب المبلغ؟»
               لم يحصل على جواب. لم يكن يشك في أمانتهم، لكنه أدرك أن غياب الجواب
               نفسه هو ما يوقف آلاف الناس عن العطاء.
             </p>
-            <p class="section-lede">
+            <p>
               فبدأنا بأربعة عشر طفلاً، ودفتر ورقي، وقاعدة واحدة:
               كل كافل يعرف اسم طفله وصورته وتقريره. القاعدة لم تتغيّر منذ ذلك اليوم،
               لكن الدفتر صار منصة.
             </p>
 
-            <div class="grid grid--2" style="gap:var(--space-4)">
-              <div class="card">
-                <div class="icon-box icon-box--soft"><i class="fa-solid fa-eye" aria-hidden="true"></i></div>
-                <h3 class="card__title">رؤيتنا</h3>
-                <p class="card__text">عالم لا يُترك فيه طفلٌ وحيداً لأن أحداً لم يثق أن دعمه سيصل.</p>
+            <div class="columns">
+              <div>
+                <h3>رؤيتنا</h3>
+                <p>عالم لا يُترك فيه طفلٌ وحيداً لأن أحداً لم يثق أن دعمه سيصل.</p>
               </div>
-              <div class="card">
-                <div class="icon-box icon-box--accent icon-box--soft"><i class="fa-solid fa-bullseye" aria-hidden="true"></i></div>
-                <h3 class="card__title">رسالتنا</h3>
-                <p class="card__text">أن نجعل الكفالة علاقة مرئية وموثّقة، لا تحويلاً مصرفياً مجهول المصير.</p>
+              <div>
+                <h3>رسالتنا</h3>
+                <p>أن نجعل الكفالة علاقة مرئية وموثّقة، لا تحويلاً مصرفياً مجهول المصير.</p>
               </div>
             </div>
           </div>
@@ -128,113 +112,108 @@
       </div>
     </section>
 
-    <!-- القيم -->
-    <section class="section section--surface pattern-bg">
+    <!-- المبادئ -->
+    <section class="section section--surface">
       <div class="container">
-        <div class="section-head section-head--center" data-reveal>
-          <span class="eyebrow">مبادئنا</span>
-          <h2>أربعة مبادئ نرفض التنازل عنها</h2>
-          <p class="section-lede">حتى حين تكلّفنا تبرعات.</p>
+        <div class="block-head">
+          <div class="block-head__text">
+            <h2>أربعة مبادئ لا نتنازل عنها</h2>
+            <p class="block-lede">حتى حين تكلّفنا تبرعات.</p>
+          </div>
         </div>
 
-        <div class="grid grid--auto">
-          <article class="card card--lift" data-reveal>
-            <div class="icon-box icon-box--soft"><i class="fa-solid fa-shield-heart" aria-hidden="true"></i></div>
-            <h3 class="card__title">كرامة الطفل أولاً</h3>
-            <p class="card__text">
+        <ol class="columns" style="--cols:4">
+          <li>
+            <span class="columns__num num">01</span>
+            <h3>كرامة الطفل أولاً</h3>
+            <p>
               لا ننشر صور أطفال باكين أو مشاهد إذلال لجمع التبرعات، مهما كان أثرها على الحصيلة.
               الطفل ليس أداة إعلانية.
             </p>
-          </article>
-
-          <article class="card card--lift" data-reveal data-reveal-delay="80">
-            <div class="icon-box icon-box--accent icon-box--soft"><i class="fa-solid fa-file-shield" aria-hidden="true"></i></div>
-            <h3 class="card__title">شفافية غير مشروطة</h3>
-            <p class="card__text">
+          </li>
+          <li>
+            <span class="columns__num num">02</span>
+            <h3>شفافية غير مشروطة</h3>
+            <p>
               الميزانية المدقّقة منشورة للعموم لا للكفلاء فقط. ومن حق أي شخص أن يسأل عن أي بند
               ويحصل على جواب خلال ٧٢ ساعة.
             </p>
-          </article>
-
-          <article class="card card--lift" data-reveal data-reveal-delay="160">
-            <div class="icon-box icon-box--growth icon-box--soft"><i class="fa-solid fa-people-roof" aria-hidden="true"></i></div>
-            <h3 class="card__title">الأسرة قبل المؤسسة</h3>
-            <p class="card__text">
+          </li>
+          <li>
+            <span class="columns__num num">03</span>
+            <h3>الأسرة قبل المؤسسة</h3>
+            <p>
               بقاء الطفل بين أهله خيرٌ من أفضل دار رعاية. لذلك ندعم الأسرة كاملةً
               كي لا يُنتزع الطفل منها لأسباب مادية.
             </p>
-          </article>
-
-          <article class="card card--lift" data-reveal data-reveal-delay="240">
-            <div class="icon-box icon-box--info icon-box--soft"><i class="fa-solid fa-seedling" aria-hidden="true"></i></div>
-            <h3 class="card__title">حتى يقف بنفسه</h3>
-            <p class="card__text">
+          </li>
+          <li>
+            <span class="columns__num num">04</span>
+            <h3>حتى يقف بنفسه</h3>
+            <p>
               الكفالة لا تنتهي عند الثامنة عشرة. برنامج التمكين يرافق الشاب
               حتى أول وظيفة أو مشروع يعيله.
             </p>
-          </article>
-        </div>
+          </li>
+        </ol>
       </div>
     </section>
 
     <!-- كيف نتحقق -->
     <section class="section">
       <div class="container">
-        <div class="split split--media-start">
-          <div class="stack stack--lg" data-reveal="start">
-            <span class="eyebrow">آلية العمل</span>
+        <div class="split">
+          <div class="prose-block">
             <h2>ثلاث مراحل قبل أن تظهر أي حالة</h2>
-            <p class="section-lede">
-              متوسط الوقت بين ترشيح الحالة ونشرها على المنصة: ٢٣ يوماً.
-              نرفض ما نسبته ١٨٪ من الحالات المرشّحة سنوياً.
+            <p>
+              لا تُنشر حالة على المنصة قبل أن تمرّ بالمراحل الثلاث كاملة،
+              ثم تبقى تحت المتابعة ما دامت الكفالة قائمة.
             </p>
-
-            <ol class="timeline" role="list">
-              <li>
-                <time>المرحلة الأولى</time>
-                <strong>الترشيح والتحقق الوثائقي</strong>
-                <p>شهادة وفاة الوالد، إثبات إقامة، وتقرير حالة اجتماعية من جهة محلية معتمدة.</p>
-              </li>
-              <li>
-                <time>المرحلة الثانية</time>
-                <strong>زيارة ميدانية غير معلنة</strong>
-                <p>مشرف من فريقنا يزور البيت دون موعد مسبق، ويوثّق الحالة المعيشية كما هي فعلاً.</p>
-              </li>
-              <li>
-                <time>المرحلة الثالثة</time>
-                <strong>المراجعة والموافقة</strong>
-                <p>لجنة من ثلاثة أعضاء تراجع الملف، وتحدد البرنامج المناسب ومبلغ الكفالة العادل.</p>
-              </li>
-              <li>
-                <time>بعد النشر</time>
-                <strong>متابعة كل ٩٠ يوماً</strong>
-                <p>زيارة ميدانية دورية، وتقرير مصوّر يصل الكافل، وتحديث للملف على المنصة.</p>
-              </li>
-            </ol>
+            <dl class="figures figures--2">
+              <div><dt>متوسط الأيام بين الترشيح والنشر</dt><dd class="num">23</dd></div>
+              <div><dt>من الحالات المرشّحة نرفضها سنوياً</dt><dd class="num">18%</dd></div>
+            </dl>
           </div>
 
-          <div class="split__media" data-reveal="end">
-            <div class="frame-set" style="max-inline-size:24rem;margin-inline:auto">
-              <div class="frame" style="aspect-ratio:4/5">
-                <img class="frame__img" src="assets/img/about-classroom.webp" alt="طفلة في فصلها الدراسي"
-                   loading="lazy" width="380" height="475">
-              </div>
-            </div>
-          </div>
+          <ol class="timeline" role="list">
+            <li>
+              <time>المرحلة الأولى</time>
+              <strong>الترشيح والتحقق الوثائقي</strong>
+              <p>شهادة وفاة الوالد، إثبات إقامة، وتقرير حالة اجتماعية من جهة محلية معتمدة.</p>
+            </li>
+            <li>
+              <time>المرحلة الثانية</time>
+              <strong>زيارة ميدانية غير معلنة</strong>
+              <p>مشرف من فريقنا يزور البيت دون موعد مسبق، ويوثّق الحالة المعيشية كما هي فعلاً.</p>
+            </li>
+            <li>
+              <time>المرحلة الثالثة</time>
+              <strong>المراجعة والموافقة</strong>
+              <p>لجنة من ثلاثة أعضاء تراجع الملف، وتحدد البرنامج المناسب ومبلغ الكفالة العادل.</p>
+            </li>
+            <li>
+              <time>بعد النشر</time>
+              <strong>متابعة كل ٩٠ يوماً</strong>
+              <p>زيارة ميدانية دورية، وتقرير مصوّر يصل الكافل، وتحديث للملف على المنصة.</p>
+            </li>
+          </ol>
         </div>
       </div>
     </section>
 
-    <!-- النداء -->
-    <section class="section section--flush-t">
+    <!-- الخاتمة -->
+    <section class="closing" aria-labelledby="closingTitle">
       <div class="container">
-        <div class="cta-band" data-reveal="scale">
-          <div class="cta-band__inner">
-            <h2>هل ما زال لديك سؤال؟</h2>
-            <p>نجيب على كل سؤال خلال ٧٢ ساعة، مهما كان دقيقاً أو محرجاً.</p>
-            <div class="cluster cluster--center">
-              <a class="btn btn--invert btn--lg" href="orphans.html">اختر طفلاً تكفله</a>
-              <a class="btn btn--glass btn--lg" href="contact.html">اسألنا مباشرة</a>
+        <div class="closing__inner closing__inner--solo">
+          <div class="closing__pitch">
+            <h2 id="closingTitle">هل ما زال لديك سؤال؟</h2>
+            <p class="closing__lede">نجيب على كل سؤال خلال ٧٢ ساعة، مهما كان دقيقاً أو محرجاً.</p>
+            <div class="closing__actions">
+              <a class="btn btn--cta btn--lg" href="orphans.html">
+                اكفل يتيماً
+                <i class="fa-solid fa-arrow-left btn__icon btn__icon--arrow" aria-hidden="true"></i>
+              </a>
+              <a class="closing__link" href="contact.html">اسألنا مباشرة</a>
             </div>
           </div>
         </div>

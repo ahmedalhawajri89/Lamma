@@ -33,11 +33,18 @@
 .section--alt     { background: var(--color-surface-alt); }
 .section--warm    { background: var(--gradient-warm); }
 
-/* قسم مميّز دافئ — بديل فاتح عن الأسطح الداكنة */
+/* قسم ليلي — فيروزي عميق بهالات خافتة. داكن في الوضعين لأنه توقيع الهوية:
+   يقطع إيقاع الأسطح الفاتحة ويمنح الصفحة «نَفَساً» بصرياً. */
 .section--ink {
-  background: linear-gradient(155deg, var(--clay-50) 0%, var(--amber-50) 55%, var(--sand-100) 100%);
-  border-block: 1px solid var(--color-brand-border);
+  background: var(--gradient-night);
+  background-color: var(--color-ink);
+  color: var(--color-on-ink);
+  border-block: 1px solid var(--color-ink-line);
+  isolation: isolate;
 }
+
+.section--ink :is(h1, h2, h3, h4, strong) { color: var(--color-on-ink); }
+.section--ink :is(p, .section-lede) { color: var(--color-on-ink-muted); }
 
 /* --------------------------------------------------------------------------
    3. ترويسة القسم
@@ -156,28 +163,6 @@
   filter: blur(8px);
   pointer-events: none;
   z-index: 0;
-}
-
-/* نمط هندسي إسلامي دقيق كخلفية للأقسام المميزة */
-.pattern-bg {
-  position: relative;
-  isolation: isolate;
-}
-
-.pattern-bg::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  opacity: 0.4;
-  background-image:
-    repeating-linear-gradient(45deg,
-      transparent 0 14px,
-      color-mix(in oklab, var(--clay-300) 22%, transparent) 14px 15px),
-    repeating-linear-gradient(-45deg,
-      transparent 0 14px,
-      color-mix(in oklab, var(--clay-300) 22%, transparent) 14px 15px);
-  mask-image: radial-gradient(ellipse at center, #000 15%, transparent 72%);
 }
 
 .section > .container { position: relative; z-index: var(--z-base); }

@@ -6,7 +6,7 @@
 
   <title>تفاصيل الحالة | كفالة</title>
   <meta name="description" content="ملف موثّق لحالة يتيم: قصته، ظروفه الدراسية والصحية، وما تغطيه كفالتك بالتفصيل.">
-  <meta name="theme-color" content="#c2410c">
+  <meta name="theme-color" content="#0f5c5c">
 
   <meta http-equiv="Content-Security-Policy"
         content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self'; connect-src 'self'; form-action 'self'; base-uri 'self'; object-src 'none'">
@@ -22,6 +22,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300;400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Aref+Ruqaa:wght@400;700&display=swap">
+
+  <!-- السمة قبل أي رسم — يمنع وميض الوضع الفاتح لمن اختار الليلي -->
+  <script src="assets/js/theme-init.js"></script>
 
   <link rel="stylesheet" href="assets/vendor/fontawesome/css/all.min.css">
   <link rel="stylesheet" href="assets/css/tokens.css">
@@ -43,7 +46,7 @@
 
       <section class="section section--tight">
         <div class="container">
-          <nav aria-label="مسار التنقل" style="margin-block-end:var(--space-6)">
+          <nav aria-label="مسار التنقل" class="profile__crumbs">
             <ol class="breadcrumb">
               <li><a href="index.html">الرئيسية</a></li>
               <li><a href="orphans.html">الأيتام</a></li>
@@ -53,136 +56,102 @@
 
           <div class="profile">
 
-            <!-- الصورة -->
-            <div data-reveal="start">
-              <div class="profile__media">
-                <img data-field="photo" src="assets/img/orphan-omnia.webp" alt="" width="420" height="525">
-                <div class="profile__media-tag" id="orphanUrgent">
-                  <span class="badge badge--urgent"><span class="pulse-dot"></span> حالة عاجلة</span>
-                </div>
+            <!-- الملف -->
+            <div class="profile__main">
+              <header class="profile__head">
+                <p class="kid__urgent" id="orphanUrgent">حالة عاجلة</p>
+                <h1 class="profile__name"><span data-field="name">…</span><span class="profile__age">، <span data-field="age">…</span></span></h1>
+                <p class="profile__meta">
+                  <span data-field="location">…</span>
+                  <span>رقم الملف <span class="num" data-field="id">…</span></span>
+                </p>
+              </header>
+
+              <blockquote class="profile__dream">
+                <p data-field="dream">…</p>
+                <footer data-field="dream-label">حلمه</footer>
+              </blockquote>
+
+              <div class="profile__story">
+                <p data-field="story">…</p>
+                <p class="profile__note">
+                  <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+                  القصة موثّقة من زيارة ميدانية، ومنشورة بموافقة الوصي القانوني على الطفل.
+                </p>
               </div>
 
-              <!-- لوحة الكفالة -->
-              <div class="sponsor-panel" style="margin-block-start:var(--space-6)">
-                <div>
-                  <span class="badge badge--brand" data-field="program">…</span>
-                </div>
+              <dl class="profile__facts">
+                <div><dt>المرحلة الدراسية</dt><dd data-field="grade">…</dd></div>
+                <div><dt>الحالة الصحية</dt><dd data-field="health">…</dd></div>
+                <div><dt>البرنامج</dt><dd data-field="program">…</dd></div>
+              </dl>
 
-                <div class="sponsor-panel__price">
+              <section class="profile__block" aria-labelledby="coversTitle">
+                <h2 id="coversTitle">ما تغطيه كفالتك</h2>
+                <ul class="check-list profile__covers" role="list">
+                  <li><strong>المعيشة:</strong> غذاء وكسوة موسمية.</li>
+                  <li><strong>التعليم:</strong> رسوم وكتب وقرطاسية، ودروس تقوية عند الحاجة.</li>
+                  <li><strong>الصحة:</strong> فحص دوري وأدوية ومتابعة طبية.</li>
+                  <li><strong>الدعم النفسي:</strong> جلسات إرشاد وأنشطة مع أقرانه.</li>
+                  <li><strong>المتابعة:</strong> زيارة ميدانية كل ٩٠ يوماً وتقرير مصوّر.</li>
+                </ul>
+              </section>
+
+              <section class="profile__block" aria-labelledby="reportsTitle">
+                <h2 id="reportsTitle">ما يصلك بعد الكفالة</h2>
+                <ol class="timeline" role="list">
+                  <li>
+                    <time datetime="2026-07-01">يوليو ٢٠٢٦</time>
+                    <strong>تقرير الربع الثالث</strong>
+                    <p>تحسّن ملحوظ في التحصيل الدراسي، وفحص صحي دوري بلا ملاحظات.</p>
+                  </li>
+                  <li>
+                    <time datetime="2026-04-01">أبريل ٢٠٢٦</time>
+                    <strong>تقرير الربع الثاني</strong>
+                    <p>صرف مستلزمات الفصل الثاني، وزيارة ميدانية للأسرة.</p>
+                  </li>
+                  <li>
+                    <time datetime="2026-01-01">يناير ٢٠٢٦</time>
+                    <strong>تقرير الربع الأول</strong>
+                    <p>تسجيل في العام الدراسي، وصرف الكسوة الشتوية.</p>
+                  </li>
+                </ol>
+                <p class="profile__note">
+                  <i class="fa-solid fa-lock" aria-hidden="true"></i>
+                  التقارير التفصيلية والصور متاحة للكافل فقط، حمايةً لخصوصية الطفل.
+                </p>
+              </section>
+            </div>
+
+            <!-- الصورة ولوحة الكفالة: تلتصقان أثناء القراءة -->
+            <aside class="profile__aside" aria-label="الكفالة">
+              <figure class="profile__media">
+                <img data-field="photo" src="assets/img/orphan-omnia.webp" alt="" width="800" height="1000">
+                <figcaption>صورة توضيحية. لا ننشر صور الأطفال إلا لكافليهم.</figcaption>
+              </figure>
+
+              <div class="sponsor-panel">
+                <p class="sponsor-panel__price">
                   <strong class="num" data-field="price">$0</strong>
-                  <span>/ شهرياً</span>
+                  <span>في الشهر</span>
+                </p>
+
+                <div class="sponsor-panel__fund">
+                  <span class="kid__track" id="orphanFund"><span></span></span>
+                  <span>مكفول <b class="num" data-field="funded">0٪</b>، ويتبقى <b class="num" data-field="remaining">$0</b> في الشهر</span>
                 </div>
 
-                <div class="progress" id="orphanProgress" data-value="0">
-                  <div class="progress__label">
-                    <span>مُغطّى من الكفالة</span>
-                    <strong data-field="funded">0٪</strong>
-                  </div>
-                  <div class="progress__track"><div class="progress__fill"></div></div>
-                </div>
-
-                <a class="btn btn--primary btn--lg btn--block" data-sponsor-link href="checkout.html">
-                  اكفل <span data-field="name">…</span> الآن
-                  <i class="fa-solid fa-heart btn__icon" aria-hidden="true"></i>
+                <a class="btn btn--cta btn--lg btn--block" data-sponsor-link href="checkout.html">
+                  اكفل <span data-field="name">…</span>
+                  <i class="fa-solid fa-arrow-left btn__icon btn__icon--arrow" aria-hidden="true"></i>
                 </a>
 
-                <p class="field__hint text-center">
+                <p class="sponsor-panel__hint">
                   <i class="fa-solid fa-lock" aria-hidden="true"></i>
-                  دفع مشفّر — يمكنك الإيقاف في أي وقت بلا رسوم
+                  دفع مشفّر، وتستطيع الإيقاف متى شئت بلا رسوم.
                 </p>
               </div>
-            </div>
-
-            <!-- المعلومات -->
-            <div class="stack stack--lg" data-reveal="end">
-              <div>
-                <p class="field__hint">
-                  رقم الملف: <span class="num" data-field="id">…</span>
-                </p>
-                <h1 style="font-size:var(--text-3xl)" data-field="name">…</h1>
-              </div>
-
-              <div class="facts">
-                <div class="fact">
-                  <i class="fa-solid fa-cake-candles" aria-hidden="true"></i>
-                  <div><span>العمر</span><strong data-field="age">…</strong></div>
-                </div>
-                <div class="fact">
-                  <i class="fa-solid fa-person-half-dress" aria-hidden="true"></i>
-                  <div><span>الجنس</span><strong data-field="gender">…</strong></div>
-                </div>
-                <div class="fact">
-                  <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
-                  <div><span>المكان</span><strong data-field="location">…</strong></div>
-                </div>
-                <div class="fact">
-                  <i class="fa-solid fa-graduation-cap" aria-hidden="true"></i>
-                  <div><span>المرحلة الدراسية</span><strong data-field="grade">…</strong></div>
-                </div>
-                <div class="fact">
-                  <i class="fa-solid fa-heart-pulse" aria-hidden="true"></i>
-                  <div><span>الحالة الصحية</span><strong data-field="health">…</strong></div>
-                </div>
-                <div class="fact">
-                  <i class="fa-solid fa-star" aria-hidden="true"></i>
-                  <div><span>حلمه</span><strong data-field="dream">…</strong></div>
-                </div>
-              </div>
-
-              <!-- تبويبات -->
-              <div data-tabs>
-                <div class="tabs" role="tablist" aria-label="تفاصيل الحالة">
-                  <button class="tab" role="tab" id="tab-story"
-                          aria-controls="panel-story" aria-selected="true">القصة</button>
-                  <button class="tab" role="tab" id="tab-covers"
-                          aria-controls="panel-covers" aria-selected="false" tabindex="-1">ما تغطيه الكفالة</button>
-                  <button class="tab" role="tab" id="tab-reports"
-                          aria-controls="panel-reports" aria-selected="false" tabindex="-1">التقارير</button>
-                </div>
-
-                <div class="tab-panel" role="tabpanel" id="panel-story" aria-labelledby="tab-story">
-                  <p class="section-lede" data-field="story">…</p>
-                  <p class="field__hint" style="margin-block-start:var(--space-4)">
-                    <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
-                    القصة موثّقة من زيارة ميدانية، ومنشورة بموافقة الوصي القانوني على الطفل.
-                  </p>
-                </div>
-
-                <div class="tab-panel" role="tabpanel" id="panel-covers" aria-labelledby="tab-covers" hidden>
-                  <ul class="check-list" role="list">
-                    <li><strong>احتياجات المعيشة</strong> — غذاء وكسوة موسمية.</li>
-                    <li><strong>التعليم</strong> — رسوم، كتب، قرطاسية، ودروس تقوية عند الحاجة.</li>
-                    <li><strong>الصحة</strong> — فحص دوري وأدوية ومتابعة طبية.</li>
-                    <li><strong>الدعم النفسي</strong> — جلسات إرشاد وأنشطة مع أقرانه.</li>
-                    <li><strong>المتابعة</strong> — زيارة ميدانية كل ٩٠ يوماً وتقرير مصوّر.</li>
-                  </ul>
-                </div>
-
-                <div class="tab-panel" role="tabpanel" id="panel-reports" aria-labelledby="tab-reports" hidden>
-                  <ol class="timeline" role="list">
-                    <li>
-                      <time datetime="2026-07-01">يوليو ٢٠٢٦</time>
-                      <strong>تقرير الربع الثالث</strong>
-                      <p>تحسّن ملحوظ في التحصيل الدراسي، وفحص صحي دوري بلا ملاحظات.</p>
-                    </li>
-                    <li>
-                      <time datetime="2026-04-01">أبريل ٢٠٢٦</time>
-                      <strong>تقرير الربع الثاني</strong>
-                      <p>صرف مستلزمات الفصل الثاني، وزيارة ميدانية للأسرة.</p>
-                    </li>
-                    <li>
-                      <time datetime="2026-01-01">يناير ٢٠٢٦</time>
-                      <strong>تقرير الربع الأول</strong>
-                      <p>تسجيل في العام الدراسي، وصرف الكسوة الشتوية.</p>
-                    </li>
-                  </ol>
-                  <p class="field__hint" style="margin-block-start:var(--space-4)">
-                    <i class="fa-solid fa-lock" aria-hidden="true"></i>
-                    التقارير التفصيلية والصور متاحة للكافل فقط، حمايةً لخصوصية الطفل.
-                  </p>
-                </div>
-              </div>
-            </div>
+            </aside>
 
           </div>
         </div>
@@ -193,7 +162,7 @@
         <div class="container">
           <div class="section-head section-head--split" data-reveal>
             <div>
-              <span class="eyebrow">حالات أخرى</span>
+              <p class="meta-label">حالات أخرى</p>
               <h2>قد تودّ الوقوف معهم أيضاً</h2>
             </div>
             <div class="slider__nav">
@@ -225,7 +194,7 @@
       <span data-field="name">…</span>
       <strong class="num" data-field="price">$0</strong>
     </div>
-    <a class="btn btn--primary" data-sponsor-link href="checkout.html">اكفل الآن</a>
+    <a class="btn btn--cta" data-sponsor-link href="checkout.html">اكفل <span data-field="name">…</span></a>
   </div>
 
   <button class="to-top" type="button" id="toTop" aria-label="العودة إلى أعلى الصفحة">

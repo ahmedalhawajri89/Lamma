@@ -7,7 +7,7 @@ import { $, $$, formatNumber, escapeHtml, debounce, arabicDigits, readingTime } 
 import { ORPHANS, IMPACT_TIERS, PROGRAMS, getProgram } from './data.js';
 import { orphanCard, postCard } from './render.js';
 import { fetchPost, fetchPostsPage } from './api.js';
-import { initReveal, initProgressBars } from './motion.js';
+import { initReveal } from './motion.js';
 
 /* =========================================================================
    1. حاسبة الأثر
@@ -72,11 +72,25 @@ export function initOrphanFilters() {
   const resetBtn = $('#filterReset');
 
   /* --- تعبئة قوائم الفلترة من البيانات --- */
+  // البرامج أزرار ظاهرة بدل قائمة منسدلة: هي أهم اختيار في الصفحة
   if (programSelect) {
     programSelect.insertAdjacentHTML('beforeend', PROGRAMS
-      .map((p) => `<option value="${escapeHtml(p.id)}">${escapeHtml(p.name)}</option>`)
+      .map((p) => `<button class="chip" type="button" role="radio" aria-checked="false"
+                    data-value="${escapeHtml(p.id)}">${escapeHtml(p.name)}</button>`)
       .join(''));
   }
+
+  const chips = programSelect ? $$('.chip', programSelect) : [];
+  let program = '';
+
+  const setProgram = (value) => {
+    program = value;
+    chips.forEach((chip) => {
+      const on = chip.dataset.value === value;
+      chip.setAttribute('aria-checked', String(on));
+      chip.tabIndex = on ? 0 : -1;
+    });
+  };
 
   if (countrySelect) {
     const countries = [...new Set(ORPHANS.map((o) => o.country))].sort();
@@ -88,9 +102,7 @@ export function initOrphanFilters() {
   /* --- قراءة الفلتر الأولي من الرابط (قادم من صفحة البرامج) --- */
   const params = new URLSearchParams(window.location.search);
   const initialProgram = params.get('program');
-  if (initialProgram && programSelect && getProgram(initialProgram)) {
-    programSelect.value = initialProgram;
-  }
+  setProgram(initialProgram && getProgram(initialProgram) ? initialProgram : '');
 
   const SORTERS = {
     urgent: (a, b) => Number(b.urgent) - Number(a.urgent) || a.funded - b.funded,
@@ -102,7 +114,6 @@ export function initOrphanFilters() {
 
   const apply = () => {
     const query = (search?.value || '').trim().toLowerCase();
-    const program = programSelect?.value || '';
     const country = countrySelect?.value || '';
     const sort = sortSelect?.value || 'urgent';
 
@@ -116,6 +127,9 @@ export function initOrphanFilters() {
       .sort(SORTERS[sort] || SORTERS.urgent);
 
     if (countEl) countEl.textContent = formatNumber(results.length);
+    const label = $('#orphanCountLabel');
+    if (label) label.textContent = results.length === 1 ? 'طفل ينتظر كافلاً' : 'طفلاً ينتظرون كافلاً';
+    if (resetBtn) resetBtn.hidden = !(query || program || country || sort !== 'urgent');
 
     grid.innerHTML = results.length
       ? results.map((o, i) => orphanCard(o, { delay: i * 60 })).join('')
@@ -127,16 +141,28 @@ export function initOrphanFilters() {
 
     // البطاقات جديدة في الصفحة، فنعيد تشغيل حركاتها
     initReveal();
-    initProgressBars();
   };
 
   search?.addEventListener('input', debounce(apply, 220));
-  [programSelect, countrySelect, sortSelect].forEach((el) =>
-    el?.addEventListener('change', apply));
+  [countrySelect, sortSelect].forEach((el) => el?.addEventListener('change', apply));
+
+  chips.forEach((chip, i) => {
+    chip.addEventListener('click', () => { setProgram(chip.dataset.value); apply(); });
+    // الأسهم تنقل بين الأزرار كمجموعة اختيار واحد
+    chip.addEventListener('keydown', (e) => {
+      const step = { ArrowLeft: 1, ArrowRight: -1 }[e.key];
+      if (step === undefined) return;
+      e.preventDefault();
+      const next = chips[(i + step + chips.length) % chips.length];
+      setProgram(next.dataset.value);
+      next.focus();
+      apply();
+    });
+  });
 
   resetBtn?.addEventListener('click', () => {
     if (search) search.value = '';
-    if (programSelect) programSelect.value = '';
+    setProgram('');
     if (countrySelect) countrySelect.value = '';
     if (sortSelect) sortSelect.value = 'urgent';
     apply();
@@ -158,12 +184,16 @@ export function initOrphanDetail() {
   const program = getProgram(orphan.program);
 
   /** يملأ كل عنصر يحمل data-field بالقيمة المناسبة — نصاً لا HTML. */
+  const age = Number(orphan.age);
+  const her = orphan.gender === 'أنثى';
+  const remaining = Math.max(0, Math.round((orphan.monthly * (100 - orphan.funded)) / 100));
+
   const fields = {
     name: orphan.name,
     id: orphan.id,
-    age: `${orphan.age} سنوات`,
+    age: `${age} ${age >= 3 && age <= 10 ? 'سنوات' : 'سنة'}`,
     gender: orphan.gender,
-    location: `${orphan.country} — ${orphan.city}`,
+    location: `${orphan.city}، ${orphan.country}`,
     grade: orphan.grade,
     health: orphan.health,
     dream: orphan.dream,
@@ -171,6 +201,8 @@ export function initOrphanDetail() {
     program: program.name,
     price: `$${orphan.monthly}`,
     funded: `${orphan.funded}٪`,
+    remaining: `$${remaining}`,
+    'dream-label': her ? 'حلمها' : 'حلمه',
   };
 
   Object.entries(fields).forEach(([key, value]) => {
@@ -180,13 +212,14 @@ export function initOrphanDetail() {
   const photo = $('[data-field="photo"]');
   if (photo) {
     photo.src = orphan.photo;
-    photo.alt = `صورة ${orphan.name}`;
+    // الصور توضيحية بلا وجوه، فلا نصفها بأنها صورة الطفل نفسه
+    photo.alt = '';
   }
 
-  const progress = $('#orphanProgress');
-  if (progress) progress.dataset.value = orphan.funded;
+  const fund = $('#orphanFund');
+  if (fund) fund.style.setProperty('--v', `${Number(orphan.funded)}%`);
 
-  document.title = `${orphan.name} — كفالة`;
+  document.title = `${orphan.name} | كفالة`;
 
   $$('[data-sponsor-link]').forEach((link) => {
     link.href = `checkout.html?id=${encodeURIComponent(orphan.id)}`;
@@ -268,7 +301,8 @@ export function initCheckoutSummary() {
   const photo = $('[data-checkout="photo"]');
   if (photo) {
     photo.src = orphan.photo;
-    photo.alt = `صورة ${orphan.name}`;
+    // الصور توضيحية بلا وجوه، فلا نصفها بأنها صورة الطفل نفسه
+    photo.alt = '';
   }
 }
 
@@ -304,7 +338,8 @@ export function initThankYou() {
   const photo = $('[data-thanks="photo"]');
   if (photo) {
     photo.src = orphan.photo;
-    photo.alt = `صورة ${orphan.name}`;
+    // الصور توضيحية بلا وجوه، فلا نصفها بأنها صورة الطفل نفسه
+    photo.alt = '';
   }
 
   launchConfetti();
@@ -317,7 +352,8 @@ function launchConfetti() {
   const host = $('.thanks');
   if (!host) return;
 
-  const colors = ['#c2410c', '#f0910c', '#4d7c0f', '#0f766e', '#fcca4d'];
+  // ألوان المخططات نفسها — تتبع الهوية والوضع الليلي بلا قائمة مكرّرة هنا
+  const colors = [1, 2, 3, 4, 5].map((n) => `var(--chart-${n})`);
 
   for (let i = 0; i < 40; i += 1) {
     const bit = document.createElement('span');
@@ -396,7 +432,6 @@ export async function initPostDetail() {
 
   host.innerHTML = `
 <section class="page-hero">
-  <div class="glow" aria-hidden="true"></div>
   <div class="container">
     <div class="page-hero__inner">
       <nav aria-label="مسار التنقل">
@@ -406,7 +441,7 @@ export async function initPostDetail() {
           <li><span aria-current="page">${escapeHtml(post.category ?? 'مقال')}</span></li>
         </ol>
       </nav>
-      <span class="eyebrow">${escapeHtml(post.category ?? 'مقال')}</span>
+      <p class="meta-label">${escapeHtml(post.category ?? 'مقال')}</p>
       <h1 class="page-hero__title">${escapeHtml(post.title)}</h1>
       <p class="page-hero__lede">${escapeHtml(post.excerpt ?? '')}</p>
 
@@ -431,7 +466,7 @@ export async function initPostDetail() {
       <a class="btn btn--outline" href="blog.html">
         <i class="fa-solid fa-arrow-right" aria-hidden="true"></i> كل المقالات
       </a>
-      <a class="btn btn--primary" href="orphans.html">اختر طفلاً تكفله</a>
+      <a class="btn btn--cta" href="orphans.html">اكفل يتيماً</a>
     </div>
   </div>
 </section>`;

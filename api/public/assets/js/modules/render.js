@@ -6,70 +6,48 @@
  */
 
 import { escapeHtml, formatMoney, arabicDigits, readingTime } from './utils.js';
-import { getProgram } from './data.js';
 
-/** بطاقة يتيم. */
+/**
+ * بطاقة يتيم: ملف طفل مفتوح بلا صندوق.
+ * صورة نظيفة، ثم الاسم والعمر والمدينة، وسطران من قصته، وسطر تغطية واحد،
+ * ثم المبلغ. البطاقة كلها رابط واحد إلى ملفه (عبر رابط الاسم الممتد).
+ */
 export function orphanCard(orphan, { delay = 0 } = {}) {
-  const program = getProgram(orphan.program);
   const name = escapeHtml(orphan.name);
-  const remaining = Math.max(0, 100 - orphan.funded);
-
-  const urgentTag = orphan.urgent
-    ? '<span class="badge badge--urgent"><span class="pulse-dot"></span> حالة عاجلة</span>'
-    : `<span class="badge badge--glass"><i class="fa-solid ${escapeHtml(program.icon)}"></i> ${escapeHtml(program.name)}</span>`;
+  const age = Number(orphan.age);
+  const ageLabel = `${age} ${age >= 3 && age <= 10 ? 'سنوات' : 'سنة'}`;
+  const remaining = Math.max(0, Math.round((orphan.monthly * (100 - orphan.funded)) / 100));
 
   /**
    * الحالة قد تصل بلا صورة، وهذا وضعٌ مشروع لا خطأ: الملف يُنشأ ميدانياً
    * وتُرفع صورته لاحقاً بعد موافقة الوصي. ولا نعيد استعمال صورة طفل آخر
-   * لسدّ الفراغ — تلك هي السياسة نفسها التي يعلنها الموقع.
+   * لسدّ الفراغ، فتلك هي السياسة نفسها التي يعلنها الموقع.
    */
   const media = orphan.photo
-    ? `<img class="orphan-card__img" src="${escapeHtml(orphan.photo)}"
-         alt="صورة ${name}" loading="lazy" width="400" height="300">`
-    : `<div class="orphan-card__img orphan-card__img--empty" role="img"
-         aria-label="لا صورة منشورة لـ ${name}">
-         <span aria-hidden="true">${escapeHtml(orphan.name.charAt(0))}</span>
-       </div>`;
+    ? `<img class="kid__img" src="${escapeHtml(orphan.photo)}" alt="" loading="lazy" width="400" height="500">`
+    : `<span class="kid__img kid__img--empty" aria-hidden="true">${escapeHtml(orphan.name.charAt(0))}</span>`;
 
   return `
-<article class="orphan-card" data-reveal data-reveal-delay="${delay}">
-  <div class="orphan-card__media">
-    ${media}
-    <div class="orphan-card__tag">${urgentTag}</div>
-    <div class="orphan-card__identity">
-      <h3 class="orphan-card__name">${name}</h3>
-      <div class="orphan-card__meta">
-        <span><i class="fa-solid fa-cake-candles" aria-hidden="true"></i>${orphan.age} سنوات</span>
-        <span><i class="fa-solid fa-location-dot" aria-hidden="true"></i>${escapeHtml(orphan.country)} — ${escapeHtml(orphan.city)}</span>
-      </div>
-    </div>
-  </div>
+<article class="kid" data-reveal data-reveal-delay="${delay}">
+  <div class="kid__media">${media}</div>
 
-  <div class="orphan-card__body">
-    <p class="orphan-card__need">${escapeHtml(orphan.story)}</p>
+  <div class="kid__body">
+    ${orphan.urgent ? '<p class="kid__urgent">حالة عاجلة</p>' : ''}
+    <h3 class="kid__name">
+      <a href="orphan.html?id=${encodeURIComponent(orphan.id)}">${name}</a><span>، ${ageLabel}</span>
+    </h3>
+    <p class="kid__place">${escapeHtml(orphan.city)}، ${escapeHtml(orphan.country)}</p>
+    <p class="kid__story">${escapeHtml(orphan.story ?? '')}</p>
 
-    <div class="progress" data-value="${orphan.funded}">
-      <div class="progress__label">
-        <span>مُغطّى من الكفالة</span>
-        <strong>${orphan.funded}٪</strong>
-      </div>
-      <div class="progress__track">
-        <div class="progress__fill"></div>
-      </div>
-      <div class="progress__label">
-        <span>يتبقى ${remaining}٪ لاكتمال كفالته</span>
-      </div>
+    <div class="kid__fund">
+      <span class="kid__track" style="--v:${Number(orphan.funded)}%"><span></span></span>
+      <span>مكفول <b class="num">${Number(orphan.funded)}٪</b>، ويتبقى <b class="num">$${remaining}</b> في الشهر</span>
     </div>
 
-    <div class="orphan-card__foot">
-      <div class="orphan-card__price">
-        <strong class="num">${formatMoney(orphan.monthly)}</strong>
-        <span>شهرياً</span>
-      </div>
-      <a class="btn btn--primary btn--sm" href="orphan.html?id=${encodeURIComponent(orphan.id)}">
-        اكفل ${name} <i class="fa-solid fa-arrow-left btn__icon btn__icon--arrow" aria-hidden="true"></i>
-      </a>
-    </div>
+    <p class="kid__foot">
+      <span><strong class="num">${formatMoney(orphan.monthly)}</strong> في الشهر</span>
+      <span class="kid__cta" aria-hidden="true">اكفل ${name} <i class="fa-solid fa-arrow-left"></i></span>
+    </p>
   </div>
 </article>`;
 }
@@ -100,25 +78,10 @@ export function programCard(program, { delay = 0 } = {}) {
     <span>/ شهرياً</span>
   </div>
 
-  <a class="btn ${program.featured ? 'btn--primary' : 'btn--outline'} btn--block"
+  <a class="btn ${program.featured ? 'btn--cta' : 'btn--outline'} btn--block"
      href="orphans.html?program=${encodeURIComponent(program.id)}">
-    اختر طفلاً لهذا البرنامج
+    اكفل يتيماً
   </a>
-</article>`;
-}
-
-/** بطاقة شهادة كافل. */
-export function storyCard(story, { index = 0 } = {}) {
-  return `
-<article class="story-card">
-  <p class="story-card__quote">${escapeHtml(story.quote)}</p>
-  <div class="story-card__author">
-    <span class="avatar avatar--${(index % 4) + 1}" aria-hidden="true">${escapeHtml(story.name.trim()[0])}</span>
-    <div>
-      <strong>${escapeHtml(story.name)}</strong>
-      <span>${escapeHtml(story.role)}</span>
-    </div>
-  </div>
 </article>`;
 }
 
@@ -143,9 +106,15 @@ export function faqItem(faq, index) {
 export function postCard(post, { delay = 0 } = {}) {
   return `
 <article class="post-card" data-reveal data-reveal-delay="${delay}">
-  <div class="post-card__media">
-    <img src="${escapeHtml(post.image)}" alt="" loading="lazy" width="400" height="250">
-    <span class="badge badge--glass post-card__date">${escapeHtml(post.category)}</span>
+  <div class="post-card__media${post.image ? '' : ' post-card__media--empty'}">
+    ${
+      // مقال بلا صورة أو تصنيف وضعٌ وارد من لوحة الإدارة: لا نعرض صورة
+      // مكسورة ولا كلمة «null»، بل سطحاً هادئاً بالشعار، ونُسقط الشارة.
+      post.image
+        ? `<img src="${escapeHtml(post.image)}" alt="" loading="lazy" width="400" height="250">`
+        : '<img class="post-card__mark" src="assets/img/logo.svg" alt="" width="56" height="56">'
+    }
+    ${post.category ? `<span class="badge badge--glass post-card__date">${escapeHtml(post.category)}</span>` : ''}
   </div>
   <div class="post-card__body">
     <h3 class="post-card__title">${

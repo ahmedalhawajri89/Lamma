@@ -58,8 +58,9 @@ export function initTabs() {
 
       // الأسهم تتنقل بين التبويبات — سلوك ARIA القياسي
       tab.addEventListener('keydown', (e) => {
-        const forward = e.key === 'ArrowLeft';   // في RTL اليسار يعني "التالي"
-        const back = e.key === 'ArrowRight';
+        // في RTL اليسار يعني «التالي»، والأسفل كذلك في القوائم العمودية
+        const forward = e.key === 'ArrowLeft' || e.key === 'ArrowDown';
+        const back = e.key === 'ArrowRight' || e.key === 'ArrowUp';
         if (!forward && !back) return;
 
         e.preventDefault();

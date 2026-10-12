@@ -125,7 +125,7 @@ class DemoSeeder extends Seeder
         $supervisors = [];
         foreach (Country::operational()->take(4)->get() as $i => $country) {
             $user = User::updateOrCreate(['email' => "supervisor{$i}@kafala.org"], [
-                'name' => self::LAST_NAMES[$i].' — مشرف '.$country->name_ar,
+                'name' => self::LAST_NAMES[$i].'، مشرف '.$country->name_ar,
                 'password' => Hash::make('password'),
                 'status' => 'active',
                 'email_verified_at' => now(),
@@ -727,7 +727,7 @@ class DemoSeeder extends Seeder
                     'orphan_id' => $orphan['id'],
                     'period_year' => $when->year,
                     'period_quarter' => $when->quarter,
-                    'title' => "تقرير الربع {$when->quarter} — {$when->year}",
+                    'title' => "تقرير الربع {$when->quarter} لعام {$when->year}",
                     'summary' => 'زيارة ميدانية موثّقة، ومتابعة دراسية وصحية ونفسية.',
                     'academic_note' => 'معدّل '.random_int(62, 97).'٪، حضور منتظم.',
                     'health_note' => random_int(0, 100) < 80 ? 'فحص دوري بلا ملاحظات.' : 'يحتاج متابعة تغذية.',

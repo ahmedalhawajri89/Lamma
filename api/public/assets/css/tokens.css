@@ -2,118 +2,203 @@
    Kafala — Design Tokens
    الطبقة الأساسية: كل قيمة تصميمية في المشروع تبدأ من هنا.
    لا يُسمح بأي لون أو مقاس ثابت (hard-coded) خارج هذا الملف.
+
+   هوية «أمان ودفء — تركوازي وذهبي»:
+     تركوازي عميق  #0F5C5C — الأمان والثقة (العلامة)
+     تركوازي ثانوي #1E8A7A — النمو والحياة
+     ذهبي دافئ     #E0A63B — زر «اكفل» وحده: الدفء والعطاء
+     أرضية دافئة   #F7F5F0 — ورقية هادئة، لا أبيض حادّ
+     حبر           #1F2A2E — نص رمادي مزرقّ، أنعم من الأسود
+
+   القاعدة: المكونات تستعمل الأدوار الدلالية (--color-*) فقط، لا السلالم.
+   هكذا يعمل الوضع الليلي بإعادة تعريف الأدوار وحدها، بلا لمس أي مكوّن.
    ========================================================================== */
 
 :root {
+  color-scheme: light;
+
   /* ------------------------------------------------------------------
-     1. اللون — هوية "الطين والعنبر"
-     تيراكوتا دافئة (الأرض والبيت) + عنبر (الضوء والأمل)
-     + زيتوني (النمو) على أرضية رملية كريمية.
+     1. السلالم الخام
      ------------------------------------------------------------------ */
 
-  /* الأساسي: طين / تيراكوتا */
-  --clay-50:  #fdf5f1;
-  --clay-100: #fae7dd;
-  --clay-200: #f4cbb8;
-  --clay-300: #eca88a;
-  --clay-400: #e07a53;
-  --clay-500: #d35a30;
-  --clay-600: #c2410c;
-  --clay-700: #9a3412;
-  --clay-800: #7c2d12;
-  --clay-900: #5c220f;
+  /* التركوازي — ٧٠٠ هو الأساسي، و٥٠٠ هو الثانوي */
+  --teal-50:  #eef7f6;
+  --teal-100: #d3ebe8;
+  --teal-200: #a8d6d0;
+  --teal-300: #74bbb2;
+  --teal-400: #3fa095;
+  --teal-500: #1e8a7a;
+  --teal-600: #157266;
+  --teal-700: #0f5c5c;
+  --teal-800: #0c4a4a;
+  --teal-900: #093a3a;
+  --teal-950: #062727;
 
-  /* الثانوي: عنبر / عسلي */
-  --amber-50:  #fffaeb;
-  --amber-100: #fef0c7;
-  --amber-200: #fde08a;
-  --amber-300: #fcca4d;
-  --amber-400: #fab225;
-  --amber-500: #f0910c;
-  --amber-600: #d97706;
-  --amber-700: #b45309;
-  --amber-800: #92400e;
+  /* الذهبي — ٥٠٠ هو زر «اكفل» */
+  --gold-50:  #fdf8ec;
+  --gold-100: #faedcc;
+  --gold-200: #f4da9a;
+  --gold-300: #edc56a;
+  --gold-400: #e7b450;
+  --gold-500: #e0a63b;
+  --gold-600: #c48a25;
+  --gold-700: #9c6b1a;
+  --gold-800: #74501a;
 
-  /* التمييز: زيتوني (النمو والاستدامة) */
-  --olive-50:  #f6f9ec;
-  --olive-100: #e9f2d1;
-  --olive-200: #d4e5a8;
-  --olive-300: #b6d275;
-  --olive-400: #96ba4c;
-  --olive-500: #75992f;
-  --olive-600: #4d7c0f;
-  --olive-700: #3f630f;
-  --olive-800: #354e12;
+  /* الطين — للصحة في المخططات وبرامج الكفالة فقط */
+  --clay-500: #c9694b;
+  --clay-600: #b5543a;
+  --clay-300: #e08a6c;
 
-  /* المحايد: رمل ودافئ — ليس رمادياً بارداً */
-  --sand-0:   #ffffff;
-  --sand-25:  #fefbf7;
-  --sand-50:  #fbf7f0;  /* أرضية الصفحة */
-  --sand-100: #f5eee2;  /* سطح بديل */
-  --sand-200: #e9dfd0;  /* حدود */
-  --sand-300: #d6c8b4;
-  --sand-400: #b3a596;
-  --sand-500: #756a5c;
-  --sand-600: #6b6053;
-  --sand-700: #4e463c;
-  --sand-900: #1c1917;  /* الحبر */
+  /* النمو والنجاح */
+  --leaf-50:  #effbf3;
+  --leaf-300: #7fd6a0;
+  --leaf-400: #4cc47c;
+  --leaf-600: #1f8048;
+  --leaf-700: #186638;
 
-  /* ألوان الحالة */
-  --teal-100: #ccfbf1;
-  --teal-600: #0d9488;
-  --teal-700: #0f766e;
+  /* المعلومات */
+  --sky-100: #e0f2fe;
+  --sky-300: #7dd3fc;
+  --sky-700: #0369a1;
+
+  /* العاجل */
   --rose-100: #ffe4e6;
-  --rose-600: #e11d48;
+  --rose-400: #fb7185;
   --rose-700: #be123c;
 
-  /* ------------------------------------------------------------------
-     2. الأدوار الدلالية (Semantic) — استخدم هذه في المكونات، لا التدرجات أعلاه
-     ------------------------------------------------------------------ */
-  --color-brand:            var(--clay-600);
-  --color-brand-hover:      var(--clay-700);
-  --color-brand-soft:       var(--clay-50);
-  --color-brand-border:     var(--clay-200);
-  --color-brand-contrast:   var(--sand-0);
+  /* سلسلة للمخططات وبرنامج التعليم */
+  --indigo-300: #9ea2f0;
+  --indigo-500: #6366d9;
 
-  --color-accent:           var(--amber-600);
-  --color-accent-soft:      var(--amber-50);
-  --color-growth:           var(--olive-600);
-  --color-growth-soft:      var(--olive-50);
+  /* المحايد: أرضية دافئة ونصوص رمادية مزرقّة */
+  --sand-0:   #ffffff;
+  --sand-25:  #fbfaf7;
+  --sand-50:  #f7f5f0;
+  --sand-100: #efece4;
+  --sand-200: #e4e0d6;
+  --sand-300: #cfcabe;
+  --sand-400: #9ea3a1;
+  --ink-500:  #5f6b6f;   /* 4.7 على السطح البديل */
+  --ink-600:  #4e5b5f;
+  --ink-700:  #3a474b;
+  --ink-900:  #1f2a2e;
+
+  /* ------------------------------------------------------------------
+     2. الأدوار الدلالية — استخدم هذه في المكونات، لا السلالم أعلاه
+     ------------------------------------------------------------------ */
+
+  /* العلامة — #0F5C5C يعطي 7.1 على الأرضية و7.8 للنص الأبيض فوقه */
+  --color-brand:            var(--teal-700);
+  --color-brand-hover:      var(--teal-800);
+  --color-brand-strong:     var(--teal-800);   /* نص فوق السطح الناعم */
+  --color-brand-soft:       var(--teal-50);
+  --color-brand-border:     var(--teal-200);
+  --color-brand-contrast:   var(--sand-0);
+  --color-brand-2:          var(--teal-500);   /* الثانوي: أيقونات ومؤشرات */
+
+  /* «اكفل» — الذهبي لا يحمل نصاً أبيض (2.2 فقط)، فنصّه الحبر بتباين 6.7 */
+  --color-cta:              var(--gold-500);
+  --color-cta-hover:        var(--gold-400);
+  --color-cta-contrast:     var(--ink-900);
+  --color-cta-soft:         var(--gold-50);
+  --color-cta-strong:       var(--gold-800);   /* نص فوق السطح الذهبي الناعم */
+  --color-cta-display:      var(--gold-700);   /* نص عرض كبير فقط: 4.2 ≥ 3 */
+  --color-highlight:        rgb(224 166 59 / 0.28);
+
+  --color-accent:           var(--gold-500);
+  --color-accent-soft:      var(--gold-50);
+  --color-accent-strong:    var(--gold-800);
+
+  --color-growth:           var(--teal-500);
+  --color-growth-soft:      var(--teal-50);
+  --color-growth-strong:    var(--teal-700);
 
   --color-canvas:           var(--sand-50);
   --color-surface:          var(--sand-0);
   --color-surface-alt:      var(--sand-100);
+  --color-surface-raised:   var(--sand-0);
 
-  --color-text:             var(--sand-900);
-  --color-text-muted:       var(--sand-600);
-  --color-text-subtle:      var(--sand-500);
+  --color-text:             var(--ink-900);
+  --color-text-muted:       var(--ink-600);
+  --color-text-subtle:      var(--ink-500);
 
   --color-border:           var(--sand-200);
   --color-border-strong:    var(--sand-300);
 
-  --color-success:          var(--olive-600);
-  --color-success-soft:     var(--olive-50);
-  --color-info:             var(--teal-700);
-  --color-info-soft:        var(--teal-100);
+  --color-success:          var(--leaf-600);
+  --color-success-soft:     var(--leaf-50);
+  --color-info:             var(--sky-700);
+  --color-info-soft:        var(--sky-100);
   --color-urgent:           var(--rose-700);
   --color-urgent-soft:      var(--rose-100);
 
-  /* حلقة التركيز: العنبر الفاتح يعطي 2.24 فقط على الأرضية الكريمية
-     (يلزم 3 للعناصر غير النصية)، فنستعمل الطين الأغمق. */
-  --color-focus:            var(--clay-600);
+  /* الأقسام الداكنة — تركوازي عميق في الوضعين، فهي توقيع الهوية */
+  --color-ink:              var(--teal-900);
+  --color-on-ink:           #f4f7f5;
+  --color-on-ink-muted:     rgb(244 247 245 / 0.76);
+  --color-on-ink-accent:    var(--gold-300);
+  --color-on-ink-cta:       var(--gold-300);
+  --color-on-ink-brand:     var(--teal-300);
+  --color-ink-line:         rgb(255 255 255 / 0.12);
+  --color-ink-glass:        rgb(255 255 255 / 0.08);
+  --color-ink-line-strong:  rgb(255 255 255 / 0.24);
+
+  /* الأفاتار الحرفي — كلها تحمل نصاً أبيض بتباين ≥ 4.6 */
+  --avatar-1: var(--teal-700);
+  --avatar-2: var(--indigo-500);
+  --avatar-3: var(--gold-700);
+  --avatar-4: var(--leaf-700);
+
+  /* نص فوق الصور الفوتوغرافية — أبيض دائماً لأن الصورة لا تتبع السمة */
+  --color-on-photo:         #ffffff;
+  --color-on-photo-muted:   rgb(255 255 255 / 0.84);
+  --color-photo-glass:      rgb(255 255 255 / 0.14);
+  --color-photo-line:       rgb(255 255 255 / 0.30);
+
+  --color-scrim:            rgb(9 31 31 / 0.55);
+  --color-selection:        var(--teal-100);
+  --color-selection-text:   var(--teal-900);
+  --color-scrollbar:        var(--sand-300);
+
+  --color-focus:            var(--teal-600);
   --color-focus-halo:       var(--sand-25);
 
   /* ------------------------------------------------------------------
-     3. التدرجات والزخارف المميزة
+     3. ألوان البيانات — المخططات وشرائح الإنفاق وبرامج الكفالة
+     قاعدة البيانات تخزّن أسماء هذه المتغيرات (لا قيماً)، فتتبع السمة.
+     مُتحقَّق منها آلياً: أسوأ زوج ΔE 14.7 لعمى الأخضر، و20.1 لعمى الأحمر.
      ------------------------------------------------------------------ */
-  --gradient-brand:  linear-gradient(135deg, var(--clay-600) 0%, var(--clay-500) 45%, var(--amber-600) 100%);
-  --gradient-warm:   linear-gradient(160deg, var(--sand-50) 0%, var(--clay-50) 100%);
-  --gradient-dusk:   linear-gradient(155deg, var(--clay-800) 0%, var(--sand-900) 60%, #241b14 100%);
-  --gradient-glow:   radial-gradient(closest-side, rgb(224 122 83 / 0.28), transparent 100%);
-  --gradient-fade-b: linear-gradient(to top, rgb(28 25 23 / 0.88), rgb(28 25 23 / 0.15) 55%, transparent);
+  --chart-1: var(--teal-700);
+  --chart-2: var(--clay-500);
+  --chart-3: var(--gold-300);
+  --chart-4: var(--gold-500);
+  --chart-5: var(--indigo-500);
+  --chart-muted: var(--sand-400);
+
+  --program-full: linear-gradient(var(--teal-700), var(--teal-700));
+  --program-education: linear-gradient(var(--indigo-500), var(--indigo-500));
+  --program-health: linear-gradient(var(--clay-600), var(--clay-600));
+  --program-family: linear-gradient(var(--teal-500), var(--teal-500));
 
   /* ------------------------------------------------------------------
-     4. الطباعة — Readex Pro للعناوين، IBM Plex Sans Arabic للمتن،
+     4. الخلفيات — مسطّحة عمداً: الهوية بلا تدرجات لونية.
+        تبقى بصيغة linear-gradient(لون، اللون نفسه) لأنها تُستعمل طبقات
+        صورة (background-image، border-box)، واللون المجرد لا يصلح هناك.
+        الاستثناء الوحيد fade-b: تعتيم أسود شفاف فوق الصور لقراءة النص.
+     ------------------------------------------------------------------ */
+  --gradient-brand: linear-gradient(var(--color-brand), var(--color-brand));
+  --gradient-cta: linear-gradient(var(--color-cta), var(--color-cta));
+  --gradient-shine: linear-gradient(var(--color-brand), var(--color-brand));
+  --gradient-warm: linear-gradient(var(--color-surface), var(--color-surface));
+  --gradient-night: linear-gradient(var(--color-ink), var(--color-ink));
+  --gradient-gold: linear-gradient(var(--gold-300), var(--gold-300));
+  --gradient-glow: linear-gradient(transparent, transparent);
+  --gradient-fade-b: linear-gradient(to top, rgb(9 31 31 / 0.82), rgb(9 31 31 / 0.1) 55%, transparent);
+  --gradient-mesh: linear-gradient(transparent, transparent);
+
+  /* ------------------------------------------------------------------
+     5. الطباعة — Readex Pro للعناوين، IBM Plex Sans Arabic للمتن،
         Aref Ruqaa للنصوص الروحية (الآيات والاقتباسات)
      ------------------------------------------------------------------ */
   --font-display: "Readex Pro", "Segoe UI", system-ui, sans-serif;
@@ -129,20 +214,20 @@
   --text-lg:  clamp(1.13rem, 1.07rem + 0.28vw, 1.28rem);
   --text-xl:  clamp(1.30rem, 1.20rem + 0.45vw, 1.55rem);
   --text-2xl: clamp(1.55rem, 1.38rem + 0.80vw, 2.05rem);
-  --text-3xl: clamp(1.90rem, 1.60rem + 1.40vw, 2.85rem);
-  --text-4xl: clamp(2.30rem, 1.80rem + 2.30vw, 3.90rem);
-  --text-5xl: clamp(2.70rem, 1.95rem + 3.40vw, 5.20rem);
+  --text-3xl: clamp(1.95rem, 1.60rem + 1.60vw, 3.05rem);
+  --text-4xl: clamp(2.35rem, 1.80rem + 2.50vw, 4.10rem);
+  --text-5xl: clamp(2.70rem, 1.90rem + 3.60vw, 5.40rem);
 
-  --leading-tight:   1.18;
+  --leading-tight:   1.15;
   --leading-snug:    1.35;
   --leading-normal:  1.65;
   --leading-relaxed: 1.85;
 
-  --tracking-tight: -0.02em;
+  --tracking-tight: -0.025em;
   --tracking-wide:  0.04em;
 
   /* ------------------------------------------------------------------
-     5. المسافات — مقياس 4px متسق
+     6. المسافات — مقياس 4px متسق
      ------------------------------------------------------------------ */
   --space-1:  0.25rem;
   --space-2:  0.5rem;
@@ -158,15 +243,13 @@
   --space-24: 6rem;
 
   /* حشوة الأقسام — تتنفس مع الشاشة */
-  --section-gap: clamp(3.5rem, 2rem + 7vw, 7.5rem);
+  --section-gap: clamp(4rem, 2rem + 7.5vw, 8rem);
   --gutter:      clamp(1rem, 0.5rem + 2.2vw, 2.5rem);
-  --container:   78rem;
+  --container:   80rem;
   --container-narrow: 46rem;
 
   /* ------------------------------------------------------------------
-     6. الأشكال
-     التوقيع البصري: زوايا كبيرة سخيّة + إطار إزاحة رفيع خلف الوسائط.
-     لغة تحريرية معاصرة، أنظف من الأشكال الزخرفية وأقرب لمنصات اليوم.
+     7. الأشكال — زوايا سخيّة بأسلوب Bento، وأزرار حبّية
      ------------------------------------------------------------------ */
   --radius-xs:   0.375rem;
   --radius-sm:   0.625rem;
@@ -178,22 +261,24 @@
   --radius-pill: 999px;
 
   /* ------------------------------------------------------------------
-     7. الظلال — دافئة (مبنية على البني لا الأسود) لتبدو طبيعية
+     8. الظلال — مبنية على الفيروزي الداكن لا الأسود، فتبدو طبيعية
      ------------------------------------------------------------------ */
-  --shadow-xs: 0 1px 2px rgb(92 34 15 / 0.05);
-  --shadow-sm: 0 2px 6px rgb(92 34 15 / 0.06), 0 1px 2px rgb(92 34 15 / 0.04);
-  --shadow-md: 0 6px 18px -4px rgb(92 34 15 / 0.10), 0 2px 6px -2px rgb(92 34 15 / 0.06);
-  --shadow-lg: 0 16px 38px -10px rgb(92 34 15 / 0.16), 0 6px 14px -8px rgb(92 34 15 / 0.10);
-  --shadow-xl: 0 32px 64px -18px rgb(92 34 15 / 0.24), 0 12px 26px -12px rgb(92 34 15 / 0.14);
-  --shadow-brand: 0 12px 28px -8px rgb(194 65 12 / 0.42);
+  --shadow-xs: 0 1px 2px rgb(9 31 31 / 0.05);
+  --shadow-sm: 0 1px 3px rgb(9 31 31 / 0.06), 0 1px 2px rgb(9 31 31 / 0.04);
+  --shadow-md: 0 8px 22px -6px rgb(9 31 31 / 0.10), 0 2px 6px -2px rgb(9 31 31 / 0.06);
+  --shadow-lg: 0 20px 44px -12px rgb(9 31 31 / 0.16), 0 6px 14px -8px rgb(9 31 31 / 0.08);
+  --shadow-xl: 0 36px 72px -20px rgb(9 31 31 / 0.26), 0 12px 26px -12px rgb(9 31 31 / 0.12);
+  --shadow-brand: 0 12px 28px -10px rgb(15 92 92 / 0.45);
+  --shadow-cta:   0 14px 30px -10px rgb(224 166 59 / 0.55);
 
   /* زجاج */
-  --glass-bg:     rgb(255 253 250 / 0.72);
-  --glass-border: rgb(255 255 255 / 0.55);
-  --glass-blur:   saturate(1.4) blur(18px);
+  --glass-bg:     rgb(255 255 255 / 0.72);
+  --glass-strong: rgb(255 255 255 / 0.90);
+  --glass-border: rgb(255 255 255 / 0.65);
+  --glass-blur:   saturate(1.6) blur(18px);
 
   /* ------------------------------------------------------------------
-     8. الحركة
+     9. الحركة
      ------------------------------------------------------------------ */
   --ease-out:  cubic-bezier(0.16, 1, 0.3, 1);
   --ease-soft: cubic-bezier(0.33, 1, 0.68, 1);
@@ -205,7 +290,7 @@
   --dur-scene:  900ms;
 
   /* ------------------------------------------------------------------
-     9. الطبقات (z-index) — مركزية حتى لا تتضارب
+     10. الطبقات (z-index) — مركزية حتى لا تتضارب
      ------------------------------------------------------------------ */
   --z-base:    1;
   --z-raised:  10;
@@ -215,4 +300,159 @@
   --z-overlay: 400;
   --z-modal:   500;
   --z-toast:   600;
+}
+
+/* ==========================================================================
+   الوضع الليلي
+   يُعرَّف مرتين بالقيم نفسها: مرة لتفضيل الجهاز (ما لم يختر الزائر الفاتح
+   صراحةً)، ومرة للاختيار اليدوي. لا يُعاد تعريف إلا الأدوار الدلالية.
+   ========================================================================== */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --color-brand:          var(--teal-300);
+    --color-brand-hover:    var(--teal-200);
+    --color-brand-strong:   var(--teal-200);
+    --color-brand-soft:     rgb(116 187 178 / 0.12);
+    --color-brand-border:   rgb(116 187 178 / 0.32);
+    --color-brand-contrast: var(--teal-950);
+    --color-brand-2:        var(--teal-400);
+
+    --color-cta:            var(--gold-400);
+    --color-cta-hover:      var(--gold-300);
+    --color-cta-soft:       rgb(224 166 59 / 0.14);
+    --color-cta-strong:     var(--gold-300);
+    --color-cta-display:    var(--gold-300);
+    --color-highlight:      rgb(224 166 59 / 0.16);
+
+    --color-accent:         var(--gold-300);
+    --color-accent-soft:    rgb(224 166 59 / 0.12);
+    --color-accent-strong:  var(--gold-200);
+
+    --color-growth:         var(--teal-300);
+    --color-growth-soft:    rgb(116 187 178 / 0.12);
+    --color-growth-strong:  var(--teal-200);
+
+    --color-canvas:         #0d1617;
+    --color-surface:        #142022;
+    --color-surface-alt:    #1a2a2c;
+    --color-surface-raised: #1f3133;
+
+    --color-text:           #ecefea;
+    --color-text-muted:     #aab5b3;
+    --color-text-subtle:    #909d9c;
+
+    --color-border:         #263a3c;
+    --color-border-strong:  #34494b;
+
+    --color-success:        var(--leaf-400);
+    --color-success-soft:   rgb(76 196 124 / 0.14);
+    --color-info:           var(--sky-300);
+    --color-info-soft:      rgb(125 211 252 / 0.12);
+    --color-urgent:         var(--rose-400);
+    --color-urgent-soft:    rgb(251 113 133 / 0.14);
+
+    --color-ink:            #0d3030;
+    --color-scrim:          rgb(0 0 0 / 0.62);
+    --color-selection:      var(--teal-800);
+    --color-selection-text: var(--teal-50);
+    --color-scrollbar:      #34494b;
+
+    --color-focus:          var(--teal-300);
+    --color-focus-halo:     #0d1617;
+
+    --chart-1: var(--teal-300);
+    --chart-2: var(--clay-300);
+    --chart-3: var(--gold-300);
+    --chart-4: var(--gold-300);
+    --chart-5: var(--indigo-300);
+    --chart-muted: #6b7375;
+
+    --shadow-xs: 0 1px 2px rgb(0 0 0 / 0.30);
+    --shadow-sm: 0 1px 3px rgb(0 0 0 / 0.35);
+    --shadow-md: 0 8px 22px -6px rgb(0 0 0 / 0.45);
+    --shadow-lg: 0 20px 44px -12px rgb(0 0 0 / 0.55);
+    --shadow-xl: 0 36px 72px -20px rgb(0 0 0 / 0.65);
+    --shadow-brand: 0 12px 28px -10px rgb(116 187 178 / 0.30);
+    --shadow-cta:   0 14px 30px -10px rgb(224 166 59 / 0.35);
+
+    --glass-bg:     rgb(20 32 34 / 0.72);
+    --glass-strong: rgb(20 32 34 / 0.92);
+    --glass-border: rgb(255 255 255 / 0.08);
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --color-brand:          var(--teal-300);
+  --color-brand-hover:    var(--teal-200);
+  --color-brand-strong:   var(--teal-200);
+  --color-brand-soft:     rgb(116 187 178 / 0.12);
+  --color-brand-border:   rgb(116 187 178 / 0.32);
+  --color-brand-contrast: var(--teal-950);
+  --color-brand-2:        var(--teal-400);
+
+  --color-cta:            var(--gold-400);
+  --color-cta-hover:      var(--gold-300);
+  --color-cta-soft:       rgb(224 166 59 / 0.14);
+  --color-cta-strong:     var(--gold-300);
+  --color-cta-display:    var(--gold-300);
+  --color-highlight:      rgb(224 166 59 / 0.16);
+
+  --color-accent:         var(--gold-300);
+  --color-accent-soft:    rgb(224 166 59 / 0.12);
+  --color-accent-strong:  var(--gold-200);
+
+  --color-growth:         var(--teal-300);
+  --color-growth-soft:    rgb(116 187 178 / 0.12);
+  --color-growth-strong:  var(--teal-200);
+
+  --color-canvas:         #0d1617;
+  --color-surface:        #142022;
+  --color-surface-alt:    #1a2a2c;
+  --color-surface-raised: #1f3133;
+
+  --color-text:           #ecefea;
+  --color-text-muted:     #aab5b3;
+  --color-text-subtle:    #909d9c;
+
+  --color-border:         #263a3c;
+  --color-border-strong:  #34494b;
+
+  --color-success:        var(--leaf-400);
+  --color-success-soft:   rgb(76 196 124 / 0.14);
+  --color-info:           var(--sky-300);
+  --color-info-soft:      rgb(125 211 252 / 0.12);
+  --color-urgent:         var(--rose-400);
+  --color-urgent-soft:    rgb(251 113 133 / 0.14);
+
+  --color-ink:            #0d3030;
+  --color-scrim:          rgb(0 0 0 / 0.62);
+  --color-selection:      var(--teal-800);
+  --color-selection-text: var(--teal-50);
+  --color-scrollbar:      #34494b;
+
+  --color-focus:          var(--teal-300);
+  --color-focus-halo:     #0d1617;
+
+  --chart-1: var(--teal-300);
+  --chart-2: var(--clay-300);
+  --chart-3: var(--gold-300);
+  --chart-4: var(--gold-300);
+  --chart-5: var(--indigo-300);
+  --chart-muted: #6b7375;
+
+  --shadow-xs: 0 1px 2px rgb(0 0 0 / 0.30);
+  --shadow-sm: 0 1px 3px rgb(0 0 0 / 0.35);
+  --shadow-md: 0 8px 22px -6px rgb(0 0 0 / 0.45);
+  --shadow-lg: 0 20px 44px -12px rgb(0 0 0 / 0.55);
+  --shadow-xl: 0 36px 72px -20px rgb(0 0 0 / 0.65);
+  --shadow-brand: 0 12px 28px -10px rgb(116 187 178 / 0.30);
+  --shadow-cta:   0 14px 30px -10px rgb(224 166 59 / 0.35);
+
+  --glass-bg:     rgb(20 32 34 / 0.72);
+  --glass-strong: rgb(20 32 34 / 0.92);
+  --glass-border: rgb(255 255 255 / 0.08);
 }

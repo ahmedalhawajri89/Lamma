@@ -37,11 +37,11 @@ body {
   font-weight: 400;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  /* نسيج ورقي خفيف يمنح الصفحة إحساساً ملموساً بدل السطح الرقمي المسطح */
-  background-image:
-    radial-gradient(circle at 12% 8%, rgb(224 122 83 / 0.05), transparent 42%),
-    radial-gradient(circle at 88% 2%, rgb(250 178 37 / 0.06), transparent 38%);
+  /* هالات لونية خفيفة (mesh) تكسر السطح الرقمي المسطح بلا ضجيج */
+  background-image: var(--gradient-mesh);
   background-attachment: fixed;
+  transition: background-color var(--dur-normal) var(--ease-out),
+              color var(--dur-normal) var(--ease-out);
 }
 
 /* متصفحات لا تدعم overflow: clip بعد */
@@ -98,6 +98,9 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--color-text);
   text-wrap: balance;
 }
+
+/* العناوين الكبرى أثقل وأضيق — توقيع تحريري معاصر */
+h1, h2 { font-weight: 700; }
 
 h1 { font-size: var(--text-4xl); }
 h2 { font-size: var(--text-3xl); }
@@ -164,8 +167,8 @@ small { font-size: var(--text-sm); }
    4. التحديد
    -------------------------------------------------------------------------- */
 ::selection {
-  background: var(--clay-200);
-  color: var(--clay-900);
+  background: var(--color-selection);
+  color: var(--color-selection-text);
 }
 
 /* --------------------------------------------------------------------------
@@ -173,7 +176,7 @@ small { font-size: var(--text-sm); }
    -------------------------------------------------------------------------- */
 @supports (scrollbar-color: red blue) {
   html {
-    scrollbar-color: var(--sand-300) transparent;
+    scrollbar-color: var(--color-scrollbar) transparent;
     scrollbar-width: thin;
   }
 }
@@ -241,6 +244,7 @@ small { font-size: var(--text-sm); }
 @media print {
   .site-header,
   .site-footer,
+  .theme-toggle,
   .no-print {
     display: none !important;
   }

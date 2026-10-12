@@ -6,7 +6,7 @@
 
   <title>الشفافية والتقارير | كفالة</title>
   <meta name="description" content="أين يذهب كل دولار؟ ميزانية مدقّقة، توزيع الإنفاق، سياسة حماية الطفل، وتقارير سنوية متاحة للجميع.">
-  <meta name="theme-color" content="#c2410c">
+  <meta name="theme-color" content="#0f5c5c">
 
   <meta http-equiv="Content-Security-Policy"
         content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self'; connect-src 'self'; form-action 'self'; base-uri 'self'; object-src 'none'">
@@ -22,6 +22,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300;400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Aref+Ruqaa:wght@400;700&display=swap">
+
+  <!-- السمة قبل أي رسم — يمنع وميض الوضع الفاتح لمن اختار الليلي -->
+  <script src="assets/js/theme-init.js"></script>
 
   <link rel="stylesheet" href="assets/vendor/fontawesome/css/all.min.css">
   <link rel="stylesheet" href="assets/css/tokens.css">
@@ -41,7 +44,6 @@
   <main id="main">
 
     <section class="page-hero">
-      <div class="glow" aria-hidden="true"></div>
       <div class="container">
         <div class="page-hero__inner">
           <nav aria-label="مسار التنقل">
@@ -50,10 +52,9 @@
               <li><span aria-current="page">الشفافية</span></li>
             </ol>
           </nav>
-          <span class="eyebrow">الشفافية</span>
-          <h1 class="page-hero__title">لا نطلب منك أن تثق بنا. نطلب أن تتحقق.</h1>
+          <h1 class="page-hero__title">حساباتنا منشورة للجميع</h1>
           <p class="page-hero__lede">
-            كل ما في هذه الصفحة منشور للعموم، لا للكفلاء وحدهم.
+            كل ما في هذه الصفحة متاح للجميع، كفلاء وغير كفلاء.
             ومن حق أي شخص أن يسأل عن أي بند ويحصل على جواب خلال ٧٢ ساعة.
           </p>
         </div>
@@ -64,21 +65,21 @@
     <section class="section">
       <div class="container">
         <div class="split">
-          <div data-reveal="start">
+          <div>
             <div id="spendingDonut"></div>
           </div>
 
-          <div class="stack stack--lg" data-reveal="end">
-            <span class="eyebrow">السنة المالية <span data-annual-year>٢٠٢٥</span></span>
+          <div class="prose-block">
+            <p class="meta-label">السنة المالية <span data-annual-year>٢٠٢٥</span></p>
             <h2>أين يذهب كل دولار</h2>
-            <p class="section-lede">
+            <p>
               هذه أرقام آخر سنة مالية مدقّقة من مكتب محاسبة مستقل.
               المصاريف الإدارية ٧٪ فقط، ومغطاة أساساً من داعمين مخصصين لهذا الغرض.
             </p>
             <ul class="legend" role="list" id="spendingLegend"></ul>
-            <a class="btn btn--primary" href="#reports">
-              <i class="fa-solid fa-file-arrow-down" aria-hidden="true"></i>
+            <a class="link-arrow" href="#reports">
               التقارير المدقّقة
+              <i class="fa-solid fa-arrow-down" aria-hidden="true"></i>
             </a>
           </div>
         </div>
@@ -86,12 +87,13 @@
     </section>
 
     <!-- أرقام السنة -->
-    <section class="section section--alt">
+    <section class="section section--surface">
       <div class="container">
-        <div class="section-head section-head--center" data-reveal>
-          <span class="eyebrow">بالأرقام</span>
-          <h2>ماذا أنجزنا في <span data-annual-year>٢٠٢٥</span>؟</h2>
-          <p class="section-lede">كل رقم هنا مأخوذ من التقرير المدقّق، ويمكنك مطابقته بنفسك.</p>
+        <div class="block-head">
+          <div class="block-head__text">
+            <h2>ماذا أنجزنا في <span data-annual-year>٢٠٢٥</span>؟</h2>
+            <p class="block-lede">كل رقم هنا مأخوذ من التقرير المدقّق، ويمكنك مطابقته بنفسك.</p>
+          </div>
         </div>
 
         <div class="bento" id="financeBoard"></div>
@@ -101,93 +103,106 @@
     <!-- التقارير -->
     <section class="section" id="reports">
       <div class="container">
-        <div class="section-head section-head--center" data-reveal>
-          <span class="eyebrow">التقارير</span>
-          <h2>الوثائق المتاحة للجميع</h2>
-          <p class="section-lede">تُحدَّث سنوياً في الربع الأول بعد اعتماد المدقق الخارجي.</p>
+        <div class="block-head">
+          <div class="block-head__text">
+            <h2>الوثائق المتاحة للجميع</h2>
+            <p class="block-lede">تُحدَّث سنوياً في الربع الأول بعد اعتماد المدقق الخارجي.</p>
+          </div>
         </div>
 
-        <div class="grid grid--auto">
-          <article class="card card--lift" data-reveal>
-            <div class="icon-box icon-box--soft"><i class="fa-solid fa-file-invoice-dollar" aria-hidden="true"></i></div>
-            <h3 class="card__title">الميزانية المدقّقة ٢٠٢٥</h3>
-            <p class="card__text">بيان الإيرادات والمصروفات كاملاً، معتمداً من مكتب تدقيق مستقل.</p>
-            <a class="link-arrow" href="#">تحميل PDF <i class="fa-solid fa-arrow-down" aria-hidden="true"></i></a>
-          </article>
-
-          <article class="card card--lift" data-reveal data-reveal-delay="80">
-            <div class="icon-box icon-box--accent icon-box--soft"><i class="fa-solid fa-chart-line" aria-hidden="true"></i></div>
-            <h3 class="card__title">التقرير السنوي ٢٠٢٥</h3>
-            <p class="card__text">ما أنجزناه وما أخفقنا فيه، بالأرقام والصور والدروس المستفادة.</p>
-            <a class="link-arrow" href="#">تحميل PDF <i class="fa-solid fa-arrow-down" aria-hidden="true"></i></a>
-          </article>
-
-          <article class="card card--lift" data-reveal data-reveal-delay="160">
-            <div class="icon-box icon-box--growth icon-box--soft"><i class="fa-solid fa-hand-holding-heart" aria-hidden="true"></i></div>
-            <h3 class="card__title">تقرير الزكاة المستقل</h3>
-            <p class="card__text">سجل منفصل لأموال الزكاة: ما جُمع، ولمن صُرف، بلا أي خصم إداري.</p>
-            <a class="link-arrow" href="#">تحميل PDF <i class="fa-solid fa-arrow-down" aria-hidden="true"></i></a>
-          </article>
-
-          <article class="card card--lift" data-reveal data-reveal-delay="240">
-            <div class="icon-box icon-box--info icon-box--soft"><i class="fa-solid fa-certificate" aria-hidden="true"></i></div>
-            <h3 class="card__title">التراخيص والاعتمادات</h3>
-            <p class="card__text">شهادة التسجيل، رخصة العمل الخيري، واعتمادات الجهات الشريكة.</p>
-            <a class="link-arrow" href="#">عرض الوثائق <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
-          </article>
-        </div>
+        <ul class="doc-list" role="list">
+          <li>
+            <i class="fa-solid fa-file-invoice-dollar doc-list__icon" aria-hidden="true"></i>
+            <div>
+              <h3>الميزانية المدقّقة <span data-annual-year>٢٠٢٥</span></h3>
+              <p>بيان الإيرادات والمصروفات كاملاً، معتمداً من مكتب تدقيق مستقل.</p>
+            </div>
+            <a class="doc-list__link" href="#">تحميل PDF <i class="fa-solid fa-arrow-down" aria-hidden="true"></i></a>
+          </li>
+          <li>
+            <i class="fa-solid fa-chart-line doc-list__icon" aria-hidden="true"></i>
+            <div>
+              <h3>التقرير السنوي <span data-annual-year>٢٠٢٥</span></h3>
+              <p>ما أنجزناه وما أخفقنا فيه، بالأرقام والصور والدروس المستفادة.</p>
+            </div>
+            <a class="doc-list__link" href="#">تحميل PDF <i class="fa-solid fa-arrow-down" aria-hidden="true"></i></a>
+          </li>
+          <li>
+            <i class="fa-solid fa-hand-holding-heart doc-list__icon" aria-hidden="true"></i>
+            <div>
+              <h3>تقرير الزكاة المستقل</h3>
+              <p>سجل منفصل لأموال الزكاة: ما جُمع، ولمن صُرف، بلا أي خصم إداري.</p>
+            </div>
+            <a class="doc-list__link" href="#">تحميل PDF <i class="fa-solid fa-arrow-down" aria-hidden="true"></i></a>
+          </li>
+          <li>
+            <i class="fa-solid fa-certificate doc-list__icon" aria-hidden="true"></i>
+            <div>
+              <h3>التراخيص والاعتمادات</h3>
+              <p>شهادة التسجيل، رخصة العمل الخيري، واعتمادات الجهات الشريكة.</p>
+            </div>
+            <a class="doc-list__link" href="#">عرض الوثائق <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
+          </li>
+        </ul>
       </div>
     </section>
 
     <!-- سياسة حماية الطفل -->
     <section class="section section--surface" id="child-policy">
-      <div class="container container--narrow">
-        <div class="section-head" data-reveal>
-          <span class="eyebrow">سياسة حماية الطفل</span>
-          <h2>قواعد نلتزم بها حتى حين تكلّفنا تبرعات</h2>
+      <div class="container">
+        <div class="block-head">
+          <div class="block-head__text">
+            <p class="meta-label">سياسة حماية الطفل</p>
+            <h2>قواعد نلتزم بها حتى حين تكلّفنا تبرعات</h2>
+          </div>
         </div>
 
-        <div class="stack stack--lg" data-reveal>
-          <article class="card">
-            <h3 class="card__title">في التصوير والنشر</h3>
+        <div class="columns" style="--cols:3">
+          <div>
+            <h3>في التصوير والنشر</h3>
             <ul class="check-list" role="list">
               <li>لا ننشر صورة طفل دون موافقة خطية من وصيّه القانوني.</li>
               <li>لا نصوّر أطفالاً باكين أو في وضع مُذِلّ، مهما كان أثر ذلك على التبرعات.</li>
               <li>لا نذكر العنوان التفصيلي أو اسم المدرسة في أي محتوى عام.</li>
               <li>يحق للأسرة سحب الموافقة في أي وقت، فنحذف المحتوى خلال ٤٨ ساعة.</li>
             </ul>
-          </article>
+          </div>
 
-          <article class="card">
-            <h3 class="card__title">في التواصل بين الكافل والطفل</h3>
+          <div>
+            <h3>في التواصل بين الكافل والطفل</h3>
             <ul class="check-list" role="list">
               <li>كل رسالة تمرّ بمشرف ميداني قبل تسليمها.</li>
               <li>لا تُشارك بيانات اتصال مباشرة بين الطرفين.</li>
               <li>الزيارات الميدانية بترتيب مسبق وبحضور مشرف دائماً.</li>
               <li>كل من يعمل مع الأطفال يخضع لفحص سوابق ودورة حماية معتمدة.</li>
             </ul>
-          </article>
+          </div>
 
-          <article class="card">
-            <h3 class="card__title">في حماية بياناتك أنت</h3>
+          <div>
+            <h3>في حماية بياناتك أنت</h3>
             <ul class="check-list" role="list">
               <li>لا نبيع أو نشارك بياناتك مع أي جهة تسويقية.</li>
-              <li>لا نحتفظ ببيانات بطاقتك على خوادمنا — تُعالَج لدى بوابة الدفع مباشرة.</li>
+              <li>لا نحتفظ ببيانات بطاقتك على خوادمنا، فهي تُعالَج لدى بوابة الدفع مباشرة.</li>
               <li>يمكنك طلب حذف حسابك وبياناتك كاملةً في أي وقت.</li>
             </ul>
-          </article>
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- سؤال مفتوح -->
-    <section class="section section--flush-t">
+    <!-- الخاتمة -->
+    <section class="closing" aria-labelledby="closingTitle">
       <div class="container">
-        <div class="cta-band" data-reveal="scale">
-          <div class="cta-band__inner">
-            <h2>لديك سؤال عن بند معيّن؟</h2>
-            <p>اسأل عن أي رقم في أي تقرير. نلتزم بالرد خلال ٧٢ ساعة، ونشر الجواب إن كان يهم غيرك.</p>
-            <a class="btn btn--invert btn--lg" href="contact.html">اطرح سؤالك</a>
+        <div class="closing__inner closing__inner--solo">
+          <div class="closing__pitch">
+            <h2 id="closingTitle">لديك سؤال عن بند معيّن؟</h2>
+            <p class="closing__lede">اسأل عن أي رقم في أي تقرير. نلتزم بالرد خلال ٧٢ ساعة، وننشر الجواب إن كان يهم غيرك.</p>
+            <div class="closing__actions">
+              <a class="btn btn--cta btn--lg" href="contact.html">
+                اطرح سؤالك
+                <i class="fa-solid fa-arrow-left btn__icon btn__icon--arrow" aria-hidden="true"></i>
+              </a>
+            </div>
           </div>
         </div>
       </div>

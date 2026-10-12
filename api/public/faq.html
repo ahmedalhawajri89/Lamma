@@ -6,7 +6,7 @@
 
   <title>الأسئلة الشائعة | كفالة</title>
   <meta name="description" content="إجابات مباشرة عن الكفالة: كيف نتحقق، ما نسبة المصاريف الإدارية، هل تُحتسب من الزكاة، وكيف توقفها.">
-  <meta name="theme-color" content="#c2410c">
+  <meta name="theme-color" content="#0f5c5c">
 
   <meta http-equiv="Content-Security-Policy"
         content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self'; connect-src 'self'; form-action 'self'; base-uri 'self'; object-src 'none'">
@@ -22,6 +22,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300;400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Aref+Ruqaa:wght@400;700&display=swap">
+
+  <!-- السمة قبل أي رسم — يمنع وميض الوضع الفاتح لمن اختار الليلي -->
+  <script src="assets/js/theme-init.js"></script>
 
   <link rel="stylesheet" href="assets/vendor/fontawesome/css/all.min.css">
   <link rel="stylesheet" href="assets/css/tokens.css">
@@ -40,8 +43,7 @@
 
   <main id="main">
 
-    <section class="page-hero page-hero--center">
-      <div class="glow" aria-hidden="true"></div>
+    <section class="page-hero">
       <div class="container">
         <div class="page-hero__inner">
           <nav aria-label="مسار التنقل">
@@ -50,7 +52,6 @@
               <li><span aria-current="page">الأسئلة الشائعة</span></li>
             </ol>
           </nav>
-          <span class="eyebrow">مركز المساعدة</span>
           <h1 class="page-hero__title">أسئلة يطرحها الناس قبل أن يبدأوا</h1>
           <p class="page-hero__lede">
             أجبنا عنها بصراحة، بما فيها الأسئلة المحرجة عن المال والمصاريف الإدارية.
@@ -69,32 +70,34 @@
     <!-- مسارات المساعدة -->
     <section class="section section--surface">
       <div class="container">
-        <div class="section-head section-head--center" data-reveal>
-          <span class="eyebrow">لم تجد جوابك؟</span>
-          <h2>ثلاث طرق للوصول إلينا</h2>
+        <div class="block-head">
+          <div class="block-head__text">
+            <p class="meta-label">لم تجد جوابك؟</p>
+            <h2>ثلاث طرق للوصول إلينا</h2>
+          </div>
         </div>
 
-        <div class="grid grid--auto-sm">
-          <article class="card card--lift text-center" style="align-items:center" data-reveal>
-            <div class="icon-box icon-box--soft"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i></div>
-            <h3 class="card__title">واتساب</h3>
-            <p class="card__text">أسرع وسيلة — نرد عادةً خلال ساعتين في أيام العمل.</p>
-            <a class="btn btn--outline btn--sm" href="contact.html">راسلنا</a>
-          </article>
+        <div class="columns" style="--cols:3">
+          <div>
+            <i class="fa-brands fa-whatsapp columns__icon" aria-hidden="true"></i>
+            <h3>واتساب</h3>
+            <p>أسرع وسيلة. نرد عادةً خلال ساعتين في أيام العمل.</p>
+            <a class="link-arrow" href="contact.html">راسلنا <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
+          </div>
 
-          <article class="card card--lift text-center" style="align-items:center" data-reveal data-reveal-delay="80">
-            <div class="icon-box icon-box--accent icon-box--soft"><i class="fa-regular fa-envelope" aria-hidden="true"></i></div>
-            <h3 class="card__title">البريد الإلكتروني</h3>
-            <p class="card__text">للأسئلة التفصيلية عن التقارير أو الميزانية. نرد خلال ٧٢ ساعة.</p>
-            <a class="btn btn--outline btn--sm" href="mailto:info@kafala.org">أرسل رسالة</a>
-          </article>
+          <div>
+            <i class="fa-regular fa-envelope columns__icon" aria-hidden="true"></i>
+            <h3>البريد الإلكتروني</h3>
+            <p>للأسئلة التفصيلية عن التقارير أو الميزانية. نرد خلال ٧٢ ساعة.</p>
+            <a class="link-arrow" href="mailto:info@kafala.org">أرسل رسالة <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
+          </div>
 
-          <article class="card card--lift text-center" style="align-items:center" data-reveal data-reveal-delay="160">
-            <div class="icon-box icon-box--growth icon-box--soft"><i class="fa-solid fa-file-shield" aria-hidden="true"></i></div>
-            <h3 class="card__title">صفحة الشفافية</h3>
-            <p class="card__text">الميزانية المدقّقة والتقارير السنوية وسياسة حماية الطفل.</p>
-            <a class="btn btn--outline btn--sm" href="transparency.html">اطّلع عليها</a>
-          </article>
+          <div>
+            <i class="fa-solid fa-file-shield columns__icon" aria-hidden="true"></i>
+            <h3>صفحة الشفافية</h3>
+            <p>الميزانية المدقّقة والتقارير السنوية وسياسة حماية الطفل.</p>
+            <a class="link-arrow" href="transparency.html">اطّلع عليها <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
+          </div>
         </div>
       </div>
     </section>

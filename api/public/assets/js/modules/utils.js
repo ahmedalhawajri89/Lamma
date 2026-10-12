@@ -66,9 +66,10 @@ export function rafThrottle(fn) {
 /**
  * تهريب أي نص قبل وضعه داخل قالب HTML.
  * خط الدفاع الأخير ضد XSS إذا جاءت البيانات لاحقاً من واجهة برمجية.
+ * والقيمة الغائبة (null أو undefined) نصٌّ فارغ، لا كلمة «null» على الصفحة.
  */
 export const escapeHtml = (value) =>
-  String(value).replace(/[&<>"']/g, (char) => ({
+  String(value ?? '').replace(/[&<>"']/g, (char) => ({
     '&': '&amp;',
     '<': '&lt;',
     '>': '&gt;',

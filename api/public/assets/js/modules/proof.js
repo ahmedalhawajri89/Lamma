@@ -72,8 +72,8 @@ function ring(percent) {
   <svg viewBox="0 0 128 128" aria-hidden="true">
     <defs>
       <linearGradient id="ringGradient" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0%" stop-color="#c2410c"/>
-        <stop offset="100%" stop-color="#f0910c"/>
+        <stop offset="0%" style="stop-color: var(--chart-1)"/>
+        <stop offset="100%" style="stop-color: var(--chart-3)"/>
       </linearGradient>
     </defs>
     <circle class="ring__track" cx="64" cy="64" r="${RING_RADIUS}"></circle>
@@ -114,7 +114,7 @@ export function initProofBoard() {
   </div>
 
   <p class="bento__note">
-    كل نقطة تمثّل ${children(PROOF.perDot)} — ولكل واحد منهم اسمٌ وملفٌّ وتقرير.
+    كل نقطة تمثّل ${children(PROOF.perDot)}، ولكل واحد منهم اسم وملف وتقرير.
   </p>
 </article>
 
@@ -220,8 +220,7 @@ export function initFinanceBoard() {
     <p class="bento__label">ملاحظة جوهرية من المدقق الخارجي</p>
   </div>
   <p class="bento__note">
-    أربع سنوات متتالية بتقرير تدقيق نظيف. التقارير كاملةً منشورة أدناه —
-    لا ملخّصات ولا انتقاء.
+    أربع سنوات متتالية بتقرير تدقيق نظيف. التقارير منشورة كاملة أدناه.
   </p>
 </article>`;
 

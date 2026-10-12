@@ -10,7 +10,8 @@
  */
 
 import { SITE, NAV_LINKS } from './data.js';
-import { $, currentPage, rafThrottle } from './utils.js';
+import { $, $$, currentPage, rafThrottle } from './utils.js';
+import { me, hasSignedInHint, clearSignedIn } from './auth.js';
 
 const YEAR = new Date().getFullYear();
 
@@ -29,35 +30,37 @@ function navMarkup(page) {
   }).join('');
 }
 
-function headerMarkup({ page, solid }) {
+function headerMarkup({ page }) {
   return `
 <a class="skip-link" href="#main">تخطَّ إلى المحتوى الرئيسي</a>
-<header class="site-header${solid ? ' site-header--solid' : ''}" id="siteHeader">
-  <div class="container">
-    <div class="header-shell">
-      <a class="brand" href="index.html">
-        <img class="brand__mark" src="assets/img/logo.svg" alt="" width="38" height="38">
-        <span class="brand__name">${SITE.name}<span class="brand__tag">${SITE.tagline}</span></span>
-      </a>
+<header class="site-header" id="siteHeader">
+  <div class="container header-row">
+    <a class="brand" href="index.html">
+      <img class="brand__mark" src="assets/img/logo.svg" alt="" width="36" height="36">
+      <span class="brand__name">${SITE.name}<span class="brand__tag">${SITE.tagline}</span></span>
+    </a>
 
-      <div class="site-nav" id="siteNav">
-        <nav class="nav" aria-label="التنقل الرئيسي">${navMarkup(page)}</nav>
-        <a class="btn btn--outline btn--sm" href="login.html">تسجيل الدخول</a>
-        <a class="btn btn--primary btn--sm" href="orphans.html">
-          اكفل الآن <i class="fa-solid fa-heart btn__icon" aria-hidden="true"></i>
-        </a>
-      </div>
+    <div class="site-nav" id="siteNav">
+      <nav class="nav" aria-label="التنقل الرئيسي">${navMarkup(page)}</nav>
 
-      <div class="header-actions">
-        <a class="btn btn--outline btn--sm" href="login.html">تسجيل الدخول</a>
-        <a class="btn btn--primary btn--sm" href="orphans.html">
-          اكفل الآن <i class="fa-solid fa-heart btn__icon" aria-hidden="true"></i>
-        </a>
-        <button class="nav-toggle" type="button" id="navToggle"
-                aria-expanded="false" aria-controls="siteNav" aria-label="فتح قائمة التنقل">
-          <span class="nav-toggle__bars" aria-hidden="true"><span></span><span></span><span></span></span>
-        </button>
+      <div class="site-nav__buttons">
+        <a class="btn btn--ink-outline btn--lg" href="login.html" data-account-link>تسجيل الدخول</a>
+        <a class="btn btn--cta btn--lg" href="orphans.html">اكفل يتيماً</a>
       </div>
+    </div>
+
+    <div class="header-actions">
+      <button class="theme-toggle" type="button" id="themeToggle" aria-pressed="false"
+              aria-label="تفعيل الوضع الليلي">
+        <i class="fa-solid fa-moon" aria-hidden="true"></i>
+        <i class="fa-solid fa-sun" aria-hidden="true"></i>
+      </button>
+      <a class="header-login" href="login.html" data-account-link>تسجيل الدخول</a>
+      <a class="btn btn--cta btn--sm" href="orphans.html">اكفل يتيماً</a>
+      <button class="nav-toggle" type="button" id="navToggle"
+              aria-expanded="false" aria-controls="siteNav" aria-label="فتح قائمة التنقل">
+        <span class="nav-toggle__bars" aria-hidden="true"><span></span><span></span><span></span></span>
+      </button>
     </div>
   </div>
 </header>`;
@@ -71,7 +74,11 @@ function footerMarkup() {
        </a>`)
     .join('');
 
-  const quickLinks = NAV_LINKS
+  const quickLinks = [
+    { label: 'الرئيسية', href: 'index.html' },
+    ...NAV_LINKS,
+    { label: 'المدونة', href: 'blog.html' },
+  ]
     .map(({ label, href }) => `<li><a href="${href}">${label}</a></li>`)
     .join('');
 
@@ -81,17 +88,26 @@ function footerMarkup() {
 
   return `
 <footer class="site-footer">
-  <span class="footer-watermark" aria-hidden="true">${SITE.name}</span>
-
   <div class="container">
 
     <div class="footer-top">
-      <p class="footer-claim">
-        كل شهر يمرّ بلا كافل هو شهرٌ لا يعود.
-        <em>ابدأ اليوم بما تستطيع.</em>
-      </p>
+      <div class="footer-intro">
+        <a class="brand" href="index.html">
+          <img class="brand__mark" src="assets/img/logo.svg" alt="" width="38" height="38">
+          <span class="brand__name">${SITE.name}<span class="brand__tag">${SITE.tagline}</span></span>
+        </a>
+        <p class="footer-about">
+          منصة تربط بين من يريد أن يعطي ومن يستحق أن يُعطى، بشفافية موثّقة وتقارير دورية.
+          نعمل منذ ١٤ عاماً في ١٢ دولة.
+        </p>
+        <p class="footer-trust">
+          <i class="fa-solid fa-file-shield" aria-hidden="true"></i>
+          <span><strong>مرخّصون ومدقّقون.</strong> ميزانية سنوية معتمدة من مكتب مستقل ومنشورة للجميع.</span>
+        </p>
+      </div>
 
       <div class="footer-news">
+        <p class="footer-claim">تابِع أثر الكفالة كل شهر، ولو لم تكفل بعد.</p>
         <p class="footer-news__label">
           رسالة واحدة كل شهر: ما أنجزناه، وما صرفناه، وقصة طفل واحد. بلا إلحاح.
         </p>
@@ -112,35 +128,17 @@ function footerMarkup() {
     </div>
 
     <div class="site-footer__grid">
-      <div>
-        <a class="brand" href="index.html">
-          <img class="brand__mark" src="assets/img/logo.svg" alt="" width="38" height="38">
-          <span class="brand__name">${SITE.name}<span class="brand__tag">${SITE.tagline}</span></span>
-        </a>
-        <p class="footer-about">
-          منصة تربط بين من يريد أن يعطي ومن يستحق أن يُعطى، بشفافية موثّقة وتقارير دورية.
-          نعمل منذ ١٤ عاماً في ١٢ دولة.
-        </p>
-        <div class="footer-trust">
-          <i class="fa-solid fa-file-shield" aria-hidden="true"></i>
-          <span>
-            <strong>مرخّصون ومدقّقون</strong>
-            ميزانية سنوية معتمدة من مكتب مستقل ومنشورة للجميع
-          </span>
-        </div>
-      </div>
-
-      <nav aria-labelledby="footerNavHeading">
+      <nav class="footer-col footer-col--wide" aria-labelledby="footerNavHeading">
         <h2 class="footer-heading" id="footerNavHeading">تصفّح</h2>
-        <ul class="footer-links" role="list">${quickLinks}</ul>
+        <ul class="footer-links footer-links--split" role="list">${quickLinks}</ul>
       </nav>
 
-      <nav aria-labelledby="footerHelpHeading">
+      <nav class="footer-col" aria-labelledby="footerHelpHeading">
         <h2 class="footer-heading" id="footerHelpHeading">مساعدة</h2>
         <ul class="footer-links" role="list">${helpLinks}</ul>
       </nav>
 
-      <div>
+      <div class="footer-col">
         <h2 class="footer-heading">تواصل معنا</h2>
         <ul class="footer-contact" role="list">
           <li>
@@ -156,12 +154,12 @@ function footerMarkup() {
             <span>${SITE.address}</span>
           </li>
         </ul>
-        <div class="social-row" style="margin-block-start:var(--space-5)">${social}</div>
+        <div class="social-row">${social}</div>
       </div>
     </div>
 
     <div class="footer-bottom">
-      <p>© ${YEAR} منصة ${SITE.name} — جميع الحقوق محفوظة.</p>
+      <p>© ${YEAR} منصة ${SITE.name}. جميع الحقوق محفوظة.</p>
       <nav aria-label="روابط قانونية">
         <a href="transparency.html#child-policy">سياسة حماية الطفل</a>
         <a href="transparency.html">الخصوصية</a>
@@ -212,31 +210,64 @@ function initNavToggle() {
   });
 }
 
-/** الهيدر يصبح زجاجياً بعد النزول قليلاً. */
+/**
+ * الشريط يختفي عند النزول ويعود عند أول صعود.
+ *
+ * ولا يختفي أبداً والقائمة الجوالة مفتوحة أو التركيز بداخله — من يتنقّل
+ * بلوحة المفاتيح لا يجوز أن يختفي الرابط الذي يقف عليه.
+ */
 function initStickyHeader() {
   const header = $('#siteHeader');
-  if (!header || header.classList.contains('site-header--solid')) return;
+  if (!header) return;
+
+  const nav = $('#siteNav');
+  let lastY = window.scrollY;
 
   const update = rafThrottle(() => {
-    header.classList.toggle('is-stuck', window.scrollY > 24);
+    const y = window.scrollY;
+
+    const locked = nav?.classList.contains('is-open') || header.contains(document.activeElement);
+    if (locked || y < 120) header.classList.remove('is-hidden');
+    else if (y > lastY + 6) header.classList.add('is-hidden');
+    else if (y < lastY - 6) header.classList.remove('is-hidden');
+
+    lastY = y;
   });
 
   update();
   window.addEventListener('scroll', update, { passive: true });
+  header.addEventListener('focusin', () => header.classList.remove('is-hidden'));
 }
 
 /**
- * تركيب هيكل الصفحة.
- * @param {{solid?: boolean}} options solid = هيدر معتم من البداية (الصفحات الداخلية)
+ * الكافل المسجّل يرى «كفالاتي» مكان «تسجيل الدخول» ويذهب إلى بوابته مباشرة.
+ * لا نسأل الخادم إلا إن سبق للمتصفح دخول، فالزائر العادي لا يكلّف طلباً.
  */
-export function mountLayout({ solid = false } = {}) {
+async function initAccountLink() {
+  if (!hasSignedInHint()) return;
+
+  const user = await me();
+  if (!user) {
+    clearSignedIn();
+    return;
+  }
+
+  $$('[data-account-link]').forEach((link) => {
+    link.href = 'dashboard.html';
+    link.textContent = 'كفالاتي';
+  });
+}
+
+/** تركيب هيكل الصفحة: الهيدر والفوتر وسلوكهما. */
+export function mountLayout() {
   const headerSlot = $('[data-layout="header"]');
   const footerSlot = $('[data-layout="footer"]');
   const page = currentPage();
 
-  if (headerSlot) headerSlot.outerHTML = headerMarkup({ page, solid });
+  if (headerSlot) headerSlot.outerHTML = headerMarkup({ page });
   if (footerSlot) footerSlot.outerHTML = footerMarkup();
 
   initNavToggle();
   initStickyHeader();
+  initAccountLink();
 }

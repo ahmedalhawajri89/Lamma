@@ -6,7 +6,7 @@
 
   <title>المدونة | كفالة</title>
   <meta name="description" content="نكتب عن آلية عملنا وقراراتنا وأخطائنا: الشفافية، سياسات الحماية، قصص الأطفال، وتقارير الحملات.">
-  <meta name="theme-color" content="#c2410c">
+  <meta name="theme-color" content="#0f5c5c">
 
   <meta http-equiv="Content-Security-Policy"
         content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self'; connect-src 'self'; form-action 'self'; base-uri 'self'; object-src 'none'">
@@ -22,6 +22,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300;400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Aref+Ruqaa:wght@400;700&display=swap">
+
+  <!-- السمة قبل أي رسم — يمنع وميض الوضع الفاتح لمن اختار الليلي -->
+  <script src="assets/js/theme-init.js"></script>
 
   <link rel="stylesheet" href="assets/vendor/fontawesome/css/all.min.css">
   <link rel="stylesheet" href="assets/css/tokens.css">
@@ -41,7 +44,6 @@
   <main id="main">
 
     <section class="page-hero">
-      <div class="glow" aria-hidden="true"></div>
       <div class="container">
         <div class="page-hero__inner">
           <nav aria-label="مسار التنقل">
@@ -50,8 +52,7 @@
               <li><span aria-current="page">المدونة</span></li>
             </ol>
           </nav>
-          <span class="eyebrow">المدونة</span>
-          <h1 class="page-hero__title">نكتب عن عملنا، لا عن أنفسنا</h1>
+          <h1 class="page-hero__title">من عملنا الميداني</h1>
           <p class="page-hero__lede">
             كيف نتحقق من الحالات، ولماذا نرفض بعضها، وما الذي أخفقنا فيه.
             هذه مدونة عمل، لا نشرة علاقات عامة.

@@ -152,7 +152,7 @@ test.describe('بوابة الكافل', () => {
      * هذه خاصية خادم التطوير لا عيب في التطبيق — php-fpm يخدمها متوازيةً.
      */
     await expect(page.locator('[data-portal-greeting]')).toContainText('عبدالله', { timeout: 20_000 })
-    await expect(page.locator('[data-stat="orphans"]')).not.toHaveText('—', { timeout: 15_000 })
+    await expect(page.locator('[data-stat="orphans"]')).not.toHaveText('…', { timeout: 15_000 })
     await expect(page.locator('[data-stat="given"]')).toContainText('$')
     await expect(page.locator('[data-portal-sponsorships] .sponsor-row').first()).toBeVisible()
 
