@@ -37,7 +37,7 @@ const form = useForm(BLANK, (values) =>
  */
 const STATUSES = [
   { value: 'active', label: 'نشطة' },
-  { value: 'paused', label: 'موقوفة مؤقتاً — لا تُخصم' },
+  { value: 'paused', label: 'موقوفة مؤقتاً، لا تُخصم' },
 ]
 
 const wasPaused = computed(() => props.sponsorship?.status === 'paused')
@@ -92,7 +92,7 @@ async function save() {
       <FormField
         v-model="form.values.billing_day" label="يوم الخصم من الشهر" type="number"
         :min="1" :max="28" :step="1"
-        hint="حتى ٢٨ — فبعض الشهور لا يوجد فيها ما بعده."
+        hint="حتى 28، فبعض الشهور لا يوجد فيها ما بعده."
         :error="form.errors.value.billing_day"
         @update:model-value="form.touch('billing_day')"
       />

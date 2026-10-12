@@ -3,7 +3,7 @@ import { onMounted, ref } from 'vue'
 import { admin } from '@/api/endpoints'
 import { useResource } from '@/composables/useResource'
 import { useAuthStore } from '@/stores/auth'
-import { date, dateTime } from '@/utils/format'
+import { date, dateTime, EMPTY } from '@/utils/format'
 import PageHeader from '@/components/PageHeader.vue'
 import FilterBar from '@/components/FilterBar.vue'
 import DataTable from '@/components/DataTable.vue'
@@ -72,7 +72,7 @@ onMounted(loadOrphans)
           {{ row.orphan?.name }}
         </RouterLink>
       </template>
-      <template #supervisor="{ row }">{{ row.supervisor ?? '—' }}</template>
+      <template #supervisor="{ row }">{{ row.supervisor ?? EMPTY }}</template>
       <template #findings="{ row }">
         <span class="line-clamp-1 max-w-md text-sand-700">{{ row.findings }}</span>
       </template>

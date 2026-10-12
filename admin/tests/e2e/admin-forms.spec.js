@@ -701,8 +701,11 @@ test.describe('محتوى الموقع', () => {
     await page.keyboard.press('Escape')
     await expect(page.locator('[role=dialog]')).toBeHidden()
 
-    page.once('dialog', (d) => d.accept())
+    // الحذف يمرّ بنافذة التأكيد المُنسّقة (ConfirmDialog) لا بـ`confirm()` المتصفح
     await row.first().locator('button[title="حذف"]').click()
+    const confirm = page.locator('[role=dialog]', { hasText: 'حذف العنصر' })
+    await expect(confirm).toBeVisible()
+    await confirm.getByRole('button', { name: 'احذف' }).click()
 
     await expect(row).toHaveCount(0, { timeout: 20_000 })
   })

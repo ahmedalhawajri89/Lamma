@@ -46,7 +46,7 @@ const form = useForm(BLANK, (values) =>
 )
 
 const STATUSES = [
-  { value: 'draft', label: 'مسوّدة — لا تظهر على الموقع' },
+  { value: 'draft', label: 'مسوّدة لا تظهر على الموقع' },
   { value: 'published', label: 'منشور' },
   { value: 'archived', label: 'مؤرشف' },
 ]
@@ -132,7 +132,7 @@ async function save() {
 
     <FormField
       v-model="form.values.body" label="النصّ" type="textarea" :rows="10"
-      hint="افصل الفقرات بسطر فارغ — هكذا تُعرض على صفحة المقال."
+      hint="افصل الفقرات بسطر فارغ، فهكذا تُعرض على صفحة المقال."
       :error="form.errors.value.body" @update:model-value="form.touch('body')"
     />
 
@@ -172,13 +172,13 @@ async function save() {
       <p id="coverHelp" class="text-xs text-sand-500 mt-1">
         بنسبة ١٦:٩ تقريباً. مقالٌ بلا غلاف يُنشر، وتبقى بطاقته بلا صورة.
       </p>
-      <p v-if="form.errors.value.cover" class="text-xs text-clay-700 mt-1" role="alert">
+      <p v-if="form.errors.value.cover" class="text-xs text-rose-700 mt-1" role="alert">
         {{ form.errors.value.cover[0] }}
       </p>
     </div>
 
     <FormField
-      v-model="form.values.is_featured" label="مميّز — يتصدّر المدونة" type="checkbox"
+      v-model="form.values.is_featured" label="مميّز يتصدّر المدونة" type="checkbox"
       :error="form.errors.value.is_featured" @update:model-value="form.touch('is_featured')"
     />
 

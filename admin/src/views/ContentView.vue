@@ -10,10 +10,11 @@
  * القائمة طويلة أصلاً، وهذه الأربعة يزورها المحرّر معاً.
  */
 import { computed, onMounted, ref, watch } from 'vue'
+import { confirmDialog } from '@/composables/useConfirm'
 import { admin } from '@/api/endpoints'
 import { useAuthStore } from '@/stores/auth'
 import { useUiStore } from '@/stores/ui'
-import { date } from '@/utils/format'
+import { date, EMPTY } from '@/utils/format'
 import PageHeader from '@/components/PageHeader.vue'
 import DataTable from '@/components/DataTable.vue'
 import BaseIcon from '@/components/BaseIcon.vue'
@@ -44,7 +45,7 @@ const COLUMNS = {
     { key: 'category', label: 'التصنيف' },
     { key: 'sort_order', label: 'الترتيب', align: 'end' },
     { key: 'state', label: 'الحالة' },
-    { key: 'actions', label: '', align: 'end' },
+    { key: 'actions', label: 'إجراءات', align: 'end' },
   ],
   testimonials: [
     { key: 'author_name', label: 'الاسم' },
@@ -52,14 +53,14 @@ const COLUMNS = {
     { key: 'quote', label: 'الشهادة' },
     { key: 'sort_order', label: 'الترتيب', align: 'end' },
     { key: 'state', label: 'الحالة' },
-    { key: 'actions', label: '', align: 'end' },
+    { key: 'actions', label: 'إجراءات', align: 'end' },
   ],
   partners: [
     { key: 'name', label: 'الاسم' },
     { key: 'url', label: 'الرابط' },
     { key: 'sort_order', label: 'الترتيب', align: 'end' },
     { key: 'state', label: 'الحالة' },
-    { key: 'actions', label: '', align: 'end' },
+    { key: 'actions', label: 'إجراءات', align: 'end' },
   ],
 }
 
@@ -145,7 +146,13 @@ function onSaved() {
  */
 async function remove(row) {
   const label = row.question ?? row.author_name ?? row.name
-  if (!window.confirm(`حذف «${label}»؟ لا يمكن التراجع.`)) return
+  const answer = await confirmDialog({
+    title: 'حذف العنصر',
+    message: `سيُحذف «${label}» من الموقع، ولا يمكن التراجع.`,
+    confirmLabel: 'احذف',
+    danger: true,
+  })
+  if (!answer) return
 
   try {
     const { data } = await admin.content.remove(tab.value, row.id)
@@ -163,7 +170,7 @@ onMounted(load)
   <div>
     <PageHeader
       title="محتوى الموقع"
-      subtitle="ما يقرأه الزائر على الموقع العام — يتغيّر فور الحفظ."
+      subtitle="ما يقرأه الزائر على الموقع العام، ويتغيّر فور الحفظ."
     >
       <template #actions>
         <button v-if="can" class="btn btn-primary" type="button" @click="create">
@@ -190,7 +197,7 @@ onMounted(load)
 
     <DataTable
       :columns="columns" :rows="items" :loading="loading"
-      :class="can ? 'cursor-pointer' : ''"
+      :clickable="can"
       @row-click="edit"
     >
       <!-- المقالات -->
@@ -198,7 +205,7 @@ onMounted(load)
         <span class="font-medium">{{ row.title }}</span>
         <span v-if="row.featured" class="badge bg-clay-600/10 text-clay-700 ms-1.5">مميّز</span>
       </template>
-      <template #category="{ row }">{{ row.category ?? '—' }}</template>
+      <template #category="{ row }">{{ row.category ?? EMPTY }}</template>
       <template #date="{ row }">{{ date(row.date) }}</template>
       <template #views_count="{ row }"><span class="num">{{ row.views_count ?? 0 }}</span></template>
       <template #status="{ row }"><StatusBadge :label="row.status_label ?? row.status" :value="row.status" /></template>
@@ -213,7 +220,7 @@ onMounted(load)
           v-if="row.url" class="text-clay-700 hover:underline" :href="row.url"
           target="_blank" rel="noopener" @click.stop
         >{{ row.url }}</a>
-        <span v-else class="text-sand-500">—</span>
+        <span v-else class="text-sand-500">{{ EMPTY }}</span>
       </template>
       <template #sort_order="{ row }"><span class="num">{{ row.sort_order }}</span></template>
       <template #state="{ row }">
@@ -226,8 +233,8 @@ onMounted(load)
       </template>
       <template #actions="{ row }">
         <button
-          v-if="can" class="btn btn-ghost p-1.5 text-clay-700" type="button"
-          title="حذف" @click.stop="remove(row)"
+          v-if="can" class="btn btn-ghost p-1.5 text-rose-700 hover:bg-rose-600/10" type="button"
+          title="حذف" aria-label="حذف" @click.stop="remove(row)"
         >
           <BaseIcon name="trash" :size="14" />
         </button>

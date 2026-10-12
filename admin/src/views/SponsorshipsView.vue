@@ -1,10 +1,11 @@
 <script setup>
 import { ref } from 'vue'
+import { confirmDialog } from '@/composables/useConfirm'
 import { admin } from '@/api/endpoints'
 import { useResource } from '@/composables/useResource'
 import { useAuthStore } from '@/stores/auth'
 import { useUiStore } from '@/stores/ui'
-import { money, date } from '@/utils/format'
+import { money, date, EMPTY } from '@/utils/format'
 import PageHeader from '@/components/PageHeader.vue'
 import FilterBar from '@/components/FilterBar.vue'
 import DataTable from '@/components/DataTable.vue'
@@ -26,7 +27,7 @@ const columns = [
   { key: 'monthly_amount', label: 'المبلغ الشهري', align: 'end' },
   { key: 'next_due_at', label: 'القسط القادم' },
   { key: 'status', label: 'الحالة' },
-  { key: 'actions', label: '', align: 'end' },
+  { key: 'actions', label: 'إجراءات', align: 'end' },
 ]
 
 const formOpen = ref(false)
@@ -48,11 +49,18 @@ function onSaved() {
 }
 
 async function cancel(row) {
-  const reason = prompt('سبب الإلغاء (اختياري):')
-  if (reason === null) return
+  const answer = await confirmDialog({
+    title: 'إلغاء الكفالة',
+    message: 'يتوقف الخصم من الكافل، ويعود الطفل إلى قائمة من ينتظرون كافلاً.',
+    reason: 'optional',
+    reasonLabel: 'سبب الإلغاء',
+    confirmLabel: 'ألغِ الكفالة',
+    danger: true,
+  })
+  if (!answer) return
 
   try {
-    await admin.sponsorships.cancel(row.id, reason || null)
+    await admin.sponsorships.cancel(row.id, answer.reason)
     ui.success('أُلغيت الكفالة.')
     load()
   } catch (e) {
@@ -90,7 +98,7 @@ async function cancel(row) {
           {{ row.orphan?.name }}
         </RouterLink>
       </template>
-      <template #sponsor="{ row }">{{ row.sponsor?.name ?? row.sponsor?.sponsor_code ?? '—' }}</template>
+      <template #sponsor="{ row }">{{ row.sponsor?.name ?? row.sponsor?.sponsor_code ?? EMPTY }}</template>
       <template #monthly_amount="{ row }">
         <span class="num">{{ money(row.monthly_amount) }}</span>
         <span v-if="row.is_zakat" class="badge bg-teal-600/10 text-teal-700 ms-1">زكاة</span>

@@ -1,7 +1,7 @@
 <script setup>
 import { admin } from '@/api/endpoints'
 import { useResource } from '@/composables/useResource'
-import { money, date } from '@/utils/format'
+import { money, date, EMPTY } from '@/utils/format'
 import PageHeader from '@/components/PageHeader.vue'
 import FilterBar from '@/components/FilterBar.vue'
 import DataTable from '@/components/DataTable.vue'
@@ -40,7 +40,7 @@ const columns = [
         <span class="font-medium">{{ row.is_anonymous ? 'كافل يفضّل عدم ذكر اسمه' : row.name }}</span>
         <span v-if="!row.is_anonymous" class="block text-xs text-sand-500 num" dir="ltr">{{ row.email }}</span>
       </template>
-      <template #country="{ row }">{{ row.country?.name ?? '—' }}</template>
+      <template #country="{ row }">{{ row.country?.name ?? EMPTY }}</template>
       <template #active_sponsorships_count="{ row }">
         <span class="num">{{ row.active_sponsorships_count ?? 0 }}</span>
       </template>

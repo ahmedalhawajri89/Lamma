@@ -1,9 +1,11 @@
 <script setup>
 import { admin } from '@/api/endpoints'
+import { confirmDialog } from '@/composables/useConfirm'
 import { useResource } from '@/composables/useResource'
 import { useUiStore } from '@/stores/ui'
-import { dateTime } from '@/utils/format'
+import { dateTime, EMPTY } from '@/utils/format'
 import PageHeader from '@/components/PageHeader.vue'
+import InlineNote from '@/components/InlineNote.vue'
 import FilterBar from '@/components/FilterBar.vue'
 import PaginationBar from '@/components/PaginationBar.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
@@ -14,8 +16,20 @@ const { items, meta, loading, filters, reset, load } = useResource(admin.message
 })
 
 async function review(row, decision) {
-  const reason = decision === 'reject' ? prompt('سبب الرفض — يراه الكافل:') : null
-  if (decision === 'reject' && !reason) return
+  let reason = null
+
+  if (decision === 'reject') {
+    const answer = await confirmDialog({
+      title: 'رفض الرسالة',
+      message: 'لن تصل الرسالة إلى الطفل. اكتب السبب ليعرف الكافل ما ينبغي تعديله.',
+      reason: 'required',
+      reasonLabel: 'سبب الرفض',
+      confirmLabel: 'ارفض الرسالة',
+      danger: true,
+    })
+    if (!answer) return
+    reason = answer.reason
+  }
 
   try {
     await admin.messages.review(row.id, { decision, reason })
@@ -31,9 +45,9 @@ async function review(row, decision) {
   <div>
     <PageHeader title="الرسائل" :subtitle="`${meta.pending ?? 0} رسالة بانتظار المراجعة`" />
 
-    <div class="card p-3 mb-4 bg-clay-50 border-clay-200 text-sm text-clay-800">
-      كل رسالة تمرّ بمراجعة قبل وصولها للطفل — تطبيقاً لسياسة حماية الطفل المعلنة على الموقع.
-    </div>
+    <InlineNote>
+      كل رسالة تمرّ بمراجعة قبل وصولها للطفل، تطبيقاً لسياسة حماية الطفل المعلنة على الموقع.
+    </InlineNote>
 
     <FilterBar :has-search="false" @reset="reset">
       <label class="flex items-center gap-1.5 text-sm cursor-pointer">
@@ -45,12 +59,12 @@ async function review(row, decision) {
       <div v-for="n in 4" :key="n" class="card h-24 animate-pulse bg-sand-100" />
     </div>
 
-    <ul v-else-if="items.length" class="space-y-2">
-      <li v-for="m in items" :key="m.id" class="card p-4">
+    <ul v-else-if="items.length" class="card divide-y divide-sand-100">
+      <li v-for="m in items" :key="m.id" class="p-4">
         <div class="flex items-start justify-between gap-3 mb-2">
           <div class="text-xs text-sand-500">
             <span class="num">{{ m.sponsorship?.reference_code }}</span>
-            · {{ m.sponsorship?.orphan_name ?? '—' }}
+            · {{ m.sponsorship?.orphan_name ?? EMPTY }}
             · {{ m.sender_type === 'sponsor' ? 'من الكافل' : 'من الطفل' }}
             · {{ dateTime(m.created_at) }}
           </div>

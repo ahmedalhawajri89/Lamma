@@ -1,4 +1,5 @@
 <script setup>
+import { EMPTY } from '@/utils/format'
 import BaseIcon from './BaseIcon.vue'
 
 /**
@@ -13,9 +14,18 @@ defineProps({
   loading: { type: Boolean, default: false },
   emptyText: { type: String, default: 'لا نتائج مطابقة.' },
   rowKey: { type: String, default: 'id' },
+  /**
+   * الصف يفتح شيئاً (ملف أو نافذة تعديل). حينها يصير قابلاً للتركيز ويُفتح
+   * بـEnter أو المسافة، لا بالفأرة وحدها، ويحمل مؤشر اليد هو لا الجدول كله.
+   */
+  clickable: { type: Boolean, default: false },
 })
 
-defineEmits(['row-click'])
+const emit = defineEmits(['row-click'])
+
+function activate(row) {
+  emit('row-click', row)
+}
 </script>
 
 <template>
@@ -60,7 +70,11 @@ defineEmits(['row-click'])
           <tr
             v-else v-for="row in rows" :key="row[rowKey]"
             class="border-b border-sand-100 last:border-0 hover:bg-sand-25 transition-colors"
-            @click="$emit('row-click', row)"
+            :class="clickable ? 'cursor-pointer focus-visible:bg-clay-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-clay-600' : ''"
+            :tabindex="clickable ? 0 : undefined"
+            @click="activate(row)"
+            @keydown.enter="clickable && activate(row)"
+            @keydown.space.prevent="clickable && activate(row)"
           >
             <td
               v-for="col in columns" :key="col.key"
@@ -68,7 +82,7 @@ defineEmits(['row-click'])
               :class="col.align === 'end' ? 'text-end' : ''"
             >
               <slot :name="col.key" :row="row" :value="row[col.key]">
-                {{ row[col.key] ?? '—' }}
+                {{ row[col.key] ?? EMPTY }}
               </slot>
             </td>
           </tr>

@@ -1,10 +1,10 @@
 <script setup>
 import { computed, ref, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, RouterLink } from 'vue-router'
 import { admin } from '@/api/endpoints'
 import { useAuthStore } from '@/stores/auth'
 import { useUiStore } from '@/stores/ui'
-import { money, date, dateTime } from '@/utils/format'
+import { money, date, dateTime, years, EMPTY } from '@/utils/format'
 import PageHeader from '@/components/PageHeader.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
 import FundingBar from '@/components/FundingBar.vue'
@@ -18,14 +18,17 @@ const ui = useUiStore()
 
 const orphan = ref(null)
 const loading = ref(true)
+const failed = ref(false)
 const busy = ref(false)
 
 async function load() {
   loading.value = true
+  failed.value = false
   try {
     const { data } = await admin.orphans.show(route.params.id)
     orphan.value = data.data
   } catch (e) {
+    failed.value = !orphan.value
     ui.error(e.userMessage ?? 'تعذّر تحميل الملف.')
   } finally {
     loading.value = false
@@ -104,7 +107,11 @@ onMounted(() => {
   </div>
 
   <div v-else-if="orphan">
-    <PageHeader :title="orphan.full_name" :subtitle="`${orphan.reference_code} · ${orphan.age} سنوات`">
+    <RouterLink to="/orphans" class="inline-flex items-center gap-1.5 text-sm text-sand-600 hover:text-clay-600 mb-3">
+      <BaseIcon name="chevron" :size="15" />
+      الأيتام
+    </RouterLink>
+    <PageHeader :title="orphan.full_name" :subtitle="`${orphan.reference_code} · ${years(orphan.age)}`">
       <template #actions>
         <button
           v-if="auth.can('orphans.update')" class="btn btn-outline" type="button"
@@ -168,8 +175,8 @@ onMounted(() => {
                 <div><dt class="text-sand-500 text-xs">الجنس</dt><dd>{{ orphan.gender_label }}</dd></div>
                 <div><dt class="text-sand-500 text-xs">البرنامج</dt><dd>{{ orphan.program?.name }}</dd></div>
                 <div><dt class="text-sand-500 text-xs">الحاجة الشهرية</dt><dd class="num">{{ money(orphan.monthly_need) }}</dd></div>
-                <div><dt class="text-sand-500 text-xs">الصف</dt><dd>{{ orphan.grade_level ?? '—' }}</dd></div>
-                <div><dt class="text-sand-500 text-xs">الحالة الصحية</dt><dd>{{ orphan.health_status ?? '—' }}</dd></div>
+                <div><dt class="text-sand-500 text-xs">الصف</dt><dd>{{ orphan.grade_level ?? EMPTY }}</dd></div>
+                <div><dt class="text-sand-500 text-xs">الحالة الصحية</dt><dd>{{ orphan.health_status ?? EMPTY }}</dd></div>
               </dl>
             </div>
           </div>
@@ -225,7 +232,7 @@ onMounted(() => {
               </dd>
             </div>
             <div><dt class="text-xs text-sand-500">الدولة والمدينة</dt>
-              <dd>{{ orphan.family?.country?.name }} — {{ orphan.family?.city?.name ?? '—' }}</dd>
+              <dd>{{ orphan.family?.country?.name }}، {{ orphan.family?.city?.name ?? EMPTY }}</dd>
             </div>
             <div><dt class="text-xs text-sand-500">عدد الأفراد</dt><dd class="num">{{ orphan.family?.members_count }}</dd></div>
             <div><dt class="text-xs text-sand-500">وضع السكن</dt><dd>{{ orphan.family?.housing_status_label }}</dd></div>
@@ -265,7 +272,7 @@ onMounted(() => {
               <StatusBadge :label="s.status_label" :value="s.status" class="mt-0.5" />
             </li>
           </ul>
-          <p v-else class="text-sm text-sand-500 py-2">لا كفالات — هذه الحالة تنتظر كافلاً.</p>
+          <p v-else class="text-sm text-sand-500 py-2">لا كفالات بعد، فهذه الحالة تنتظر كافلاً.</p>
         </div>
       </div>
     </div>
@@ -274,5 +281,16 @@ onMounted(() => {
       :open="formOpen" :orphan="orphan" :references="references" :families="families"
       @close="formOpen = false" @saved="onSaved"
     />
+  </div>
+
+  <!-- فشل التحميل: رسالة وزرّ لا صفحة فارغة -->
+  <div v-else class="card p-10 text-center max-w-md mx-auto mt-10">
+    <BaseIcon name="alert" :size="28" class="mx-auto text-rose-600 mb-3" />
+    <p class="font-medium mb-1">{{ failed ? 'تعذّر تحميل ملف الطفل.' : 'الملف غير موجود.' }}</p>
+    <p class="text-sm text-sand-500 mb-5">قد يكون الرابط قديماً، أو أن الاتصال انقطع.</p>
+    <div class="flex justify-center gap-2">
+      <button class="btn btn-primary" type="button" @click="load">إعادة المحاولة</button>
+      <RouterLink to="/orphans" class="btn btn-outline">العودة إلى الأيتام</RouterLink>
+    </div>
   </div>
 </template>

@@ -3,8 +3,9 @@ import { onMounted, ref } from 'vue'
 import { admin } from '@/api/endpoints'
 import { useResource } from '@/composables/useResource'
 import { useAuthStore } from '@/stores/auth'
-import { relative } from '@/utils/format'
+import { relative, EMPTY } from '@/utils/format'
 import PageHeader from '@/components/PageHeader.vue'
+import InlineNote from '@/components/InlineNote.vue'
 import FilterBar from '@/components/FilterBar.vue'
 import DataTable from '@/components/DataTable.vue'
 import PaginationBar from '@/components/PaginationBar.vue'
@@ -29,6 +30,9 @@ const columns = [
 const formOpen = ref(false)
 const editing = ref(null)
 const countries = ref([])
+
+/** اسم البلد المُسنَد من قائمة البلدان؛ المشرف بلا بلد يرى كل الدول. */
+const countryName = (id) => countries.value.find((c) => c.id === id)?.name ?? `بلد رقم ${id}`
 
 async function loadCountries() {
   if (!auth.can('users.manage')) return
@@ -81,9 +85,9 @@ const roleLabels = {
       </template>
     </PageHeader>
 
-    <div class="card p-3 mb-4 bg-sand-100 text-sm text-sand-700">
-      المشرف الميداني يرى أيتام بلده المُسنَد وحده — يُطبَّق ذلك على مستوى الاستعلام لا بإخفاء الأزرار.
-    </div>
+    <InlineNote>
+      المشرف الميداني يرى أيتام بلده المُسنَد وحده، والنظام نفسه يمنعه من غيرها لا الأزرار وحدها.
+    </InlineNote>
 
     <FilterBar v-model:search="filters.q" search-placeholder="اسم أو بريد…" @reset="reset">
       <select v-model="filters.role" class="input !w-auto text-sm" aria-label="الدور">
@@ -100,7 +104,7 @@ const roleLabels = {
 
     <DataTable
       :columns="columns" :rows="items" :loading="loading"
-      :class="auth.can('users.manage') ? 'cursor-pointer' : ''"
+      :clickable="auth.can('users.manage')"
       @row-click="edit"
     >
       <template #name="{ row }">
@@ -112,7 +116,11 @@ const roleLabels = {
           {{ roleLabels[r] ?? r }}
         </span>
       </template>
-      <template #country="{ row }">{{ row.staff_profile?.assigned_country_id ? '—' : 'كل الدول' }}</template>
+      <template #country="{ row }">
+        <span v-if="!row.staff_profile" class="text-sand-400">{{ EMPTY }}</span>
+        <span v-else-if="row.staff_profile.assigned_country_id">{{ countryName(row.staff_profile.assigned_country_id) }}</span>
+        <span v-else class="text-sand-500">كل الدول</span>
+      </template>
       <template #last_login_at="{ row }">{{ relative(row.last_login_at) }}</template>
       <template #status="{ row }"><StatusBadge :label="row.status_label" :value="row.status" /></template>
     </DataTable>

@@ -16,7 +16,7 @@ defineEmits(['reset'])
       <span class="sr-only">{{ searchPlaceholder }}</span>
       <BaseIcon
         name="search" :size="16"
-        class="absolute inset-inline-start-3 top-1/2 -translate-y-1/2 text-sand-400 pointer-events-none"
+        class="absolute top-1/2 -translate-y-1/2 text-sand-400 pointer-events-none"
         style="inset-inline-start: 0.75rem"
       />
       <input v-model="search" type="search" class="input ps-9" :placeholder="searchPlaceholder" />

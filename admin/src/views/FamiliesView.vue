@@ -67,7 +67,7 @@ onMounted(loadReferences)
 
 <template>
   <div>
-    <PageHeader title="الأسر" :subtitle="`${meta.total} أسرة — منها تُقرأ الدولة والمدينة والوصي لكل يتيم`">
+    <PageHeader title="الأسر" :subtitle="`${meta.total} أسرة، ومنها تُقرأ الدولة والمدينة والوصي لكل يتيم`">
       <template #actions>
         <button
           v-if="auth.can('families.manage')" class="btn btn-primary" type="button"
@@ -83,7 +83,7 @@ onMounted(loadReferences)
 
     <DataTable
       :columns="columns" :rows="items" :loading="loading"
-      :class="auth.can('families.manage') ? 'cursor-pointer' : ''"
+      :clickable="auth.can('families.manage')"
       @row-click="edit"
     >
       <template #family_code="{ row }"><span class="num text-xs text-sand-600">{{ row.family_code }}</span></template>

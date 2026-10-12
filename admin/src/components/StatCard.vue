@@ -1,6 +1,6 @@
 <script setup>
 import BaseIcon from './BaseIcon.vue'
-import { num, money } from '@/utils/format'
+import { num, money, EMPTY } from '@/utils/format'
 
 const props = defineProps({
   label: { type: String, required: true },
@@ -22,7 +22,7 @@ const tones = {
 }
 
 function display() {
-  if (props.value === null || props.value === undefined) return '—'
+  if (props.value === null || props.value === undefined) return EMPTY
   if (props.format === 'money') return money(props.value)
   if (props.format === 'raw') return props.value
   return num(props.value)

@@ -57,7 +57,7 @@ const categoryOptions = computed(() =>
 const orphanOptions = computed(() =>
   props.orphans.map((o) => ({
     value: o.id,
-    label: `${o.reference_code} — ${o.first_name}`,
+    label: `${o.reference_code} · ${o.first_name}`,
   })),
 )
 
@@ -98,7 +98,7 @@ async function save() {
 <template>
   <FormModal
     :open="open" wide title="تسجيل صرف"
-    subtitle="يُسجَّل غير معتمَد — والاعتماد لشخص آخر، فمن سجّل لا يعتمد."
+    subtitle="يُسجَّل غير معتمَد، والاعتماد لشخص آخر: من سجّل لا يعتمد."
     :busy="form.submitting.value" :dirty="form.dirty.value"
     @close="emit('close')" @submit="save"
   >
@@ -142,14 +142,14 @@ async function save() {
     <FormField
       v-model="form.values.orphan_id" label="الطفل"
       :options="orphanOptions"
-      :placeholder="selected?.is_overhead ? 'بند تشغيلي — لا يخصّ طفلاً' : 'اختياري — اتركه فارغاً للمصروف العام'"
+      :placeholder="selected?.is_overhead ? 'بند تشغيلي لا يخصّ طفلاً' : 'اختياري، اتركه فارغاً للمصروف العام'"
       :disabled="selected?.is_overhead"
       :error="form.errors.value.orphan_id" @update:model-value="form.touch('orphan_id')"
     />
 
     <FormField
       v-model="form.values.description" label="البيان"
-      placeholder="رسوم فصل دراسي — مدرسة النهضة"
+      placeholder="رسوم فصل دراسي في مدرسة النهضة"
       :error="form.errors.value.description" @update:model-value="form.touch('description')"
     />
 
@@ -164,7 +164,7 @@ async function save() {
       <p id="receiptHelp" class="text-xs text-sand-500 mt-1">
         PDF أو صورة. صرفٌ بلا إيصال يُسجَّل، لكن التدقيق لا يستطيع تأكيده.
       </p>
-      <p v-if="form.errors.value.receipt" class="text-xs text-clay-700 mt-1" role="alert">
+      <p v-if="form.errors.value.receipt" class="text-xs text-rose-700 mt-1" role="alert">
         {{ form.errors.value.receipt[0] }}
       </p>
     </div>

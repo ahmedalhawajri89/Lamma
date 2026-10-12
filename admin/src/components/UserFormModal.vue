@@ -48,9 +48,9 @@ const form = useForm(BLANK, ({ email, title, status, ...rest }) =>
 )
 
 const ROLES = [
-  { value: 'admin', label: 'مدير النظام — كل شيء' },
-  { value: 'accountant', label: 'محاسب — المال والتقارير، بلا ملفات' },
-  { value: 'field_supervisor', label: 'مشرف ميداني — الملفات والزيارات، بلا مال' },
+  { value: 'admin', label: 'مدير النظام: كل شيء' },
+  { value: 'accountant', label: 'محاسب: المال والتقارير، بلا ملفات' },
+  { value: 'field_supervisor', label: 'مشرف ميداني: الملفات والزيارات، بلا مال' },
 ]
 
 const STATUSES = [
@@ -112,7 +112,7 @@ async function save() {
     :title="editing ? 'تعديل الموظف' : 'موظف جديد'"
     :subtitle="editing
       ? user.email
-      : 'يُنشأ الحساب معلَّقاً — والموظف يضبط كلمته بنفسه عبر رابط الاستعادة.'"
+      : 'يُنشأ الحساب معلَّقاً، والموظف يضبط كلمة مروره بنفسه عبر رابط الاستعادة.'"
     :busy="form.submitting.value" :dirty="form.dirty.value"
     @close="emit('close')" @submit="save"
   >
@@ -136,7 +136,7 @@ async function save() {
       <FormField
         v-if="!editing"
         v-model="form.values.title" label="المسمّى الوظيفي"
-        placeholder="مشرف ميداني — غزة"
+        placeholder="مشرف ميداني في غزة"
         :error="form.errors.value.title" @update:model-value="form.touch('title')"
       />
     </div>
@@ -151,7 +151,7 @@ async function save() {
       v-if="scoped"
       v-model="form.values.assigned_country_id" label="البلد المُسنَد"
       :options="countryOptions" placeholder="كل البلدان"
-      hint="المشرف يرى أيتام بلده وحده — وهذا ما يحدّده."
+      hint="المشرف يرى أيتام بلده وحده، وهذا الحقل ما يحدّده."
       :error="form.errors.value.assigned_country_id"
       @update:model-value="form.touch('assigned_country_id')"
     />
@@ -160,7 +160,7 @@ async function save() {
       <FormField
         v-model="form.values.status" label="الحالة" required
         :options="STATUSES" :disabled="isSelf"
-        :hint="isSelf ? 'لا توقف حسابك أنت — الخادم يرفضه، ولسببٍ وجيه.' : ''"
+        :hint="isSelf ? 'لا يمكنك إيقاف حسابك أنت.' : ''"
         :error="form.errors.value.status" @update:model-value="form.touch('status')"
       />
     </template>

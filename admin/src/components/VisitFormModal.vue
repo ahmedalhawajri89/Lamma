@@ -70,7 +70,7 @@ const form = useForm(BLANK, ({ visited_at: visitedAt, ...rest }) =>
 )
 
 const orphanOptions = computed(() =>
-  props.orphans.map((o) => ({ value: o.id, label: `${o.reference_code} — ${o.first_name}` })),
+  props.orphans.map((o) => ({ value: o.id, label: `${o.reference_code} · ${o.first_name}` })),
 )
 
 const tomorrow = computed(() => {
@@ -131,7 +131,7 @@ async function save() {
 
     <FormField
       v-model="form.values.findings" label="الملاحظات" type="textarea" :rows="6" required
-      hint="ما رأيتَه وما سمعتَه. سطرٌ واحد لا يوثّق شيئاً — والخادم يرفضه."
+      hint="ما رأيتَه وما سمعتَه. سطرٌ واحد لا يوثّق شيئاً."
       :error="form.errors.value.findings" @update:model-value="form.touch('findings')"
     />
 
@@ -156,7 +156,7 @@ async function save() {
           {{ need }}
         </button>
       </div>
-      <p v-if="form.errors.value.needs_flagged" class="text-xs text-clay-700 mt-1" role="alert">
+      <p v-if="form.errors.value.needs_flagged" class="text-xs text-rose-700 mt-1" role="alert">
         {{ form.errors.value.needs_flagged[0] }}
       </p>
     </fieldset>

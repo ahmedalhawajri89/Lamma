@@ -12,6 +12,7 @@
  * الأدوار لا هنا.
  */
 import { computed, onMounted, ref } from 'vue'
+import { confirmDialog } from '@/composables/useConfirm'
 import { admin } from '@/api/endpoints'
 import { useAuthStore } from '@/stores/auth'
 import { useUiStore } from '@/stores/ui'
@@ -139,7 +140,13 @@ async function verify(document) {
 }
 
 async function remove(document) {
-  if (!window.confirm(`حذف «${document.type_label}»؟ لا يمكن التراجع.`)) return
+  const answer = await confirmDialog({
+    title: 'حذف المستند',
+    message: `سيُحذف «${document.type_label}» من ملف الطفل، ولا يمكن التراجع.`,
+    confirmLabel: 'احذف',
+    danger: true,
+  })
+  if (!answer) return
 
   busyId.value = document.id
   try {
@@ -223,8 +230,8 @@ defineExpose({ load })
               بـ422. إخفاء الزرّ يمنع نقرةً مصيرها الرفض.
             -->
             <button
-              v-if="can && !d.is_verified" class="btn btn-ghost p-1.5 text-clay-700"
-              type="button" :disabled="busyId === d.id" title="حذف"
+              v-if="can && !d.is_verified" class="btn btn-ghost p-1.5 text-rose-700 hover:bg-rose-600/10"
+              type="button" :disabled="busyId === d.id" title="حذف" :aria-label="`حذف ${d.type_label ?? 'المستند'}`"
               @click="remove(d)"
             >
               <BaseIcon name="trash" :size="14" />
@@ -238,7 +245,7 @@ defineExpose({ load })
       <!-- قائمة النواقص: تظهر ما دام الملف غير موثّق -->
       <div v-if="!verified" class="mt-3 pt-3 border-t border-sand-100">
         <p class="text-xs text-sand-600 mb-2">
-          {{ ready ? 'المستندات مكتملة — يمكن توثيق الملف.' : 'التوثيق يحتاج:' }}
+          {{ ready ? 'المستندات مكتملة، ويمكن توثيق الملف.' : 'التوثيق يحتاج:' }}
         </p>
 
         <ul v-if="!ready" class="space-y-1">
@@ -282,7 +289,7 @@ defineExpose({ load })
         <p id="documentFileHelp" class="text-xs text-sand-500 mt-1">
           PDF أو صورة. يُخزَّن خارج المجلد العام ولا يُقدَّم إلا عبر مسار محمي.
         </p>
-        <p v-if="uploadErrors.file" class="text-xs text-clay-700 mt-1" role="alert">
+        <p v-if="uploadErrors.file" class="text-xs text-rose-700 mt-1" role="alert">
           {{ uploadErrors.file[0] }}
         </p>
       </div>

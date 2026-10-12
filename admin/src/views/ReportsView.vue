@@ -6,6 +6,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useUiStore } from '@/stores/ui'
 import { date } from '@/utils/format'
 import PageHeader from '@/components/PageHeader.vue'
+import InlineNote from '@/components/InlineNote.vue'
 import FilterBar from '@/components/FilterBar.vue'
 import DataTable from '@/components/DataTable.vue'
 import PaginationBar from '@/components/PaginationBar.vue'
@@ -27,7 +28,7 @@ const columns = [
   { key: 'supervisor', label: 'المشرف' },
   { key: 'visit_date', label: 'تاريخ الزيارة' },
   { key: 'status', label: 'الحالة' },
-  { key: 'actions', label: '', align: 'end' },
+  { key: 'actions', label: 'إجراءات', align: 'end' },
 ]
 
 const formOpen = ref(false)
@@ -76,10 +77,10 @@ async function act(fn, row, message) {
       </template>
     </PageHeader>
 
-    <div class="card p-3 mb-4 bg-sand-100 text-sm text-sand-700">
+    <InlineNote>
       المسار: يكتبه المشرف مسوّدةً، ثم يرسله للمراجعة، ثم يعتمده غيره، ثم يُنشر للكافل.
       ولا يعتمد المشرف تقريره بنفسه.
-    </div>
+    </InlineNote>
 
     <FilterBar :has-search="false" @reset="reset">
       <select v-model="filters.status" class="input !w-auto text-sm" aria-label="الحالة">

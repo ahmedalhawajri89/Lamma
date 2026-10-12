@@ -1,10 +1,11 @@
 <script setup>
 import { onMounted, ref } from 'vue'
+import { confirmDialog } from '@/composables/useConfirm'
 import { admin } from '@/api/endpoints'
 import { useResource } from '@/composables/useResource'
 import { useAuthStore } from '@/stores/auth'
 import { useUiStore } from '@/stores/ui'
-import { money, dateTime } from '@/utils/format'
+import { money, dateTime, EMPTY } from '@/utils/format'
 import PageHeader from '@/components/PageHeader.vue'
 import FilterBar from '@/components/FilterBar.vue'
 import DataTable from '@/components/DataTable.vue'
@@ -57,12 +58,20 @@ function onSaved() {
  * والسبب مطلوب لأنه ما سيقرأه المدقّق بعد سنة، لا نحن اليوم.
  */
 async function refund(row) {
-  const reason = window.prompt(`سبب استرداد ${row.reference_code}؟`)
-  if (!reason?.trim()) return
+  const answer = await confirmDialog({
+    title: `استرداد الدفعة ${row.reference_code}`,
+    message: 'يُسجَّل الاسترداد في السجل المالي ولا يمكن التراجع عنه.',
+    reason: 'required',
+    reasonLabel: 'سبب الاسترداد',
+    confirmLabel: 'سجّل الاسترداد',
+    danger: true,
+  })
+  if (!answer) return
+  const reason = answer.reason
 
   busyId.value = row.id
   try {
-    const { data } = await admin.payments.refund(row.id, reason.trim())
+    const { data } = await admin.payments.refund(row.id, reason)
     ui.success(data.message ?? 'سُجّل الاسترداد.')
     await load()
   } catch (e) {
@@ -111,8 +120,8 @@ onMounted(loadSponsorships)
       <template #reference_code="{ row }">
         <span class="num text-xs text-sand-600">{{ row.reference_code }}</span>
       </template>
-      <template #sponsor="{ row }">{{ row.sponsor?.name ?? '—' }}</template>
-      <template #orphan="{ row }">{{ row.sponsorship?.orphan?.name ?? '—' }}</template>
+      <template #sponsor="{ row }">{{ row.sponsor?.name ?? EMPTY }}</template>
+      <template #orphan="{ row }">{{ row.sponsorship?.orphan?.name ?? EMPTY }}</template>
       <template #amount="{ row }"><span class="num font-medium">{{ money(row.amount) }}</span></template>
       <template #method="{ row }">
         {{ row.method_label }}
@@ -126,7 +135,7 @@ onMounted(loadSponsorships)
           <!-- الاسترداد للناجحة وحدها: `PaymentPolicy::refund` تشترط ذلك -->
           <button
             v-if="auth.can('payments.refund') && row.status === 'succeeded'"
-            class="btn btn-ghost !py-0.5 !px-1.5 text-xs text-clay-700"
+            class="btn btn-ghost !py-0.5 !px-1.5 text-xs text-rose-700 hover:bg-rose-600/10"
             type="button" :disabled="busyId === row.id" @click="refund(row)"
           >
             استرداد

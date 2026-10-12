@@ -31,7 +31,7 @@ async function setStatus(row, status) {
   <div>
     <PageHeader
       title="رسائل التواصل"
-      :subtitle="`${meta.total} رسالة — تصل من نموذج contact.html على الموقع`"
+      :subtitle="`${meta.total} رسالة من نموذج «تواصل معنا» على الموقع`"
     />
 
     <FilterBar :has-search="false" @reset="reset">
@@ -45,8 +45,8 @@ async function setStatus(row, status) {
       <div v-for="n in 4" :key="n" class="card h-28 animate-pulse bg-sand-100" />
     </div>
 
-    <ul v-else-if="items.length" class="space-y-2">
-      <li v-for="m in items" :key="m.id" class="card p-4">
+    <ul v-else-if="items.length" class="card divide-y divide-sand-100">
+      <li v-for="m in items" :key="m.id" class="p-4">
         <div class="flex items-start justify-between gap-3 flex-wrap mb-2">
           <div class="min-w-0">
             <p class="text-sm font-medium">

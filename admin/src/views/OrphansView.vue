@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router'
 import { admin } from '@/api/endpoints'
 import { useResource } from '@/composables/useResource'
 import { useAuthStore } from '@/stores/auth'
-import { money } from '@/utils/format'
+import { money, EMPTY } from '@/utils/format'
 import PageHeader from '@/components/PageHeader.vue'
 import FilterBar from '@/components/FilterBar.vue'
 import DataTable from '@/components/DataTable.vue'
@@ -105,7 +105,7 @@ onMounted(loadReferences)
 
     <DataTable
       :columns="columns" :rows="items" :loading="loading"
-      class="cursor-pointer" @row-click="(r) => router.push(`/orphans/${r.id}`)"
+      clickable @row-click="(r) => router.push(`/orphans/${r.id}`)"
     >
       <template #reference_code="{ row }">
         <span class="num text-xs text-sand-600">{{ row.reference_code }}</span>
@@ -121,13 +121,13 @@ onMounted(loadReferences)
             {{ row.first_name?.charAt(0) }}
           </span>
           <span class="font-medium">{{ row.first_name }}</span>
-          <BaseIcon v-if="row.is_urgent" name="alert" :size="14" class="text-rose-600" aria-label="عاجل" />
+          <BaseIcon v-if="row.is_urgent" name="alert" :size="14" class="text-rose-600" role="img" aria-label="عاجل" />
         </span>
       </template>
 
       <template #age="{ row }"><span class="num">{{ row.age }}</span></template>
-      <template #country="{ row }">{{ row.family?.country?.name ?? '—' }}</template>
-      <template #program="{ row }">{{ row.program?.name ?? '—' }}</template>
+      <template #country="{ row }">{{ row.family?.country?.name ?? EMPTY }}</template>
+      <template #program="{ row }">{{ row.program?.name ?? EMPTY }}</template>
       <template #funded_percent="{ row }"><FundingBar :percent="row.funded_percent" /></template>
       <template #monthly_need="{ row }"><span class="num">{{ money(row.monthly_need) }}</span></template>
       <template #status="{ row }"><StatusBadge :label="row.status_label" :value="row.status" /></template>

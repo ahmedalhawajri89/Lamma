@@ -107,7 +107,7 @@ function onInput(event) {
         :aria-invalid="message ? 'true' : undefined" :aria-describedby="describedBy"
         :data-autofocus="autofocus || undefined" @change="onInput"
       >
-        <option value="">{{ placeholder || '—' }}</option>
+        <option value="">{{ placeholder || 'اختر…' }}</option>
         <option v-for="o in normalized" :key="o.value" :value="o.value">{{ o.label }}</option>
       </select>
 
@@ -128,6 +128,6 @@ function onInput(event) {
     </template>
 
     <p v-if="hint && !message" :id="hintId" class="text-xs text-sand-500 mt-1">{{ hint }}</p>
-    <p v-if="message" :id="errorId" class="text-xs text-clay-700 mt-1" role="alert">{{ message }}</p>
+    <p v-if="message" :id="errorId" class="text-xs text-rose-700 mt-1" role="alert">{{ message }}</p>
   </div>
 </template>

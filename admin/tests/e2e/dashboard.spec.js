@@ -37,11 +37,13 @@ test('كلمة مرور خاطئة تعرض خطأ ولا تفتح الجلسة'
 test('اللوحة تعرض مؤشرات ومخططات من بيانات حقيقية', async ({ page }) => {
   await login(page)
 
-  await expect(page.getByRole('heading', { name: 'نظرة عامة' })).toBeVisible()
+  // التحية بالاسم، ثم «بانتظارك» أول ما يراه الموظف
+  await expect(page.getByRole('heading', { level: 1 })).toContainText(/صباح الخير|مساء الخير/)
+  await expect(page.getByRole('heading', { name: 'بانتظارك' })).toBeVisible()
 
-  // المؤشرات أرقام لا شرطات — أي أنها وصلت من الخادم فعلاً
+  // المؤشرات أرقام لا قيم فارغة، أي أنها وصلت من الخادم فعلاً
   const sponsored = page.getByText('أيتام مكفولون').first().locator('..')
-  await expect(sponsored).not.toContainText('—')
+  await expect(sponsored).not.toContainText('غير محدد')
 
   // خمسة مخططات على الأقل رُسمت على canvas
   await expect(page.locator('canvas')).toHaveCount(6)
@@ -87,9 +89,28 @@ test('المشرف الميداني لا يرى شاشات المال', async ({
   await expect(nav.getByRole('link', { name: 'المدفوعات' })).toHaveCount(0)
   await expect(nav.getByRole('link', { name: 'المستخدمون' })).toHaveCount(0)
 
+  // ولا مال في نظرته العامة: لا مؤشرات مالية ولا مخططات (الخادم لا يرسلها)
+  await expect(page.getByRole('heading', { name: 'بانتظارك' })).toBeVisible()
+  await expect(page.getByText('مقبوضات الشهر')).toHaveCount(0)
+  await expect(page.getByText('الالتزام الشهري')).toHaveCount(0)
+  await expect(page.locator('canvas')).toHaveCount(0)
+
   // وإخفاء الرابط ليس الحماية: الوصول المباشر يُردّ أيضاً
   await page.goto('/payments')
   await expect(page).toHaveURL(/\/dashboard/)
+})
+
+test('مهمة في «بانتظارك» تفتح شاشتها مفلترة، والفلتر يبقى بعد التحديث', async ({ page }) => {
+  await login(page)
+
+  const task = page.getByRole('link', { name: /تقارير بانتظار اعتمادك/ })
+  await expect(task).toBeVisible()
+  await task.click()
+
+  await expect(page).toHaveURL(/\/reports\?status=submitted/)
+  await page.reload()
+  await expect(page).toHaveURL(/status=submitted/)
+  await expect(page.getByRole('combobox').filter({ hasText: 'مُرسل للمراجعة' })).toBeVisible()
 })
 
 test('تسجيل الخروج ينهي الجلسة فعلاً', async ({ page }) => {

@@ -4,8 +4,9 @@ import { admin } from '@/api/endpoints'
 import { useResource } from '@/composables/useResource'
 import { useAuthStore } from '@/stores/auth'
 import { useUiStore } from '@/stores/ui'
-import { money, date } from '@/utils/format'
+import { money, date, EMPTY } from '@/utils/format'
 import PageHeader from '@/components/PageHeader.vue'
+import InlineNote from '@/components/InlineNote.vue'
 import FilterBar from '@/components/FilterBar.vue'
 import DataTable from '@/components/DataTable.vue'
 import PaginationBar from '@/components/PaginationBar.vue'
@@ -93,9 +94,9 @@ async function approve(row) {
       </template>
     </PageHeader>
 
-    <div class="card p-3 mb-4 bg-clay-50 border-clay-200 text-sm text-clay-800">
+    <InlineNote>
       الصرف المعتمَد وحده هو ما تُحسب منه نسب الشفافية المنشورة على الموقع.
-    </div>
+    </InlineNote>
 
     <FilterBar :has-search="false" @reset="reset">
       <label class="flex items-center gap-1.5 text-sm cursor-pointer">
@@ -118,7 +119,7 @@ async function approve(row) {
         <span v-else class="text-sand-500 text-xs">مصروف عام</span>
       </template>
       <template #amount="{ row }"><span class="num font-medium">{{ money(row.amount) }}</span></template>
-      <template #recorder="{ row }">{{ row.recorder ?? '—' }}</template>
+      <template #recorder="{ row }">{{ row.recorder ?? EMPTY }}</template>
       <template #status="{ row }">
         <span v-if="row.is_approved" class="badge bg-olive-100 text-olive-700">معتمَد</span>
         <button
@@ -129,7 +130,7 @@ async function approve(row) {
         </button>
         <span
           v-else class="badge bg-amber-100 text-amber-700"
-          :title="row.recorded_by === auth.user?.id ? 'أنت سجّلته — يعتمده غيرك' : undefined"
+          :title="row.recorded_by === auth.user?.id ? 'أنت سجّلته، فيعتمده غيرك' : undefined"
         >بانتظار الاعتماد</span>
       </template>
     </DataTable>

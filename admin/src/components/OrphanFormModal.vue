@@ -79,7 +79,7 @@ const dobRange = computed(() => {
 const familyOptions = computed(() =>
   props.families.map((f) => ({
     value: f.id,
-    label: `${f.family_code} — ${f.guardian_name ?? f.guardian?.name ?? 'بلا وصيّ'}`,
+    label: `${f.family_code} · ${f.guardian_name ?? f.guardian?.name ?? 'بلا وصيّ'}`,
   })),
 )
 
@@ -162,7 +162,7 @@ async function save() {
     :title="editing ? 'تحرير الملف' : 'ملف يتيم جديد'"
     :subtitle="editing
       ? orphan.reference_code
-      : 'يُنشأ الملف مسوّدةً — النشر يمرّ بالتوثيق أولاً.'"
+      : 'يُنشأ الملف مسوّدةً، والنشر يمرّ بالتوثيق أولاً.'"
     :busy="form.submitting.value" :dirty="form.dirty.value"
     @close="emit('close')" @submit="save"
   >
@@ -184,14 +184,14 @@ async function save() {
       <FormField
         v-model="form.values.date_of_birth" label="تاريخ الميلاد" type="date" required
         :min="dobRange.min" :max="dobRange.max"
-        hint="حتى ١٨ سنة — عندها يتخرّج من البرنامج."
+        hint="حتى 18 سنة، وعندها يتخرّج من البرنامج."
         :error="form.errors.value.date_of_birth" @update:model-value="form.touch('date_of_birth')"
       />
 
       <FormField
         v-model="form.values.family_id" label="الأسرة" required
         :options="familyOptions" placeholder="اختر الأسرة"
-        hint="لا يُنشأ يتيم بلا أسرة — الوصيّ والعنوان يأتيان منها."
+        hint="لا يُنشأ يتيم بلا أسرة، فالوصيّ والعنوان يأتيان منها."
         :error="form.errors.value.family_id" @update:model-value="form.touch('family_id')"
       />
       <FormField
@@ -215,7 +215,7 @@ async function save() {
 
     <FormField
       v-model="form.values.health_status" label="الحالة الصحية"
-      hint="ما يؤثر في الكفالة فقط. لا تفاصيل تشخيصية — البطاقة العامة لا تعرضها."
+      hint="ما يؤثر في الكفالة فقط. لا تفاصيل تشخيصية، فالبطاقة العامة لا تعرضها."
       :error="form.errors.value.health_status" @update:model-value="form.touch('health_status')"
     />
 
@@ -253,15 +253,15 @@ async function save() {
         ولا جوع ولا جسد مكشوف. والبطاقة بلا صورة أفضل من صورة تسيء لصاحبها.
       -->
       <p id="orphanPhotoHelp" class="text-xs text-sand-500 mt-1">
-        بموافقة الوصيّ المكتوبة. لا بكاء ولا جوع — والبطاقة بلا صورة أفضل من
+        بموافقة الوصيّ المكتوبة. لا بكاء ولا جوع، والبطاقة بلا صورة أفضل من
         صورة تسيء إلى صاحبها.
       </p>
-      <p v-if="form.errors.value.photo" class="text-xs text-clay-700 mt-1" role="alert">
+      <p v-if="form.errors.value.photo" class="text-xs text-rose-700 mt-1" role="alert">
         {{ form.errors.value.photo[0] }}
       </p>
     </div>
     <FormField
-      v-model="form.values.is_urgent" label="حالة عاجلة — تُعرض في مقدمة الموقع"
+      v-model="form.values.is_urgent" label="حالة عاجلة تُعرض في مقدمة الموقع"
       type="checkbox"
       :error="form.errors.value.is_urgent" @update:model-value="form.touch('is_urgent')"
     />

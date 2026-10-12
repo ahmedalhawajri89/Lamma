@@ -136,7 +136,9 @@ onMounted(load)
       <div v-for="i in 3" :key="i" class="h-40 bg-sand-100 rounded-2xl animate-pulse" />
     </div>
 
-    <form v-else class="space-y-4 max-w-2xl" novalidate @submit.prevent="form.submit()">
+    <form v-else novalidate @submit.prevent="form.submit()">
+      <!-- عمودان على الشاشات العريضة بدل عمود ضيّق وفراغ بجانبه -->
+      <div class="grid xl:grid-cols-2 gap-4 items-start">
       <section v-for="section in sections" :key="section.title" class="card p-5">
         <h2 class="font-semibold mb-1">{{ section.title }}</h2>
         <p v-if="section.hint" class="text-sm text-sand-500 mb-4">{{ section.hint }}</p>
@@ -153,9 +155,10 @@ onMounted(load)
           />
         </div>
       </section>
+      </div>
 
       <!-- زرّ ثانٍ في الأسفل: الصفحة أطول من الشاشة، والزرّ الأعلى يغيب -->
-      <div class="flex justify-end">
+      <div class="flex justify-end mt-4">
         <button class="btn btn-primary" type="submit" :disabled="form.submitting.value || !form.dirty.value">
           <BaseIcon v-if="form.submitting.value" name="loader" :size="16" class="animate-spin" />
           {{ form.submitting.value ? 'جارٍ الحفظ…' : 'حفظ الإعدادات' }}

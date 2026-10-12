@@ -41,7 +41,7 @@ const SCHEMA = {
       { key: 'role', label: 'الصفة', placeholder: 'كافل منذ ٣ سنوات' },
       {
         key: 'quote', label: 'الشهادة', type: 'textarea', rows: 5, required: true,
-        hint: 'بصيغتها كما قالها — لا تُعاد صياغتها لتبدو أجمل.',
+        hint: 'بصيغتها كما قالها، فلا تُعاد صياغتها لتبدو أجمل.',
       },
     ],
   },

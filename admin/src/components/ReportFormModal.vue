@@ -56,14 +56,14 @@ const BLANK = {
 const form = useForm(BLANK, (values) => admin.reports.create(values))
 
 const orphanOptions = computed(() =>
-  props.orphans.map((o) => ({ value: o.id, label: `${o.reference_code} — ${o.first_name}` })),
+  props.orphans.map((o) => ({ value: o.id, label: `${o.reference_code} · ${o.first_name}` })),
 )
 
 const quarters = [
-  { value: 1, label: 'الربع الأول (يناير–مارس)' },
-  { value: 2, label: 'الربع الثاني (أبريل–يونيو)' },
-  { value: 3, label: 'الربع الثالث (يوليو–سبتمبر)' },
-  { value: 4, label: 'الربع الرابع (أكتوبر–ديسمبر)' },
+  { value: 1, label: 'الربع الأول (من يناير إلى مارس)' },
+  { value: 2, label: 'الربع الثاني (من أبريل إلى يونيو)' },
+  { value: 3, label: 'الربع الثالث (من يوليو إلى سبتمبر)' },
+  { value: 4, label: 'الربع الرابع (من أكتوبر إلى ديسمبر)' },
 ]
 
 const years = Array.from({ length: 4 }, (_, i) => now.getFullYear() - i)
@@ -85,7 +85,7 @@ async function save() {
 <template>
   <FormModal
     :open="open" wide title="تقرير ربعي جديد"
-    subtitle="يُحفظ مسوّدةً — ثم يُرفع للاعتماد، ولا يصل الكافل قبل النشر."
+    subtitle="يُحفظ مسوّدةً ثم يُرفع للاعتماد، ولا يصل الكافل قبل النشر."
     :busy="form.submitting.value" :dirty="form.dirty.value"
     @close="emit('close')" @submit="save"
   >
@@ -110,7 +110,7 @@ async function save() {
 
     <FormField
       v-model="form.values.title" label="العنوان" required
-      placeholder="تقرير الربع الثاني — تحسّن ملحوظ في الرياضيات"
+      placeholder="تقرير الربع الثاني: تحسّن ملحوظ في الرياضيات"
       :error="form.errors.value.title" @update:model-value="form.touch('title')"
     />
 

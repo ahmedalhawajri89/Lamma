@@ -29,7 +29,7 @@ const routes = [
     path: '/orphans',
     name: 'orphans',
     component: () => import('@/views/OrphansView.vue'),
-    meta: { title: 'الأيتام', icon: 'children', permission: 'orphans.view' },
+    meta: { group: 'cases', title: 'الأيتام', icon: 'children', permission: 'orphans.view' },
   },
   {
     path: '/orphans/:id',
@@ -41,79 +41,79 @@ const routes = [
     path: '/families',
     name: 'families',
     component: () => import('@/views/FamiliesView.vue'),
-    meta: { title: 'الأسر', icon: 'home', permission: 'orphans.view' },
+    meta: { group: 'cases', title: 'الأسر', icon: 'home', permission: 'orphans.view' },
   },
   {
     path: '/sponsors',
     name: 'sponsors',
     component: () => import('@/views/SponsorsView.vue'),
-    meta: { title: 'الكفلاء', icon: 'users', permission: 'sponsors.view' },
+    meta: { group: 'money', title: 'الكفلاء', icon: 'users', permission: 'sponsors.view' },
   },
   {
     path: '/sponsorships',
     name: 'sponsorships',
     component: () => import('@/views/SponsorshipsView.vue'),
-    meta: { title: 'الكفالات', icon: 'handshake', permission: 'sponsorships.view' },
+    meta: { group: 'money', title: 'الكفالات', icon: 'handshake', permission: 'sponsorships.view' },
   },
   {
     path: '/payments',
     name: 'payments',
     component: () => import('@/views/PaymentsView.vue'),
-    meta: { title: 'المدفوعات', icon: 'receipt', permission: 'payments.view' },
+    meta: { group: 'money', title: 'المدفوعات', icon: 'receipt', permission: 'payments.view' },
   },
   {
     path: '/disbursements',
     name: 'disbursements',
     component: () => import('@/views/DisbursementsView.vue'),
-    meta: { title: 'الصرف', icon: 'wallet', permission: 'disbursements.view' },
+    meta: { group: 'money', title: 'الصرف', icon: 'wallet', permission: 'disbursements.view' },
   },
   {
     path: '/reports',
     name: 'reports',
     component: () => import('@/views/ReportsView.vue'),
-    meta: { title: 'التقارير', icon: 'file', permission: 'reports.view' },
+    meta: { group: 'cases', title: 'التقارير', icon: 'file', permission: 'reports.view' },
   },
   {
     path: '/visits',
     name: 'visits',
     component: () => import('@/views/VisitsView.vue'),
-    meta: { title: 'الزيارات', icon: 'map', permission: 'visits.view' },
+    meta: { group: 'cases', title: 'الزيارات', icon: 'map', permission: 'visits.view' },
   },
   {
     path: '/messages',
     name: 'messages',
     component: () => import('@/views/MessagesView.vue'),
-    meta: { title: 'الرسائل', icon: 'chat', permission: 'messages.review' },
+    meta: { group: 'comms', title: 'الرسائل', icon: 'chat', permission: 'messages.review' },
   },
   {
     path: '/contacts',
     name: 'contacts',
     component: () => import('@/views/ContactsView.vue'),
-    meta: { title: 'رسائل التواصل', icon: 'mail', permission: 'content.manage' },
+    meta: { group: 'comms', title: 'رسائل التواصل', icon: 'mail', permission: 'content.manage' },
   },
   {
     path: '/users',
     name: 'users',
     component: () => import('@/views/UsersView.vue'),
-    meta: { title: 'المستخدمون', icon: 'shield', permission: 'users.manage' },
+    meta: { group: 'system', title: 'المستخدمون', icon: 'shield', permission: 'users.manage' },
   },
   {
     path: '/content',
     name: 'content',
     component: () => import('@/views/ContentView.vue'),
-    meta: { title: 'محتوى الموقع', icon: 'file', permission: 'content.manage' },
+    meta: { group: 'comms', title: 'محتوى الموقع', icon: 'globe', permission: 'content.manage' },
   },
   {
     path: '/settings',
     name: 'settings',
     component: () => import('@/views/SettingsView.vue'),
-    meta: { title: 'الإعدادات', icon: 'gauge', permission: 'settings.manage' },
+    meta: { group: 'system', title: 'الإعدادات', icon: 'sliders', permission: 'settings.manage' },
   },
   {
     path: '/activity',
     name: 'activity',
     component: () => import('@/views/ActivityView.vue'),
-    meta: { title: 'سجل النشاط', icon: 'history', permission: 'activity.view' },
+    meta: { group: 'system', title: 'سجل النشاط', icon: 'history', permission: 'activity.view' },
   },
   {
     path: '/:pathMatch(.*)*',
@@ -167,7 +167,7 @@ router.beforeEach(async (to) => {
 })
 
 router.afterEach((to) => {
-  document.title = to.meta.title ? `${to.meta.title} — لوحة كفالة` : 'لوحة كفالة'
+  document.title = to.meta.title ? `${to.meta.title} | لوحة كفالة` : 'لوحة كفالة'
 })
 
 export default router

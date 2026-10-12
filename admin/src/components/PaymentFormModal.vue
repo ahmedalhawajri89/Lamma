@@ -12,7 +12,7 @@
 import { computed, ref, watch } from 'vue'
 import { admin } from '@/api/endpoints'
 import { useForm } from '@/composables/useForm'
-import { money } from '@/utils/format'
+import { money, EMPTY } from '@/utils/format'
 import BaseIcon from './BaseIcon.vue'
 import FormModal from './FormModal.vue'
 import FormField from './FormField.vue'
@@ -38,7 +38,7 @@ const form = useForm(BLANK, (values) => admin.payments.record(values))
 const sponsorshipOptions = computed(() =>
   props.sponsorships.map((s) => ({
     value: s.id,
-    label: `${s.sponsor?.name ?? s.sponsor?.sponsor_code ?? '—'} ← ${s.orphan?.first_name ?? s.orphan?.reference_code ?? '—'}`,
+    label: `${s.sponsor?.name ?? s.sponsor?.sponsor_code ?? EMPTY} ← ${s.orphan?.first_name ?? s.orphan?.reference_code ?? EMPTY}`,
   })),
 )
 
@@ -70,7 +70,7 @@ async function save() {
 <template>
   <FormModal
     :open="open" title="تسجيل دفعة يدوية"
-    subtitle="للتحويل البنكي والنقد — دفعات البطاقات تصل من البوابة وحدها."
+    subtitle="للتحويل البنكي والنقد، أما دفعات البطاقات فتصل من البوابة وحدها."
     :busy="form.submitting.value" :dirty="form.dirty.value"
     @close="emit('close')" @submit="save"
   >
