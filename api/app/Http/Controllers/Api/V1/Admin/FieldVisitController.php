@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Api\V1\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\FieldVisitResource;
 use App\Models\FieldVisit;
+use App\Models\Orphan;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -16,17 +17,19 @@ class FieldVisitController extends Controller
     {
         abort_unless($request->user()->can('visits.view'), 403);
 
-        $visits = FieldVisit::query()
+        // المشرف يرى زيارات بلده وحده، والعدّاد «متأخرة» يتبع القائمة نفسها
+        $scoped = fn () => FieldVisit::query()->when(
+            $request->user()->assignedCountryId() !== null && ! $request->user()->isAdmin(),
+            fn ($q) => $q->whereHas(
+                'orphan.family',
+                fn ($f) => $f->where('country_id', $request->user()->assignedCountryId()),
+            ),
+        );
+
+        $visits = $scoped()
             ->with(['orphan:id,reference_code,first_name', 'supervisor:id,name'])
             ->when($request->filled('orphan_id'), fn ($q) => $q->where('orphan_id', $request->integer('orphan_id')))
             ->when($request->boolean('overdue'), fn ($q) => $q->overdue())
-            ->when(
-                $request->user()->assignedCountryId() !== null && ! $request->user()->isAdmin(),
-                fn ($q) => $q->whereHas(
-                    'orphan.family',
-                    fn ($f) => $f->where('country_id', $request->user()->assignedCountryId()),
-                ),
-            )
             ->latest('visited_at')
             ->paginate($request->integer('per_page', 20));
 
@@ -36,7 +39,7 @@ class FieldVisitController extends Controller
                 'total' => $visits->total(),
                 'current_page' => $visits->currentPage(),
                 'last_page' => $visits->lastPage(),
-                'overdue' => FieldVisit::overdue()->count(),
+                'overdue' => $scoped()->overdue()->count(),
             ],
         ]);
     }
@@ -56,8 +59,11 @@ class FieldVisitController extends Controller
             'longitude' => ['nullable', 'numeric', 'between:-180,180'],
         ], [
             'visited_at.before_or_equal' => 'لا تُسجَّل زيارة بتاريخ مستقبلي.',
-            'findings.min' => 'اكتب ملاحظات الزيارة — سطر واحد لا يوثّق شيئاً.',
+            'findings.min' => 'اكتب ملاحظات الزيارة، فسطر واحد لا يوثّق شيئاً.',
         ]);
+
+        // لا تُسجَّل زيارة ليتيم خارج منطقة المشرف (السياسة نفسها التي تحجب ملفه عنه)
+        $this->authorize('view', Orphan::findOrFail($validated['orphan_id']));
 
         $visit = FieldVisit::create([
             ...$validated,

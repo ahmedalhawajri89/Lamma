@@ -126,8 +126,10 @@ class UserController extends Controller
     }
 
     /** قائمة الأدوار والصلاحيات — تبنيها الواجهة في شاشة إدارة المستخدمين. */
-    public function roles(): JsonResponse
+    public function roles(Request $request): JsonResponse
     {
+        abort_unless($request->user()->can('users.manage'), 403);
+
         return response()->json([
             'data' => [
                 'roles' => UserRole::options(),

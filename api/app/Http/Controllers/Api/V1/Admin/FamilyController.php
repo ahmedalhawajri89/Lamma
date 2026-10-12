@@ -18,6 +18,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class FamilyController extends Controller
 {
@@ -49,8 +50,14 @@ class FamilyController extends Controller
         ]);
     }
 
-    public function show(Family $family): JsonResponse
+    public function show(Request $request, Family $family): JsonResponse
     {
+        abort_unless($request->user()->can('families.manage') || $request->user()->can('orphans.view'), 403);
+
+        // المشرف الميداني لا يرى أسرة خارج بلده، وفيها بيانات الوصي وهاتفه.
+        // 404 لا 403: لا نؤكّد وجود سجل لمن لا يحقّ له رؤيته
+        abort_unless($this->inScope($request, $family->country_id), 404);
+
         return response()->json([
             'data' => new FamilyResource($family->load(['country', 'city', 'guardian', 'orphans.program'])),
         ]);
@@ -84,6 +91,8 @@ class FamilyController extends Controller
             'country_id.required' => 'الدولة مطلوبة.',
         ]);
 
+        $this->ensureCountryAllowed($request, (int) $validated['country_id']);
+
         $family = DB::transaction(function () use ($validated): Family {
             /**
              * `national_id` يُستثنى من الإسناد الجماعي بقصد.
@@ -114,6 +123,7 @@ class FamilyController extends Controller
     public function update(Request $request, Family $family): JsonResponse
     {
         abort_unless($request->user()->can('families.manage'), 403);
+        abort_unless($this->inScope($request, $family->country_id), 404);
 
         $validated = $request->validate([
             'country_id' => ['sometimes', 'integer', 'exists:countries,id'],
@@ -128,6 +138,10 @@ class FamilyController extends Controller
             'guardian.occupation' => ['sometimes', 'nullable', 'string', 'max:80'],
             'guardian.monthly_income' => ['sometimes', 'nullable', 'numeric', 'min:0'],
         ]);
+
+        if (isset($validated['country_id'])) {
+            $this->ensureCountryAllowed($request, (int) $validated['country_id']);
+        }
 
         DB::transaction(function () use ($validated, $family): void {
             $family->update(collect($validated)->except('guardian')->all());
@@ -185,5 +199,27 @@ class FamilyController extends Controller
         $next = $last ? ((int) substr($last, 4)) + 1 : 1;
 
         return 'FAM-'.str_pad((string) $next, 4, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * المشرف الميداني مقيَّد ببلده المُسنَد، كما في `OrphanPolicy`.
+     * المدير والمحاسب بلا بلد مُسنَد، فيريان الجميع.
+     */
+    private function inScope(Request $request, ?int $countryId): bool
+    {
+        $user = $request->user();
+        $assigned = $user->assignedCountryId();
+
+        return $assigned === null || $user->isAdmin() || $countryId === $assigned;
+    }
+
+    /** لا يُنشئ المشرف أسرة في بلد آخر، ولا ينقل أسرة إليه. */
+    private function ensureCountryAllowed(Request $request, int $countryId): void
+    {
+        if (! $this->inScope($request, $countryId)) {
+            throw ValidationException::withMessages([
+                'country_id' => 'لا يمكنك إضافة أسرة أو نقلها إلى بلد خارج منطقتك.',
+            ]);
+        }
     }
 }

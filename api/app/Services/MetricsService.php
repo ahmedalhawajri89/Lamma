@@ -107,6 +107,40 @@ class MetricsService
         });
     }
 
+    /**
+     * مؤشرات المشرف الميداني: أيتام بلده وزياراته، بلا أي رقم مالي.
+     *
+     * بلا تخزين مؤقت: عدّادات قليلة على بلد واحد، وتبقى صادقة فور تسجيل
+     * زيارة أو توثيق ملف، بينما مفتاح لكل بلد يتعقّد مسحه.
+     *
+     * @return array<string, int>
+     */
+    public function countryKpis(int $countryId): array
+    {
+        $orphans = fn () => Orphan::query()->whereHas('family', fn ($f) => $f->where('country_id', $countryId));
+        $visits = fn () => FieldVisit::query()->whereHas('orphan.family', fn ($f) => $f->where('country_id', $countryId));
+
+        return [
+            'orphans_total' => $orphans()->count(),
+            'orphans_sponsored' => $orphans()->whereHas(
+                'sponsorships',
+                fn ($q) => $q->where('status', SponsorshipStatus::Active),
+            )->count(),
+            'orphans_awaiting' => $orphans()
+                ->where('status', OrphanStatus::Active)
+                ->where('funded_percent', '<', 100)
+                ->count(),
+            'orphans_pending_verification' => $orphans()
+                ->where('status', OrphanStatus::PendingVerification)
+                ->count(),
+            'urgent_unfunded' => $orphans()->urgentUnfunded()
+                ->where('status', OrphanStatus::Active)
+                ->count(),
+            'visits_month' => $visits()->where('visited_at', '>=', now()->startOfMonth())->count(),
+            'overdue_visits' => $visits()->overdue()->count(),
+        ];
+    }
+
     /* ================================================================
        ٢. السلاسل الزمنية — من جدول التجميع
        ================================================================ */

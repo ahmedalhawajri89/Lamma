@@ -52,9 +52,20 @@ class FieldVisit extends Model
         return $this->belongsTo(User::class, 'supervisor_id');
     }
 
-    /** الزيارات المتأخرة — تغذّي تنبيهات لوحة الإدارة. */
+    /**
+     * الزيارات المتأخرة: **آخر** زيارة للطفل تجاوزت موعد الزيارة التالية.
+     *
+     * كانت تعدّ كل زيارة قديمة فات موعدها، ولو تلتها زيارة أحدث للطفل نفسه،
+     * فتظهر «231 متأخرة» والمتأخر فعلاً أقل بكثير. الزيارة التي جاءت بعدها
+     * زيارةٌ أخرى قد أُنجز ما بعدها.
+     */
     public function scopeOverdue(Builder $query): Builder
     {
-        return $query->whereDate('next_visit_due', '<', now()->toDateString());
+        return $query
+            ->whereDate('field_visits.next_visit_due', '<', now()->toDateString())
+            ->whereNotExists(fn ($later) => $later
+                ->from('field_visits as later')
+                ->whereColumn('later.orphan_id', 'field_visits.orphan_id')
+                ->whereColumn('later.visited_at', '>', 'field_visits.visited_at'));
     }
 }

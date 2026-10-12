@@ -105,8 +105,10 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
     /* ==================================================================
        ٣. بوابة الكافل
        ================================================================== */
+    // لوحة الكافل للكفلاء وحدهم: حساب فريق العمل يُرفض هنا برد 403 واحد،
+    // لا بتحقق كل متحكم على حدة
     Route::prefix('portal')->name('portal.')
-        ->middleware(['auth:sanctum'])
+        ->middleware(['auth:sanctum', 'role:sponsor'])
         ->group(function (): void {
 
             Route::get('overview', Portal\OverviewController::class)->name('overview');
@@ -139,6 +141,7 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
         ->group(function (): void {
 
             Route::get('dashboard', Admin\DashboardController::class)->name('dashboard');
+            Route::get('queue', [Admin\DashboardController::class, 'queue'])->name('queue');
 
             /* --- الأيتام --- */
             Route::get('orphans', [Admin\OrphanController::class, 'index'])->name('orphans.index');

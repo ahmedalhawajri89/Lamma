@@ -22,12 +22,21 @@ class SponsorshipController extends Controller
     {
         $this->authorize('viewAny', Sponsorship::class);
 
+        $user = $request->user();
+
         $items = Sponsorship::query()
             ->with([
                 'orphan:id,reference_code,first_name,photo_path,date_of_birth,funded_percent',
-                'sponsor', 'sponsor.user:id,name,email',
+                'sponsor',
                 'program',
             ])
+            // اسم الكافل وبريده لمن يملك رؤية الكفلاء وحده، لا للمشرف الميداني
+            ->when($user->can('sponsors.view'), fn ($q) => $q->with('sponsor.user:id,name,email'))
+            // والمشرف يرى كفالات أيتام بلده وحده
+            ->when(
+                $user->assignedCountryId() !== null && ! $user->isAdmin(),
+                fn ($q) => $q->whereHas('orphan.family', fn ($f) => $f->where('country_id', $user->assignedCountryId())),
+            )
             ->withCount('payments')
             ->when($request->filled('status'), fn ($q) => $q->where('status', $request->string('status')))
             ->when($request->filled('program_id'), fn ($q) => $q->where('program_id', $request->integer('program_id')))
@@ -44,13 +53,28 @@ class SponsorshipController extends Controller
         ]);
     }
 
-    public function show(Sponsorship $sponsorship): JsonResponse
+    public function show(Request $request, Sponsorship $sponsorship): JsonResponse
     {
         $this->authorize('view', $sponsorship);
 
+        $user = $request->user();
+        $sponsorship->load('orphan.family.country');
+
+        abort_unless(
+            $user->assignedCountryId() === null || $user->isAdmin()
+                || $sponsorship->orphan?->family?->country_id === $user->assignedCountryId(),
+            404,
+        );
+
+        if ($user->can('sponsors.view')) {
+            $sponsorship->load('sponsor.user');
+        } else {
+            $sponsorship->load('sponsor');
+        }
+
         return response()->json([
             'data' => new SponsorshipResource($sponsorship->load([
-                'orphan.family.country', 'sponsor.user', 'program',
+                'program',
                 'payments' => fn ($q) => $q->latest('created_at')->limit(24),
             ])),
         ]);
