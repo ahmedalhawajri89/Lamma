@@ -45,21 +45,33 @@ test('اللوحة تعرض مؤشرات ومخططات من بيانات حقي
   const sponsored = page.getByText('أيتام مكفولون').first().locator('..')
   await expect(sponsored).not.toContainText('غير محدد')
 
-  // خمسة مخططات على الأقل رُسمت على canvas
-  await expect(page.locator('canvas')).toHaveCount(6)
+  // مخطط رئيسي واحد بتبويبات، والتحليل الأعمق أشرطة مكتوبة نسبها
+  await expect(page.locator('canvas')).toHaveCount(1)
+  await expect(page.getByRole('heading', { name: 'أين يذهب المال' })).toBeVisible()
+  await expect(page.getByText('مصاريف إدارية')).toBeVisible()
 
   // الحالات العاجلة محمّلة
   await expect(page.getByRole('heading', { name: 'حالات عاجلة تنتظر كافلاً' })).toBeVisible()
 })
 
-test('الجدول البديل للمخطط الدائري يعرض النسب نفسها', async ({ page }) => {
+test('تبويبات المخطط الرئيسي تبدّل القراءة بالفأرة ولوحة المفاتيح', async ({ page }) => {
   await login(page)
 
-  await page.getByRole('button', { name: 'جدول' }).click()
+  const first = page.getByRole('tab', { name: 'الأيتام المكفولون' })
+  await expect(first).toHaveAttribute('aria-selected', 'true')
 
-  const table = page.getByRole('table', { name: 'توزيع الإنفاق حسب البند' })
-  await expect(table).toBeVisible()
-  await expect(table.getByText('مصاريف إدارية')).toBeVisible()
+  await page.getByRole('tab', { name: 'المقبوض والمصروف' }).click()
+  await expect(page.getByRole('tab', { name: 'المقبوض والمصروف' })).toHaveAttribute('aria-selected', 'true')
+  await expect(page.getByRole('tabpanel')).toContainText('الشهر الجاري متقطّع')
+
+  // الأسهم تنتقل بين التبويبات (اليسار هو «التالي» في الاتجاه العربي)
+  await page.keyboard.press('ArrowLeft')
+  await expect(page.getByRole('tab', { name: 'حركة الكفالات' })).toBeFocused()
+  await expect(page.getByRole('tab', { name: 'حركة الكفالات' })).toHaveAttribute('aria-selected', 'true')
+
+  // ومدة المخططات مفتاح مقسوم
+  await page.getByRole('button', { name: /^6/ }).click()
+  await expect(page.getByRole('button', { name: /^6/ })).toHaveAttribute('aria-pressed', 'true')
 })
 
 test('قائمة الأيتام تُفلتر وتفتح ملفاً كاملاً', async ({ page }) => {
@@ -117,7 +129,8 @@ test('التقرير يُقرأ كاملاً قبل القرار، والإرج�
   await login(page)
   await page.goto('/reports?status=submitted')
 
-  const row = page.locator('table tbody tr').first()
+  // صفّ حقيقي لا صفّ التحميل: ننتظر رمز ملف الطفل فيه
+  const row = page.locator('table tbody tr').filter({ hasText: /KFL-/ }).first()
   await expect(row).toBeVisible({ timeout: 20_000 })
 
   // لا أزرار قرار في الجدول: القرار من الدرج بعد القراءة

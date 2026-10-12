@@ -48,7 +48,12 @@ class MetricsService
         return Cache::remember('metrics.kpis', self::CACHE_TTL, function (): array {
             $monthStart = now()->startOfMonth();
             $prevStart = now()->subMonthNoOverflow()->startOfMonth();
-            $prevEnd = now()->subMonthNoOverflow()->endOfMonth();
+            /*
+             * المقارنة بالفترة نفسها من الشهر الماضي، لا بالشهر كاملاً: في
+             * اليوم الثاني عشر كان الشهر الجاري يُقارن بشهر مكتمل، فيبدو
+             * هبوطاً بالنصف وهو مجرّد شهر لم ينتهِ بعد.
+             */
+            $prevEnd = now()->subMonthNoOverflow();
 
             $revenueThisMonth = (float) Payment::settled()
                 ->where('paid_at', '>=', $monthStart)
@@ -278,8 +283,8 @@ class MetricsService
 
             return [
                 ['label' => 'غير مكفول', 'value' => (int) $row->none],
-                ['label' => 'أقل من ٥٠٪', 'value' => (int) $row->low],
-                ['label' => '٥٠٪ إلى ٩٩٪', 'value' => (int) $row->mid],
+                ['label' => 'أقل من 50%', 'value' => (int) $row->low],
+                ['label' => 'من 50% إلى 99%', 'value' => (int) $row->mid],
                 ['label' => 'مكتمل', 'value' => (int) $row->full],
             ];
         });
