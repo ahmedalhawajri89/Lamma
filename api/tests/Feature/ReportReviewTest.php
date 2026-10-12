@@ -122,3 +122,31 @@ it('طابور المستندات يعرض غير المُتحقَّق منها�
     expect($this->actingAs($admin)->getJson('/api/v1/admin/documents')->json('meta.total'))->toBe(2);
     expect(collect($this->actingAs($admin)->getJson('/api/v1/admin/queue')->json('data'))->firstWhere('key', 'documents_verify')['count'])->toBe(2);
 });
+
+/**
+ * كانت المراجعة تردّ 500: الحالة محميّة من التعبئة الجماعية، و`update()`
+ * يرميها. فلم تُعتمد رسالة ولم تُرفض من اللوحة قط.
+ */
+it('يعتمد المراجع الرسالة ويرفضها بسبب، والإنشاء لا يمرّر حالة', function () {
+    $admin = User::factory()->admin()->create();
+    $sponsorship = \App\Models\Sponsorship::factory()->create();
+
+    // الإنشاء لا يمرّر حالة: المحاولة تُرفض صراحةً
+    expect(fn () => \App\Models\Message::create([
+        'sponsorship_id' => $sponsorship->id, 'sender_type' => 'sponsor', 'body' => 'رسالة', 'status' => 'approved',
+    ]))->toThrow(\Illuminate\Database\Eloquent\MassAssignmentException::class);
+
+    $message = \App\Models\Message::create(['sponsorship_id' => $sponsorship->id, 'sender_type' => 'sponsor', 'body' => 'رسالة'])->fresh();
+    expect($message->status)->toBe(\App\Enums\MessageStatus::PendingReview);
+
+    $this->actingAs($admin)->postJson("/api/v1/admin/messages/{$message->id}/review", ['decision' => 'approve'])
+        ->assertOk()->assertJsonPath('data.status', 'approved');
+
+    $other = \App\Models\Message::create(['sponsorship_id' => $sponsorship->id, 'sender_type' => 'sponsor', 'body' => 'أخرى']);
+    $this->actingAs($admin)->postJson("/api/v1/admin/messages/{$other->id}/review", ['decision' => 'reject', 'reason' => 'معلومات شخصية'])
+        ->assertOk();
+    expect($other->fresh())
+        ->status->toBe(\App\Enums\MessageStatus::Rejected)
+        ->rejection_reason->toBe('معلومات شخصية')
+        ->reviewed_by->toBe($admin->id);
+});

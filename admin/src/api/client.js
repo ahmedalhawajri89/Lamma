@@ -18,6 +18,8 @@ const client = axios.create({
   headers: { Accept: 'application/json' },
 })
 
+const MUTATING = ['post', 'put', 'patch', 'delete']
+
 /** يُطلب مرة واحدة قبل أول طلب يغيّر الحالة، ثم يبقى الكوكي صالحاً للجلسة. */
 let csrfReady = null
 
@@ -27,7 +29,7 @@ export function ensureCsrf() {
 }
 
 client.interceptors.request.use(async (config) => {
-  if (['post', 'put', 'patch', 'delete'].includes(config.method)) {
+  if (MUTATING.includes(config.method)) {
     await ensureCsrf()
   }
   return config
@@ -41,7 +43,18 @@ client.interceptors.request.use(async (config) => {
  * لا نهائية إن بقي الخطأ.
  */
 client.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    /*
+     * بعد كل طلب يغيّر الحالة ونجح: إشارة عامة تلتقطها أرقام «بانتظارك»
+     * فتتحدّث دون تحديث الصفحة. حدثٌ لا استيراد، كي لا تعتمد طبقة HTTP
+     * على مخازن الواجهة.
+     */
+    const url = response.config?.url ?? ''
+    if (MUTATING.includes(response.config?.method) && url.includes('/admin/')) {
+      window.dispatchEvent(new CustomEvent('kafala:mutated'))
+    }
+    return response
+  },
   async (error) => {
     const { response, config } = error
 

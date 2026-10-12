@@ -54,7 +54,8 @@ onMounted(load)
 
 const k = computed(() => data.value?.kpis ?? {})
 const monthly = computed(() => data.value?.monthly ?? [])
-const tasks = computed(() => data.value?.tasks ?? [])
+// من المخزن لا من الاستجابة: تتحدّث حيّةً مع الشريط الجانبي
+const tasks = computed(() => queue.tasks)
 const scope = computed(() => data.value?.scope ?? {})
 const urgent = computed(() => data.value?.urgent_cases ?? [])
 

@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, reactive, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useUiStore } from '@/stores/ui'
@@ -51,7 +51,31 @@ watch(
   { immediate: true },
 )
 
+// والتحديث الحيّ بلا تنقّل: جلب دوري وبعد كل إجراء، ما دام موظفٌ داخلاً
+watch(() => auth.isStaff, (staff) => (staff ? queue.start() : queue.stop()), { immediate: true })
+onBeforeUnmount(() => queue.stop())
+
+/**
+ * تلميح الوضع المطويّ: عنصر واحد خارج الشريط (`Teleport`)، يتموضع من
+ * مكان الرابط لحظة المرور. لو بقي داخل القائمة لقصّه تمريرها؛ ولو كان
+ * `fixed` داخل الشريط لتموضع نسبةً إليه، لأن على الشريط `translate`.
+ */
+const tip = reactive({ show: false, text: '', top: 0, right: 0 })
+
+function showTip(event, text) {
+  if (!ui.sidebarCollapsed || window.innerWidth < 1024) return
+  const r = event.currentTarget.getBoundingClientRect()
+  Object.assign(tip, { show: true, text, top: r.top + r.height / 2, right: window.innerWidth - r.left + 10 })
+}
+
+function hideTip() {
+  tip.show = false
+}
+
+watch(() => ui.sidebarCollapsed, hideTip)
+
 async function signOut() {
+  queue.stop()
   queue.clear()
   await auth.logout()
   ui.success('تم تسجيل الخروج.')
@@ -79,7 +103,7 @@ onMounted(() => auth.fetchUser())
       وعلى الجوال يبقى درجاً ينزلق من الجانب كما كان.
     -->
     <aside
-      class="side fixed lg:sticky top-0 h-screen shrink-0 bg-sand-0 border-e border-sand-200 z-40 flex flex-col"
+      class="side fixed lg:sticky top-0 h-screen shrink-0 bg-sand-0 border-e border-sand-200 z-40 flex flex-col overflow-hidden"
       :class="[ui.sidebarOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0', { 'is-rail': ui.sidebarCollapsed }]"
     >
       <div class="side__head p-4 border-b border-sand-200 flex items-center gap-2.5">
@@ -109,17 +133,21 @@ onMounted(() => auth.fetchUser())
         </button>
       </div>
 
-      <nav class="side__nav flex-1 overflow-y-auto p-3" aria-label="التنقل الرئيسي">
-        <div v-for="section in sections" :key="section.key ?? 'home'" class="mb-3 last:mb-0">
+      <nav class="side__nav flex-1 overflow-y-auto p-3" aria-label="التنقل الرئيسي" @scroll="hideTip">
+        <div v-for="section in sections" :key="section.key ?? 'home'" class="mb-2 last:mb-0">
           <p v-if="section.title" class="side__section px-3 pt-2 pb-1.5 text-xs font-medium text-sand-500 whitespace-nowrap">
             {{ section.title }}
           </p>
           <RouterLink
             v-for="link in section.links" :key="link.name" :to="{ name: link.name }"
-            class="side__link relative flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-sand-700 hover:bg-sand-50 transition-colors"
+            class="side__link relative flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-sm text-sand-700 hover:bg-sand-50 transition-colors"
             active-class="!bg-clay-50 !text-clay-700 font-medium"
             :aria-label="ui.sidebarCollapsed ? link.meta.title : undefined"
             @click="ui.sidebarOpen = false"
+            @mouseenter="showTip($event, queue.countsByPath[link.path] ? `${link.meta.title} · ${queue.countsByPath[link.path]}` : link.meta.title)"
+            @mouseleave="hideTip"
+            @focus="showTip($event, link.meta.title)"
+            @blur="hideTip"
           >
             <BaseIcon :name="link.meta.icon ?? 'gauge'" :size="18" class="shrink-0" />
             <span class="side__label flex-1 whitespace-nowrap">{{ link.meta.title }}</span>
@@ -130,17 +158,15 @@ onMounted(() => auth.fetchUser())
             >
               {{ queue.countsByPath[link.path] }}
             </span>
-            <!-- اسم الرابط عند المرور، حين يكون الشريط مطويّاً -->
-            <span class="side__tip" aria-hidden="true">
-              {{ link.meta.title }}
-              <template v-if="queue.countsByPath[link.path]"> · <span class="num">{{ queue.countsByPath[link.path] }}</span></template>
-            </span>
           </RouterLink>
         </div>
       </nav>
 
       <div class="p-3 border-t border-sand-200">
-        <div class="side__user relative flex items-center gap-2.5 px-2 py-2 mb-1">
+        <div
+          class="side__user relative flex items-center gap-2.5 px-2 py-2 mb-1"
+          @mouseenter="showTip($event, auth.user?.name)" @mouseleave="hideTip"
+        >
           <span class="size-9 shrink-0 grid place-items-center rounded-full bg-clay-100 text-clay-700 font-semibold">
             {{ auth.user?.name?.charAt(0) ?? '؟' }}
           </span>
@@ -148,16 +174,16 @@ onMounted(() => auth.fetchUser())
             <p class="text-sm font-medium text-sand-900 truncate">{{ auth.user?.name }}</p>
             <p class="text-xs text-sand-500 truncate">{{ auth.user?.staff_profile?.title ?? ROLE_LABELS[auth.roles[0]] ?? auth.roles[0] }}</p>
           </div>
-          <span class="side__tip" aria-hidden="true">{{ auth.user?.name }}</span>
         </div>
 
         <button
           class="side__link relative btn btn-ghost w-full justify-start text-sm" type="button"
           :aria-label="ui.sidebarCollapsed ? 'تسجيل الخروج' : undefined" @click="signOut"
+          @mouseenter="showTip($event, 'تسجيل الخروج')" @mouseleave="hideTip"
+          @focus="showTip($event, 'تسجيل الخروج')" @blur="hideTip"
         >
           <BaseIcon name="logout" :size="17" class="shrink-0" />
           <span class="side__label whitespace-nowrap">تسجيل الخروج</span>
-          <span class="side__tip" aria-hidden="true">تسجيل الخروج</span>
         </button>
       </div>
     </aside>
@@ -184,6 +210,14 @@ onMounted(() => auth.fetchUser())
 
     <ToastStack />
     <ConfirmDialog />
+
+    <!-- تلميح الوضع المطويّ، خارج الشريط كي لا يقصّه تمريره -->
+    <Teleport to="body">
+      <span
+        class="side__tip" :class="{ 'is-shown': tip.show }" aria-hidden="true"
+        :style="{ top: `${tip.top}px`, right: `${tip.right}px` }"
+      >{{ tip.text }}</span>
+    </Teleport>
   </div>
 </template>
 
@@ -209,9 +243,45 @@ onMounted(() => auth.fetchUser())
   transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* التلميح: مخفيّ إلا في الوضع المطويّ عند المرور أو التركيز */
+/*
+ * شريط التمرير: رفيع وشفاف، يظهر حين تمرّ الفأرة على القائمة وحدها.
+ * القائمة تتسع للشاشة في أغلب الأحوال، والتمرير احتياط للشاشات القصيرة.
+ */
+.side__nav {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  transition: scrollbar-color 0.2s ease;
+}
+
+.side__nav:hover,
+.side__nav:focus-within {
+  scrollbar-color: var(--color-sand-300, #cfc8b8) transparent;
+}
+
+.side__nav::-webkit-scrollbar { width: 6px; }
+.side__nav::-webkit-scrollbar-thumb { background: transparent; border-radius: 999px; }
+.side__nav:hover::-webkit-scrollbar-thumb { background: var(--color-sand-300, #cfc8b8); }
+
+/* التلميح: عنصر واحد فوق الصفحة، يظهر في الوضع المطويّ وحده */
 .side__tip {
-  display: none;
+  position: fixed;
+  z-index: 60;
+  padding: 0.35rem 0.65rem;
+  border-radius: 0.5rem;
+  background: var(--color-sand-900);
+  color: white;
+  font-size: 0.8rem;
+  font-weight: 500;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-0.25rem, -50%);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.side__tip.is-shown {
+  opacity: 1;
+  transform: translate(0, -50%);
 }
 
 @media (min-width: 1024px) {
@@ -220,6 +290,7 @@ onMounted(() => auth.fetchUser())
   }
 
   .side.is-rail .side__label {
+    flex: none;
     opacity: 0;
     width: 0;
     overflow: hidden;
@@ -250,17 +321,24 @@ onMounted(() => auth.fetchUser())
     background: var(--color-sand-200);
   }
 
+  /* الأيقونة في منتصف العمود: لا فجوة لتسمية مخفية، ولا حشو جانبي */
   .side.is-rail .side__link,
   .side.is-rail .side__user {
     justify-content: center;
+    gap: 0;
     padding-inline: 0;
+  }
+
+  .side.is-rail .side__head {
+    align-items: center;
+    gap: 0.75rem;
   }
 
   /* الرقم يصير نقطة ذهبية على طرف الأيقونة */
   .side.is-rail .side__badge {
     position: absolute;
-    inset-block-start: 0.35rem;
-    inset-inline-start: 1.6rem;
+    inset-block-start: 0.3rem;
+    inset-inline-start: calc(50% + 0.3rem);
     min-width: 0;
     width: 0.5rem;
     height: 0.5rem;
@@ -268,37 +346,6 @@ onMounted(() => auth.fetchUser())
     font-size: 0;
     background: var(--color-amber-500);
     box-shadow: 0 0 0 2px var(--color-sand-0);
-  }
-
-  /* التمرير يقصّ التلميحات الخارجة من الشريط؛ في العمود الضيق القائمة تتسع للشاشة */
-  .side.is-rail .side__nav {
-    overflow: visible;
-  }
-
-  .side.is-rail .side__tip {
-    display: block;
-    position: absolute;
-    z-index: 50;
-    inset-block-start: 50%;
-    inset-inline-start: calc(100% + 1.1rem);
-    padding: 0.35rem 0.65rem;
-    border-radius: 0.5rem;
-    background: var(--color-sand-900);
-    color: white;
-    font-size: 0.8rem;
-    font-weight: 500;
-    white-space: nowrap;
-    pointer-events: none;
-    opacity: 0;
-    transform: translate(calc(-0.25rem * var(--tip-dir, 1)), -50%);
-    transition: opacity 0.15s ease, transform 0.15s ease;
-  }
-
-  .side.is-rail .side__link:hover .side__tip,
-  .side.is-rail .side__link:focus-visible .side__tip,
-  .side.is-rail .side__user:hover .side__tip {
-    opacity: 1;
-    transform: translate(0, -50%);
   }
 }
 

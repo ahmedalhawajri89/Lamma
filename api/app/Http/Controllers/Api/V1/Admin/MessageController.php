@@ -57,14 +57,16 @@ class MessageController extends Controller
             'reason.required_if' => 'اذكر سبب الرفض — يراه الكافل ليعرف ما ينبغي تعديله.',
         ]);
 
-        $message->update([
+        // كتابة صريحة لا `update()`: الحالة محميّة من التعبئة الجماعية في
+        // النموذج عمداً، كي لا يمرّرها طلب إنشاء. وهنا قرار مراجِع مخوَّل.
+        $message->forceFill([
             'status' => $validated['decision'] === 'approve'
                 ? MessageStatus::Approved
                 : MessageStatus::Rejected,
             'rejection_reason' => $validated['decision'] === 'reject' ? $validated['reason'] : null,
             'reviewed_by' => $request->user()->id,
             'reviewed_at' => now(),
-        ]);
+        ])->save();
 
         return response()->json([
             'message' => $validated['decision'] === 'approve' ? 'اعتُمدت الرسالة.' : 'رُفضت الرسالة.',

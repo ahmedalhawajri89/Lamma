@@ -25,12 +25,12 @@ const ui = useUiStore()
       <div
         v-for="t in ui.toasts" :key="t.id"
         class="card px-4 py-3 flex items-start gap-3 shadow-lg"
-        :class="t.type === 'error' ? 'border-rose-600/30' : 'border-olive-200'"
+        :class="{ error: 'border-rose-600/30', info: 'border-clay-200' }[t.type] ?? 'border-olive-200'"
       >
         <BaseIcon
-          :name="t.type === 'error' ? 'alert' : 'check'" :size="18"
+          :name="{ error: 'alert', info: 'clock' }[t.type] ?? 'check'" :size="18"
           class="shrink-0 mt-0.5"
-          :class="t.type === 'error' ? 'text-rose-700' : 'text-olive-600'"
+          :class="{ error: 'text-rose-700', info: 'text-clay-600' }[t.type] ?? 'text-olive-600'"
         />
         <p class="text-sm text-sand-800 flex-1">{{ t.message }}</p>
         <button

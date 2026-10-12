@@ -162,6 +162,22 @@ test('طابور المستندات يفتح من القائمة الجانبي�
   await expect(page.getByText(/بانتظار التحقق/).first()).toBeVisible()
 })
 
+test('اعتماد رسالة ينقص رقمها في الشريط الجانبي دون تحديث الصفحة', async ({ page }) => {
+  await login(page)
+  await page.goto('/messages?queue=1')
+
+  const badge = page.locator('nav a[href="/messages"] .side__badge')
+  await expect(badge).toBeVisible({ timeout: 20_000 })
+  const before = Number(await badge.innerText())
+
+  await page.locator('.js-approve').first().click()
+  await expect(page.getByText('اعتُمدت الرسالة.')).toBeVisible()
+
+  // بلا reload: الرقم يتبع الإجراء خلال ثوانٍ
+  await expect.poll(async () => Number(await badge.innerText().catch(() => '0')), { timeout: 5_000 })
+    .toBe(before - 1)
+})
+
 test('تسجيل الخروج ينهي الجلسة فعلاً', async ({ page }) => {
   await login(page)
 
