@@ -19,6 +19,9 @@ import FormField from './FormField.vue'
 const props = defineProps({
   open: { type: Boolean, default: false },
   orphans: { type: Array, default: () => [] },
+
+  /** تقرير قائم يُعدَّل (مسوّدة، أو مُرجَعة بملاحظة)، و`null` لتقرير جديد */
+  report: { type: Object, default: null },
 })
 
 const emit = defineEmits(['close', 'saved'])
@@ -53,7 +56,11 @@ const BLANK = {
   visit_date: '',
 }
 
-const form = useForm(BLANK, (values) => admin.reports.create(values))
+const form = useForm(BLANK, (values) => (props.report
+  ? admin.reports.update(props.report.id, values)
+  : admin.reports.create(values)))
+
+const editing = computed(() => props.report !== null)
 
 const orphanOptions = computed(() =>
   props.orphans.map((o) => ({ value: o.id, label: `${o.reference_code} · ${o.first_name}` })),
@@ -71,7 +78,13 @@ const years = Array.from({ length: 4 }, (_, i) => now.getFullYear() - i)
 watch(
   () => props.open,
   (isOpen) => {
-    if (isOpen) form.setValues(BLANK)
+    if (!isOpen) return
+
+    form.setValues(props.report
+      ? Object.fromEntries(Object.keys(BLANK).map((k) => [
+        k, k === 'orphan_id' ? props.report.orphan?.id : (props.report[k] ?? ''),
+      ]))
+      : BLANK)
   },
   { immediate: true },
 )
@@ -84,18 +97,25 @@ async function save() {
 
 <template>
   <FormModal
-    :open="open" wide title="تقرير ربعي جديد"
-    subtitle="يُحفظ مسوّدةً ثم يُرفع للاعتماد، ولا يصل الكافل قبل النشر."
+    :open="open" wide :title="editing ? 'تعديل التقرير' : 'تقرير ربعي جديد'"
+    :subtitle="editing ? `${report.orphan?.name ?? ''} · ${report.period_label ?? ''}` : 'يُحفظ مسوّدةً ثم يُرفع للاعتماد، ولا يصل الكافل قبل النشر.'"
     :busy="form.submitting.value" :dirty="form.dirty.value"
     @close="emit('close')" @submit="save"
   >
+    <!-- ما طلبه المراجع، أمام الكاتب وهو يعدّل -->
+    <div v-if="report?.review_note" class="border-s-4 border-amber-500 bg-amber-50 rounded-e-lg px-4 py-3" role="note">
+      <p class="text-xs font-semibold text-amber-800">ملاحظة المراجع</p>
+      <p class="text-sm text-sand-800 mt-1 leading-relaxed whitespace-pre-line">{{ report.review_note }}</p>
+    </div>
+
     <FormField
+      v-if="!editing"
       v-model="form.values.orphan_id" label="الطفل" required autofocus
       :options="orphanOptions" placeholder="اختر الطفل"
       :error="form.errors.value.orphan_id" @update:model-value="form.touch('orphan_id')"
     />
 
-    <div class="grid sm:grid-cols-2 gap-4">
+    <div v-if="!editing" class="grid sm:grid-cols-2 gap-4">
       <FormField
         v-model="form.values.period_year" label="السنة" type="number" required
         :options="years"
@@ -149,7 +169,7 @@ async function save() {
       </button>
       <button class="btn btn-primary" type="submit" :disabled="form.submitting.value">
         <BaseIcon v-if="form.submitting.value" name="loader" :size="15" class="animate-spin" />
-        {{ form.submitting.value ? 'جارٍ الحفظ…' : 'احفظ مسوّدة' }}
+        {{ form.submitting.value ? 'جارٍ الحفظ…' : (editing ? 'احفظ التعديلات' : 'احفظ مسوّدة') }}
       </button>
     </template>
   </FormModal>

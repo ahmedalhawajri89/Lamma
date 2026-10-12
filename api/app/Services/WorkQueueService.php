@@ -13,6 +13,7 @@ use App\Models\Disbursement;
 use App\Models\FieldVisit;
 use App\Models\Message;
 use App\Models\Orphan;
+use App\Models\OrphanDocument;
 use App\Models\Payment;
 use App\Models\Report;
 use App\Models\Sponsorship;
@@ -50,6 +51,17 @@ class WorkQueueService
                 'ملفات بانتظار التوثيق',
                 'راجع المستندات ووثّق الملف ليُنشر على الموقع.',
                 '/orphans', ['status' => OrphanStatus::PendingVerification->value],
+            );
+        }
+
+        // التحقق من المستندات قرارُ توثيق، فهو لمن يوثّق الملفات
+        if ($user->can('orphans.verify') && $user->can('documents.manage')) {
+            $tasks[] = $this->task(
+                'documents_verify',
+                $inCountry(OrphanDocument::whereNull('verified_at'), 'orphan.family')->count(),
+                'مستندات بانتظار التحقق',
+                'لا يُوثَّق ملف قبل التحقق من مستنداته.',
+                '/documents', [],
             );
         }
 
@@ -144,8 +156,21 @@ class WorkQueueService
 
         if ($user->can('reports.create')) {
             $tasks[] = $this->task(
+                'reports_returned',
+                Report::where('status', ReportStatus::Draft)
+                    ->where('supervisor_id', $user->id)
+                    ->whereNotNull('returned_at')
+                    ->count(),
+                'تقارير أُرجعت إليك للتعديل',
+                'اقرأ ملاحظة المراجع، عدّل، ثم أرسل من جديد.',
+                '/reports', ['status' => ReportStatus::Draft->value, 'returned' => 1],
+                urgent: true,
+            );
+
+            $tasks[] = $this->task(
                 'reports_drafts',
-                Report::where('status', ReportStatus::Draft)->where('supervisor_id', $user->id)->count(),
+                // المُرجَعة لها مهمتها أعلاه، فلا تُعدّ مرتين
+                Report::where('status', ReportStatus::Draft)->where('supervisor_id', $user->id)->whereNull('returned_at')->count(),
                 'مسوّدات تقارير لم تُرسلها',
                 'أرسلها للاعتماد كي تصل الكافل.',
                 '/reports', ['status' => ReportStatus::Draft->value],

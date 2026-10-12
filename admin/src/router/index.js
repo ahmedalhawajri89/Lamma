@@ -74,6 +74,12 @@ const routes = [
     meta: { group: 'cases', title: 'التقارير', icon: 'file', permission: 'reports.view' },
   },
   {
+    path: '/documents',
+    name: 'documents',
+    component: () => import('@/views/DocumentsView.vue'),
+    meta: { group: 'cases', title: 'التحقق من المستندات', icon: 'file-check', permission: 'documents.manage' },
+  },
+  {
     path: '/visits',
     name: 'visits',
     component: () => import('@/views/VisitsView.vue'),

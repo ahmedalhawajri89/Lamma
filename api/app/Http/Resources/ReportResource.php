@@ -26,6 +26,10 @@ class ReportResource extends JsonResource
             'visit_date' => $this->visit_date?->toDateString(),
             'status' => $this->status->value,
             'status_label' => $this->status->label(),
+
+            // ملاحظات المراجعة داخلية: لا تصل بوابة الكافل وإن شاركته هذا المورد
+            'review_note' => $this->when($this->isStaff($request), $this->review_note),
+            'returned_at' => $this->when($this->isStaff($request), fn () => $this->returned_at?->toIso8601String()),
             'published_at' => $this->published_at?->toIso8601String(),
 
             // تُضاف بـ withCount في استعلام بوابة الكافل
@@ -43,6 +47,8 @@ class ReportResource extends JsonResource
                     : null,
             ]),
             'supervisor' => $this->whenLoaded('supervisor', fn () => $this->supervisor?->name),
+            'supervisor_id' => $this->when($this->isStaff($request), $this->supervisor_id),
+            'approver' => $this->whenLoaded('approver', fn () => $this->approver?->name),
             'media' => $this->whenLoaded('media', fn () => $this->media->map(fn ($m) => [
                 'id' => $m->id,
                 'type' => $m->type,
@@ -50,5 +56,10 @@ class ReportResource extends JsonResource
                 'caption' => $m->caption,
             ])->all()),
         ];
+    }
+
+    private function isStaff(Request $request): bool
+    {
+        return (bool) $request->user()?->can('reports.view');
     }
 }

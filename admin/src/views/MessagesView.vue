@@ -1,8 +1,10 @@
 <script setup>
+import { nextTick } from 'vue'
 import { admin } from '@/api/endpoints'
 import { confirmDialog } from '@/composables/useConfirm'
 import { useResource } from '@/composables/useResource'
 import { useUiStore } from '@/stores/ui'
+import { useQueueStore } from '@/stores/queue'
 import { dateTime, EMPTY } from '@/utils/format'
 import PageHeader from '@/components/PageHeader.vue'
 import InlineNote from '@/components/InlineNote.vue'
@@ -11,6 +13,7 @@ import PaginationBar from '@/components/PaginationBar.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
 
 const ui = useUiStore()
+const queue = useQueueStore()
 const { items, meta, loading, filters, reset, load } = useResource(admin.messages.list, {
   status: '', queue: true,
 })
@@ -34,7 +37,21 @@ async function review(row, decision) {
   try {
     await admin.messages.review(row.id, { decision, reason })
     ui.success(decision === 'approve' ? 'اعتُمدت الرسالة.' : 'رُفضت الرسالة.')
-    load()
+    queue.refresh(true)
+
+    if (!filters.queue) return load()
+
+    // في الطابور تخرج الرسالة مكانها، وينتقل التركيز إلى التالية فتُراجع
+    // القائمة كلها من لوحة المفاتيح دون إعادة تحميل تقفز بالصفحة
+    const index = items.value.findIndex((m) => m.id === row.id)
+    items.value = items.value.filter((m) => m.id !== row.id)
+    meta.value = { ...meta.value, pending: Math.max(0, (meta.value.pending ?? 1) - 1) }
+
+    if (!items.value.length) return load()
+
+    await nextTick()
+    const next = items.value[Math.min(index, items.value.length - 1)]
+    document.querySelector(`[data-message="${next.id}"] .js-approve`)?.focus()
   } catch (e) {
     ui.error(e.userMessage)
   }
@@ -60,7 +77,7 @@ async function review(row, decision) {
     </div>
 
     <ul v-else-if="items.length" class="card divide-y divide-sand-100">
-      <li v-for="m in items" :key="m.id" class="p-4">
+      <li v-for="m in items" :key="m.id" class="p-4" :data-message="m.id">
         <div class="flex items-start justify-between gap-3 mb-2">
           <div class="text-xs text-sand-500">
             <span class="num">{{ m.sponsorship?.reference_code }}</span>
@@ -74,7 +91,7 @@ async function review(row, decision) {
         <p class="text-sm text-sand-800 leading-relaxed">{{ m.body }}</p>
 
         <div v-if="m.status === 'pending_review'" class="flex gap-2 mt-3 pt-3 border-t border-sand-100">
-          <button class="btn btn-primary !py-1.5 text-xs" type="button" @click="review(m, 'approve')">
+          <button class="js-approve btn btn-primary !py-1.5 text-xs" type="button" @click="review(m, 'approve')">
             اعتماد
           </button>
           <button class="btn btn-outline !py-1.5 text-xs text-rose-700" type="button" @click="review(m, 'reject')">

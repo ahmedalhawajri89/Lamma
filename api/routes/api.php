@@ -156,6 +156,7 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
             /* --- المستندات --- */
             Route::get('orphans/{orphan}/documents', [Admin\DocumentController::class, 'index'])->name('documents.index');
             Route::post('orphans/{orphan}/documents', [Admin\DocumentController::class, 'store'])->name('documents.store');
+            Route::get('documents', [Admin\DocumentController::class, 'queue'])->name('documents.queue');
             Route::post('documents/{document}/verify', [Admin\DocumentController::class, 'verify'])->name('documents.verify');
             Route::get('documents/{document}/download', [Admin\DocumentController::class, 'download'])->name('documents.download');
             Route::delete('documents/{document}', [Admin\DocumentController::class, 'destroy'])->name('documents.destroy');
@@ -198,6 +199,7 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
             Route::match(['put', 'patch'], 'reports/{report}', [Admin\ReportController::class, 'update'])->name('reports.update');
             Route::post('reports/{report}/submit', [Admin\ReportController::class, 'submit'])->name('reports.submit');
             Route::post('reports/{report}/approve', [Admin\ReportController::class, 'approve'])->name('reports.approve');
+            Route::post('reports/{report}/return', [Admin\ReportController::class, 'return'])->name('reports.return');
             Route::post('reports/{report}/publish', [Admin\ReportController::class, 'publish'])->name('reports.publish');
 
             Route::get('visits', [Admin\FieldVisitController::class, 'index'])->name('visits.index');

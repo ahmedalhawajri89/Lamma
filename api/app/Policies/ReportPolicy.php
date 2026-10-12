@@ -22,7 +22,7 @@ class ReportPolicy
     public function view(User $user, Report $report): bool
     {
         if ($user->can('reports.view')) {
-            return true;
+            return $this->withinScope($user, $report);
         }
 
         if ($user->sponsor === null || $report->status !== ReportStatus::Published) {
@@ -59,5 +59,26 @@ class ReportPolicy
     public function publish(User $user): bool
     {
         return $user->can('reports.publish');
+    }
+
+    /** الإرجاع للتعديل قرارُ مراجعة، فشرطه شرط الاعتماد نفسه. */
+    public function return(User $user, Report $report): bool
+    {
+        return $this->approve($user, $report) && $this->withinScope($user, $report);
+    }
+
+    /**
+     * المشرف الميداني يرى تقارير بلده المُسنَد وحده، كما في `OrphanPolicy`.
+     * والمدير ومن لا بلد له يرون الكل.
+     */
+    private function withinScope(User $user, Report $report): bool
+    {
+        $assigned = $user->assignedCountryId();
+
+        if ($assigned === null || $user->isAdmin()) {
+            return true;
+        }
+
+        return $report->orphan()->whereHas('family', fn ($f) => $f->where('country_id', $assigned))->exists();
     }
 }

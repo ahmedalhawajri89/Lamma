@@ -113,6 +113,42 @@ test('مهمة في «بانتظارك» تفتح شاشتها مفلترة، و
   await expect(page.getByRole('combobox').filter({ hasText: 'مُرسل للمراجعة' })).toBeVisible()
 })
 
+test('التقرير يُقرأ كاملاً قبل القرار، والإرجاع لا يمرّ بلا ملاحظة', async ({ page }) => {
+  await login(page)
+  await page.goto('/reports?status=submitted')
+
+  const row = page.locator('table tbody tr').first()
+  await expect(row).toBeVisible({ timeout: 20_000 })
+
+  // لا أزرار قرار في الجدول: القرار من الدرج بعد القراءة
+  await expect(page.locator('table').getByRole('button', { name: 'اعتماد' })).toHaveCount(0)
+
+  await row.click()
+  const drawer = page.getByRole('dialog')
+  await expect(drawer.getByRole('heading', { name: 'الملخص' })).toBeVisible()
+  await expect(page).toHaveURL(/review=\d+/)
+
+  // الرابط يفتح الدرج نفسه بعد التحديث
+  await page.reload()
+  await expect(page.getByRole('dialog').getByRole('heading', { name: 'الملخص' })).toBeVisible()
+
+  await page.getByRole('button', { name: 'إرجاع للتعديل' }).click()
+  await page.getByRole('button', { name: 'إرجاع', exact: true }).click()
+  await expect(page.getByRole('alert')).toBeVisible()
+  await page.getByRole('button', { name: 'تراجع' }).click()
+
+  await page.keyboard.press('Escape')
+  await expect(page).not.toHaveURL(/review=/)
+})
+
+test('طابور المستندات يفتح من القائمة الجانبية', async ({ page }) => {
+  await login(page)
+  await page.getByRole('link', { name: /التحقق من المستندات/ }).click()
+
+  await expect(page.getByRole('heading', { name: 'التحقق من المستندات', level: 1 })).toBeVisible()
+  await expect(page.getByText(/بانتظار التحقق/).first()).toBeVisible()
+})
+
 test('تسجيل الخروج ينهي الجلسة فعلاً', async ({ page }) => {
   await login(page)
 

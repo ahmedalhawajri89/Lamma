@@ -19,13 +19,23 @@ class ReportController extends Controller
     {
         $this->authorize('viewAny', Report::class);
 
+        $user = $request->user();
+        $country = $user->isAdmin() ? null : $user->assignedCountryId();
+
         $reports = Report::query()
+            // المشرف يرى تقارير بلده وحده؛ وهو نفس قيد `ReportPolicy::view`
+            ->when($country !== null, fn ($q) => $q->whereHas(
+                'orphan.family', fn ($f) => $f->where('country_id', $country),
+            ))
             ->with(['orphan:id,reference_code,first_name,photo_path', 'supervisor:id,name'])
             ->withCount('views')
             ->when($request->filled('status'), fn ($q) => $q->where('status', $request->string('status')))
             ->when($request->filled('orphan_id'), fn ($q) => $q->where('orphan_id', $request->integer('orphan_id')))
             ->when($request->filled('year'), fn ($q) => $q->where('period_year', $request->integer('year')))
             ->when($request->boolean('queue'), fn ($q) => $q->where('status', ReportStatus::Submitted))
+            // «أُرجعت إليك»: لكاتبها وحده، والمراجع يرى كل ما أرجعه
+            ->when($request->boolean('returned'), fn ($q) => $q->whereNotNull('returned_at')
+                ->when(! $user->can('reports.approve'), fn ($q) => $q->where('supervisor_id', $user->id)))
             ->latest('period_year')
             ->latest('period_quarter')
             ->paginate($request->integer('per_page', 20));
@@ -87,7 +97,8 @@ class ReportController extends Controller
 
         abort_if($report->status !== ReportStatus::Draft, 422, 'لا يُرسَل إلا تقرير في حالة مسوّدة.');
 
-        $report->update(['status' => ReportStatus::Submitted]);
+        // تبقى ملاحظة المراجع ليرى من يراجعه بعدها ما طُلب، أما علامة الإرجاع فتزول
+        $report->update(['status' => ReportStatus::Submitted, 'returned_at' => null]);
 
         return response()->json([
             'message' => 'أُرسل التقرير للمراجعة.',
@@ -102,6 +113,43 @@ class ReportController extends Controller
         return response()->json([
             'message' => 'اعتُمد التقرير، وأُخذت لقطة من صرف الربع.',
             'data' => new ReportResource($action->approve($report, request()->user())),
+        ]);
+    }
+
+    /**
+     * المراجع يُرجع التقرير لكاتبه مع ملاحظة بما ينقصه.
+     *
+     * يعود مسوّدةً فيعدّله المشرف ثم يرسله من جديد. والملاحظة إلزامية: إرجاعٌ
+     * بلا سبب يترك الكاتب يخمّن، ويعود التقرير كما هو.
+     */
+    public function return(Request $request, Report $report): JsonResponse
+    {
+        $this->authorize('return', $report);
+
+        abort_if($report->status !== ReportStatus::Submitted, 422, 'لا يُرجَع إلا تقرير مُرسل للمراجعة.');
+
+        $validated = $request->validate([
+            'note' => ['required', 'string', 'min:5', 'max:1000'],
+        ], [
+            'note.required' => 'اكتب ما يحتاج التقرير إلى تعديله.',
+            'note.min' => 'الملاحظة قصيرة جداً، وضّح ما المطلوب.',
+        ]);
+
+        $report->update([
+            'status' => ReportStatus::Draft,
+            'review_note' => $validated['note'],
+            'returned_at' => now(),
+        ]);
+
+        activity()
+            ->performedOn($report)
+            ->causedBy($request->user())
+            ->withProperties(['note' => $validated['note']])
+            ->log('أرجع تقريراً للتعديل');
+
+        return response()->json([
+            'message' => 'أُرجع التقرير لكاتبه مع ملاحظتك.',
+            'data' => new ReportResource($report->fresh()),
         ]);
     }
 

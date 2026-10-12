@@ -1,9 +1,9 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { admin } from '@/api/endpoints'
 import { useResource } from '@/composables/useResource'
 import { useAuthStore } from '@/stores/auth'
-import { useUiStore } from '@/stores/ui'
 import { date } from '@/utils/format'
 import PageHeader from '@/components/PageHeader.vue'
 import InlineNote from '@/components/InlineNote.vue'
@@ -13,12 +13,14 @@ import PaginationBar from '@/components/PaginationBar.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
 import BaseIcon from '@/components/BaseIcon.vue'
 import ReportFormModal from '@/components/ReportFormModal.vue'
+import ReportReviewDrawer from '@/components/ReportReviewDrawer.vue'
 
 const auth = useAuthStore()
-const ui = useUiStore()
+const route = useRoute()
+const router = useRouter()
 
 const { items, meta, loading, filters, reset, load } = useResource(admin.reports.list, {
-  status: '', queue: false,
+  status: '', queue: false, returned: false,
 })
 
 const columns = [
@@ -28,10 +30,26 @@ const columns = [
   { key: 'supervisor', label: 'المشرف' },
   { key: 'visit_date', label: 'تاريخ الزيارة' },
   { key: 'status', label: 'الحالة' },
-  { key: 'actions', label: 'إجراءات', align: 'end' },
 ]
 
+/**
+ * التقرير المفتوح للمراجعة في الرابط (`?review=12`): فيُفتح من «بانتظارك»
+ * أو من رابط يُرسَل لزميل، ويبقى مفتوحاً بعد تحديث الصفحة.
+ */
+const reviewId = computed(() => (route.query.review ? Number(route.query.review) : null))
+const order = computed(() => items.value.map((r) => r.id))
+
+function openReview(id) {
+  router.replace({ query: { ...route.query, review: id } })
+}
+
+function closeReview() {
+  const { review, ...rest } = route.query
+  router.replace({ query: rest })
+}
+
 const formOpen = ref(false)
+const editing = ref(null)
 const orphans = ref([])
 
 async function loadOrphans() {
@@ -45,22 +63,20 @@ async function loadOrphans() {
   }
 }
 
+function openEdit(report) {
+  editing.value = report
+  formOpen.value = true
+}
+
 function onSaved() {
+  // الدرج مغلق ما دامت النافذة مفتوحة، ويعود بعدها فيجلب المحتوى الجديد
   formOpen.value = false
+  editing.value = null
   load()
 }
 
 onMounted(loadOrphans)
 
-async function act(fn, row, message) {
-  try {
-    await fn(row.id)
-    ui.success(message)
-    load()
-  } catch (e) {
-    ui.error(e.fieldErrors?.status?.[0] ?? e.userMessage)
-  }
-}
 </script>
 
 <template>
@@ -69,7 +85,7 @@ async function act(fn, row, message) {
       <template #actions>
         <button
           v-if="auth.can('reports.create')" class="btn btn-primary" type="button"
-          @click="formOpen = true"
+          @click="editing = null; formOpen = true"
         >
           <BaseIcon name="plus" :size="16" />
           تقرير جديد
@@ -78,7 +94,7 @@ async function act(fn, row, message) {
     </PageHeader>
 
     <InlineNote>
-      المسار: يكتبه المشرف مسوّدةً، ثم يرسله للمراجعة، ثم يعتمده غيره، ثم يُنشر للكافل.
+      افتح التقرير لتقرأه كاملاً ثم تقرّر: اعتماد، أو إرجاع لكاتبه بملاحظة، أو نشر للكافل.
       ولا يعتمد المشرف تقريره بنفسه.
     </InlineNote>
 
@@ -93,45 +109,43 @@ async function act(fn, row, message) {
       <label class="flex items-center gap-1.5 text-sm cursor-pointer">
         <input v-model="filters.queue" type="checkbox" class="accent-clay-600" /> طابور المراجعة فقط
       </label>
+      <label v-if="auth.can('reports.create')" class="flex items-center gap-1.5 text-sm cursor-pointer">
+        <input v-model="filters.returned" type="checkbox" class="accent-clay-600" /> المُرجَعة للتعديل
+      </label>
     </FilterBar>
 
-    <DataTable :columns="columns" :rows="items" :loading="loading">
+    <DataTable :columns="columns" :rows="items" :loading="loading" clickable @row-click="openReview($event.id)">
       <template #orphan="{ row }">
-        <RouterLink :to="`/orphans/${row.orphan?.id}`" class="text-clay-700 hover:underline">
-          {{ row.orphan?.name }}
-        </RouterLink>
+        <span class="font-medium text-sand-900">{{ row.orphan?.name }}</span>
+        <span class="block text-xs text-sand-500 num">{{ row.orphan?.reference_code }}</span>
+      </template>
+      <template #title="{ row }">
+        <span class="line-clamp-1">{{ row.title }}</span>
       </template>
       <template #visit_date="{ row }">{{ date(row.visit_date) }}</template>
-      <template #status="{ row }"><StatusBadge :label="row.status_label" :value="row.status" /></template>
-      <template #actions="{ row }">
-        <button
-          v-if="row.status === 'draft'" class="btn btn-ghost !py-1 !px-2 text-xs" type="button"
-          @click="act(admin.reports.submit, row, 'أُرسل التقرير للمراجعة.')"
-        >
-          إرسال
-        </button>
-        <button
-          v-else-if="row.status === 'submitted' && auth.can('reports.approve')"
-          class="btn btn-outline !py-1 !px-2 text-xs" type="button"
-          @click="act(admin.reports.approve, row, 'اعتُمد التقرير وأُخذت لقطة صرف الربع.')"
-        >
-          اعتماد
-        </button>
-        <button
-          v-else-if="row.status === 'approved' && auth.can('reports.publish')"
-          class="btn btn-primary !py-1 !px-2 text-xs" type="button"
-          @click="act(admin.reports.publish, row, 'نُشر التقرير للكفلاء.')"
-        >
-          نشر
-        </button>
+      <template #status="{ row }">
+        <span class="inline-flex items-center gap-1.5">
+          <StatusBadge :label="row.status_label" :value="row.status" />
+          <span
+            v-if="row.returned_at"
+            class="text-[0.7rem] font-semibold text-amber-800 bg-amber-50 border border-amber-200 rounded-full px-2 py-0.5"
+          >
+            أُرجع للتعديل
+          </span>
+        </span>
       </template>
     </DataTable>
 
     <PaginationBar v-model="filters.page" :meta="meta" />
 
     <ReportFormModal
-      :open="formOpen" :orphans="orphans"
-      @close="formOpen = false" @saved="onSaved"
+      :open="formOpen" :orphans="orphans" :report="editing"
+      @close="formOpen = false; editing = null" @saved="onSaved"
+    />
+
+    <ReportReviewDrawer
+      :report-id="formOpen ? null : reviewId" :order="order"
+      @close="closeReview" @open="openReview" @changed="load" @edit="openEdit"
     />
   </div>
 </template>

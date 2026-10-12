@@ -85,6 +85,8 @@ export const admin = {
       toFormData({ type: payload.type }, { file: payload.file }),
     ),
 
+    /** طابور التحقق: غير المُتحقَّق منها من كل الملفات، الأقدم أولاً */
+    queue: (params) => client.get(`${v1}/admin/documents`, { params }),
     verify: (id) => client.post(`${v1}/admin/documents/${id}/verify`),
     remove: (id) => client.delete(`${v1}/admin/documents/${id}`),
     downloadUrl: (id) => `${v1}/admin/documents/${id}/download`,
@@ -142,6 +144,8 @@ export const admin = {
     update: (id, payload) => client.patch(`${v1}/admin/reports/${id}`, payload),
     submit: (id) => client.post(`${v1}/admin/reports/${id}/submit`),
     approve: (id) => client.post(`${v1}/admin/reports/${id}/approve`),
+    /** إرجاع لكاتبه مسوّدةً مع ملاحظة إلزامية */
+    sendBack: (id, note) => client.post(`${v1}/admin/reports/${id}/return`, { note }),
     publish: (id) => client.post(`${v1}/admin/reports/${id}/publish`),
   },
 

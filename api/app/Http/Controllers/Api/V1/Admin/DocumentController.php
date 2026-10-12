@@ -36,6 +36,43 @@ class DocumentController extends Controller
         ]);
     }
 
+    /**
+     * طابور التحقق: المستندات المرفوعة التي لم يُتحقَّق منها بعد، من كل
+     * الملفات معاً، فلا يُراجعها الموظف يتيماً يتيماً. الأقدم أولاً، فلا
+     * يبقى مستند في آخر الطابور أسابيع.
+     */
+    public function queue(Request $request): JsonResponse
+    {
+        abort_unless($request->user()->can('documents.manage'), 403);
+
+        $user = $request->user();
+        $country = $user->isAdmin() ? null : $user->assignedCountryId();
+
+        $documents = OrphanDocument::query()
+            ->whereNull('verified_at')
+            ->when($country !== null, fn ($q) => $q->whereHas(
+                'orphan.family', fn ($f) => $f->where('country_id', $country),
+            ))
+            ->with(['orphan:id,reference_code,first_name,photo_path,status', 'uploader:id,name'])
+            ->oldest()
+            ->paginate($request->integer('per_page', 20));
+
+        return response()->json([
+            'data' => collect($documents->items())->map(fn (OrphanDocument $d) => [
+                ...(new OrphanDocumentResource($d))->toArray($request),
+                'uploader' => $d->uploader?->name,
+                'orphan' => [
+                    'id' => $d->orphan->id,
+                    'reference_code' => $d->orphan->reference_code,
+                    'name' => $d->orphan->first_name,
+                    'status' => $d->orphan->status->value,
+                    'status_label' => $d->orphan->status->label(),
+                ],
+            ]),
+            'meta' => ['total' => $documents->total(), 'current_page' => $documents->currentPage(), 'last_page' => $documents->lastPage()],
+        ]);
+    }
+
     public function store(Request $request, Orphan $orphan): JsonResponse
     {
         $this->authorize('update', $orphan);
@@ -72,6 +109,8 @@ class DocumentController extends Controller
 
     public function verify(Request $request, OrphanDocument $document): JsonResponse
     {
+        // مستندات بلد آخر لا يتحقق منها المشرف، كما لا يراها
+        $this->authorize('view', $document->orphan);
         abort_unless($request->user()->can('documents.manage'), 403);
 
         $document->update([
@@ -103,6 +142,7 @@ class DocumentController extends Controller
 
     public function destroy(Request $request, OrphanDocument $document): JsonResponse
     {
+        $this->authorize('update', $document->orphan);
         abort_unless($request->user()->can('documents.manage'), 403);
 
         // مستند مُتحقَّق منه لا يُحذف: توثيق الملف قائم عليه
