@@ -10,7 +10,7 @@
  *   • كل رسائل الخطأ نصية (textContent) فلا مجال لحقن HTML.
  */
 
-import { login, register, forgotPassword, resetPassword } from './auth.js';
+import { login, logout, register, forgotPassword, resetPassword, markSignedIn, isSponsor } from './auth.js';
 import { submitContact, subscribeNewsletter } from './api.js';
 import { toast } from './ui.js';
 import { $, $$, clamp } from './utils.js';
@@ -279,7 +279,16 @@ async function submit(form, button, original) {
     }
 
     if (action === 'login') {
-      await login(values.email, values.password, Boolean(values.remember));
+      const { data: user } = await login(values.email, values.password, Boolean(values.remember));
+
+      // حساب فريق العمل لا يدخل لوحة الكافل: نغلق جلسته فوراً ونوجّهه
+      if (!isSponsor(user)) {
+        await logout().catch(() => {});
+        throw {
+          staff: true,
+          errors: { email: ['هذا حساب فريق العمل، والدخول به من لوحة الإدارة.'] },
+        };
+      }
     } else if (action === 'register') {
       // حقول النموذج مسمّاة بقيم autocomplete (given-name وtel) لأنها الأصحّ
       // دلالياً للمتصفح؛ الربط بأسماء الـ API يقع هنا لا بتشويه الـ HTML
@@ -297,6 +306,8 @@ async function submit(form, button, original) {
         terms: true,
       });
     }
+
+    markSignedIn();
 
     // ?redirect= يعيد الكافل إلى الصفحة التي طُرد منها، لا إلى اللوحة دائماً
     const params = new URLSearchParams(window.location.search);
@@ -335,6 +346,17 @@ async function submit(form, button, original) {
         focused = true;
       }
     });
+
+    // رابط مباشر للوحة الإدارة تحت رسالة حساب الفريق
+    if (error.staff) {
+      const errorEl = form.querySelector('[name="email"]')?.closest('.field')?.querySelector('.field__error');
+      if (errorEl) {
+        const link = document.createElement('a');
+        link.href = '/admin';
+        link.textContent = ' افتح لوحة الإدارة';
+        errorEl.append(link);
+      }
+    }
 
     if (orphaned.length) {
       toast(orphaned[0], 'error');
@@ -395,11 +417,11 @@ export function initCardInput() {
    مقياس قوة كلمة المرور
    ========================================================================= */
 const STRENGTH_LEVELS = [
-  { label: 'ضعيفة جداً', color: 'var(--rose-600)' },
-  { label: 'ضعيفة',      color: 'var(--rose-600)' },
-  { label: 'متوسطة',     color: 'var(--amber-500)' },
-  { label: 'جيدة',       color: 'var(--olive-500)' },
-  { label: 'قوية',       color: 'var(--olive-600)' },
+  { label: 'ضعيفة جداً', color: 'var(--color-urgent)' },
+  { label: 'ضعيفة',      color: 'var(--color-urgent)' },
+  { label: 'متوسطة',     color: 'var(--color-accent)' },
+  { label: 'جيدة',       color: 'var(--color-brand)' },
+  { label: 'قوية',       color: 'var(--color-success)' },
 ];
 
 function scorePassword(value) {

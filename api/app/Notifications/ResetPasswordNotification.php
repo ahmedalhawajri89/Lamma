@@ -38,7 +38,7 @@ class ResetPasswordNotification extends Notification
         ]);
 
         return (new MailMessage)
-            ->subject('إعادة تعيين كلمة المرور — كفالة')
+            ->subject('إعادة تعيين كلمة المرور | كفالة')
             ->greeting('مرحباً')
             ->line('وصلنا طلبٌ لإعادة تعيين كلمة مرور حسابك.')
             ->action('إعادة تعيين كلمة المرور', $url)
@@ -46,7 +46,7 @@ class ResetPasswordNotification extends Notification
 
             // لا نقول «تجاهل الرسالة» فقط: من لم يطلبها يحتاج أن يعرف أن
             // حسابه لم يُمسّ، وأن لا إجراء مطلوباً منه.
-            ->line('إن لم تطلب هذا فلا حاجة لأي إجراء — لم يتغيّر شيء في حسابك.')
+            ->line('إن لم تطلب هذا فلا حاجة لأي إجراء، فلم يتغيّر شيء في حسابك.')
             ->salutation('فريق كفالة');
     }
 

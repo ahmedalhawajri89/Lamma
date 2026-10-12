@@ -72,7 +72,7 @@ class SponsorshipController extends Controller
         $action->handle($sponsorship, $request->string('reason')->toString() ?: null);
 
         return response()->json([
-            'message' => 'أُلغيت الكفالة. شكراً لما قدّمته — سنؤمّن كافلاً بديلاً للطفل.',
+            'message' => 'أُلغيت الكفالة. شكراً لما قدّمته، وسنؤمّن كافلاً بديلاً للطفل.',
         ]);
     }
 }

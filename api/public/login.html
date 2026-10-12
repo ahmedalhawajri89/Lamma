@@ -6,7 +6,7 @@
 
   <title>تسجيل الدخول | كفالة</title>
   <meta name="description" content="ادخل إلى لوحتك لمتابعة كفالاتك وتقاريرها.">
-  <meta name="theme-color" content="#c2410c">
+  <meta name="theme-color" content="#0f5c5c">
 
   <meta http-equiv="Content-Security-Policy"
         content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self'; connect-src 'self'; form-action 'self'; base-uri 'self'; object-src 'none'">
@@ -23,6 +23,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300;400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Aref+Ruqaa:wght@400;700&display=swap">
 
+  <!-- السمة قبل أي رسم — يمنع وميض الوضع الفاتح لمن اختار الليلي -->
+  <script src="assets/js/theme-init.js"></script>
+
   <link rel="stylesheet" href="assets/vendor/fontawesome/css/all.min.css">
   <link rel="stylesheet" href="assets/css/tokens.css">
   <link rel="stylesheet" href="assets/css/base.css">
@@ -31,6 +34,14 @@
   <link rel="stylesheet" href="assets/css/components.css">
   <link rel="stylesheet" href="assets/css/sections.css">
   <link rel="stylesheet" href="assets/css/pages.css">
+  <link rel="stylesheet" href="assets/css/auth.css">
+  <!-- قبول الانتقال بين صفحات الحساب يُكتب هنا لا في ملف: يُقرأ مع الصفحة
+       فوراً، فلا يفوته المتصفح إن تأخر تحميل auth.css. التفاصيل في auth.css. -->
+  <style>
+    @view-transition { navigation: auto; }
+    .auth__aside { view-transition-name: auth-aside; }
+    .auth__form { view-transition-name: auth-form; }
+  </style>
 
   <script type="module" src="assets/js/main.js"></script>
 </head>
@@ -43,16 +54,20 @@
     <main class="auth__main" id="main">
       <div class="auth__form">
 
-        <a class="auth__back" href="index.html">
-          <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
-          العودة للرئيسية
-        </a>
-
-        <div class="auth__head">
-          <a class="brand" href="index.html" style="justify-content:center;margin-block-end:var(--space-6)">
-            <img class="brand__mark" src="assets/img/logo.svg" alt="" width="44" height="44">
+        <div class="auth__bar">
+          <a class="brand" href="index.html">
+            <img class="brand__mark" src="assets/img/logo.svg" alt="" width="36" height="36">
             <span class="brand__name">كفالة</span>
           </a>
+          <div class="auth__tools" data-theme-slot>
+            <a class="auth__back" href="index.html">
+              العودة للرئيسية
+              <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+            </a>
+          </div>
+        </div>
+
+        <div class="auth__head">
           <h1>أهلاً بعودتك</h1>
           <p>ادخل لمتابعة كفالاتك وتقاريرها.</p>
         </div>
@@ -60,7 +75,7 @@
 
         <form data-validate-form data-action="login" data-redirect="dashboard.html" novalidate>
 
-          <div class="field" style="margin-block-end:var(--space-4)">
+          <div class="field">
             <label class="field__label" for="email">البريد الإلكتروني</label>
             <div class="field__control">
               <i class="fa-regular fa-envelope field__icon" aria-hidden="true"></i>
@@ -71,7 +86,7 @@
             <p class="field__error" id="err-email" role="alert"></p>
           </div>
 
-          <div class="field" style="margin-block-end:var(--space-4)">
+          <div class="field">
             <label class="field__label" for="password">كلمة المرور</label>
             <div class="field__control">
               <i class="fa-solid fa-lock field__icon" aria-hidden="true"></i>
@@ -86,7 +101,7 @@
             <p class="field__error" id="err-password" role="alert"></p>
           </div>
 
-          <div class="auth__meta" style="margin-block-end:var(--space-6)">
+          <div class="auth__meta">
             <label class="checkbox">
               <input type="checkbox" name="remember" checked>
               <span>ابقني مسجّلاً</span>
@@ -95,26 +110,67 @@
           </div>
 
           <button class="btn btn--primary btn--lg btn--block" type="submit">تسجيل الدخول</button>
+          <p class="auth__secure">
+            <i class="fa-solid fa-lock" aria-hidden="true"></i>
+            اتصال مشفّر، ولا نشارك بريدك مع أي جهة.
+          </p>
         </form>
 
-        <p class="auth__foot">
-          ليس لديك حساب؟ <a href="register.html">أنشئ حساباً جديداً</a>
-        </p>
+        <div class="auth__switch">
+          <p>جديد على كفالة؟</p>
+          <a class="btn btn--outline btn--lg btn--block" href="register.html">أنشئ حساباً جديداً</a>
+        </div>
 
       </div>
     </main>
 
-    <aside class="auth__aside">
+    <aside class="auth__aside" aria-label="ما ينتظرك في حسابك">
       <div class="auth__aside-inner">
-        <img class="auth__aside-art" src="assets/img/auth-aside.webp"
-             alt="طفلة تبتسم في فناء مدرستها" loading="lazy" width="288" height="360">
-        <h2>كل تقرير يصلك هو دليل أن قرارك كان صحيحاً</h2>
-        <p>
-          ١٥٠٠ كافل يتابعون أثرهم من هنا: تقارير مصوّرة، سجل مدفوعات،
-          ورسائل تصل أطفالهم عبر مشرفينا الميدانيين.
-        </p>
+        <p class="auth__kicker">ما ينتظرك في حسابك</p>
+        <h2>كل ثلاثة أشهر، يصلك تقرير كهذا عن طفلك.</h2>
+
+        <article class="report-mock report-mock--mini" aria-label="نموذج توضيحي لتقرير ربعي">
+          <header class="report-mock__head">
+            <span class="avatar avatar--lg avatar--1" aria-hidden="true">أ</span>
+            <div>
+              <strong>أمنية، ٨ سنوات</strong>
+              <span>غزة · الكفالة التعليمية</span>
+            </div>
+            <span class="report-mock__tag">الربع الثالث</span>
+          </header>
+
+          <div class="report-mock__block">
+            <h3>الدراسة <span>الصف الثالث</span></h3>
+            <ul class="report-bars" role="list">
+              <li><span>اللغة العربية</span><span class="report-bars__track"><span style="--v:92%"></span></span><b class="num">92</b></li>
+              <li><span>الرياضيات</span><span class="report-bars__track"><span style="--v:85%"></span></span><b class="num">85</b></li>
+            </ul>
+          </div>
+
+          <div class="report-mock__block">
+            <h3>كيف صُرفت كفالتك <span class="num">$35</span></h3>
+            <div class="report-split" role="img" aria-label="رسوم وقرطاسية 14 دولاراً، غذاء 12، صحة 5، أنشطة 4">
+              <span style="--w:40%; --c:var(--chart-1)"></span>
+              <span style="--w:34%; --c:var(--chart-4)"></span>
+              <span style="--w:14%; --c:var(--chart-2)"></span>
+              <span style="--w:12%; --c:var(--chart-5)"></span>
+            </div>
+          </div>
+
+          <footer class="report-mock__foot">
+            <span>زيارة ميدانية في ٢٤ سبتمبر</span>
+            <span>نموذج توضيحي</span>
+          </footer>
+        </article>
+
+        <dl class="auth__stats">
+          <div><dt>كافل يتابع أثره</dt><dd class="num">+1,500</dd></div>
+          <div><dt>دولة نعمل فيها</dt><dd class="num">12</dd></div>
+          <div><dt>يوماً بين كل تقرير</dt><dd class="num">90</dd></div>
+        </dl>
       </div>
     </aside>
+
 
   </div>
 
@@ -132,7 +188,7 @@
       </div>
 
       <form data-validate-form data-action="forgot" novalidate>
-        <div class="field" style="margin-block-end:var(--space-6)">
+        <div class="field">
           <label class="field__label" for="resetEmail">البريد الإلكتروني</label>
           <div class="field__control">
             <i class="fa-regular fa-envelope field__icon" aria-hidden="true"></i>

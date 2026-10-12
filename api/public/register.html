@@ -6,7 +6,7 @@
 
   <title>إنشاء حساب | كفالة</title>
   <meta name="description" content="أنشئ حسابك في دقيقة وابدأ كفالتك الأولى.">
-  <meta name="theme-color" content="#c2410c">
+  <meta name="theme-color" content="#0f5c5c">
 
   <meta http-equiv="Content-Security-Policy"
         content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self'; connect-src 'self'; form-action 'self'; base-uri 'self'; object-src 'none'">
@@ -23,6 +23,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300;400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Aref+Ruqaa:wght@400;700&display=swap">
 
+  <!-- السمة قبل أي رسم — يمنع وميض الوضع الفاتح لمن اختار الليلي -->
+  <script src="assets/js/theme-init.js"></script>
+
   <link rel="stylesheet" href="assets/vendor/fontawesome/css/all.min.css">
   <link rel="stylesheet" href="assets/css/tokens.css">
   <link rel="stylesheet" href="assets/css/base.css">
@@ -31,6 +34,14 @@
   <link rel="stylesheet" href="assets/css/components.css">
   <link rel="stylesheet" href="assets/css/sections.css">
   <link rel="stylesheet" href="assets/css/pages.css">
+  <link rel="stylesheet" href="assets/css/auth.css">
+  <!-- قبول الانتقال بين صفحات الحساب يُكتب هنا لا في ملف: يُقرأ مع الصفحة
+       فوراً، فلا يفوته المتصفح إن تأخر تحميل auth.css. التفاصيل في auth.css. -->
+  <style>
+    @view-transition { navigation: auto; }
+    .auth__aside { view-transition-name: auth-aside; }
+    .auth__form { view-transition-name: auth-form; }
+  </style>
 
   <script type="module" src="assets/js/main.js"></script>
 </head>
@@ -38,34 +49,26 @@
 <body>
   <a class="skip-link" href="#main">تخطَّ إلى المحتوى الرئيسي</a>
 
-  <div class="auth">
+  <div class="auth auth--flip">
 
-    <aside class="auth__aside">
-      <div class="auth__aside-inner">
-        <p class="quote-script" style="color:var(--clay-700);margin-block-end:var(--space-6)">
-          وَيُطْعِمُونَ الطَّعَامَ عَلَىٰ حُبِّهِ مِسْكِينًا وَيَتِيمًا وَأَسِيرًا
-        </p>
-        <h2>ابدأ من حيث تستطيع، وتوقّف متى شئت</h2>
-        <p>
-          لا حد أدنى مُلزم ولا التزام طويل. الحساب مجاني،
-          ويمكنك تصفّح كل الحالات قبل أن تقرر أي شيء.
-        </p>
-      </div>
-    </aside>
 
     <main class="auth__main" id="main">
       <div class="auth__form">
 
-        <a class="auth__back" href="index.html">
-          <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
-          العودة للرئيسية
-        </a>
-
-        <div class="auth__head">
-          <a class="brand" href="index.html" style="justify-content:center;margin-block-end:var(--space-6)">
-            <img class="brand__mark" src="assets/img/logo.svg" alt="" width="44" height="44">
+        <div class="auth__bar">
+          <a class="brand" href="index.html">
+            <img class="brand__mark" src="assets/img/logo.svg" alt="" width="36" height="36">
             <span class="brand__name">كفالة</span>
           </a>
+          <div class="auth__tools" data-theme-slot>
+            <a class="auth__back" href="index.html">
+              العودة للرئيسية
+              <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+            </a>
+          </div>
+        </div>
+
+        <div class="auth__head">
           <h1>أنشئ حسابك</h1>
           <p>دقيقة واحدة تفصلك عن كفالتك الأولى.</p>
         </div>
@@ -73,7 +76,7 @@
 
         <form data-validate-form data-action="register" data-redirect="dashboard.html" novalidate>
 
-          <div class="grid grid--2" style="gap:var(--space-4);margin-block-end:var(--space-4)">
+          <div class="grid grid--2 auth__pair">
             <div class="field">
               <label class="field__label" for="firstName">الاسم الأول</label>
               <div class="field__control">
@@ -97,7 +100,7 @@
             </div>
           </div>
 
-          <div class="field" style="margin-block-end:var(--space-4)">
+          <div class="field">
             <label class="field__label" for="email">البريد الإلكتروني</label>
             <div class="field__control">
               <i class="fa-regular fa-envelope field__icon" aria-hidden="true"></i>
@@ -108,7 +111,7 @@
             <p class="field__error" id="err-email" role="alert"></p>
           </div>
 
-          <div class="field" style="margin-block-end:var(--space-4)">
+          <div class="field">
             <label class="field__label" for="phone">رقم الجوال</label>
             <div class="field__control">
               <i class="fa-solid fa-mobile-screen field__icon" aria-hidden="true"></i>
@@ -119,7 +122,7 @@
             <p class="field__error" id="err-phone" role="alert"></p>
           </div>
 
-          <div class="field" style="margin-block-end:var(--space-3)">
+          <div class="field">
             <label class="field__label" for="password">كلمة المرور</label>
             <div class="field__control">
               <i class="fa-solid fa-lock field__icon" aria-hidden="true"></i>
@@ -134,7 +137,7 @@
             <p class="field__error" id="err-password" role="alert"></p>
           </div>
 
-          <div class="strength" id="passwordStrength" style="margin-block-end:var(--space-6)">
+          <div class="strength" id="passwordStrength">
             <div class="strength__bars" aria-hidden="true">
               <span class="strength__bar"></span>
               <span class="strength__bar"></span>
@@ -147,7 +150,7 @@
             </p>
           </div>
 
-          <div class="field" style="margin-block-end:var(--space-6)">
+          <div class="field">
             <label class="checkbox">
               <input type="checkbox" name="terms" required>
               <span>
@@ -160,12 +163,33 @@
           <button class="btn btn--primary btn--lg btn--block" type="submit">إنشاء الحساب</button>
         </form>
 
-        <p class="auth__foot">
-          لديك حساب بالفعل؟ <a href="login.html">تسجيل الدخول</a>
-        </p>
+        <div class="auth__switch">
+          <p>لديك حساب بالفعل؟</p>
+          <a class="btn btn--outline btn--lg btn--block" href="login.html">تسجيل الدخول</a>
+        </div>
 
       </div>
     </main>
+
+    <aside class="auth__aside" aria-label="لماذا تنشئ حساباً">
+      <div class="auth__aside-inner">
+        <p class="auth__quote">وَيُطْعِمُونَ الطَّعَامَ عَلَىٰ حُبِّهِ مِسْكِينًا وَيَتِيمًا وَأَسِيرًا</p>
+        <h2>ابدأ من حيث تستطيع، وتوقّف متى شئت.</h2>
+
+        <ol class="auth__points" role="list">
+          <li><span class="num">01</span><div><strong>الحساب مجاني</strong><p>لا رسوم على التسجيل، ولا حد أدنى مُلزم.</p></div></li>
+          <li><span class="num">02</span><div><strong>تقرّر بعد أن تتصفّح</strong><p>كل الحالات أمامك قبل أن تختار أي شيء.</p></div></li>
+          <li><span class="num">03</span><div><strong>كل شيء في مكان واحد</strong><p>التقارير والمدفوعات والرسائل، من أي جهاز.</p></div></li>
+        </ol>
+
+        <dl class="auth__stats">
+          <div><dt>كافل يتابع أثره</dt><dd class="num">+1,500</dd></div>
+          <div><dt>دولة نعمل فيها</dt><dd class="num">12</dd></div>
+          <div><dt>يوماً بين كل تقرير</dt><dd class="num">90</dd></div>
+        </dl>
+      </div>
+    </aside>
+
 
   </div>
 </body>

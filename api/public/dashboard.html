@@ -6,7 +6,7 @@
 
   <title>لوحتي | كفالة</title>
   <meta name="description" content="تابع كفالاتك وتقاريرها وسجل مدفوعاتك من مكان واحد.">
-  <meta name="theme-color" content="#c2410c">
+  <meta name="theme-color" content="#0f5c5c">
 
   <meta http-equiv="Content-Security-Policy"
         content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self'; connect-src 'self'; form-action 'self'; base-uri 'self'; object-src 'none'">
@@ -24,6 +24,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300;400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Aref+Ruqaa:wght@400;700&display=swap">
 
+  <!-- السمة قبل أي رسم — يمنع وميض الوضع الفاتح لمن اختار الليلي -->
+  <script src="assets/js/theme-init.js"></script>
+
   <link rel="stylesheet" href="assets/vendor/fontawesome/css/all.min.css">
   <link rel="stylesheet" href="assets/css/tokens.css">
   <link rel="stylesheet" href="assets/css/base.css">
@@ -40,147 +43,166 @@
   <a class="skip-link" href="#main">تخطَّ إلى المحتوى الرئيسي</a>
 
   <!--
-    كل رقم في هذه الصفحة كان نصاً مكتوباً في HTML: «أيتام تكفلهم ٢»،
-    و«إجمالي ما قدّمته ‎$3240»، وأربعة صفوف مدفوعات ثابتة. صار كله يُقرأ من
-    /api/v1/portal/* فيصدق مع كل كافل لا مع كافل واحد وهمي.
+    لوحة الكافل امتداد للموقع لا لوحة إدارة: شريط علوي رفيع بأقسام الصفحة،
+    ثم أقسام مفتوحة بخطوط رفيعة. كل رقم يُقرأ من /api/v1/portal/*.
   -->
-  <div class="dash" data-portal data-portal-loading>
+  <div class="portal" data-portal data-portal-loading>
 
-    <!-- الشريط الجانبي -->
-    <aside class="dash__side">
-      <a class="brand" href="index.html">
-        <img class="brand__mark" src="assets/img/logo.svg" alt="" width="44" height="44">
-        <span class="brand__name">كفالة<span class="brand__tag">لوحة الكافل</span></span>
-      </a>
+    <header class="portal-bar">
+      <div class="container portal-bar__inner">
+        <a class="brand" href="index.html">
+          <img class="brand__mark" src="assets/img/logo.svg" alt="" width="36" height="36">
+          <span class="brand__name">كفالة</span>
+        </a>
 
-      <div class="dash__user">
-        <div class="dash__avatar">
-          <span class="avatar avatar--lg avatar--1" aria-hidden="true" data-portal-avatar>·</span>
-        </div>
-        <div>
-          <strong data-portal-name>…</strong>
-          <span>حسابك</span>
+        <nav class="portal-tabs" aria-label="أقسام لوحتك">
+          <a class="portal-tab" href="#overview" aria-current="true">نظرة عامة</a>
+          <a class="portal-tab" href="#sponsorships">كفالاتي</a>
+          <a class="portal-tab" href="#reports">
+            التقارير
+            <span class="portal-tab__dot" data-portal-reports-badge hidden></span>
+          </a>
+          <a class="portal-tab" href="#payments">المدفوعات</a>
+          <a class="portal-tab" href="#account">حسابي</a>
+        </nav>
+
+        <div class="portal-bar__user" data-theme-slot>
+          <span class="avatar avatar--sm avatar--1" aria-hidden="true" data-portal-avatar>·</span>
+          <span class="portal-bar__name" data-portal-name>…</span>
+          <a class="portal-bar__logout" href="index.html" data-portal-logout>
+            <i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i>
+            <span>تسجيل الخروج</span>
+          </a>
         </div>
       </div>
+    </header>
 
-      <nav class="dash__nav" aria-label="تنقل لوحة التحكم">
-        <a class="dash__nav-item" href="dashboard.html" aria-current="page">
-          <i class="fa-solid fa-gauge-high" aria-hidden="true"></i> نظرة عامة
-        </a>
-        <a class="dash__nav-item" href="#sponsorships">
-          <i class="fa-solid fa-children" aria-hidden="true"></i> كفالاتي
-        </a>
-        <a class="dash__nav-item" href="#reports">
-          <i class="fa-regular fa-file-lines" aria-hidden="true"></i> التقارير
-          <span class="badge badge--urgent" data-portal-reports-badge hidden>0</span>
-        </a>
-        <a class="dash__nav-item" href="#payments">
-          <i class="fa-solid fa-receipt" aria-hidden="true"></i> المدفوعات
-        </a>
-        <a class="dash__nav-item dash__nav-item--logout" href="index.html" data-portal-logout>
-          <i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i> تسجيل الخروج
-        </a>
-      </nav>
-    </aside>
+    <main id="main">
 
-    <!-- المحتوى -->
-    <main class="dash__main" id="main">
-
-      <header class="dash__head">
-        <div>
-          <h1 data-portal-greeting>أهلاً بك</h1>
-          <p data-portal-subtitle>جارٍ تحميل لوحتك…</p>
-        </div>
-        <a class="btn btn--primary" href="orphans.html">
-          <i class="fa-solid fa-plus" aria-hidden="true"></i>
-          كفالة جديدة
-        </a>
-      </header>
-
-      <!-- المؤشرات -->
-      <div class="grid grid--auto-sm">
-        <div class="metric" data-reveal>
-          <div>
-            <p class="metric__label">أيتام تكفلهم</p>
-            <p class="metric__value num" data-stat="orphans">—</p>
+      <!-- الترحيب والأرقام -->
+      <section class="portal-section portal-hello" id="overview" aria-labelledby="helloTitle">
+        <div class="container">
+          <div class="portal-hello__head">
+            <div>
+              <p class="meta-label" data-portal-since></p>
+              <h1 id="helloTitle" data-portal-greeting>أهلاً بك</h1>
+              <p class="portal-hello__status" data-portal-subtitle>جارٍ تحميل لوحتك…</p>
+            </div>
+            <a class="btn btn--cta" href="orphans.html">
+              اكفل طفلاً آخر
+              <i class="fa-solid fa-arrow-left btn__icon btn__icon--arrow" aria-hidden="true"></i>
+            </a>
           </div>
-          <span class="icon-box icon-box--soft"><i class="fa-solid fa-children" aria-hidden="true"></i></span>
-        </div>
 
-        <div class="metric" data-reveal data-reveal-delay="80">
-          <div>
-            <p class="metric__label">إجمالي ما قدّمته</p>
-            <p class="metric__value num" data-stat="given">—</p>
-            <p class="metric__trend"><span class="num" data-stat="commitment">—</span> شهرياً حالياً</p>
-          </div>
-          <span class="icon-box icon-box--growth icon-box--soft"><i class="fa-solid fa-hand-holding-dollar" aria-hidden="true"></i></span>
+          <dl class="figures portal-figures">
+            <div><dt>أيتام تكفلهم</dt><dd class="num" data-stat="orphans">…</dd></div>
+            <div><dt>ما قدّمته حتى اليوم</dt><dd class="num" data-stat="given">…</dd></div>
+            <div><dt>التزامك الشهري</dt><dd class="num" data-stat="commitment">…</dd></div>
+            <div><dt data-stat="next-hint">القسط القادم</dt><dd data-stat="next">…</dd></div>
+          </dl>
         </div>
-
-        <div class="metric" data-reveal data-reveal-delay="160">
-          <div>
-            <p class="metric__label">تقارير لم تقرأها</p>
-            <p class="metric__value num" data-stat="reports">—</p>
-          </div>
-          <span class="icon-box icon-box--accent icon-box--soft"><i class="fa-regular fa-file-lines" aria-hidden="true"></i></span>
-        </div>
-
-        <div class="metric" data-reveal data-reveal-delay="240">
-          <div>
-            <p class="metric__label">القسط القادم</p>
-            <p class="metric__value" style="font-size:var(--text-lg)" data-stat="next">—</p>
-            <p class="metric__trend" data-stat="next-hint"></p>
-          </div>
-          <span class="icon-box icon-box--info icon-box--soft"><i class="fa-regular fa-calendar-check" aria-hidden="true"></i></span>
-        </div>
-      </div>
+      </section>
 
       <!-- الكفالات -->
-      <section id="sponsorships">
-        <div class="cluster cluster--between" style="margin-block-end:var(--space-5)">
-          <h2 style="font-size:var(--text-lg)">كفالاتي</h2>
-          <a class="link-arrow" href="orphans.html">إضافة كفالة <i class="fa-solid fa-plus" aria-hidden="true"></i></a>
-        </div>
+      <section class="portal-section portal-section--surface" id="sponsorships" aria-labelledby="sponsorshipsTitle">
+        <div class="container">
+          <div class="portal-head">
+            <h2 id="sponsorshipsTitle">كفالاتي</h2>
+            <a class="link-arrow" href="orphans.html">إضافة كفالة <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
+          </div>
 
-        <div class="stack" data-portal-sponsorships>
-          <p class="muted">جارٍ التحميل…</p>
+          <div class="pkids" data-portal-sponsorships>
+            <p class="muted">جارٍ التحميل…</p>
+          </div>
         </div>
       </section>
 
       <!-- التقارير -->
-      <section id="reports">
-        <div class="cluster cluster--between" style="margin-block-end:var(--space-5)">
-          <h2 style="font-size:var(--text-lg)">آخر التقارير</h2>
-        </div>
+      <section class="portal-section" id="reports" aria-labelledby="reportsTitle">
+        <div class="container">
+          <div class="portal-head">
+            <h2 id="reportsTitle">آخر التقارير</h2>
+            <p class="portal-head__note">تقرير مصوّر عن كل طفل كل ثلاثة أشهر.</p>
+          </div>
 
-        <div class="stack" data-portal-reports>
-          <p class="muted">جارٍ التحميل…</p>
+          <ul class="preports" role="list" data-portal-reports>
+            <li class="muted">جارٍ التحميل…</li>
+          </ul>
         </div>
       </section>
 
       <!-- المدفوعات -->
-      <section id="payments">
-        <div class="cluster cluster--between" style="margin-block-end:var(--space-5)">
-          <h2 style="font-size:var(--text-lg)">سجل المدفوعات</h2>
-          <span class="muted">الإجمالي <strong class="num" data-stat="payments-total">—</strong></span>
-        </div>
+      <section class="portal-section portal-section--surface" id="payments" aria-labelledby="paymentsTitle">
+        <div class="container">
+          <div class="portal-head">
+            <h2 id="paymentsTitle">سجل المدفوعات</h2>
+            <p class="portal-head__note">الإجمالي <strong class="num" data-stat="payments-total">…</strong></p>
+          </div>
 
-        <div class="table-wrap">
-          <table class="table">
-            <caption class="sr-only">سجل مدفوعاتك</caption>
-            <thead>
-              <tr>
-                <th scope="col">التاريخ</th>
-                <th scope="col">الطفل</th>
-                <th scope="col">المبلغ</th>
-                <th scope="col">الوسيلة</th>
-                <th scope="col">الحالة</th>
-                <th scope="col">الإيصال</th>
-              </tr>
-            </thead>
-            <tbody data-portal-payments>
-              <tr><td colspan="6" class="muted">جارٍ التحميل…</td></tr>
-            </tbody>
-          </table>
+          <div class="table-wrap">
+            <table class="table ptable">
+              <caption class="sr-only">سجل مدفوعاتك</caption>
+              <thead>
+                <tr>
+                  <th scope="col">التاريخ</th>
+                  <th scope="col">الطفل</th>
+                  <th scope="col">المبلغ</th>
+                  <th scope="col">الوسيلة</th>
+                  <th scope="col">الحالة</th>
+                  <th scope="col">الإيصال</th>
+                </tr>
+              </thead>
+              <tbody data-portal-payments>
+                <tr><td colspan="6" class="muted">جارٍ التحميل…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- الحساب -->
+      <section class="portal-section" id="account" aria-labelledby="accountTitle">
+        <div class="container">
+          <div class="portal-head">
+            <h2 id="accountTitle">حسابي</h2>
+          </div>
+
+          <div class="paccount">
+            <form class="paccount__form" data-portal-profile novalidate>
+              <h3>بياناتك</h3>
+              <div class="field">
+                <label class="field__label" for="profileName">الاسم</label>
+                <input class="input" type="text" id="profileName" name="name" autocomplete="name" required minlength="3">
+              </div>
+              <div class="field">
+                <label class="field__label" for="profileEmail">البريد الإلكتروني</label>
+                <input class="input" type="email" id="profileEmail" name="email" autocomplete="email" required>
+              </div>
+              <div class="field">
+                <label class="field__label" for="profilePhone">رقم الجوال</label>
+                <input class="input" type="tel" id="profilePhone" name="phone" autocomplete="tel" dir="ltr">
+              </div>
+              <button class="btn btn--primary" type="submit">احفظ التعديلات</button>
+            </form>
+
+            <form class="paccount__form" data-portal-password novalidate>
+              <h3>كلمة المرور</h3>
+              <div class="field">
+                <label class="field__label" for="currentPassword">كلمة المرور الحالية</label>
+                <input class="input" type="password" id="currentPassword" name="current_password" autocomplete="current-password" required>
+              </div>
+              <div class="field">
+                <label class="field__label" for="newPassword">كلمة المرور الجديدة</label>
+                <input class="input" type="password" id="newPassword" name="password" autocomplete="new-password" required minlength="8">
+                <p class="field__hint">٨ أحرف على الأقل، فيها حروف وأرقام.</p>
+              </div>
+              <div class="field">
+                <label class="field__label" for="newPassword2">أعد كتابتها</label>
+                <input class="input" type="password" id="newPassword2" name="password_confirmation" autocomplete="new-password" required>
+              </div>
+              <button class="btn btn--outline" type="submit">غيّر كلمة المرور</button>
+            </form>
+          </div>
         </div>
       </section>
 
@@ -190,32 +212,56 @@
   <!-- نافذة التقرير -->
   <div class="modal" id="reportModal" role="dialog" aria-modal="true" aria-labelledby="reportModalTitle">
     <div class="modal__backdrop"></div>
+    <div class="modal__panel preport-modal">
+      <button class="modal__close" type="button" data-modal-close aria-label="إغلاق">
+        <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+      </button>
+      <div data-report-content></div>
+    </div>
+  </div>
+
+  <!-- نافذة الرسائل -->
+  <div class="modal" id="messagesModal" role="dialog" aria-modal="true" aria-labelledby="messagesTitle">
+    <div class="modal__backdrop"></div>
+    <div class="modal__panel pmessages">
+      <button class="modal__close" type="button" data-modal-close aria-label="إغلاق">
+        <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+      </button>
+      <div class="modal__head">
+        <h2 id="messagesTitle">رسائلك</h2>
+        <p>يقرأ المشرف الميداني كل رسالة قبل أن تصل للطفل، حمايةً له. لا تكتب رقم هاتف أو عنواناً.</p>
+      </div>
+      <ol class="pmessages__list" role="list" data-messages-list></ol>
+      <form class="pmessages__form" data-messages-form novalidate>
+        <label class="sr-only" for="messageBody">رسالتك</label>
+        <textarea class="textarea" id="messageBody" name="body" rows="3" maxlength="2000"
+                  placeholder="اكتب كلمة تشجيع، أو سؤالاً عن دراسته…" data-autofocus></textarea>
+        <button class="btn btn--primary" type="submit">أرسل</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- نافذة إيقاف الكفالة -->
+  <div class="modal" id="cancelModal" role="dialog" aria-modal="true" aria-labelledby="cancelTitle">
+    <div class="modal__backdrop"></div>
     <div class="modal__panel">
       <button class="modal__close" type="button" data-modal-close aria-label="إغلاق">
         <i class="fa-solid fa-xmark" aria-hidden="true"></i>
       </button>
-
       <div class="modal__head">
-        <h2 id="reportModalTitle" style="font-size:var(--text-lg)">التقرير</h2>
-        <p data-report-meta></p>
+        <h2 id="cancelTitle">إيقاف كفالة <span data-cancel-name></span></h2>
+        <p>لا رسوم ولا التزام. نتوقف عن الخصم من اليوم، ونؤمّن كافلاً بديلاً للطفل كي لا تنقطع رعايته.</p>
       </div>
-
-      <div class="stack stack--lg">
-        <div class="frame" style="aspect-ratio:16/10" data-report-photo hidden>
-          <img class="frame__img" src="" alt="" loading="lazy">
+      <form data-cancel-form novalidate>
+        <div class="field">
+          <label class="field__label" for="cancelReason">هل تخبرنا بالسبب؟ <span class="muted">(اختياري)</span></label>
+          <textarea class="textarea" id="cancelReason" name="reason" rows="3" maxlength="500"></textarea>
         </div>
-
-        <ul class="check-list" role="list" data-report-body></ul>
-
-        <div class="secure-note">
-          <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
-          <span>هذا التقرير خاص بك ككافل. نرجو عدم نشر صور الطفل خارج المنصة حمايةً لخصوصيته.</span>
+        <div class="cluster pcancel__actions">
+          <button class="btn btn--danger" type="submit">أوقف الكفالة</button>
+          <button class="btn btn--outline" type="button" data-modal-close>تراجع</button>
         </div>
-
-        <div class="cluster">
-          <button class="btn btn--outline" type="button" data-modal-close>إغلاق</button>
-        </div>
-      </div>
+      </form>
     </div>
   </div>
 

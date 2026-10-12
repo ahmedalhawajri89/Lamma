@@ -30,6 +30,15 @@ export const forgotPassword = (email) =>
 export const resetPassword = (payload) =>
   request('/auth/reset-password', { method: 'POST', body: payload });
 
+/**
+ * هل الحساب حساب كافل؟
+ *
+ * الدخول نقطة واحدة لكل الحسابات، لكن لوحة الكافل للكفلاء وحدهم، وفريق
+ * العمل يدخل من لوحة الإدارة. الخادم يرفض /portal/* لغير الكافل على أي حال.
+ */
+export const isSponsor = (user) =>
+  Boolean(user?.sponsor) || (user?.roles ?? []).includes('sponsor');
+
 /** يُرجع المستخدم أو `null` — والـ 401 هنا حالة طبيعية لا خطأ. */
 export async function me() {
   try {
@@ -40,7 +49,41 @@ export async function me() {
   }
 }
 
+/**
+ * تلميح «سبق له الدخول» للهيدر.
+ *
+ * ليس حالة دخول: الجلسة يملكها الخادم وحده. هو فقط يجنّب كل زائر طلب
+ * `me()` في كل صفحة. من عنده التلميح نسأل الخادم عنه، ومن ليس عنده لا نسأل.
+ */
+const HINT = 'kafala-signed-in';
+
+export function markSignedIn() {
+  try { localStorage.setItem(HINT, '1'); } catch { /* تخزين محجوب */ }
+}
+
+export function clearSignedIn() {
+  try { localStorage.removeItem(HINT); } catch { /* تخزين محجوب */ }
+}
+
+export function hasSignedInHint() {
+  try { return localStorage.getItem(HINT) === '1'; } catch { return false; }
+}
+
 export const portalOverview = () => request('/portal/overview');
 export const portalPayments = (params = '') => request(`/portal/payments${params}`);
 export const portalReports = () => request('/portal/reports');
 export const markReportSeen = (id) => request(`/portal/reports/${id}`);
+
+export const portalMessages = (sponsorshipId) =>
+  request(`/portal/sponsorships/${sponsorshipId}/messages`);
+export const sendPortalMessage = (sponsorshipId, body) =>
+  request(`/portal/sponsorships/${sponsorshipId}/messages`, { method: 'POST', body: { body } });
+
+/** الإيقاف إلغاءٌ على الخادم: يتوقف الخصم، ويُؤمَّن للطفل كافل بديل. */
+export const cancelSponsorship = (sponsorshipId, reason = '') =>
+  request(`/portal/sponsorships/${sponsorshipId}`, { method: 'DELETE', body: { reason } });
+
+export const updateProfile = (payload) =>
+  request('/portal/profile', { method: 'PATCH', body: payload });
+export const updatePassword = (payload) =>
+  request('/portal/profile/password', { method: 'PUT', body: payload });
