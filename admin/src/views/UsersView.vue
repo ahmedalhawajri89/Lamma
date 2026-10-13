@@ -20,7 +20,7 @@ const ui = useUiStore()
 const STAFF_ROLES = ['admin', 'accountant', 'field_supervisor']
 const isStaffRow = (row) => row.roles?.some((r) => STAFF_ROLES.includes(r))
 
-const { items, meta, loading, filters, reset, load } = useResource(admin.users.list, {
+const { items, meta, loading, filters, reset, load, error } = useResource(admin.users.list, {
   q: '', role: '', staff_only: true,
 })
 
@@ -124,7 +124,7 @@ const roleLabels = {
       </label>
     </FilterBar>
 
-    <DataTable
+    <DataTable :error="error" @retry="load"
       :columns="columns" :rows="items" :loading="loading"
       :clickable="auth.can('users.manage')"
       @row-click="edit"

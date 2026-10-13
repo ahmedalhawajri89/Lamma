@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { admin } from '@/api/endpoints'
 import { useResource } from '@/composables/useResource'
@@ -19,7 +19,7 @@ const auth = useAuthStore()
 const route = useRoute()
 const router = useRouter()
 
-const { items, meta, loading, filters, reset, load } = useResource(admin.reports.list, {
+const { items, meta, loading, filters, reset, load, error } = useResource(admin.reports.list, {
   status: '', queue: false, returned: false,
 })
 
@@ -50,18 +50,6 @@ function closeReview() {
 
 const formOpen = ref(false)
 const editing = ref(null)
-const orphans = ref([])
-
-async function loadOrphans() {
-  if (!auth.can('reports.create')) return
-
-  try {
-    const { data } = await admin.orphans.list({ per_page: 200, sort: 'first_name', dir: 'asc' })
-    orphans.value = data.data ?? []
-  } catch {
-    // فشل القائمة لا يمنع تصفّح الجدول — النافذة وحدها تتعطّل
-  }
-}
 
 function openEdit(report) {
   editing.value = report
@@ -75,7 +63,6 @@ function onSaved() {
   load()
 }
 
-onMounted(loadOrphans)
 
 </script>
 
@@ -114,7 +101,7 @@ onMounted(loadOrphans)
       </label>
     </FilterBar>
 
-    <DataTable :columns="columns" :rows="items" :loading="loading" clickable @row-click="openReview($event.id)">
+    <DataTable :error="error" @retry="load" :columns="columns" :rows="items" :loading="loading" clickable @row-click="openReview($event.id)">
       <template #orphan="{ row }">
         <span class="font-medium text-sand-900">{{ row.orphan?.name }}</span>
         <span class="block text-xs text-sand-500 num">{{ row.orphan?.reference_code }}</span>
@@ -139,7 +126,7 @@ onMounted(loadOrphans)
     <PaginationBar v-model="filters.page" :meta="meta" />
 
     <ReportFormModal
-      :open="formOpen" :orphans="orphans" :report="editing"
+      :open="formOpen" :report="editing"
       @close="formOpen = false; editing = null" @saved="onSaved"
     />
 

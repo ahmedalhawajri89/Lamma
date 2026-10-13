@@ -17,7 +17,7 @@ import DisbursementFormModal from '@/components/DisbursementFormModal.vue'
 const auth = useAuthStore()
 const ui = useUiStore()
 
-const { items, meta, loading, filters, reset, load } = useResource(admin.disbursements.list, {
+const { items, meta, loading, filters, reset, load, error } = useResource(admin.disbursements.list, {
   pending_only: false, from: '', to: '',
 })
 
@@ -33,18 +33,14 @@ const columns = [
 
 const formOpen = ref(false)
 const categories = ref([])
-const orphans = ref([])
 
 async function loadReferences() {
   if (!auth.can('disbursements.record')) return
 
   try {
-    const [cats, list] = await Promise.all([
-      admin.disbursements.categories(),
-      admin.orphans.list({ per_page: 200, sort: 'first_name', dir: 'asc' }),
-    ])
-    categories.value = cats.data.data ?? []
-    orphans.value = list.data.data ?? []
+    // الطفل يُبحث عنه في النافذة نفسها، فلا تُحمَّل قائمة الأيتام هنا
+    const { data } = await admin.disbursements.categories()
+    categories.value = data.data ?? []
   } catch {
     // فشل القوائم لا يمنع تصفّح الجدول — النافذة وحدها تتعطّل
   }
@@ -69,10 +65,7 @@ function canApprove(row) {
 }
 
 /** المبلغ بعملته، ومعادله بالدولار إن اختلفت */
-function amountLabel(row) {
-  if (!row.currency || row.currency === 'USD') return money(row.amount)
-  return `${row.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })} ${row.currency}`
-}
+const amountLabel = (row) => money(row.amount, row.currency)
 
 const approving = ref(null)
 
@@ -139,7 +132,7 @@ async function approve(row) {
       <input v-model="filters.to" type="date" class="input !w-auto text-sm" aria-label="إلى تاريخ" />
     </FilterBar>
 
-    <DataTable :columns="columns" :rows="items" :loading="loading">
+    <DataTable :error="error" @retry="load" :columns="columns" :rows="items" :loading="loading">
       <template #spent_on="{ row }">{{ date(row.spent_on) }}</template>
       <template #category="{ row }">
         <span class="inline-flex items-center gap-1.5">
@@ -186,7 +179,7 @@ async function approve(row) {
     <PaginationBar v-model="filters.page" :meta="meta" />
 
     <DisbursementFormModal
-      :open="formOpen" :categories="categories" :orphans="orphans"
+      :open="formOpen" :categories="categories"
       @close="formOpen = false" @saved="onSaved"
     />
   </div>

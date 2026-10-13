@@ -33,6 +33,17 @@ function field(page, labelText, prop = 'value') {
         .find((x) => x.textContent.trim().startsWith(label))
       if (!el) return null
       const input = document.getElementById(el.getAttribute('for'))
+
+      /*
+       * حقل البحث (SearchSelect) يعدّ نتائجه كما تُعدّ خيارات القائمة، مع
+       * خانة لعنصرها النائب كي يبقى «أكثر من واحد» يعني «توجد نتائج». والتركيز
+       * عليه يجلب النتائج الأولى، كما يفعل المستخدم.
+       */
+      if (key === 'options' && input.getAttribute('role') === 'combobox') {
+        if (document.activeElement !== input) input.focus()
+        return document.querySelectorAll(`[id="${input.getAttribute('aria-controls')}"] [role=option]`).length + 1
+      }
+
       return key === 'options' ? input.options.length : input[key]
     },
     [labelText, prop],
@@ -94,6 +105,22 @@ async function selectValue(page, labelText, value) {
 }
 
 async function pick(page, labelText, index) {
+  // حقل البحث: يُختار الخيار بالنقر كما يفعل المستخدم (index 1 = أول نتيجة)
+  const listId = await page.evaluate((label) => {
+    const el = [...document.querySelectorAll('[role=dialog] label')]
+      .find((x) => x.textContent.trim().startsWith(label))
+    const input = document.getElementById(el.getAttribute('for'))
+    return input.getAttribute('role') === 'combobox' ? input.getAttribute('aria-controls') : null
+  }, labelText)
+
+  if (listId) {
+    await page.locator(`[aria-controls="${listId}"]`).focus()
+    const option = page.locator(`[id="${listId}"] [role=option]`).nth(index - 1)
+    await option.waitFor({ timeout: 20_000 })
+    await option.dispatchEvent('mousedown')
+    return
+  }
+
   await page.evaluate(
     ([label, i]) => {
       const el = [...document.querySelectorAll('[role=dialog] label')]

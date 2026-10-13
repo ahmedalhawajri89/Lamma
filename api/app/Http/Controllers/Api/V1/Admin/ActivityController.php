@@ -35,11 +35,11 @@ class ActivityController extends Controller
             ->when($request->filled('subject_id'), fn ($q) => $q->where('subject_id', $request->integer('subject_id')))
             ->when($request->filled('causer_id'), fn ($q) => $q->where('causer_id', $request->integer('causer_id')))
             ->when($request->filled('event'), fn ($q) => $q->where('event', $request->string('event')))
-            ->when($request->filled('from'), fn ($q) => $q->whereDate('created_at', '>=', $request->date('from')))
-            ->when($request->filled('to'), fn ($q) => $q->whereDate('created_at', '<=', $request->date('to')))
+            ->when($request->filled('from'), fn ($q) => $q->where('created_at', '>=', $this->localDay($request->input('from'))))
+            ->when($request->filled('to'), fn ($q) => $q->where('created_at', '<=', $this->localDay($request->input('to'), end: true)))
             ->latest()
             ->latest('id')
-            ->paginate(min(max($request->integer('per_page', 30), 1), 100));
+            ->paginate($this->perPage($request, 30));
 
         return response()->json([
             'data' => ActivityResource::collection($activities->items()),

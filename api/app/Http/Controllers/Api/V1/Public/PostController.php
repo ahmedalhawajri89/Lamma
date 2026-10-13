@@ -21,7 +21,7 @@ class PostController extends Controller
                 'category',
                 fn ($c) => $c->where('slug', $request->string('category')->toString()),
             ))
-            ->paginate($request->integer('per_page', 9));
+            ->paginate($this->perPage($request, 9));
 
         return response()->json([
             'data' => PostResource::collection($posts->items()),

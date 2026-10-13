@@ -39,7 +39,7 @@ class UserController extends Controller
                 $w->where('name', 'like', "%{$term}%")->orWhere('email', 'like', "%{$term}%");
             }))
             ->latest('id')
-            ->paginate($request->integer('per_page', 20));
+            ->paginate($this->perPage($request, 20));
 
         return response()->json([
             'data' => UserResource::collection($users->items()),

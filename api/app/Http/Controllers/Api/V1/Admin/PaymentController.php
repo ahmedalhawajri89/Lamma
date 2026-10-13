@@ -31,8 +31,8 @@ class PaymentController extends Controller
             ])
             ->when($request->filled('status'), fn ($q) => $q->where('status', $request->string('status')))
             ->when($request->filled('method'), fn ($q) => $q->where('method', $request->string('method')))
-            ->when($request->filled('from'), fn ($q) => $q->whereDate('paid_at', '>=', $request->date('from')))
-            ->when($request->filled('to'), fn ($q) => $q->whereDate('paid_at', '<=', $request->date('to')))
+            ->when($request->filled('from'), fn ($q) => $q->where('paid_at', '>=', $this->localDay($request->input('from'))))
+            ->when($request->filled('to'), fn ($q) => $q->where('paid_at', '<=', $this->localDay($request->input('to'), end: true)))
             ->when($request->filled('q'), fn ($q) => $q->where(function ($w) use ($request): void {
                 $term = addcslashes($request->string('q')->toString(), '%_\\');
                 // المرجع الداخلي والإيصال ورقم الحوالة، واسم الكافل أو الطفل
@@ -55,7 +55,7 @@ class PaymentController extends Controller
 
         $payments = $query
             ->orderByRaw('COALESCE(paid_at, created_at) DESC')
-            ->paginate($request->integer('per_page', 25));
+            ->paginate($this->perPage($request, 25));
 
         return response()->json([
             'data' => PaymentResource::collection($payments->items()),

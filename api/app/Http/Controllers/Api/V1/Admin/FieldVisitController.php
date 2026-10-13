@@ -31,7 +31,7 @@ class FieldVisitController extends Controller
             ->when($request->filled('orphan_id'), fn ($q) => $q->where('orphan_id', $request->integer('orphan_id')))
             ->when($request->boolean('overdue'), fn ($q) => $q->overdue())
             ->latest('visited_at')
-            ->paginate($request->integer('per_page', 20));
+            ->paginate($this->perPage($request, 20));
 
         return response()->json([
             'data' => FieldVisitResource::collection($visits->items()),

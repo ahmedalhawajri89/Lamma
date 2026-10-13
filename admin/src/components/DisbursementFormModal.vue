@@ -18,6 +18,8 @@ import { confirmDialog } from '@/composables/useConfirm'
 import BaseIcon from './BaseIcon.vue'
 import FormModal from './FormModal.vue'
 import FormField from './FormField.vue'
+import SearchSelect from './SearchSelect.vue'
+import { searchOrphans } from '@/composables/lookups'
 
 const props = defineProps({
   open: { type: Boolean, default: false },
@@ -80,12 +82,6 @@ const categoryOptions = computed(() =>
   })),
 )
 
-const orphanOptions = computed(() =>
-  props.orphans.map((o) => ({
-    value: o.id,
-    label: `${o.reference_code} · ${o.first_name}`,
-  })),
-)
 
 const selected = computed(() =>
   props.categories.find((c) => c.id === Number(form.values.category_id)),
@@ -172,9 +168,9 @@ async function save() {
       الطفل اختياري: الصرف الإداري العام لا يخصّ طفلاً بعينه، وإجباره على
       واحد يفسد نسبة «ما وصل الطفل» في تقرير الشفافية.
     -->
-    <FormField
+    <SearchSelect
       v-model="form.values.orphan_id" label="الطفل"
-      :options="orphanOptions"
+      :search="searchOrphans"
       :placeholder="selected?.is_overhead ? 'بند تشغيلي لا يخصّ طفلاً' : 'اختياري، اتركه فارغاً للمصروف العام'"
       :disabled="selected?.is_overhead"
       :error="form.errors.value.orphan_id" @update:model-value="form.touch('orphan_id')"
@@ -202,8 +198,8 @@ async function save() {
       </p>
     </div>
 
-    <template #actions>
-      <button class="btn btn-outline" type="button" :disabled="form.submitting.value" @click="emit('close')">
+    <template #actions="{ close }">
+      <button class="btn btn-outline" type="button" :disabled="form.submitting.value" @click="close">
         إلغاء
       </button>
       <button class="btn btn-primary" type="submit" :disabled="form.submitting.value">

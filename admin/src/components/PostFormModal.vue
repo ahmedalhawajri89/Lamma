@@ -188,8 +188,8 @@ async function save() {
       :error="form.errors.value.is_featured" @update:model-value="form.touch('is_featured')"
     />
 
-    <template #actions>
-      <button class="btn btn-outline" type="button" :disabled="form.submitting.value" @click="emit('close')">
+    <template #actions="{ close }">
+      <button class="btn btn-outline" type="button" :disabled="form.submitting.value" @click="close">
         إلغاء
       </button>
       <button class="btn btn-primary" type="submit" :disabled="form.submitting.value">

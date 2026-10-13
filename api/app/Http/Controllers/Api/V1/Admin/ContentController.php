@@ -38,7 +38,7 @@ class ContentController extends Controller
             ->with(['category:id,name_ar', 'author:id,name'])
             ->when($request->filled('status'), fn ($q) => $q->where('status', $request->string('status')))
             ->latest('created_at')
-            ->paginate($request->integer('per_page', 20));
+            ->paginate($this->perPage($request, 20));
 
         return response()->json([
             'data' => PostResource::collection($posts->items()),
@@ -183,7 +183,7 @@ class ContentController extends Controller
             // المفتوحة الأقدم أولاً: هي الأقرب إلى تجاوز وعد الرد خلال 72 ساعة.
             // كانت الأحدث أولاً، فيغرق ما يوشك أن يتأخر في آخر القائمة
             ->when($request->boolean('open_only'), fn ($q) => $q->oldest(), fn ($q) => $q->latest())
-            ->paginate($request->integer('per_page', 25));
+            ->paginate($this->perPage($request, 25));
 
         return response()->json([
             'data' => $messages->items(),

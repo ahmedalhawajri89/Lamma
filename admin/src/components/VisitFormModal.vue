@@ -12,6 +12,8 @@ import { useForm } from '@/composables/useForm'
 import BaseIcon from './BaseIcon.vue'
 import FormModal from './FormModal.vue'
 import FormField from './FormField.vue'
+import SearchSelect from './SearchSelect.vue'
+import { searchOrphans } from '@/composables/lookups'
 
 const props = defineProps({
   open: { type: Boolean, default: false },
@@ -69,9 +71,6 @@ const form = useForm(BLANK, ({ visited_at: visitedAt, ...rest }) =>
   }),
 )
 
-const orphanOptions = computed(() =>
-  props.orphans.map((o) => ({ value: o.id, label: `${o.reference_code} · ${o.first_name}` })),
-)
 
 const tomorrow = computed(() => {
   const d = new Date()
@@ -108,9 +107,11 @@ async function save() {
     :busy="form.submitting.value" :dirty="form.dirty.value"
     @close="emit('close')" @submit="save"
   >
-    <FormField
+    <!-- الأطفال النشطون وحدهم: لا زيارة لملف متوفّى أو متخرّج -->
+    <SearchSelect
       v-model="form.values.orphan_id" label="الطفل" required autofocus
-      :options="orphanOptions" placeholder="اختر الطفل"
+      :search="(q) => searchOrphans(q, { status: 'active' })"
+      placeholder="اسم الطفل أو رمزه…"
       :error="form.errors.value.orphan_id" @update:model-value="form.touch('orphan_id')"
     />
 
@@ -161,8 +162,8 @@ async function save() {
       </p>
     </fieldset>
 
-    <template #actions>
-      <button class="btn btn-outline" type="button" :disabled="form.submitting.value" @click="emit('close')">
+    <template #actions="{ close }">
+      <button class="btn btn-outline" type="button" :disabled="form.submitting.value" @click="close">
         إلغاء
       </button>
       <button class="btn btn-primary" type="submit" :disabled="form.submitting.value">

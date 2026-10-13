@@ -42,7 +42,7 @@ class FamilyController extends Controller
             }))
             ->when($request->filled('country_id'), fn ($q) => $q->where('country_id', $request->integer('country_id')))
             ->latest('id')
-            ->paginate($request->integer('per_page', 20));
+            ->paginate($this->perPage($request, 20));
 
         return response()->json([
             'data' => FamilyResource::collection($families->items()),

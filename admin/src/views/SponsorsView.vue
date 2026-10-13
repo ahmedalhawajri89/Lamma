@@ -7,7 +7,7 @@ import FilterBar from '@/components/FilterBar.vue'
 import DataTable from '@/components/DataTable.vue'
 import PaginationBar from '@/components/PaginationBar.vue'
 
-const { items, meta, loading, filters, reset } = useResource(admin.sponsors.list, {
+const { items, meta, loading, filters, reset, error, load } = useResource(admin.sponsors.list, {
   q: '', active_only: false, zakat_only: false,
 })
 
@@ -34,7 +34,7 @@ const columns = [
       </label>
     </FilterBar>
 
-    <DataTable :columns="columns" :rows="items" :loading="loading">
+    <DataTable :error="error" @retry="load" :columns="columns" :rows="items" :loading="loading">
       <template #sponsor_code="{ row }"><span class="num text-xs text-sand-600">{{ row.sponsor_code }}</span></template>
       <template #name="{ row }">
         <span class="font-medium">{{ row.is_anonymous ? 'كافل يفضّل عدم ذكر اسمه' : row.name }}</span>

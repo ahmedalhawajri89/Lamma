@@ -63,7 +63,7 @@ class OrphanController extends Controller
         $orphans = $query
             ->orderBy($sort, $request->string('dir')->toString() === 'asc' ? 'asc' : 'desc')
             ->orderBy('id')
-            ->paginate($request->integer('per_page', 20))
+            ->paginate($this->perPage($request, 20))
             ->withQueryString();
 
         return response()->json([

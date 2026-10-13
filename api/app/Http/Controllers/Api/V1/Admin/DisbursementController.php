@@ -42,7 +42,7 @@ class DisbursementController extends Controller
             ->selectRaw('COALESCE(SUM(CASE WHEN approved_at IS NULL THEN amount_base ELSE 0 END), 0) as pending')
             ->first();
 
-        $items = $query->latest('spent_on')->latest('id')->paginate($request->integer('per_page', 25));
+        $items = $query->latest('spent_on')->latest('id')->paginate($this->perPage($request, 25));
 
         return response()->json([
             'data' => DisbursementResource::collection($items->items()),

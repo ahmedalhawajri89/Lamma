@@ -16,7 +16,7 @@ import SponsorshipFormModal from '@/components/SponsorshipFormModal.vue'
 
 const auth = useAuthStore()
 const ui = useUiStore()
-const { items, meta, loading, filters, reset, load } = useResource(admin.sponsorships.list, {
+const { items, meta, loading, filters, reset, load, error } = useResource(admin.sponsorships.list, {
   q: '', status: '', zakat_only: false, due_soon: false, overdue: false,
 })
 
@@ -97,7 +97,7 @@ async function cancel(row) {
       </label>
     </FilterBar>
 
-    <DataTable :columns="columns" :rows="items" :loading="loading">
+    <DataTable :error="error" @retry="load" :columns="columns" :rows="items" :loading="loading">
       <template #reference_code="{ row }">
         <span class="num text-xs text-sand-600">{{ row.reference_code }}</span>
       </template>
@@ -108,7 +108,7 @@ async function cancel(row) {
       </template>
       <template #sponsor="{ row }">{{ row.sponsor?.name ?? row.sponsor?.sponsor_code ?? EMPTY }}</template>
       <template #monthly_amount="{ row }">
-        <span class="num">{{ money(row.monthly_amount) }}</span>
+        <span class="num">{{ money(row.monthly_amount, row.currency) }}</span>
         <span v-if="row.is_zakat" class="badge bg-teal-600/10 text-teal-700 ms-1">زكاة</span>
       </template>
       <template #next_due_at="{ row }">{{ date(row.next_due_at) }}</template>

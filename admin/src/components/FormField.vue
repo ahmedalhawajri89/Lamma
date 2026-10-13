@@ -55,6 +55,12 @@ const control = computed(() => {
   return 'input'
 })
 
+/**
+ * الأرقام والتواريخ بأرقام لاتينية كبقية اللوحة. المتصفح يرسم أرقام هذه
+ * الحقول بلغة العنصر، والصفحة عربية، فكانت تظهر «٢٠١٢» و«١٣/١٠/٢٠٢٦».
+ */
+const LATIN = ['number', 'date', 'datetime-local', 'time', 'tel', 'email', 'url']
+
 const normalized = computed(() =>
   (props.options ?? []).map((o) => (typeof o === 'object' ? o : { value: o, label: o })),
 )
@@ -120,6 +126,7 @@ function onInput(event) {
 
       <input
         v-else :id="id" class="input" :type="type"
+        :lang="LATIN.includes(type) ? 'en' : undefined"
         :value="modelValue" :disabled="disabled" :required="required" :placeholder="placeholder"
         :min="min" :max="max" :step="step"
         :aria-invalid="message ? 'true' : undefined" :aria-describedby="describedBy"

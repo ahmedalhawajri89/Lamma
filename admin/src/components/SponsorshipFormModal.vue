@@ -90,9 +90,9 @@ async function save() {
 
     <div class="grid sm:grid-cols-2 gap-4">
       <FormField
-        v-model="form.values.monthly_amount" label="المبلغ الشهري ($)" type="number"
+        v-model="form.values.monthly_amount" :label="`المبلغ الشهري (${sponsorship.currency ?? 'USD'})`" type="number"
         :min="5" :step="0.01"
-        :hint="`الحالي ${money(sponsorship.monthly_amount)}`"
+        :hint="`الحالي ${money(sponsorship.monthly_amount, sponsorship.currency)}`"
         :error="form.errors.value.monthly_amount"
         @update:model-value="form.touch('monthly_amount')"
       />

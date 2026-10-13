@@ -25,7 +25,7 @@ class SponsorshipController extends Controller
             ->withCount('payments')
             ->withSum('payments', 'amount_base')
             ->latest('started_at')
-            ->paginate($request->integer('per_page', 15));
+            ->paginate($this->perPage($request, 15));
 
         return response()->json([
             'data' => SponsorshipResource::collection($items->items()),

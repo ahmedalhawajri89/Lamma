@@ -27,7 +27,7 @@ class PaymentController extends Controller
             // يُنزل كل الدفعات الفاشلة إلى القاع لأن paid_at فيها NULL،
             // فتضيع من سياقها الزمني — و COALESCE يبقيها في شهرها.
             ->orderByRaw('COALESCE(paid_at, created_at) DESC')
-            ->paginate($request->integer('per_page', 20));
+            ->paginate($this->perPage($request, 20));
 
         return response()->json([
             'data' => PaymentResource::collection($payments->items()),

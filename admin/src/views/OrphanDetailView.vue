@@ -2,6 +2,7 @@
 import { computed, ref, onMounted, watch } from 'vue'
 import { useRoute, RouterLink } from 'vue-router'
 import { admin } from '@/api/endpoints'
+import { confirmDialog } from '@/composables/useConfirm'
 import { useAuthStore } from '@/stores/auth'
 import { useUiStore } from '@/stores/ui'
 import { money, date, dateTime, years, EMPTY } from '@/utils/format'
@@ -40,7 +41,27 @@ async function load() {
  * الخادم قد يغيّر أكثر مما نتوقع (التوثيق يرفع الحالة من «بانتظار التحقق»
  * إلى «نشط»)، وتخمين ذلك في الواجهة يخلق اختلافاً صامتاً.
  */
-async function act(fn, successMessage) {
+/**
+ * إجراءات لها أثر خارج اللوحة تُؤكَّد بما ستفعله: التوثيق لا يُتراجع عنه،
+ * والإخفاء يُزيل الطفل من أمام كفلاء ربما يتصفّحونه الآن.
+ */
+const CONFIRM = {
+  verify: {
+    title: 'توثيق الملف',
+    message: 'التوثيق يشهد بأن المستندات طوبقت مع الملف. لا يُتراجع عنه، ويجعل الملف قابلاً للنشر والكفالة.',
+    confirmLabel: 'وثّق الملف',
+  },
+  unpublish: {
+    title: 'إخفاء الملف عن الموقع',
+    message: 'يختفي الطفل من الموقع العام فوراً، ولا يستطيع كافل جديد أن يجده. الكفالات القائمة لا تتأثر.',
+    confirmLabel: 'أخفِ الملف',
+    danger: true,
+  },
+}
+
+async function act(fn, successMessage, confirmKey = null) {
+  if (confirmKey && !(await confirmDialog(CONFIRM[confirmKey]))) return
+
   busy.value = true
   try {
     await fn(route.params.id)
@@ -72,18 +93,13 @@ const documentsReady = computed(() =>
 
 const formOpen = ref(false)
 const references = ref({})
-const families = ref([])
 
 async function loadReferences() {
   if (!auth.can('orphans.update')) return
 
   try {
-    const [refs, fams] = await Promise.all([
-      admin.references(),
-      admin.families.list({ per_page: 200 }),
-    ])
-    references.value = refs.data.data ?? {}
-    families.value = fams.data.data ?? []
+    const { data } = await admin.references()
+    references.value = data.data ?? {}
   } catch {
     // فشل القوائم لا يمنع عرض الملف — نافذة التحرير وحدها تتعطّل
   }
@@ -135,7 +151,7 @@ watch(() => route.params.id, (id, previous) => {
           v-if="!orphan.verified_at && auth.can('orphans.verify')"
           class="btn btn-outline" type="button" :disabled="busy || !documentsReady"
           :title="documentsReady ? 'توثيق الملف' : 'المستندات الثلاثة يجب أن تكون مرفوعة ومُتحقَّقاً منها'"
-          @click="act(admin.orphans.verify, 'وُثّق الملف.')"
+          @click="act(admin.orphans.verify, 'وُثّق الملف.', 'verify')"
         >
           <BaseIcon name="shield" :size="16" /> توثيق الملف
         </button>
@@ -151,7 +167,7 @@ watch(() => route.params.id, (id, previous) => {
         <button
           v-if="orphan.published_at && auth.can('orphans.publish')"
           class="btn btn-outline" type="button" :disabled="busy"
-          @click="act(admin.orphans.unpublish, 'أُخفي الملف عن الموقع.')"
+          @click="act(admin.orphans.unpublish, 'أُخفي الملف عن الموقع.', 'unpublish')"
         >
           إخفاء عن الموقع
         </button>
@@ -289,7 +305,7 @@ watch(() => route.params.id, (id, previous) => {
     </div>
 
     <OrphanFormModal
-      :open="formOpen" :orphan="orphan" :references="references" :families="families"
+      :open="formOpen" :orphan="orphan" :references="references"
       @close="formOpen = false" @saved="onSaved"
     />
   </div>

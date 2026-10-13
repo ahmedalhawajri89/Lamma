@@ -33,7 +33,7 @@ class MessageController extends Controller
             ->when($request->filled('status'), fn ($q) => $q->where('status', $request->string('status')))
             ->when($request->boolean('queue'), fn ($q) => $q->awaitingReview())
             ->latest('created_at')
-            ->paginate($request->integer('per_page', 25));
+            ->paginate($this->perPage($request, 25));
 
         return response()->json([
             'data' => MessageResource::collection($messages->items()),

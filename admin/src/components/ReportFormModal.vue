@@ -15,6 +15,8 @@ import { useForm } from '@/composables/useForm'
 import BaseIcon from './BaseIcon.vue'
 import FormModal from './FormModal.vue'
 import FormField from './FormField.vue'
+import SearchSelect from './SearchSelect.vue'
+import { searchOrphans } from '@/composables/lookups'
 
 const props = defineProps({
   open: { type: Boolean, default: false },
@@ -62,9 +64,6 @@ const form = useForm(BLANK, (values) => (props.report
 
 const editing = computed(() => props.report !== null)
 
-const orphanOptions = computed(() =>
-  props.orphans.map((o) => ({ value: o.id, label: `${o.reference_code} · ${o.first_name}` })),
-)
 
 const quarters = [
   { value: 1, label: 'الربع الأول (من يناير إلى مارس)' },
@@ -108,10 +107,10 @@ async function save() {
       <p class="text-sm text-sand-800 mt-1 leading-relaxed whitespace-pre-line">{{ report.review_note }}</p>
     </div>
 
-    <FormField
+    <SearchSelect
       v-if="!editing"
       v-model="form.values.orphan_id" label="الطفل" required autofocus
-      :options="orphanOptions" placeholder="اختر الطفل"
+      :search="searchOrphans" placeholder="اسم الطفل أو رمزه…"
       :error="form.errors.value.orphan_id" @update:model-value="form.touch('orphan_id')"
     />
 
@@ -163,8 +162,8 @@ async function save() {
       />
     </div>
 
-    <template #actions>
-      <button class="btn btn-outline" type="button" :disabled="form.submitting.value" @click="emit('close')">
+    <template #actions="{ close }">
+      <button class="btn btn-outline" type="button" :disabled="form.submitting.value" @click="close">
         إلغاء
       </button>
       <button class="btn btn-primary" type="submit" :disabled="form.submitting.value">

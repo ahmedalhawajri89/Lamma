@@ -96,7 +96,6 @@ watch(
         email: u.email ?? '',
         phone: u.phone ?? '',
         role: u.roles?.[0] ?? '',
-        title: u.title ?? '',
         // من ملف الموظف: كان يُقرأ من حقل لا يرسله الخادم، فيُرسَل فارغاً
         // مع كل تعديل ويُمسح بلد المشرف
         assigned_country_id: u.staff_profile?.assigned_country_id ?? '',

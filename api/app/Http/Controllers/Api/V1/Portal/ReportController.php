@@ -24,7 +24,7 @@ class ReportController extends Controller
             ->with(['orphan:id,reference_code,first_name,photo_path', 'media'])
             ->withCount(['views' => fn ($q) => $q->where('sponsor_id', $sponsor->id)])
             ->latest('published_at')
-            ->paginate($request->integer('per_page', 12));
+            ->paginate($this->perPage($request, 12));
 
         return response()->json([
             'data' => ReportResource::collection($reports->items()),

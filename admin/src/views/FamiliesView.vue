@@ -13,7 +13,7 @@ import FamilyFormModal from '@/components/FamilyFormModal.vue'
 
 const auth = useAuthStore()
 
-const { items, meta, loading, filters, reset, load } = useResource(admin.families.list, { q: '' })
+const { items, meta, loading, filters, reset, load, error } = useResource(admin.families.list, { q: '' })
 
 const columns = [
   { key: 'family_code', label: 'الرمز' },
@@ -81,7 +81,7 @@ onMounted(loadReferences)
 
     <FilterBar v-model:search="filters.q" search-placeholder="رمز الأسرة أو اسم الوصي…" @reset="reset" />
 
-    <DataTable
+    <DataTable :error="error" @retry="load"
       :columns="columns" :rows="items" :loading="loading"
       :clickable="auth.can('families.manage')"
       @row-click="edit"

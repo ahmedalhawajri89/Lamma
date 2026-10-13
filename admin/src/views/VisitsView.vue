@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { ref } from 'vue'
 import { admin } from '@/api/endpoints'
 import { useResource } from '@/composables/useResource'
 import { useAuthStore } from '@/stores/auth'
@@ -13,7 +13,7 @@ import VisitFormModal from '@/components/VisitFormModal.vue'
 
 const auth = useAuthStore()
 
-const { items, meta, loading, filters, reset, load } = useResource(admin.visits.list, { overdue: false })
+const { items, meta, loading, filters, reset, load, error } = useResource(admin.visits.list, { overdue: false })
 
 const columns = [
   { key: 'visited_at', label: 'تاريخ الزيارة' },
@@ -24,25 +24,12 @@ const columns = [
 ]
 
 const formOpen = ref(false)
-const orphans = ref([])
-
-async function loadOrphans() {
-  if (!auth.can('visits.record')) return
-
-  try {
-    const { data } = await admin.orphans.list({ per_page: 200, sort: 'first_name', dir: 'asc' })
-    orphans.value = data.data ?? []
-  } catch {
-    // فشل القائمة لا يمنع تصفّح الجدول — النافذة وحدها تتعطّل
-  }
-}
 
 function onSaved() {
   formOpen.value = false
   load()
 }
 
-onMounted(loadOrphans)
 </script>
 
 <template>
@@ -65,7 +52,7 @@ onMounted(loadOrphans)
       </label>
     </FilterBar>
 
-    <DataTable :columns="columns" :rows="items" :loading="loading">
+    <DataTable :error="error" @retry="load" :columns="columns" :rows="items" :loading="loading">
       <template #visited_at="{ row }">{{ dateTime(row.visited_at) }}</template>
       <template #orphan="{ row }">
         <RouterLink :to="`/orphans/${row.orphan?.id}`" class="text-clay-700 hover:underline">
@@ -84,7 +71,7 @@ onMounted(loadOrphans)
     <PaginationBar v-model="filters.page" :meta="meta" />
 
     <VisitFormModal
-      :open="formOpen" :orphans="orphans"
+      :open="formOpen"
       @close="formOpen = false" @saved="onSaved"
     />
   </div>

@@ -46,11 +46,12 @@ class SponsorshipController extends Controller
             ->when($request->filled('program_id'), fn ($q) => $q->where('program_id', $request->integer('program_id')))
             ->when($request->boolean('zakat_only'), fn ($q) => $q->where('is_zakat', true))
             ->when($request->boolean('due_soon'), fn ($q) => $q->active()
-                ->whereBetween('next_due_at', [now()->toDateString(), now()->addDays(7)->toDateString()]))
+                // «اليوم» يوم المنظمة لا يوم UTC: بين منتصف الليل والثالثة فجراً كان يُحسب أمس
+                ->whereBetween('next_due_at', [now(config('kafala.display_timezone'))->toDateString(), now(config('kafala.display_timezone'))->addDays(7)->toDateString()]))
             // المتأخرة: موعد قسطها مضى وهي ما زالت حيّة. هي ما يحتاج متابعة،
             // و«تستحق خلال أسبوع» لا تشملها
             ->when($request->boolean('overdue'), fn ($q) => $q->whereIn('status', [SponsorshipStatus::Active, SponsorshipStatus::Pending])
-                ->whereDate('next_due_at', '<', now()->toDateString()))
+                ->whereDate('next_due_at', '<', now(config('kafala.display_timezone'))->toDateString()))
             ->when($request->filled('q'), function ($q) use ($request, $user): void {
                 $term = addcslashes($request->string('q')->toString(), '%_\\');
                 $q->where(function ($w) use ($term, $user): void {
@@ -62,7 +63,7 @@ class SponsorshipController extends Controller
                 });
             })
             ->latest('id')
-            ->paginate($request->integer('per_page', 20));
+            ->paginate($this->perPage($request, 20));
 
         return response()->json([
             'data' => SponsorshipResource::collection($items->items()),

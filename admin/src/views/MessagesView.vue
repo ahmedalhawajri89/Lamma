@@ -14,7 +14,7 @@ import StatusBadge from '@/components/StatusBadge.vue'
 
 const ui = useUiStore()
 const queue = useQueueStore()
-const { items, meta, loading, filters, reset, load } = useResource(admin.messages.list, {
+const { items, meta, loading, error, filters, reset, load } = useResource(admin.messages.list, {
   status: '', queue: true,
 })
 
@@ -74,6 +74,12 @@ async function review(row, decision) {
 
     <div v-if="loading" class="space-y-2">
       <div v-for="n in 4" :key="n" class="card h-24 animate-pulse bg-sand-100" />
+    </div>
+
+    <div v-else-if="error" class="card p-8 text-center" role="alert">
+      <p class="font-medium text-sand-900">تعذّر تحميل البيانات</p>
+      <p class="text-sm text-sand-500 mt-1">{{ error }}</p>
+      <button class="btn btn-outline mt-4" type="button" @click="load">إعادة المحاولة</button>
     </div>
 
     <ul v-else-if="items.length" class="card divide-y divide-sand-100">

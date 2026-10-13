@@ -17,7 +17,7 @@ import OrphanFormModal from '@/components/OrphanFormModal.vue'
 const router = useRouter()
 const auth = useAuthStore()
 
-const { items, meta, loading, filters, reset, load } = useResource(admin.orphans.list, {
+const { items, meta, loading, filters, reset, load, error } = useResource(admin.orphans.list, {
   q: '', status: '', urgent: false, unfunded: false, unverified: false, sort: 'created_at', dir: 'desc',
 })
 
@@ -36,24 +36,17 @@ const columns = [
 
 const formOpen = ref(false)
 const references = ref({})
-const families = ref([])
 
 /**
  * القوائم المرجعية تُجلب مرة عند فتح الشاشة لا عند كل فتح للنافذة.
- *
- * البرامج والأسر لا تتغيّر بين نقرتين، وإعادة جلبها في كل مرة تُبطئ فتح
- * النافذة بلا أن تعطي المستخدم شيئاً.
+ * والأسرة يُبحث عنها في النافذة نفسها (SearchSelect)، لا تُحمَّل كلها هنا.
  */
 async function loadReferences() {
   if (!auth.can('orphans.create')) return
 
   try {
-    const [refs, fams] = await Promise.all([
-      admin.references(),
-      admin.families.list({ per_page: 200 }),
-    ])
-    references.value = refs.data.data ?? {}
-    families.value = fams.data.data ?? []
+    const { data } = await admin.references()
+    references.value = data.data ?? {}
   } catch {
     // الصمت مقصود: فشل القوائم لا يمنع تصفّح الجدول، والنافذة وحدها تتعطّل
   }
@@ -103,7 +96,7 @@ onMounted(loadReferences)
       </label>
     </FilterBar>
 
-    <DataTable
+    <DataTable :error="error" @retry="load"
       :columns="columns" :rows="items" :loading="loading"
       clickable @row-click="(r) => router.push(`/orphans/${r.id}`)"
     >
@@ -136,7 +129,7 @@ onMounted(loadReferences)
     <PaginationBar v-model="filters.page" :meta="meta" />
 
     <OrphanFormModal
-      :open="formOpen" :references="references" :families="families"
+      :open="formOpen" :references="references"
       @close="formOpen = false" @saved="onSaved"
     />
   </div>

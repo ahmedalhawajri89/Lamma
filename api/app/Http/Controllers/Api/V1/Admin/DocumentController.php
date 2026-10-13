@@ -55,7 +55,7 @@ class DocumentController extends Controller
             ))
             ->with(['orphan:id,reference_code,first_name,photo_path,status', 'uploader:id,name'])
             ->oldest()
-            ->paginate($request->integer('per_page', 20));
+            ->paginate($this->perPage($request, 20));
 
         return response()->json([
             'data' => collect($documents->items())->map(fn (OrphanDocument $d) => [

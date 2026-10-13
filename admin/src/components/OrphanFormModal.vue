@@ -14,6 +14,8 @@ import { admin } from '@/api/endpoints'
 import { useForm } from '@/composables/useForm'
 import FormModal from './FormModal.vue'
 import FormField from './FormField.vue'
+import SearchSelect from './SearchSelect.vue'
+import { searchFamilies, familyLabel } from '@/composables/lookups'
 
 const props = defineProps({
   open: { type: Boolean, default: false },
@@ -76,14 +78,6 @@ const dobRange = computed(() => {
   return { min: iso(floor), max: iso(new Date(today.getTime() - 86400000)) }
 })
 
-const familyOptions = computed(() =>
-  props.families.map((f) => ({
-    value: f.id,
-    // `guardian.full_name` هو ما يرسله الخادم؛ كانت تُقرأ أسماء حقول غير
-    // موجودة فتظهر كل الأسر «بلا وصيّ» ولا يُفرَّق بينها
-    label: `${f.family_code} · ${f.guardian?.full_name ?? 'بلا وصيّ'}`,
-  })),
-)
 
 const programOptions = computed(() =>
   (props.references.programs ?? []).map((p) => ({ value: p.id, label: `${p.name} · $${p.price}` })),
@@ -192,9 +186,10 @@ async function save() {
         :error="form.errors.value.date_of_birth" @update:model-value="form.touch('date_of_birth')"
       />
 
-      <FormField
+      <SearchSelect
         v-model="form.values.family_id" label="الأسرة" required
-        :options="familyOptions" placeholder="اختر الأسرة"
+        :search="searchFamilies" :initial-label="familyLabel(orphan?.family)"
+        placeholder="رمز الأسرة أو اسم الوصيّ…"
         hint="لا يُنشأ يتيم بلا أسرة، فالوصيّ والعنوان يأتيان منها."
         :error="form.errors.value.family_id" @update:model-value="form.touch('family_id')"
       />

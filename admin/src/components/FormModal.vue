@@ -13,7 +13,7 @@
  *  4. **تأكيد الإغلاق إن كان النموذج معدَّلاً** — نقرة على الخلفية لا تبتلع
  *     نصف ساعة من الإدخال.
  */
-import { nextTick, onBeforeUnmount, ref, watch } from 'vue'
+import { nextTick, onBeforeUnmount, ref, useId, watch } from 'vue'
 import BaseIcon from './BaseIcon.vue'
 
 const props = defineProps({
@@ -28,6 +28,10 @@ const props = defineProps({
 const emit = defineEmits(['close', 'submit'])
 
 const panel = ref(null)
+
+// معرّف ثابت للعنوان: كان يُبنى من العنوان نفسه، والعناوين فيها مسافات،
+// و`aria-labelledby` قائمة معرّفات مفصولة بالمسافات، فلا تُسمّى النافذة
+const titleId = useId()
 let opener = null
 
 const FOCUSABLE =
@@ -116,11 +120,11 @@ onBeforeUnmount(() => {
           :class="wide ? 'max-w-3xl' : 'max-w-xl'"
           role="dialog"
           aria-modal="true"
-          :aria-labelledby="`modal-title-${title}`"
+          :aria-labelledby="titleId"
         >
           <header class="flex items-start gap-3 p-5 border-b border-sand-100">
             <div class="flex-1 min-w-0">
-              <h2 :id="`modal-title-${title}`" class="font-semibold">{{ title }}</h2>
+              <h2 :id="titleId" class="font-semibold">{{ title }}</h2>
               <p v-if="subtitle" class="text-sm text-sand-500 mt-0.5">{{ subtitle }}</p>
             </div>
 
@@ -139,7 +143,8 @@ onBeforeUnmount(() => {
             </div>
 
             <footer class="flex items-center justify-end gap-2 p-5 pt-0">
-              <slot name="actions">
+              <!-- `close` يمرّ بفحص التعديلات غير المحفوظة؛ زرّ إلغاء يُطلق `close` مباشرة يتجاوزه -->
+              <slot name="actions" :close="attemptClose">
                 <button class="btn btn-outline" type="button" :disabled="busy" @click="attemptClose">
                   إلغاء
                 </button>

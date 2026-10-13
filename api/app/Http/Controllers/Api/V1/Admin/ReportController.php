@@ -38,7 +38,7 @@ class ReportController extends Controller
                 ->when(! $user->can('reports.approve'), fn ($q) => $q->where('supervisor_id', $user->id)))
             ->latest('period_year')
             ->latest('period_quarter')
-            ->paginate($request->integer('per_page', 20));
+            ->paginate($this->perPage($request, 20));
 
         return response()->json([
             'data' => ReportResource::collection($reports->items()),

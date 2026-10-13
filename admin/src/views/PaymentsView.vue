@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { ref } from 'vue'
 import { confirmDialog } from '@/composables/useConfirm'
 import { admin } from '@/api/endpoints'
 import { useResource } from '@/composables/useResource'
@@ -17,7 +17,7 @@ import PaymentFormModal from '@/components/PaymentFormModal.vue'
 const auth = useAuthStore()
 const ui = useUiStore()
 
-const { items, meta, loading, filters, reset, load } = useResource(admin.payments.list, {
+const { items, meta, loading, filters, reset, load, error } = useResource(admin.payments.list, {
   q: '', status: '', method: '', from: '', to: '',
 })
 
@@ -32,22 +32,7 @@ const columns = [
 ]
 
 const formOpen = ref(false)
-const sponsorships = ref([])
 const busyId = ref(null)
-
-async function loadSponsorships() {
-  if (!auth.can('payments.record')) return
-
-  try {
-    // الحيّة كلها لا النشطة وحدها: كافل جديد يدفع بتحويل كفالته «بانتظار الدفع»،
-    // وكان لا يظهر هنا فيُلغى حجزه بعد أيام السماح وماله وصل
-    const { data } = await admin.sponsorships.list({ per_page: 200, live: 1 })
-    sponsorships.value = data.data ?? []
-  } catch {
-    // فشل القائمة لا يمنع تصفّح الجدول — النافذة وحدها تتعطّل
-  }
-}
-
 function onSaved() {
   formOpen.value = false
   load()
@@ -83,7 +68,6 @@ async function refund(row) {
   }
 }
 
-onMounted(loadSponsorships)
 </script>
 
 <template>
@@ -118,13 +102,13 @@ onMounted(loadSponsorships)
       <input v-model="filters.to" type="date" class="input !w-auto text-sm" aria-label="إلى تاريخ" />
     </FilterBar>
 
-    <DataTable :columns="columns" :rows="items" :loading="loading">
+    <DataTable :error="error" @retry="load" :columns="columns" :rows="items" :loading="loading">
       <template #reference_code="{ row }">
         <span class="num text-xs text-sand-600">{{ row.reference_code }}</span>
       </template>
       <template #sponsor="{ row }">{{ row.sponsor?.name ?? EMPTY }}</template>
       <template #orphan="{ row }">{{ row.sponsorship?.orphan?.name ?? EMPTY }}</template>
-      <template #amount="{ row }"><span class="num font-medium">{{ money(row.amount) }}</span></template>
+      <template #amount="{ row }"><span class="num font-medium">{{ money(row.amount, row.currency) }}</span></template>
       <template #method="{ row }">
         {{ row.method_label }}
         <span v-if="row.card" class="text-xs text-sand-500 num">{{ row.card }}</span>
@@ -150,7 +134,7 @@ onMounted(loadSponsorships)
     <PaginationBar v-model="filters.page" :meta="meta" />
 
     <PaymentFormModal
-      :open="formOpen" :sponsorships="sponsorships"
+      :open="formOpen"
       @close="formOpen = false" @saved="onSaved"
     />
   </div>

@@ -9,13 +9,15 @@
  * ورقم الحوالة ليس حقلاً وصفياً: منه يُشتقّ `idempotency_key`، فتسجيل
  * الحوالة نفسها مرتين يُعيد الدفعة الأولى ولا يخصم ثانيةً. ولهذا هو مطلوب.
  */
-import { computed, ref, watch } from 'vue'
+import { ref, watch } from 'vue'
 import { admin } from '@/api/endpoints'
 import { useForm } from '@/composables/useForm'
-import { money, EMPTY } from '@/utils/format'
+import { money } from '@/utils/format'
 import BaseIcon from './BaseIcon.vue'
 import FormModal from './FormModal.vue'
 import FormField from './FormField.vue'
+import SearchSelect from './SearchSelect.vue'
+import { searchLiveSponsorships } from '@/composables/lookups'
 
 const props = defineProps({
   open: { type: Boolean, default: false },
@@ -36,23 +38,15 @@ const BLANK = {
 
 const form = useForm(BLANK, (values) => admin.payments.record(values))
 
-const sponsorshipOptions = computed(() =>
-  props.sponsorships.map((s) => ({
-    value: s.id,
-    label: `${s.reference_code} · ${s.sponsor?.name ?? s.sponsor?.sponsor_code ?? EMPTY} ← ${s.orphan?.name ?? s.orphan?.reference_code ?? EMPTY}${s.status === 'pending' ? ' (بانتظار أول دفعة)' : s.status === 'paused' ? ' (موقوفة)' : ''}`,
-  })),
-)
 
-const chosen = computed(() =>
-  props.sponsorships.find((s) => s.id === Number(form.values.sponsorship_id)),
-)
+// الكفالة المختارة كما وصلت من البحث: منها مبلغ القسط في التلميح
+const chosen = ref(null)
 
 const methods = [
   { value: 'bank_transfer', label: 'تحويل بنكي' },
   { value: 'cash', label: 'نقد' },
 ]
 
-const searchRef = ref(null)
 
 // اليوم بالتاريخ المحلي لا UTC: بعد منتصف الليل محلياً كان يظهر أمس
 const now = new Date()
@@ -61,7 +55,10 @@ const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0'
 watch(
   () => props.open,
   (isOpen) => {
-    if (isOpen) form.setValues(BLANK)
+    if (isOpen) {
+      form.setValues(BLANK)
+      chosen.value = null
+    }
   },
   { immediate: true },
 )
@@ -79,11 +76,12 @@ async function save() {
     :busy="form.submitting.value" :dirty="form.dirty.value"
     @close="emit('close')" @submit="save"
   >
-    <FormField
-      ref="searchRef"
+    <SearchSelect
       v-model="form.values.sponsorship_id" label="الكفالة" required autofocus
-      :options="sponsorshipOptions" placeholder="اختر الكفالة"
-      :error="form.errors.value.sponsorship_id" @update:model-value="form.touch('sponsorship_id')"
+      :search="searchLiveSponsorships" placeholder="مرجع الكفالة، أو اسم الطفل أو الكافل…"
+      hint="الحيّة كلها، ومنها ما ينتظر أول دفعة."
+      :error="form.errors.value.sponsorship_id"
+      @update:model-value="form.touch('sponsorship_id')" @picked="chosen = $event.sponsorship"
     />
 
     <div class="grid sm:grid-cols-2 gap-4">
@@ -114,8 +112,8 @@ async function save() {
       />
     </div>
 
-    <template #actions>
-      <button class="btn btn-outline" type="button" :disabled="form.submitting.value" @click="emit('close')">
+    <template #actions="{ close }">
+      <button class="btn btn-outline" type="button" :disabled="form.submitting.value" @click="close">
         إلغاء
       </button>
       <button class="btn btn-primary" type="submit" :disabled="form.submitting.value">

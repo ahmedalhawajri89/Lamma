@@ -23,7 +23,7 @@ import BaseIcon from '@/components/BaseIcon.vue'
 const ui = useUiStore()
 const queue = useQueueStore()
 const auth = useAuthStore()
-const { items, meta, loading, filters, load } = useResource(admin.documents.queue, {})
+const { items, meta, loading, error, filters, load } = useResource(admin.documents.queue, {})
 
 const busyId = ref(null)
 
@@ -64,6 +64,12 @@ async function verify(doc) {
 
     <div v-if="loading" class="card divide-y divide-sand-100">
       <div v-for="n in 4" :key="n" class="h-[4.5rem] animate-pulse bg-sand-50" />
+    </div>
+
+    <div v-else-if="error" class="card p-8 text-center" role="alert">
+      <p class="font-medium text-sand-900">تعذّر تحميل البيانات</p>
+      <p class="text-sm text-sand-500 mt-1">{{ error }}</p>
+      <button class="btn btn-outline mt-4" type="button" @click="load">إعادة المحاولة</button>
     </div>
 
     <ul v-else-if="items.length" class="card divide-y divide-sand-100" aria-label="مستندات بانتظار التحقق">

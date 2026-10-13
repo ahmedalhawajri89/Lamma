@@ -32,7 +32,7 @@ class SponsorController extends Controller
             ->when($request->boolean('active_only'), fn ($q) => $q->active())
             ->when($request->boolean('zakat_only'), fn ($q) => $q->where('prefers_zakat', true))
             ->latest('id')
-            ->paginate($request->integer('per_page', 20));
+            ->paginate($this->perPage($request, 20));
 
         return response()->json([
             'data' => SponsorResource::collection($sponsors->items()),

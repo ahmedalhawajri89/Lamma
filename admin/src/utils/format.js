@@ -16,7 +16,15 @@ const dtf = new Intl.DateTimeFormat('ar-u-nu-latn', {
 })
 
 export const num = (v) => (v === null || v === undefined ? EMPTY : nf.format(v))
-export const money = (v, c = '$') => (v === null || v === undefined ? EMPTY : `${c}${cf.format(v)}`)
+/**
+ * المبلغ بعملته الحقيقية. كانت كل المبالغ تُعرض بعلامة الدولار وإن كانت
+ * بالشيكل أو الدينار؛ والدولار وحده برمزه، وغيره برمز ISO بعد الرقم.
+ */
+export const money = (v, currency = 'USD') => {
+  if (v === null || v === undefined || v === '') return EMPTY
+  const n = cf.format(Number(v))
+  return !currency || currency === 'USD' ? `$${n}` : `${n} ${currency}`
+}
 
 export const date = (v) => (v ? df.format(new Date(v)) : EMPTY)
 export const dateTime = (v) => (v ? dtf.format(new Date(v)) : EMPTY)
