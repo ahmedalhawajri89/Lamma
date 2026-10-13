@@ -1,5 +1,6 @@
 <script setup>
 import { onMounted, ref } from 'vue'
+import { useUiStore } from '@/stores/ui'
 import { admin } from '@/api/endpoints'
 import { useResource } from '@/composables/useResource'
 import { useAuthStore } from '@/stores/auth'
@@ -14,6 +15,10 @@ import BaseIcon from '@/components/BaseIcon.vue'
 import UserFormModal from '@/components/UserFormModal.vue'
 
 const auth = useAuthStore()
+const ui = useUiStore()
+
+const STAFF_ROLES = ['admin', 'accountant', 'field_supervisor']
+const isStaffRow = (row) => row.roles?.some((r) => STAFF_ROLES.includes(r))
 
 const { items, meta, loading, filters, reset, load } = useResource(admin.users.list, {
   q: '', role: '', staff_only: true,
@@ -31,8 +36,10 @@ const formOpen = ref(false)
 const editing = ref(null)
 const countries = ref([])
 
-/** اسم البلد المُسنَد من قائمة البلدان؛ المشرف بلا بلد يرى كل الدول. */
-const countryName = (id) => countries.value.find((c) => c.id === id)?.name ?? `بلد رقم ${id}`
+const countryName = (row) =>
+  row.staff_profile?.assigned_country_name
+  ?? countries.value.find((c) => c.id === row.staff_profile?.assigned_country_id)?.name
+  ?? EMPTY
 
 async function loadCountries() {
   if (!auth.can('users.manage')) return
@@ -51,9 +58,24 @@ function create() {
 }
 
 function edit(user) {
-  if (!auth.can('users.manage')) return
+  // حسابات الكفلاء تُدار من بوابتهم، لا من شاشة فريق العمل
+  if (!auth.can('users.manage') || !isStaffRow(user)) return
   editing.value = user
   formOpen.value = true
+}
+
+const inviting = ref(null)
+
+async function resendInvite(row) {
+  inviting.value = row.id
+  try {
+    const { data } = await admin.users.invite(row.id)
+    ui.success(data.message)
+  } catch (e) {
+    ui.error(e.userMessage)
+  } finally {
+    inviting.value = null
+  }
 }
 
 function onSaved() {
@@ -118,11 +140,24 @@ const roleLabels = {
       </template>
       <template #country="{ row }">
         <span v-if="!row.staff_profile" class="text-sand-400">{{ EMPTY }}</span>
-        <span v-else-if="row.staff_profile.assigned_country_id">{{ countryName(row.staff_profile.assigned_country_id) }}</span>
+        <span v-else-if="row.roles?.includes('admin')" class="text-sand-500">كل الدول</span>
+        <span v-else-if="row.staff_profile.assigned_country_id">{{ countryName(row) }}</span>
+        <span v-else-if="row.roles?.includes('field_supervisor')" class="text-rose-700">بلا بلد، لا يرى شيئاً</span>
         <span v-else class="text-sand-500">كل الدول</span>
       </template>
       <template #last_login_at="{ row }">{{ relative(row.last_login_at) }}</template>
-      <template #status="{ row }"><StatusBadge :label="row.status_label" :value="row.status" /></template>
+      <template #status="{ row }">
+        <span class="inline-flex items-center gap-2">
+          <StatusBadge :label="row.status_label" :value="row.status" />
+          <button
+            v-if="row.status === 'pending' && isStaffRow(row) && auth.can('users.manage')"
+            class="text-xs text-clay-700 hover:underline disabled:opacity-50" type="button"
+            :disabled="inviting === row.id" @click.stop="resendInvite(row)"
+          >
+            إعادة إرسال الدعوة
+          </button>
+        </span>
+      </template>
     </DataTable>
 
     <PaginationBar v-model="filters.page" :meta="meta" />

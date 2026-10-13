@@ -96,7 +96,7 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
             Route::post('reset-password', [PasswordResetController::class, 'reset'])->name('password.update');
         });
 
-        Route::middleware('auth:sanctum')->group(function (): void {
+        Route::middleware(['auth:sanctum', 'active'])->group(function (): void {
             Route::get('me', [AuthController::class, 'me'])->name('me');
             Route::post('logout', [AuthController::class, 'logout'])->name('logout');
         });
@@ -108,7 +108,7 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
     // لوحة الكافل للكفلاء وحدهم: حساب فريق العمل يُرفض هنا برد 403 واحد،
     // لا بتحقق كل متحكم على حدة
     Route::prefix('portal')->name('portal.')
-        ->middleware(['auth:sanctum', 'role:sponsor'])
+        ->middleware(['auth:sanctum', 'active', 'role:sponsor'])
         ->group(function (): void {
 
             Route::get('overview', Portal\OverviewController::class)->name('overview');
@@ -137,7 +137,7 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
        ٤. لوحة الإدارة
        ================================================================== */
     Route::prefix('admin')->name('admin.')
-        ->middleware(['auth:sanctum', 'role:admin|accountant|field_supervisor'])
+        ->middleware(['auth:sanctum', 'active', 'role:admin|accountant|field_supervisor'])
         ->group(function (): void {
 
             Route::get('dashboard', Admin\DashboardController::class)->name('dashboard');
@@ -150,6 +150,7 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
             Route::match(['put', 'patch'], 'orphans/{orphan}', [Admin\OrphanController::class, 'update'])->name('orphans.update');
             Route::delete('orphans/{orphan}', [Admin\OrphanController::class, 'destroy'])->name('orphans.destroy');
             Route::post('orphans/{orphan}/verify', [Admin\OrphanController::class, 'verify'])->name('orphans.verify');
+            Route::post('orphans/{orphan}/status', [Admin\OrphanController::class, 'changeStatus'])->name('orphans.status');
             Route::post('orphans/{orphan}/publish', [Admin\OrphanController::class, 'publish'])->name('orphans.publish');
             Route::post('orphans/{orphan}/unpublish', [Admin\OrphanController::class, 'unpublish'])->name('orphans.unpublish');
 
@@ -238,6 +239,7 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
             Route::get('users', [Admin\UserController::class, 'index'])->name('users.index');
             Route::post('users', [Admin\UserController::class, 'store'])->name('users.store');
             Route::match(['put', 'patch'], 'users/{user}', [Admin\UserController::class, 'update'])->name('users.update');
+            Route::post('users/{user}/invite', [Admin\UserController::class, 'invite'])->name('users.invite');
             Route::get('roles', [Admin\UserController::class, 'roles'])->name('roles');
 
             Route::get('activity', [Admin\ActivityController::class, 'index'])->name('activity.index');

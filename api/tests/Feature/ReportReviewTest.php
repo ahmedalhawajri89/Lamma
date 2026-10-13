@@ -98,7 +98,7 @@ it('لا تصل ملاحظة المراجعة إلى بوابة الكافل', f
     expect($data)->not->toHaveKey('review_note');
 });
 
-it('طابور المستندات يعرض غير المُتحقَّق منها، مقيّداً ببلد المشرف', function () {
+it('طابور المستندات لمن يوثّق: يعرض غير المُتحقَّق منها، والمشرف لا يدخله', function () {
     $supervisor = User::factory()->supervisor(Country::where('iso2', 'PS')->value('id'))->create();
 
     $doc = fn (Orphan $o, bool $verified = false) => OrphanDocument::create([
@@ -107,14 +107,12 @@ it('طابور المستندات يعرض غير المُتحقَّق منها�
         'verified_at' => $verified ? now() : null,
     ]);
 
-    $mine = $doc(orphanIn('PS'));
+    $doc(orphanIn('PS'));
     $doc(orphanIn('PS'), verified: true);
     $foreign = $doc(orphanIn('YE'));
 
-    $ids = collect($this->actingAs($supervisor)->getJson('/api/v1/admin/documents')->assertOk()->json('data'))->pluck('id');
-    expect($ids->all())->toBe([$mine->id]);
-
-    // ولا يتحقق من مستند في بلد آخر
+    // التحقق جزء من التوثيق، والمشرف يرفع ولا يوثّق
+    $this->actingAs($supervisor)->getJson('/api/v1/admin/documents')->assertForbidden();
     $this->actingAs($supervisor)->postJson("/api/v1/admin/documents/{$foreign->id}/verify")->assertForbidden();
 
     // والمدير يراها كلها، ومعها مهمة في «بانتظارك»

@@ -79,7 +79,9 @@ const dobRange = computed(() => {
 const familyOptions = computed(() =>
   props.families.map((f) => ({
     value: f.id,
-    label: `${f.family_code} · ${f.guardian_name ?? f.guardian?.name ?? 'بلا وصيّ'}`,
+    // `guardian.full_name` هو ما يرسله الخادم؛ كانت تُقرأ أسماء حقول غير
+    // موجودة فتظهر كل الأسر «بلا وصيّ» ولا يُفرَّق بينها
+    label: `${f.family_code} · ${f.guardian?.full_name ?? 'بلا وصيّ'}`,
   })),
 )
 
@@ -94,21 +96,23 @@ const programOptions = computed(() =>
  * من سعر البرنامج. لكن الاقتراح يوفّر على المدخل كتابة الرقم في كل مرة —
  * وهو نفسه في أغلب الحالات.
  */
-watch(
-  () => form.values.program_id,
-  (id, previous) => {
-    if (!id || id === previous) return
+/**
+ * يُستدعى حين يختار المستخدم البرنامج بيده، لا حين تتغيّر القيمة: مراقبٌ على
+ * القيمة كان يعمل أيضاً عند تعبئة النموذج للتعديل، فيستبدل حاجةً شهريةً
+ * مخصّصة بسعر البرنامج إن صادف أنها تساوي سعر أي برنامج.
+ */
+function onProgramPicked(id) {
+  form.touch('program_id')
 
-    const program = (props.references.programs ?? []).find((p) => p.id === Number(id))
-    if (!program) return
+  const program = (props.references.programs ?? []).find((p) => p.id === Number(id))
+  if (!program) return
 
-    // لا نطمس رقماً كتبه المستخدم عمداً
-    const suggested = (props.references.programs ?? []).some((p) => p.price === form.values.monthly_need)
-    if (form.values.monthly_need === null || form.values.monthly_need === '' || suggested) {
-      form.values.monthly_need = program.price
-    }
-  },
-)
+  // لا نطمس رقماً كتبه المستخدم عمداً
+  const suggested = (props.references.programs ?? []).some((p) => p.price === form.values.monthly_need)
+  if (form.values.monthly_need === null || form.values.monthly_need === '' || suggested) {
+    form.values.monthly_need = program.price
+  }
+}
 
 watch(
   () => props.open,
@@ -197,7 +201,7 @@ async function save() {
       <FormField
         v-model="form.values.program_id" label="البرنامج" required
         :options="programOptions" placeholder="اختر البرنامج"
-        :error="form.errors.value.program_id" @update:model-value="form.touch('program_id')"
+        :error="form.errors.value.program_id" @update:model-value="onProgramPicked"
       />
 
       <FormField

@@ -19,6 +19,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 /**
  * إدارة المحتوى التحريري.
@@ -41,7 +42,13 @@ class ContentController extends Controller
 
         return response()->json([
             'data' => PostResource::collection($posts->items()),
-            'meta' => ['total' => $posts->total(), 'current_page' => $posts->currentPage(), 'last_page' => $posts->lastPage()],
+            'meta' => [
+                'total' => $posts->total(), 'current_page' => $posts->currentPage(), 'last_page' => $posts->lastPage(),
+                // للقائمة المنسدلة في نافذة التحرير، والحالات من الـ enum نفسه
+                'categories' => \App\Models\PostCategory::orderBy('sort_order')->get(['id', 'name_ar'])
+                    ->map(fn ($c) => ['id' => $c->id, 'name' => $c->name_ar]),
+                'statuses' => PostStatus::options(),
+            ],
         ]);
     }
 
@@ -196,27 +203,95 @@ class ContentController extends Controller
         return response()->json(['data' => Setting::cached()]);
     }
 
+    /**
+     * المفاتيح المسموحة ونوع كل منها وقواعده.
+     *
+     * كان الخادم يقبل أي مفتاح وأي قيمة: نسبة تشغيل 500، وسنة تأسيس «abc»
+     * تصير صفراً، ومفاتيح جديدة بلا نوع فيُقرأ «false» نصّاً صحيحاً. والقائمة
+     * هنا لا في الواجهة: أي عميل يستطيع الإرسال.
+     *
+     * @return array<string, array{type: string, rules: array<int, mixed>}>
+     */
+    private function settingsSchema(): array
+    {
+        return [
+            'site.name' => ['type' => 'string', 'rules' => ['required', 'string', 'min:2', 'max:60']],
+            'site.tagline' => ['type' => 'string', 'rules' => ['nullable', 'string', 'max:120']],
+            'site.email' => ['type' => 'string', 'rules' => ['nullable', 'email:rfc', 'max:120']],
+            'site.phone' => ['type' => 'string', 'rules' => ['nullable', 'string', 'max:30']],
+            'site.address' => ['type' => 'string', 'rules' => ['nullable', 'string', 'max:160']],
+            'site.start_year' => ['type' => 'number', 'rules' => ['nullable', 'integer', 'between:1950,'.now()->year]],
+            // عملة الأساس تُثبَّت في الإعداد لا هنا: كل `amount_base` مخزَّن بها،
+            // وتغييرها من شاشة يجعل الأرقام القديمة والجديدة بعملتين تحت اسم واحد
+            'finance.base_currency' => ['type' => 'string', 'rules' => ['required', Rule::in([config('kafala.base_currency')])]],
+            'finance.overhead_target_percent' => ['type' => 'number', 'rules' => ['required', 'integer', 'between:0,30']],
+            'policy.moderate_messages' => ['type' => 'boolean', 'rules' => ['required', 'boolean']],
+            'policy.report_cadence_months' => ['type' => 'number', 'rules' => ['required', 'integer', 'between:1,12']],
+        ];
+    }
+
     public function updateSettings(Request $request): JsonResponse
     {
         abort_unless($request->user()->can('settings.manage'), 403);
 
-        $validated = $request->validate([
-            'settings' => ['required', 'array'],
-            'settings.*.group' => ['required', 'string', 'max:40'],
-            'settings.*.key' => ['required', 'string', 'max:80'],
-            'settings.*.value' => ['nullable'],
+        $schema = $this->settingsSchema();
+
+        $request->validate([
+            'settings' => ['required', 'array', 'min:1'],
+            'settings.*.group' => ['required', 'string'],
+            'settings.*.key' => ['required', 'string'],
         ]);
 
-        foreach ($validated['settings'] as $row) {
-            Setting::updateOrCreate(
-                ['group' => $row['group'], 'key' => $row['key']],
-                ['value' => is_array($row['value']) ? json_encode($row['value']) : $row['value']],
-            );
+        // مفتاح لا تعرفه القائمة يُرفض، لا يُنشأ
+        $rows = collect($request->input('settings'))->keyBy(fn ($r) => $r['group'].'.'.$r['key']);
+        $unknown = $rows->keys()->diff(array_keys($schema));
+        if ($unknown->isNotEmpty()) {
+            throw ValidationException::withMessages(['settings' => 'إعداد غير معروف: '.$unknown->implode('، ')]);
+        }
+
+        // القواعد على القيم نفسها، بأسماء حقول تعرفها الواجهة (`site.email`)
+        // النصّان «true»/«false» منطقيّان كما ترسلهما خانة الاختيار
+        $values = $rows->map(fn ($r, $name) => ($schema[$name]['type'] === 'boolean' && is_string($r['value'] ?? null))
+            ? filter_var($r['value'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE)
+            : ($r['value'] ?? null))->all();
+        $rules = collect($schema)->only(array_keys($values))->map(fn ($d) => $d['rules'])->all();
+        validator(
+            collect($values)->mapWithKeys(fn ($v, $k) => [str_replace('.', '__', $k) => $v])->all(),
+            collect($rules)->mapWithKeys(fn ($r, $k) => [str_replace('.', '__', $k) => $r])->all(),
+        )->setAttributeNames(collect($rules)->mapWithKeys(fn ($r, $k) => [str_replace('.', '__', $k) => $k])->all())
+            ->validate();
+
+        $before = Setting::cached();
+
+        foreach ($values as $name => $value) {
+            [$group, $key] = explode('.', $name, 2);
+            $type = $schema[$name]['type'];
+
+            Setting::updateOrCreate(['group' => $group, 'key' => $key], [
+                'value' => match ($type) {
+                    'boolean' => filter_var($value, FILTER_VALIDATE_BOOLEAN) ? 'true' : 'false',
+                    default => $value === null ? null : (string) $value,
+                },
+                'type' => $type,
+            ]);
         }
 
         Cache::forget('public.bootstrap');
+        Cache::forget('transparency.proof');
 
-        return response()->json(['message' => 'حُفظت الإعدادات.', 'data' => Setting::cached()]);
+        $after = Setting::cached();
+        $changed = collect($values)->keys()->filter(fn ($k) => ($before[$k] ?? null) !== ($after[$k] ?? null))->values();
+
+        if ($changed->isNotEmpty()) {
+            activity()->causedBy($request->user())->event('settings_updated')
+                ->withProperties([
+                    'old' => $changed->mapWithKeys(fn ($k) => [$k => $before[$k] ?? null])->all(),
+                    'attributes' => $changed->mapWithKeys(fn ($k) => [$k => $after[$k] ?? null])->all(),
+                ])
+                ->log('عدّل الإعدادات');
+        }
+
+        return response()->json(['message' => 'حُفظت الإعدادات.', 'data' => $after]);
     }
 
     /**

@@ -68,6 +68,8 @@ const tab = ref('posts')
 const items = ref([])
 const loading = ref(true)
 const categories = ref([])
+const statuses = ref([])
+let sequence = 0
 
 const postOpen = ref(false)
 const itemOpen = ref(false)
@@ -81,6 +83,8 @@ const isPosts = computed(() => tab.value === 'posts')
 const publishKey = computed(() => (tab.value === 'partners' ? 'is_active' : 'is_published'))
 
 async function load() {
+  // استجابة تبويب سابق تصل متأخرة لا تملأ أعمدة التبويب الجديد
+  const mine = ++sequence
   loading.value = true
   items.value = []
 
@@ -89,33 +93,19 @@ async function load() {
       ? await admin.posts.list({ per_page: 50 })
       : await admin.content.list(tab.value)
 
+    if (mine !== sequence) return
     items.value = data.data ?? []
+    if (isPosts.value) {
+      categories.value = data.meta?.categories ?? []
+      statuses.value = data.meta?.statuses ?? []
+    }
   } catch (e) {
     ui.error(e.userMessage ?? 'تعذّر جلب المحتوى.')
   } finally {
-    loading.value = false
+    if (mine === sequence) loading.value = false
   }
 }
 
-/**
- * تصنيفات المقالات تُقرأ من المقالات نفسها.
- *
- * لا نقطة `post-categories` في الـ API، وإضافةُ واحدة لأجل قائمة منسدلة
- * مبالغة: التصنيفات ستّة ثابتة تظهر كلها في أول خمسين مقالاً.
- */
-function collectCategories(rows) {
-  const seen = new Map()
-
-  rows.forEach((row) => {
-    if (row.category && row.category_id) seen.set(row.category_id, row.category)
-  })
-
-  categories.value = [...seen].map(([id, name]) => ({ id, name }))
-}
-
-watch(items, (rows) => {
-  if (isPosts.value) collectCategories(rows)
-})
 
 watch(tab, load)
 
@@ -242,7 +232,7 @@ onMounted(load)
     </DataTable>
 
     <PostFormModal
-      :open="postOpen" :post="editing" :categories="categories"
+      :open="postOpen" :post="editing" :categories="categories" :statuses="statuses"
       @close="postOpen = false" @saved="onSaved"
     />
 

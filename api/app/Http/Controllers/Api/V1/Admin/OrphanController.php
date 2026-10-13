@@ -16,6 +16,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class OrphanController extends Controller
 {
@@ -133,6 +134,28 @@ class OrphanController extends Controller
         $this->authorize('update', $orphan);
 
         $data = $request->safe()->except('photo');
+        $user = $request->user();
+
+        // نقل الطفل إلى أسرة أخرى يمرّ بقيد البلد نفسه الذي يمرّ به الإنشاء،
+        // وإلا نقل المشرف طفلاً إلى بلد آخر ثم فقد رؤيته
+        if (isset($data['family_id']) && (int) $data['family_id'] !== $orphan->family_id) {
+            $this->authorize('create', [Orphan::class, Family::findOrFail($data['family_id'])]);
+        }
+
+        // بيانات الهوية في ملف موثّق هي ما وُثّق: يغيّرها المدير وحده، ويبقى
+        // التغيير في سجل النشاط
+        $identity = array_intersect_key($data, array_flip(['first_name', 'last_name', 'date_of_birth', 'family_id', 'gender']));
+        $current = fn (string $k) => match (true) {
+            $orphan->{$k} instanceof \BackedEnum => $orphan->{$k}->value,
+            $orphan->{$k} instanceof \DateTimeInterface => $orphan->{$k}->format('Y-m-d'),
+            default => (string) $orphan->{$k},
+        };
+        $changed = collect($identity)->filter(fn ($v, $k) => (string) $v !== $current($k));
+        abort_if(
+            $orphan->verified_at !== null && $changed->isNotEmpty() && ! $user->isAdmin(),
+            422,
+            'هذا ملف موثّق: الاسم وتاريخ الميلاد والأسرة يغيّرها المدير وحده.',
+        );
 
         if ($request->hasFile('photo')) {
             // الصورة القديمة تُحذف: تركها يراكم ملفات يتيمة على القرص
@@ -146,6 +169,42 @@ class OrphanController extends Controller
 
         return response()->json([
             'message' => 'حُفظت التعديلات.',
+            'data' => new OrphanResource($orphan->fresh()->load(['program', 'family'])),
+        ]);
+    }
+
+    /**
+     * تغيير مسار الملف: تخرّج أو وفاة. للمدير وحده، وبسبب يُحفظ في السجل.
+     *
+     * كانت الحالة حقلاً في نموذج التعديل يقبل أي قيمة. الانتقالات هنا محدودة
+     * بما له معنى، والنشطة والمكتملة التمويل تُحسبان من الكفالات لا تُكتبان.
+     */
+    public function changeStatus(Request $request, Orphan $orphan): JsonResponse
+    {
+        abort_unless($request->user()->isAdmin(), 403);
+
+        $validated = $request->validate([
+            'status' => ['required', Rule::in([OrphanStatus::Graduated->value, OrphanStatus::Deceased->value])],
+            'reason' => ['required', 'string', 'min:5', 'max:500'],
+        ], [
+            'reason.required' => 'اكتب سبب تغيير المسار، يبقى في سجل الملف.',
+        ]);
+
+        abort_if(
+            in_array($orphan->status, [OrphanStatus::Deceased, OrphanStatus::Withdrawn], true),
+            422,
+            'مسار هذا الملف مغلق.',
+        );
+
+        $old = $orphan->status->value;
+        $orphan->forceFill(['status' => $validated['status'], 'published_at' => null])->save();
+
+        activity()->performedOn($orphan)->causedBy($request->user())->event('status_changed')
+            ->withProperties(['old' => ['status' => $old], 'attributes' => ['status' => $validated['status']], 'reason' => $validated['reason']])
+            ->log('غيّر مسار الملف');
+
+        return response()->json([
+            'message' => 'غُيّر مسار الملف وأُخفي من الموقع.',
             'data' => new OrphanResource($orphan->fresh()->load(['program', 'family'])),
         ]);
     }

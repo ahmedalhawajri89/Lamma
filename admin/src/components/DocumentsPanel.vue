@@ -47,6 +47,9 @@ const fileInput = ref(null)
 
 const can = computed(() => auth.can('documents.manage'))
 
+/** التحقق لمن يوثّق، ولا يتحقق أحد مما رفعه بنفسه (يفرضه الخادم أيضاً) */
+const canVerify = (d) => auth.can('orphans.verify') && d.uploaded_by !== auth.user?.id
+
 /**
  * الأنواع الثلاثة التي يشترطها التوثيق.
  *
@@ -212,14 +215,15 @@ defineExpose({ load })
           <span class="flex items-center gap-0.5 shrink-0">
             <a
               v-if="can" class="btn btn-ghost p-1.5" :href="d.download_url"
-              :title="`تنزيل ${d.original_name}`"
+              :title="`تنزيل ${d.original_name}`" :aria-label="`تنزيل ${d.original_name}`"
             >
               <BaseIcon name="download" :size="14" />
             </a>
 
             <button
-              v-if="can && !d.is_verified" class="btn btn-ghost p-1.5 text-olive-700"
+              v-if="canVerify(d) && !d.is_verified" class="btn btn-ghost p-1.5 text-olive-700"
               type="button" :disabled="busyId === d.id" title="تحقّق من هذا المستند"
+              :aria-label="`تحقّق من ${d.type_label ?? 'المستند'}`"
               @click="verify(d)"
             >
               <BaseIcon name="check" :size="14" />

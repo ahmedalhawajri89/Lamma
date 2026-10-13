@@ -24,8 +24,10 @@ const emit = defineEmits(['close', 'saved'])
 
 const BLANK = { status: '', monthly_amount: null, billing_day: null }
 
-const form = useForm(BLANK, (values) =>
-  admin.sponsorships.update(props.sponsorship.id, values),
+// ما تغيّر وحده: كانت الحالة تُرسل مع كل حفظ، فتتفعّل كفالةٌ بانتظار
+// الدفع لمجرد تعديل يوم الخصم
+const form = useForm(BLANK, () =>
+  admin.sponsorships.update(props.sponsorship.id, form.changed()),
 )
 
 /**
@@ -41,6 +43,7 @@ const STATUSES = [
 ]
 
 const wasPaused = computed(() => props.sponsorship?.status === 'paused')
+const isPending = computed(() => props.sponsorship?.status === 'pending')
 
 watch(
   () => props.open,
@@ -49,8 +52,7 @@ watch(
 
     const s = props.sponsorship
     form.setValues({
-      // «بانتظار أول دفعة» تُعرض نشطةً: هي الحالة التي ستؤول إليها
-      status: s.status === 'paused' ? 'paused' : 'active',
+      status: s.status,
       monthly_amount: s.monthly_amount ?? null,
       billing_day: s.billing_day ?? null,
     })
@@ -72,7 +74,12 @@ async function save() {
     :busy="form.submitting.value" :dirty="form.dirty.value"
     @close="emit('close')" @submit="save"
   >
+    <p v-if="isPending" class="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+      بانتظار أول دفعة. تتفعّل الكفالة تلقائياً حين تصل، ولا تُفعَّل من هنا.
+    </p>
+
     <FormField
+      v-else
       v-model="form.values.status" label="الحالة" required autofocus
       :options="STATUSES"
       :hint="wasPaused
@@ -84,7 +91,7 @@ async function save() {
     <div class="grid sm:grid-cols-2 gap-4">
       <FormField
         v-model="form.values.monthly_amount" label="المبلغ الشهري ($)" type="number"
-        :min="5" :step="1"
+        :min="5" :step="0.01"
         :hint="`الحالي ${money(sponsorship.monthly_amount)}`"
         :error="form.errors.value.monthly_amount"
         @update:model-value="form.touch('monthly_amount')"

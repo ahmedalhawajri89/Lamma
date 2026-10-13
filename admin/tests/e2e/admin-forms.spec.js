@@ -107,7 +107,7 @@ async function pick(page, labelText, index) {
 }
 
 test.describe('نموذج اليتيم', () => {
-  test('ينشئ ملفاً ثم يرفع مستنداً ويتحقق منه', async ({ page }) => {
+  test('ينشئ ملفاً ويرفع مستنداً، ورافعه لا يتحقق منه', async ({ page }) => {
     await login(page)
     await page.goto('/orphans')
     await expect(page.locator('table tbody tr').first()).toBeVisible({ timeout: 20_000 })
@@ -171,15 +171,20 @@ test.describe('نموذج اليتيم', () => {
 
     await expect(documents.getByText('مرفوع، ينتظر التحقق')).toBeVisible({ timeout: 20_000 })
 
-    // ── تحقّق ──
-    await documents.locator('button[title="تحقّق من هذا المستند"]').first().click()
-    await expect(documents.getByText('مرفوع، ينتظر التحقق')).toBeHidden({ timeout: 20_000 })
-
     /**
-     * المُتحقَّق منه لا يُحذف: توثيق الملف قائم عليه، والخادم يردّ ٤٢٢.
-     * إخفاء الزرّ يمنع نقرةً مصيرها الرفض.
+     * ── فصل المهام: من رفع المستند لا يتحقق منه ──
+     *
+     * كان المرفوع يُتحقَّق منه بيد رافعه، فيمرّر شخص واحد الملف كله. زرّ
+     * التحقق لا يظهر لرافعه، والمستند ينتظر في طابور التحقق مع سبب واضح.
      */
-    await expect(documents.locator('button[title="حذف"]')).toHaveCount(0)
+    await expect(documents.locator('button[title="تحقّق من هذا المستند"]')).toHaveCount(0)
+    await expect(documents.locator('button[title="حذف"]')).toHaveCount(1)
+
+    await page.goto('/documents')
+    const row = page.locator('li', { hasText: name })
+    await expect(row).toBeVisible({ timeout: 20_000 })
+    await expect(row.getByText('رفعته أنت، فيتحقق منه غيرك')).toBeVisible()
+    await expect(row.getByRole('button', { name: 'تحقّقت منه' })).toHaveCount(0)
   })
 
   test('نافذة التحرير تُملأ وتُغلق بـEscape', async ({ page }) => {
@@ -570,18 +575,29 @@ test.describe('الإعدادات', () => {
     const save = page.getByRole('button', { name: 'حفظ الإعدادات' })
     await expect(save).toBeDisabled()
 
-    await page.evaluate(() => {
+    const setTagline = (value) => page.evaluate((v) => {
       const el = [...document.querySelectorAll('label')]
         .find((x) => x.textContent.trim().startsWith('الوصف المختصر'))
       const input = document.getElementById(el.getAttribute('for'))
-      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set
-        .call(input, 'منصة كفالة الأيتام')
+      const before = input.value
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(input, v ?? before)
       input.dispatchEvent(new Event('input', { bubbles: true }))
-    })
+      return before
+    }, value)
 
+    // كتابة القيمة نفسها ليست تغييراً: الزرّ يبقى معطّلاً
+    const original = await setTagline(null)
+    await expect(save).toBeDisabled()
+
+    // تغيير فعلي يُحفظ، ثم تُعاد القيمة كما كانت
+    await setTagline(`${original} (اختبار)`)
     await expect(save).toBeEnabled()
     await save.click()
     await expect(page.getByText('حُفظت الإعدادات.')).toBeVisible({ timeout: 20_000 })
+
+    await setTagline(original)
+    await save.click()
+    await expect(page.getByText('حُفظت الإعدادات.').last()).toBeVisible({ timeout: 20_000 })
   })
 })
 

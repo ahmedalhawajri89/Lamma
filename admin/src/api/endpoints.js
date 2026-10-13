@@ -163,6 +163,8 @@ export const admin = {
     list: (params) => client.get(`${v1}/admin/users`, { params }),
     create: (payload) => client.post(`${v1}/admin/users`, payload),
     update: (id, payload) => client.patch(`${v1}/admin/users/${id}`, payload),
+    /** إعادة إرسال رابط تعيين كلمة المرور لموظف لم يفعّل حسابه */
+    invite: (id) => client.post(`${v1}/admin/users/${id}/invite`),
     roles: () => client.get(`${v1}/admin/roles`),
   },
 

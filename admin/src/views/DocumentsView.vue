@@ -12,6 +12,7 @@ import { admin } from '@/api/endpoints'
 import { useResource } from '@/composables/useResource'
 import { useUiStore } from '@/stores/ui'
 import { useQueueStore } from '@/stores/queue'
+import { useAuthStore } from '@/stores/auth'
 import { date, relative } from '@/utils/format'
 import PageHeader from '@/components/PageHeader.vue'
 import InlineNote from '@/components/InlineNote.vue'
@@ -21,6 +22,7 @@ import BaseIcon from '@/components/BaseIcon.vue'
 
 const ui = useUiStore()
 const queue = useQueueStore()
+const auth = useAuthStore()
 const { items, meta, loading, filters, load } = useResource(admin.documents.queue, {})
 
 const busyId = ref(null)
@@ -94,7 +96,9 @@ async function verify(doc) {
             <BaseIcon name="eye" :size="15" />
             فتح
           </a>
+          <span v-if="d.uploaded_by === auth.user?.id" class="text-xs text-sand-500">رفعته أنت، فيتحقق منه غيرك</span>
           <button
+            v-else
             class="btn btn-primary !py-1.5 text-sm" type="button"
             :disabled="busyId === d.id" @click="verify(d)"
           >

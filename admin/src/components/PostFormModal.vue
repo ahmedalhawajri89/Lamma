@@ -19,6 +19,9 @@ const props = defineProps({
   open: { type: Boolean, default: false },
   post: { type: Object, default: null },
   categories: { type: Array, default: () => [] },
+
+  /** حالات المقال من الـ enum في الخادم: `[{ value, label }]` */
+  statuses: { type: Array, default: () => [] },
 })
 
 const emit = defineEmits(['close', 'saved'])
@@ -45,11 +48,14 @@ const form = useForm(BLANK, (values) =>
     : admin.posts.create(values, cover.value),
 )
 
-const STATUSES = [
-  { value: 'draft', label: 'مسوّدة لا تظهر على الموقع' },
-  { value: 'published', label: 'منشور' },
-  { value: 'archived', label: 'مؤرشف' },
-]
+/**
+ * الحالات من الخادم لا من قائمة هنا: كانت القائمة تعرض «مؤرشف»، والخادم لا
+ * يعرفها، فيُرفض كل حفظ يختارها. والمجدول يحتاج تاريخ نشر لاحقاً، فلا يُعرض.
+ */
+const STATUSES = computed(() =>
+  (props.statuses.length ? props.statuses : [{ value: 'draft', label: 'مسوّدة' }, { value: 'published', label: 'منشور' }])
+    .filter((st) => st.value !== 'scheduled'),
+)
 
 const categoryOptions = computed(() =>
   props.categories.map((c) => ({ value: c.id, label: c.name })),

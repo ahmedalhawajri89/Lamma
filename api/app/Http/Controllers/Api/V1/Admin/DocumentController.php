@@ -43,7 +43,7 @@ class DocumentController extends Controller
      */
     public function queue(Request $request): JsonResponse
     {
-        abort_unless($request->user()->can('documents.manage'), 403);
+        abort_unless($request->user()->can('orphans.verify'), 403);
 
         $user = $request->user();
         $country = $user->isAdmin() ? null : $user->assignedCountryId();
@@ -111,12 +111,24 @@ class DocumentController extends Controller
     {
         // مستندات بلد آخر لا يتحقق منها المشرف، كما لا يراها
         $this->authorize('view', $document->orphan);
-        abort_unless($request->user()->can('documents.manage'), 403);
+
+        /*
+         * التحقق جزء من التوثيق، فصلاحيته صلاحية التوثيق لا صلاحية الرفع.
+         * ومن رفع المستند لا يتحقق منه: كان المشرف يرفع ويتحقق بنفسه، فيمرّر
+         * شخص واحد الملف كله، وهو ما وُجد فصل المهام لمنعه.
+         */
+        abort_unless($request->user()->can('orphans.verify'), 403, 'التحقق من المستندات لمن يوثّق الملفات.');
+        abort_if($document->uploaded_by === $request->user()->id, 422, 'رفعت هذا المستند بنفسك، فيتحقق منه غيرك.');
+        abort_if($document->verified_at !== null, 409, 'تُحقِّق من هذا المستند من قبل.');
 
         $document->update([
             'verified_at' => now(),
             'verified_by' => $request->user()->id,
         ]);
+
+        activity()->performedOn($document->orphan)->causedBy($request->user())->event('document_verified')
+            ->withProperties(['document_id' => $document->id, 'type' => $document->type->value])
+            ->log('تحقّق من مستند');
 
         return response()->json([
             'message' => 'تُحقِّق من المستند.',

@@ -55,7 +55,7 @@ class WorkQueueService
         }
 
         // التحقق من المستندات قرارُ توثيق، فهو لمن يوثّق الملفات
-        if ($user->can('orphans.verify') && $user->can('documents.manage')) {
+        if ($user->can('orphans.verify')) {
             $tasks[] = $this->task(
                 'documents_verify',
                 $inCountry(OrphanDocument::whereNull('verified_at'), 'orphan.family')->count(),

@@ -24,6 +24,12 @@ class ContactMessage extends Model
 
     protected $fillable = ['name', 'email', 'phone', 'subject', 'body', 'ip_address', 'status', 'handled_by', 'handled_at'];
 
+    /**
+     * عنوان الزائر يُحفظ لمكافحة الإساءة (تحديد المعدّل والحظر)، ولا يحتاجه
+     * من يردّ على الرسالة. كان يصل كل محرّر محتوى مع القائمة.
+     */
+    protected $hidden = ['ip_address'];
+
     protected function casts(): array
     {
         return ['status' => ContactStatus::class, 'handled_at' => 'datetime'];

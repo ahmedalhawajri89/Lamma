@@ -77,7 +77,7 @@ const routes = [
     path: '/documents',
     name: 'documents',
     component: () => import('@/views/DocumentsView.vue'),
-    meta: { group: 'cases', title: 'التحقق من المستندات', icon: 'file-check', permission: 'documents.manage' },
+    meta: { group: 'cases', title: 'التحقق من المستندات', icon: 'file-check', permission: 'orphans.verify' },
   },
   {
     path: '/visits',

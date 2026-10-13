@@ -32,10 +32,14 @@ class PostResource extends JsonResource
                 fn () => $this->body,
             ),
             'category' => $this->whenLoaded('category', fn () => $this->category?->name_ar),
+            // نافذة التحرير تختار التصنيف برقمه؛ كان غائباً فيُرسَل فارغاً مع
+            // كل تعديل ويُمسح تصنيف المقال
+            'category_id' => $this->category_id,
             'image' => $this->cover_path ? asset('storage/'.$this->cover_path) : null,
             'readMin' => $this->read_minutes,
             'featured' => $this->is_featured,
             'status' => $this->status->value,
+            'status_label' => $this->status->label(),
             'date' => $this->published_at?->toDateString(),
             'dateLabel' => $this->published_at?->translatedFormat('j F Y'),
             'views_count' => $this->views_count,

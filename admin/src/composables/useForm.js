@@ -103,5 +103,18 @@ export function useForm(initial, submitter, options = {}) {
     }
   }
 
-  return { values, errors, submitting, dirty, hasErrors, touch, setValues, reset, submit }
+  /**
+   * الحقول التي تغيّرت عن القيم المحمَّلة وحدها.
+   *
+   * لنماذج التعديل التي لا يجوز أن ترسل ما لم يلمسه المستخدم: كانت الكفالة
+   * ترسل حالتها مع كل حفظ فتتفعّل بلا دفعة، والإعدادات ترسل كل مفاتيحها
+   * فتمسحها إن فشل تحميلها.
+   */
+  function changed() {
+    return Object.fromEntries(
+      Object.entries(values).filter(([k, v]) => JSON.stringify(v) !== JSON.stringify(snapshot[k])),
+    )
+  }
+
+  return { values, errors, submitting, dirty, hasErrors, touch, setValues, reset, submit, changed }
 }

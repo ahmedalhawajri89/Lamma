@@ -14,6 +14,8 @@ use App\Models\Sponsor;
 use App\Models\Sponsorship;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class SponsorshipController extends Controller
@@ -125,11 +127,82 @@ class SponsorshipController extends Controller
             'billing_day' => ['sometimes', 'integer', 'min:1', 'max:'.config('kafala.billing.max_billing_day')],
         ]);
 
-        if (isset($validated['status'])) {
-            $validated['paused_at'] = $validated['status'] === SponsorshipStatus::Paused->value ? now() : null;
+        $current = $sponsorship->status;
+
+        // المنتهية والملغاة سجلٌّ مغلق: إحياؤها كان يتجاوز فحص التمويل والقفل
+        abort_unless($current->isLive(), 422, 'هذه كفالة منتهية. لا تُعدَّل.');
+
+        /*
+         * الانتقالات المسموحة هنا: نشطة ⇄ موقوفة. أما «بانتظار الدفع» فتتفعّل
+         * بأول دفعة وحدها (RecordPayment)، لا بحفظ نموذج: كان تعديل يوم الخصم
+         * يرسل `active` فتتفعّل كفالة لم يُدفع لها شيء ويبدأ الخصم عليها.
+         */
+        $status = isset($validated['status']) ? SponsorshipStatus::from($validated['status']) : $current;
+        if ($status !== $current) {
+            $allowed = [
+                SponsorshipStatus::Active->value => [SponsorshipStatus::Paused],
+                SponsorshipStatus::Paused->value => [SponsorshipStatus::Active],
+            ];
+            abort_unless(
+                in_array($status, $allowed[$current->value] ?? [], true),
+                422,
+                $current === SponsorshipStatus::Pending
+                    ? 'الكفالة تتفعّل بأول دفعة تصل، لا من هنا.'
+                    : 'لا يمكن نقل الكفالة إلى هذه الحالة.',
+            );
         }
 
-        $sponsorship->update($validated);
+        DB::transaction(function () use ($sponsorship, $validated, $current, $status): void {
+            $changes = [];
+
+            if (isset($validated['monthly_amount']) && (float) $validated['monthly_amount'] !== (float) $sponsorship->monthly_amount) {
+                // رفع المبلغ يمرّ بفحص الحاجة المتبقية نفسه الذي يمرّ به الإنشاء،
+                // بقفل الطفل؛ وإلا صار ممولاً فوق حاجته والنسبة تُقصّ عند 100 فلا يُرى
+                $orphan = Orphan::query()->lockForUpdate()->findOrFail($sponsorship->orphan_id);
+                $others = (float) $orphan->sponsorships()
+                    ->whereKeyNot($sponsorship->id)
+                    ->whereIn('status', array_filter(SponsorshipStatus::cases(), fn ($s) => $s->countsTowardFunding()))
+                    ->sum('monthly_amount');
+                $room = round((float) $orphan->monthly_need - $others, 2);
+
+                if ((float) $validated['monthly_amount'] > $room) {
+                    throw ValidationException::withMessages([
+                        'monthly_amount' => 'المبلغ يتجاوز ما تبقّى من حاجة الطفل ($'.number_format(max(0, $room), 2).').',
+                    ]);
+                }
+
+                $changes['monthly_amount'] = $validated['monthly_amount'];
+                $changes['share_percent'] = (int) round((float) $validated['monthly_amount'] / max(1, (float) $orphan->monthly_need) * 100);
+            }
+
+            if (isset($validated['billing_day']) && (int) $validated['billing_day'] !== $sponsorship->billing_day) {
+                $changes['billing_day'] = (int) $validated['billing_day'];
+            }
+
+            if ($status !== $current) {
+                $changes['status'] = $status;
+                $changes['paused_at'] = $status === SponsorshipStatus::Paused ? now() : null;
+            }
+
+            /*
+             * موعد القسط القادم يتبع يوم الخصم، ويكون في المستقبل دائماً: تغيير
+             * اليوم كان لا يسري إلا بعد شهر، والاستئناف كان يُبقي موعداً قديماً
+             * فيُخصم فوراً ويتأخر الجدول كله إلى الأبد.
+             */
+            if (isset($changes['billing_day']) || ($current === SponsorshipStatus::Paused && $status === SponsorshipStatus::Active)) {
+                $day = $changes['billing_day'] ?? $sponsorship->billing_day;
+                $candidate = now()->startOfDay()->setDay(min($day, now()->daysInMonth));
+                $changes['next_due_at'] = ($candidate->isPast() ? now()->addMonthNoOverflow()->setDay($day) : $candidate)->toDateString();
+            }
+
+            if ($changes !== []) {
+                $sponsorship->update($changes);
+            }
+
+            if (isset($changes['monthly_amount'])) {
+                $sponsorship->orphan->recalculateFunding();
+            }
+        });
 
         return response()->json([
             'message' => 'حُفظت التعديلات.',

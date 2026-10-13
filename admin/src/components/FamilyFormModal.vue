@@ -76,12 +76,16 @@ const cityOptions = computed(() => {
   return (country?.cities ?? []).map((c) => ({ value: c.id, label: c.name }))
 })
 
-watch(
-  () => form.values.country_id,
-  (id, previous) => {
-    if (previous !== undefined && id !== previous) form.values.city_id = ''
-  },
-)
+/**
+ * المدينة تُفرَّغ حين يغيّر المستخدم الدولة بيده، لا حين تتغيّر القيمة.
+ *
+ * مراقبٌ على القيمة كان يرى تعبئة النموذج عند فتحه للتعديل (من فارغ إلى
+ * دولة الأسرة) تغييراً، فيمسح المدينة، ثم يحفظها الخادم فارغة بصمت.
+ */
+function onCountryPicked() {
+  form.touch('country_id')
+  form.values.city_id = ''
+}
 
 watch(
   () => props.open,
@@ -176,7 +180,7 @@ async function save() {
         <FormField
           v-model="form.values.country_id" label="الدولة" required
           :options="countryOptions" placeholder="اختر الدولة"
-          :error="form.errors.value.country_id" @update:model-value="form.touch('country_id')"
+          :error="form.errors.value.country_id" @update:model-value="onCountryPicked"
         />
         <FormField
           v-model="form.values.city_id" label="المدينة"

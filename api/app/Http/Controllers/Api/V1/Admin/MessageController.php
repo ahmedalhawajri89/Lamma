@@ -57,16 +57,28 @@ class MessageController extends Controller
             'reason.required_if' => 'اذكر سبب الرفض — يراه الكافل ليعرف ما ينبغي تعديله.',
         ]);
 
-        // كتابة صريحة لا `update()`: الحالة محميّة من التعبئة الجماعية في
-        // النموذج عمداً، كي لا يمرّرها طلب إنشاء. وهنا قرار مراجِع مخوَّل.
-        $message->forceFill([
-            'status' => $validated['decision'] === 'approve'
-                ? MessageStatus::Approved
-                : MessageStatus::Rejected,
-            'rejection_reason' => $validated['decision'] === 'reject' ? $validated['reason'] : null,
-            'reviewed_by' => $request->user()->id,
-            'reviewed_at' => now(),
-        ])->save();
+        /*
+         * القرار نهائي ويُتّخذ مرة واحدة. التحديث مشروط بأن الرسالة ما زالت
+         * بانتظار المراجعة: رسالة اعتُمدت ووصلت الطفل لا تُرفض بعدها، ومراجعان
+         * في اللحظة نفسها لا يكتب أحدهما فوق قرار الآخر، فالثاني يجد صفراً.
+         * والكتابة عبر الاستعلام لا `update()`: الحالة محميّة من التعبئة الجماعية.
+         */
+        $decision = $validated['decision'] === 'approve' ? MessageStatus::Approved : MessageStatus::Rejected;
+
+        $affected = Message::whereKey($message->id)
+            ->where('status', MessageStatus::PendingReview)
+            ->update([
+                'status' => $decision,
+                'rejection_reason' => $decision === MessageStatus::Rejected ? $validated['reason'] : null,
+                'reviewed_by' => $request->user()->id,
+                'reviewed_at' => now(),
+            ]);
+
+        abort_if($affected === 0, 409, 'رُوجعت هذه الرسالة من قبل.');
+
+        activity()->performedOn($message)->causedBy($request->user())->event('reviewed')
+            ->withProperties(['decision' => $decision->value, 'reason' => $validated['reason'] ?? null])
+            ->log($decision === MessageStatus::Approved ? 'اعتمد رسالة' : 'رفض رسالة');
 
         return response()->json([
             'message' => $validated['decision'] === 'approve' ? 'اعتُمدت الرسالة.' : 'رُفضت الرسالة.',

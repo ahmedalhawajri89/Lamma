@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, onMounted } from 'vue'
+import { computed, ref, onMounted, watch } from 'vue'
 import { useRoute, RouterLink } from 'vue-router'
 import { admin } from '@/api/endpoints'
 import { useAuthStore } from '@/stores/auth'
@@ -98,10 +98,21 @@ onMounted(() => {
   load()
   loadReferences()
 })
+
+/**
+ * رابط أخٍ يفتح الشاشة نفسها بمعرّف آخر، فلا تُركَّب من جديد. بلا هذا
+ * يتغيّر الرابط ويبقى الملف القديم معروضاً، وأي إجراء بعدها يقع على الأخ
+ * والشاشة تعرض غيره.
+ */
+watch(() => route.params.id, (id, previous) => {
+  if (!id || id === previous) return
+  orphan.value = null
+  load()
+})
 </script>
 
 <template>
-  <div v-if="loading" class="space-y-3">
+  <div v-if="loading && !orphan" class="space-y-3">
     <div class="h-8 w-48 bg-sand-100 rounded animate-pulse" />
     <div class="h-64 bg-sand-100 rounded-2xl animate-pulse" />
   </div>
@@ -253,7 +264,7 @@ onMounted(() => {
         </div>
 
         <!-- المستندات: ما يجعل «ثلاث مراحل تحقّق» قابلاً للإثبات -->
-        <DocumentsPanel
+        <DocumentsPanel :key="orphan.id"
           ref="documents"
           :orphan-id="orphan.id"
           :verified="Boolean(orphan.verified_at)"

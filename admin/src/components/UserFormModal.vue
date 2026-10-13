@@ -58,6 +58,13 @@ const STATUSES = [
   { value: 'suspended', label: 'موقوف' },
 ]
 
+/** «بانتظار التفعيل» حالة يصلها الحساب وحده، فتُعرض لمن هو فيها ولا تُختار */
+const statusOptions = computed(() =>
+  props.user?.status === 'pending'
+    ? [{ value: 'pending', label: 'بانتظار التفعيل' }, ...STATUSES]
+    : STATUSES,
+)
+
 const countryOptions = computed(() =>
   props.countries.map((c) => ({ value: c.id, label: c.name })),
 )
@@ -90,7 +97,10 @@ watch(
         phone: u.phone ?? '',
         role: u.roles?.[0] ?? '',
         title: u.title ?? '',
-        assigned_country_id: u.country?.id ?? '',
+        // من ملف الموظف: كان يُقرأ من حقل لا يرسله الخادم، فيُرسَل فارغاً
+        // مع كل تعديل ويُمسح بلد المشرف
+        assigned_country_id: u.staff_profile?.assigned_country_id ?? '',
+        title: u.staff_profile?.title ?? '',
         status: u.status ?? 'active',
       })
     } else {
@@ -143,15 +153,16 @@ async function save() {
 
     <FormField
       v-model="form.values.role" label="الدور" required
-      :options="ROLES" placeholder="اختر الدور"
+      :options="ROLES" placeholder="اختر الدور" :disabled="isSelf"
+      :hint="isSelf ? 'لا يمكنك تغيير دورك أنت. يغيّره مدير آخر.' : ''"
       :error="form.errors.value.role" @update:model-value="form.touch('role')"
     />
 
     <FormField
       v-if="scoped"
-      v-model="form.values.assigned_country_id" label="البلد المُسنَد"
-      :options="countryOptions" placeholder="كل البلدان"
-      hint="المشرف يرى أيتام بلده وحده، وهذا الحقل ما يحدّده."
+      v-model="form.values.assigned_country_id" label="البلد المُسنَد" required
+      :options="countryOptions" placeholder="اختر البلد"
+      hint="المشرف يرى أيتام بلده وحده، وبلا بلد لا يرى شيئاً."
       :error="form.errors.value.assigned_country_id"
       @update:model-value="form.touch('assigned_country_id')"
     />
@@ -159,7 +170,7 @@ async function save() {
     <template v-if="editing">
       <FormField
         v-model="form.values.status" label="الحالة" required
-        :options="STATUSES" :disabled="isSelf"
+        :options="statusOptions" :disabled="isSelf"
         :hint="isSelf ? 'لا يمكنك إيقاف حسابك أنت.' : ''"
         :error="form.errors.value.status" @update:model-value="form.touch('status')"
       />

@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Api\V1\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\ForgotPasswordRequest;
 use App\Http\Requests\Auth\ResetPasswordRequest;
+use App\Enums\UserStatus;
 use App\Models\User;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\JsonResponse;
@@ -64,6 +65,13 @@ class PasswordResetController extends Controller
                      * اختُرق؛ فترك الكوكيز القديمة صالحة يُفرغ العملية من معناها.
                      */
                     'remember_token' => Str::random(60),
+
+                    /**
+                     * الموظف الجديد يُنشأ «بانتظار التفعيل» بلا كلمة مرور يعرفها،
+                     * ويفعّل حسابه بتعيين كلمته من رابط الدعوة. بلا هذا يعيّنها
+                     * ثم يُردّ عند الدخول بأن حسابه موقوف. أما الموقوف فيبقى موقوفاً.
+                     */
+                    'status' => $user->status === UserStatus::Pending ? UserStatus::Active : $user->status,
                 ])->save();
 
                 event(new PasswordReset($user));

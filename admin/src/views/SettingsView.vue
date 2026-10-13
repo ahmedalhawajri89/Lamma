@@ -46,8 +46,8 @@ const SCHEMA = [
     fields: [
       {
         group: 'finance', key: 'base_currency', label: 'عملة الأساس',
-        options: ['USD', 'EUR', 'JOD'],
-        hint: 'كل صرف بعملة أخرى يُحوَّل إليها قبل أن يدخل التقارير.',
+        options: ['USD'], locked: true,
+        hint: 'ثابتة في إعداد الخادم: كل المبالغ المخزّنة محسوبة بها، فتغييرها هنا يخلط عملتين تحت اسم واحد.',
       },
       {
         group: 'finance', key: 'overhead_target_percent', label: 'نسبة التشغيل المستهدَفة (٪)',
@@ -76,11 +76,16 @@ const SCHEMA = [
 const FIELDS = SCHEMA.flatMap((section) => section.fields)
 
 const loading = ref(true)
+const failed = ref(false)
 const blank = Object.fromEntries(FIELDS.map((f) => [`${f.group}.${f.key}`, '']))
 
+/**
+ * يُرسَل ما تغيّر وحده. كانت كل المفاتيح تُرسَل، فإن فشل التحميل وبقي
+ * النموذج فارغاً ثم حُفظ تعديل واحد، مُسح اسم الموقع وبريده وهاتفه.
+ */
 const form = useForm(blank, (values) =>
   admin.updateSettings(
-    FIELDS.map((f) => ({
+    FIELDS.filter((f) => `${f.group}.${f.key}` in form.changed()).map((f) => ({
       group: f.group,
       key: f.key,
 
@@ -92,21 +97,36 @@ const form = useForm(blank, (values) =>
 
 const sections = computed(() => SCHEMA)
 
+/** تغيير فعلي لا مجرّد لمس: كتابة القيمة نفسها لا تفعّل الحفظ */
+const hasChanges = computed(() => Object.keys(form.changed()).length > 0)
+
+/** القيم المحفوظة تصير ما يُقارَن به: بعد الحفظ تُقاس التغييرات منها لا مما قبلها */
+function apply(stored) {
+  form.setValues(
+    Object.fromEntries(
+      FIELDS.map((f) => {
+        const name = `${f.group}.${f.key}`
+        const value = stored[name]
+        return [name, f.type === 'checkbox' ? Boolean(value) : (value ?? '')]
+      }),
+    ),
+  )
+}
+
+async function save() {
+  const saved = await form.submit()
+  if (saved && typeof saved === 'object') apply(saved)
+}
+
 async function load() {
   loading.value = true
+  failed.value = false
   try {
     const { data } = await admin.settings()
-    const stored = data.data ?? {}
-
-    form.setValues(
-      Object.fromEntries(
-        FIELDS.map((f) => {
-          const name = `${f.group}.${f.key}`
-          const value = stored[name]
-          return [name, f.type === 'checkbox' ? Boolean(value) : (value ?? '')]
-        }),
-      ),
-    )
+    apply(data.data ?? {})
+  } catch {
+    // لا نموذج بلا قيمه: حفظٌ من نموذج فارغ يمسح الإعدادات
+    failed.value = true
   } finally {
     loading.value = false
   }
@@ -124,7 +144,7 @@ onMounted(load)
       <template #actions>
         <button
           class="btn btn-primary" type="button"
-          :disabled="form.submitting.value || !form.dirty.value" @click="form.submit()"
+          :disabled="failed || loading || form.submitting.value || !hasChanges" @click="save"
         >
           <BaseIcon v-if="form.submitting.value" name="loader" :size="16" class="animate-spin" />
           {{ form.submitting.value ? 'جارٍ الحفظ…' : 'حفظ' }}
@@ -136,7 +156,13 @@ onMounted(load)
       <div v-for="i in 3" :key="i" class="h-40 bg-sand-100 rounded-2xl animate-pulse" />
     </div>
 
-    <form v-else novalidate @submit.prevent="form.submit()">
+    <div v-else-if="failed" class="card p-8 text-center" role="alert">
+      <p class="font-medium text-sand-900">تعذّر تحميل الإعدادات</p>
+      <p class="text-sm text-sand-500 mt-1">لا يُعرض النموذج قبل أن تُحمَّل القيم الحالية، كي لا يُحفظ فوقها فراغ.</p>
+      <button class="btn btn-outline mt-4" type="button" @click="load">إعادة المحاولة</button>
+    </div>
+
+    <form v-else novalidate @submit.prevent="save">
       <!-- عمودان على الشاشات العريضة بدل عمود ضيّق وفراغ بجانبه -->
       <div class="grid xl:grid-cols-2 gap-4 items-start">
       <section v-for="section in sections" :key="section.title" class="card p-5">
@@ -150,7 +176,8 @@ onMounted(load)
             :label="f.label" :type="f.type ?? 'text'" :options="f.options ?? null"
             :hint="f.hint ?? ''" :required="f.required ?? false"
             :min="f.min ?? null" :max="f.max ?? null" :step="f.step ?? null"
-            :error="form.errors.value[`settings.${FIELDS.indexOf(f)}.value`]"
+            :error="form.errors.value[`${f.group}__${f.key}`]"
+            :disabled="f.locked ?? false"
             @update:model-value="form.touch(`${f.group}.${f.key}`)"
           />
         </div>
@@ -159,7 +186,7 @@ onMounted(load)
 
       <!-- زرّ ثانٍ في الأسفل: الصفحة أطول من الشاشة، والزرّ الأعلى يغيب -->
       <div class="flex justify-end mt-4">
-        <button class="btn btn-primary" type="submit" :disabled="form.submitting.value || !form.dirty.value">
+        <button class="btn btn-primary" type="submit" :disabled="form.submitting.value || !hasChanges">
           <BaseIcon v-if="form.submitting.value" name="loader" :size="16" class="animate-spin" />
           {{ form.submitting.value ? 'جارٍ الحفظ…' : 'حفظ الإعدادات' }}
         </button>

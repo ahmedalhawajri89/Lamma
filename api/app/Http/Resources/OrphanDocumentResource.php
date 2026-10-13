@@ -20,6 +20,7 @@ class OrphanDocumentResource extends JsonResource
             'mime' => $this->mime,
             'size_bytes' => $this->size_bytes,
             'is_verified' => $this->verified_at !== null,
+            'uploaded_by' => $this->uploaded_by,
             'verified_at' => $this->verified_at?->toIso8601String(),
             'created_at' => $this->created_at?->toIso8601String(),
 
