@@ -20,7 +20,8 @@ class DatabaseSeeder extends Seeder
             ContentSeeder::class,
         ]);
 
-        if (app()->environment(['local', 'testing'])) {
+        // بيانات العرض للتطوير والاختبارات (ومنها بيئة E2E المنفصلة)، لا للإنتاج
+        if (app()->environment(['local', 'testing', 'e2e'])) {
             $this->call(DemoSeeder::class);
         }
     }

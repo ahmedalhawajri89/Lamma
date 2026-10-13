@@ -690,7 +690,7 @@ test.describe('محتوى الموقع', () => {
      * وهذا نصف الاختبار: النصف الآخر أنها تظهر بعد النشر — ولو غاب أحدهما
      * لمرّ عيبٌ يجعل كل مقال ظاهراً أو كلّه مخفياً.
      */
-    await page.goto('http://127.0.0.1:8000/blog')
+    await page.goto(`${process.env.E2E_SITE ?? 'http://127.0.0.1:8000'}/blog`)
     await expect(page.locator('.post-card').first()).toBeVisible({ timeout: 20_000 })
     await expect(page.locator('.post-card', { hasText: title })).toHaveCount(0)
 
@@ -714,7 +714,7 @@ test.describe('محتوى الموقع', () => {
     await expect(page.locator('[role=dialog]')).toBeHidden({ timeout: 25_000 })
 
     // ── وعلى الموقع العام ──
-    await page.goto('http://127.0.0.1:8000/blog')
+    await page.goto(`${process.env.E2E_SITE ?? 'http://127.0.0.1:8000'}/blog`)
     const card = page.locator('.post-card', { hasText: title })
     await expect(card).toHaveCount(1, { timeout: 20_000 })
 

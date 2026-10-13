@@ -10,7 +10,8 @@ import { test, expect } from '@playwright/test'
  */
 
 // الموقع العام يُقدَّم من خادم لارافل نفسه بعد دمجه في public/
-const WEB = 'http://127.0.0.1:8000'
+const WEB = process.env.E2E_SITE ?? 'http://127.0.0.1:8000'
+const UI = process.env.E2E_UI ?? 'http://localhost:5173'
 const SPONSOR = { email: 'sponsor@kafala.org', password: 'password' }
 
 test.describe('الموقع العام', () => {
@@ -77,13 +78,13 @@ test.describe('نماذج الموقع', () => {
     expect(response.status()).toBe(201)
 
     // ثم نراها من الجهة الأخرى: لوحة الإدارة
-    await page.goto('http://localhost:5173/login')
+    await page.goto(`${UI}/login`)
     await page.getByLabel('البريد الإلكتروني').fill('admin@kafala.org')
     await page.getByLabel('كلمة المرور', { exact: true }).fill('password')
     await page.getByRole('button', { name: 'دخول' }).click()
     await page.waitForURL('**/dashboard')
 
-    await page.goto('http://localhost:5173/contacts')
+    await page.goto(`${UI}/contacts`)
     await expect(page.getByText(email)).toBeVisible({ timeout: 20_000 })
   })
 

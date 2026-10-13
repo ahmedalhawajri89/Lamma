@@ -125,7 +125,8 @@ class DemoSeeder extends Seeder
         $supervisors = [];
         foreach (Country::operational()->take(4)->get() as $i => $country) {
             $user = User::updateOrCreate(['email' => "supervisor{$i}@kafala.org"], [
-                'name' => self::LAST_NAMES[$i].'، مشرف '.$country->name_ar,
+                // اسمٌ لا مسمّى: البلد في ملف الموظف (المسمّى والبلد المُسنَد) لا في اسمه
+                'name' => self::FIRST_NAMES_MALE[$i + 4].' '.self::LAST_NAMES[$i],
                 'password' => Hash::make('password'),
                 'status' => 'active',
                 'email_verified_at' => now(),
@@ -133,7 +134,7 @@ class DemoSeeder extends Seeder
             $user->syncRoles(UserRole::FieldSupervisor->value);
             $user->staffProfile()->updateOrCreate([], [
                 'employee_code' => 'EMP-'.str_pad((string) (10 + $i), 4, '0', STR_PAD_LEFT),
-                'title' => 'مشرف ميداني',
+                'title' => 'مشرف ميداني في '.$country->name_ar,
                 'assigned_country_id' => $country->id,
                 'hired_at' => now()->subYears(random_int(1, 6)),
             ]);
@@ -629,7 +630,10 @@ class DemoSeeder extends Seeder
             for ($m = 0; $m < $months; $m++) {
                 // startOfMonth قبل الطرح: من ٢٩ أغسطس، subMonths(6) يعطي ٢٩ فبراير
                 // غير الموجود فينزلق إلى مارس، فيخرج شهر فارغ وآخر مضاعف في الرسم
-                $spentOn = Carbon::now()->startOfMonth()->subMonthsNoOverflow($m)->setDay(random_int(1, 28));
+                // الشهر الجاري حتى اليوم وحده: صرفٌ بتاريخ لم يأتِ بعد كان يدخل
+                // «مصروف الشهر» وأرقام الشفافية كأنه وقع
+                $lastDay = $m === 0 ? max(1, min(28, (int) now()->day)) : 28;
+                $spentOn = Carbon::now()->startOfMonth()->subMonthsNoOverflow($m)->setDay(random_int(1, $lastDay));
                 $budget = $orphan['need'] * $orphan['funded'] / 100;
 
                 foreach ($weights as $slug => $weight) {
@@ -646,9 +650,11 @@ class DemoSeeder extends Seeder
                         'amount_base' => $amount,
                         'spent_on' => $spentOn->toDateString(),
                         'description' => null,
-                        'recorded_by' => $staff['supervisors'][array_rand($staff['supervisors'])],
-                        'approved_by' => $staff['accountant'],
-                        'approved_at' => $spentOn->copy()->addDays(random_int(1, 6)),
+                        // المحاسب يسجّل والمدير يعتمد: المشرف لا يملك صلاحية تسجيل الصرف،
+                        // والعينان اثنتان كما تفرضهما DisbursementPolicy
+                        'recorded_by' => $staff['accountant'],
+                        'approved_by' => $staff['admin'],
+                        'approved_at' => $spentOn->copy()->addDays(random_int(1, 6))->min(now()),
                         'created_at' => $spentOn,
                         'updated_at' => $spentOn,
                     ];
@@ -670,7 +676,8 @@ class DemoSeeder extends Seeder
         }
 
         foreach ($childSpendByMonth as $month => $childSpend) {
-            $spentOn = Carbon::parse($month.'-01')->endOfMonth();
+            // آخر الشهر، أو اليوم إن كان الشهر الجاري
+            $spentOn = Carbon::parse($month.'-01')->endOfMonth()->startOfDay()->min(now()->startOfDay());
             $amount = round($childSpend * 7 / 93 * (random_int(92, 108) / 100), 2);
 
             $rows[] = [
@@ -683,7 +690,7 @@ class DemoSeeder extends Seeder
                 'description' => 'مصاريف تشغيل شهرية',
                 'recorded_by' => $staff['accountant'],
                 'approved_by' => $staff['admin'],
-                'approved_at' => $spentOn->copy()->addDays(2),
+                'approved_at' => $spentOn->copy()->addDays(2)->min(now()),
                 'created_at' => $spentOn,
                 'updated_at' => $spentOn,
             ];
