@@ -215,8 +215,8 @@ class FamilyController extends Controller
 
     private function nextCode(): string
     {
-        $last = Family::query()->lockForUpdate()->max('family_code');
-        $next = $last ? ((int) substr($last, 4)) + 1 : 1;
+        // الأكبر رقماً لا نصّاً، كي لا يتكرر الرمز بعد FAM-9999
+        $next = (int) Family::query()->lockForUpdate()->max(DB::raw('CAST(SUBSTRING(family_code, 5) AS UNSIGNED)')) + 1;
 
         return 'FAM-'.str_pad((string) $next, 4, '0', STR_PAD_LEFT);
     }

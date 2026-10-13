@@ -254,8 +254,9 @@ class OrphanController extends Controller
 
     private function nextReference(): string
     {
-        $last = Orphan::withTrashed()->lockForUpdate()->max('reference_code');
-        $next = $last ? ((int) substr($last, 4)) + 1 : 1042;
+        // الأكبر رقماً لا نصّاً: نصّياً «KFL-9999» أكبر من «KFL-10000»، فيتكرر الرمز بعد 9999
+        $last = (int) Orphan::withTrashed()->lockForUpdate()->max(DB::raw('CAST(SUBSTRING(reference_code, 5) AS UNSIGNED)'));
+        $next = $last ? $last + 1 : 1042;
 
         return 'KFL-'.max(1042, $next);
     }

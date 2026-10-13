@@ -287,3 +287,17 @@ it('الزيارة: لا تُسجَّل لملف مغلق، ويُضبط موع�
     $rows = collect($this->actingAs($admin)->getJson("/api/v1/admin/visits?orphan_id={$orphan->id}")->json('data'));
     expect($rows->where('is_overdue', true)->count())->toBe(0);
 });
+
+it('رمز الملف التالي يُحسب رقمياً فلا يتكرر بعد 9999', function () {
+    $admin = User::factory()->admin()->create();
+    Orphan::factory()->create(['reference_code' => 'KFL-9999']);
+    Orphan::factory()->create(['reference_code' => 'KFL-10000']);
+    $family = Family::factory()->create();
+
+    $res = $this->actingAs($admin)->postJson('/api/v1/admin/orphans', [
+        'first_name' => 'سامي', 'last_name' => 'الأحمد', 'gender' => 'male', 'date_of_birth' => now()->subYears(8)->toDateString(),
+        'family_id' => $family->id, 'program_id' => \App\Models\Program::query()->value('id'), 'monthly_need' => 50,
+    ]);
+
+    expect($res->json('data.reference_code'))->toBe('KFL-10001');
+});
