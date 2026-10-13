@@ -31,12 +31,11 @@ import {
   initPasswordToggles,
 } from './modules/ui.js';
 import { initForms, initCardInput, initPasswordStrength } from './modules/forms.js';
+import { initCheckout, initThankYou } from './modules/checkout.js';
 import {
   initImpactCalculator,
   initOrphanFilters,
   initOrphanDetail,
-  initCheckoutSummary,
-  initThankYou,
   initPostDetail,
   initPostsPager,
   initResetPassword,
@@ -57,7 +56,7 @@ function boot() {
   initFinanceBoard();
   initOrphanFilters();
   initOrphanDetail();
-  initCheckoutSummary();
+  initCheckout();
   initPostDetail();
   initPostsPager();
   initResetPassword();

@@ -69,7 +69,24 @@
             <div class="card" style="padding:var(--space-8)">
               <h1 style="font-size:var(--text-xl)">بيانات الكفالة</h1>
 
-              <form id="checkoutForm" data-validate-form novalidate>
+              <!-- البوابة تجريبية: لا يظن أحد أنه دفع مالاً حقيقياً -->
+              <div class="secure-note" data-checkout="demo" hidden style="margin-block:var(--space-4);border-color:var(--color-gold, #E0A63B)">
+                <i class="fa-solid fa-flask" aria-hidden="true"></i>
+                <span>
+                  <strong>وضع تجريبي:</strong> لا يُخصم أي مال. للقبول استعمل البطاقة
+                  <span class="num" dir="ltr">4242 4242 4242 4242</span>، وللرفض
+                  <span class="num" dir="ltr">4000 0000 0000 0002</span>، بأي تاريخ قادم وأي رمز.
+                </span>
+              </div>
+
+              <!-- طفلٌ اكتمل تمويله أو رابطٌ لا يوجد: لا نموذج دفع -->
+              <div data-checkout="blocked" hidden role="status" style="margin-block:var(--space-6)">
+                <p data-checkout="blocked-text" class="section-lede"></p>
+                <a class="btn btn--primary" href="orphans.html">اختر طفلاً آخر ينتظر كافلاً</a>
+              </div>
+
+              <!-- method=post: إن تعطّل JS لا تذهب الحقول في الرابط -->
+              <form id="checkoutForm" data-validate-form novalidate method="post" action="#">
 
                 <!-- نوع الكفالة -->
                 <fieldset style="border:0;padding:0;margin:0 0 var(--space-6)">
@@ -81,21 +98,43 @@
                   </div>
                 </fieldset>
 
+                <!-- المبلغ: لا يتجاوز المتبقي من حاجة الطفل -->
+                <div class="field" style="margin-block-end:var(--space-6)">
+                  <label class="field__label" for="monthlyAmount">مبلغ الكفالة الشهري <span class="req">*</span></label>
+                  <div class="field__control">
+                    <i class="fa-solid fa-hand-holding-heart field__icon" aria-hidden="true"></i>
+                    <input class="input num" type="text" id="monthlyAmount" inputmode="decimal" dir="ltr" lang="en"
+                           data-validate="required" aria-describedby="hint-amount err-monthlyAmount">
+                  </div>
+                  <p class="field__hint" id="hint-amount"></p>
+                  <p class="field__error" id="err-monthlyAmount" aria-live="polite"></p>
+                </div>
+
                 <!-- الزكاة -->
                 <div class="field" style="margin-block-end:var(--space-6)">
                   <label class="checkbox">
-                    <input type="checkbox" name="zakat">
+                    <input type="checkbox" name="is_zakat" value="1">
                     <span>
                       احتسب هذا المبلغ من الزكاة
                       <span class="field__hint" style="display:block">
-                        سنوجّه مبلغك للحالات المستحقة زكوياً، بلا أي خصم إداري.
+                        يُصرف مبلغك على الحالات المستحقة للزكاة وحدها، ويظهر ذلك في إيصالك.
                       </span>
                     </span>
                   </label>
                 </div>
 
-                <!-- بيانات الكافل -->
+                <!-- بيانات الكافل: للزائر وحده -->
+                <p class="secure-note" data-checkout="signed" hidden style="margin-block-end:var(--space-6)">
+                  <i class="fa-regular fa-circle-user" aria-hidden="true"></i>
+                  <span>تكفل باسم <strong data-checkout="signed-name"></strong>، وتجد الكفالة في لوحتك.</span>
+                </p>
+
+                <div data-checkout="guest">
                 <h2 style="font-size:var(--text-md);margin-block-end:var(--space-4)">بياناتك</h2>
+                <p class="field__hint" style="margin-block-end:var(--space-4)">
+                  ننشئ لك حساباً بهذا البريد تتابع منه الكفالة، ونرسل إليه رابط تعيين كلمة المرور.
+                  لديك حساب؟ <a href="login.html" data-checkout="login-link">سجّل الدخول</a>.
+                </p>
 
                 <div class="grid grid--2" style="gap:var(--space-4);margin-block-end:var(--space-4)">
                   <div class="field">
@@ -106,7 +145,7 @@
                              autocomplete="name" data-validate="required|minlength:3"
                              aria-describedby="err-donorName">
                     </div>
-                    <p class="field__error" id="err-donorName" role="alert"></p>
+                    <p class="field__error" id="err-donorName" aria-live="polite"></p>
                   </div>
 
                   <div class="field">
@@ -117,7 +156,7 @@
                              autocomplete="email" inputmode="email" data-validate="required|email"
                              aria-describedby="err-donorEmail">
                     </div>
-                    <p class="field__error" id="err-donorEmail" role="alert"></p>
+                    <p class="field__error" id="err-donorEmail" aria-live="polite"></p>
                   </div>
                 </div>
 
@@ -130,7 +169,8 @@
                            data-validate="phone" aria-describedby="err-donorPhone hint-phone">
                   </div>
                   <p class="field__hint" id="hint-phone">اختياري. نستخدمه فقط لإشعارك بوصول التقارير.</p>
-                  <p class="field__error" id="err-donorPhone" role="alert"></p>
+                  <p class="field__error" id="err-donorPhone" aria-live="polite"></p>
+                </div>
                 </div>
 
                 <!-- وسيلة الدفع -->
@@ -140,35 +180,40 @@
                   <legend class="sr-only">اختر وسيلة الدفع</legend>
 
                   <label class="pay-method">
-                    <input type="radio" name="payment" value="card" checked>
+                    <input type="radio" name="method" value="card" checked>
                     <i class="fa-regular fa-credit-card" aria-hidden="true"></i>
                     <span>بطاقة ائتمان</span>
                   </label>
 
-                  <label class="pay-method">
-                    <input type="radio" name="payment" value="applepay">
-                    <i class="fa-brands fa-apple-pay" aria-hidden="true"></i>
-                    <span>Apple Pay</span>
-                  </label>
 
                   <label class="pay-method">
-                    <input type="radio" name="payment" value="bank">
+                    <input type="radio" name="method" value="bank_transfer">
                     <i class="fa-solid fa-building-columns" aria-hidden="true"></i>
                     <span>تحويل بنكي</span>
                   </label>
                 </fieldset>
 
+                <!-- التحويل البنكي: ماذا يحدث بعده -->
+                <div class="secure-note" data-checkout="bank-note" hidden style="margin-block-end:var(--space-6)">
+                  <i class="fa-solid fa-building-columns" aria-hidden="true"></i>
+                  <span>
+                    نحجز الكفالة باسمك، ونعرض لك بيانات الحساب ومرجع كفالتك لتكتبه في التحويل.
+                    تتفعّل حين يصل التحويل، ويبقى الحجز <span data-checkout="grace">5 أيام</span>.
+                  </span>
+                </div>
+
+                <div data-checkout="card-fields">
                 <!-- معاينة البطاقة -->
                 <div class="card-preview" aria-hidden="true">
                   <div class="card-preview__chip"></div>
                   <div class="card-preview__number" id="previewNumber">•••• •••• •••• ••••</div>
                   <div class="card-preview__row">
                     <div>
-                      <span>CARD HOLDER</span>
+                      <span>حامل البطاقة</span>
                       <div id="previewHolder">الاسم على البطاقة</div>
                     </div>
                     <div>
-                      <span>EXPIRES</span>
+                      <span>ينتهي في</span>
                       <div id="previewExpiry">MM/YY</div>
                     </div>
                   </div>
@@ -178,46 +223,48 @@
                 <div class="field" style="margin-block-end:var(--space-4)">
                   <label class="field__label" for="cardHolder">الاسم على البطاقة <span class="req">*</span></label>
                   <div class="field__control">
-                    <input class="input" type="text" id="cardHolder" name="cc-name"
+                    <input class="input" type="text" id="cardHolder"
                            autocomplete="cc-name" data-validate="required|minlength:3"
                            aria-describedby="err-cardHolder">
                   </div>
-                  <p class="field__error" id="err-cardHolder" role="alert"></p>
+                  <p class="field__error" id="err-cardHolder" aria-live="polite"></p>
                 </div>
 
                 <div class="field" style="margin-block-end:var(--space-4)">
                   <label class="field__label" for="cardNumber">رقم البطاقة <span class="req">*</span></label>
                   <div class="field__control">
                     <i class="fa-regular fa-credit-card field__icon" aria-hidden="true"></i>
-                    <input class="input" type="text" id="cardNumber" name="cc-number"
+                    <input class="input" type="text" id="cardNumber"
                            autocomplete="cc-number" inputmode="numeric" dir="ltr"
                            placeholder="4242 4242 4242 4242"
                            data-validate="required|card" aria-describedby="err-cardNumber">
                   </div>
-                  <p class="field__error" id="err-cardNumber" role="alert"></p>
+                  <p class="field__error" id="err-cardNumber" aria-live="polite"></p>
                 </div>
 
                 <div class="grid grid--2" style="gap:var(--space-4);margin-block-end:var(--space-6)">
                   <div class="field">
                     <label class="field__label" for="cardExpiry">تاريخ الانتهاء <span class="req">*</span></label>
                     <div class="field__control">
-                      <input class="input" type="text" id="cardExpiry" name="cc-exp"
+                      <input class="input" type="text" id="cardExpiry"
                              autocomplete="cc-exp" inputmode="numeric" dir="ltr" placeholder="MM/YY"
                              data-validate="required|expiry" aria-describedby="err-cardExpiry">
                     </div>
-                    <p class="field__error" id="err-cardExpiry" role="alert"></p>
+                    <p class="field__error" id="err-cardExpiry" aria-live="polite"></p>
                   </div>
 
                   <div class="field">
                     <label class="field__label" for="cardCvc">رمز الأمان <span class="req">*</span></label>
                     <div class="field__control">
                       <i class="fa-solid fa-lock field__icon" aria-hidden="true"></i>
-                      <input class="input" type="password" id="cardCvc" name="cc-csc"
+                      <input class="input" type="password" id="cardCvc"
                              autocomplete="cc-csc" inputmode="numeric" dir="ltr" placeholder="123"
                              data-validate="required|cvc" aria-describedby="err-cardCvc">
                     </div>
-                    <p class="field__error" id="err-cardCvc" role="alert"></p>
+                    <p class="field__error" id="err-cardCvc" aria-live="polite"></p>
                   </div>
+                </div>
+
                 </div>
 
                 <div class="secure-note" style="margin-block-end:var(--space-6)">
@@ -228,10 +275,14 @@
                   </span>
                 </div>
 
-                <button class="btn btn--cta btn--lg btn--block" type="submit">
-                  <i class="fa-solid fa-lock" aria-hidden="true"></i>
-                  تفعيل الكفالة
-                </button>
+                <p class="checkout__plan" data-checkout="plan" aria-live="polite"
+                   style="margin-block-end:var(--space-4);font-weight:600"></p>
+
+                <p class="field__error" data-checkout="error" role="alert" hidden
+                   style="display:block;margin-block-end:var(--space-4)"></p>
+
+                <button class="btn btn--cta btn--lg btn--block" type="submit" id="checkoutSubmit">
+                  <i class="fa-solid fa-lock" aria-hidden="true"></i> تفعيل الكفالة</button>
 
                 <p class="field__hint text-center" style="margin-block-start:var(--space-4)">
                   بالمتابعة أنت توافق على
@@ -248,7 +299,9 @@
             <h2 style="font-size:var(--text-md)">ملخص الكفالة</h2>
 
             <div class="summary__child">
-              <img data-checkout="photo" src="assets/img/orphan-omnia.webp" alt="" width="56" height="56">
+              <img data-checkout="photo" src="" alt="" width="56" height="56" hidden>
+              <span data-checkout="initial" class="summary__initial" aria-hidden="true"
+                    style="width:56px;height:56px;border-radius:12px;display:grid;place-items:center;background:var(--color-brand-50, #eef7f6);color:#0f5c5c;font-weight:700;font-size:1.4rem"></span>
               <div>
                 <strong data-checkout="name">…</strong>
                 <span class="badge badge--brand" data-checkout="program">…</span>
@@ -261,7 +314,11 @@
                 <strong class="num" data-checkout="id">…</strong>
               </div>
               <div class="summary__line">
-                <span>الكفالة الشهرية</span>
+                <span>المتبقي من حاجته</span>
+                <strong class="num" data-checkout="remaining">…</strong>
+              </div>
+              <div class="summary__line">
+                <span>كفالتك الشهرية</span>
                 <strong class="num" data-checkout="price">…</strong>
               </div>
               <div class="summary__line">
@@ -282,7 +339,7 @@
 
             <div class="secure-note">
               <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
-              <span>٩٣٪ من هذا المبلغ يصل للطفل مباشرة، والباقي مصاريف تشغيل موثّقة.</span>
+              <span>ما يصل للطفل وما يُصرف على التشغيل منشورٌ كل شهر في <a href="transparency.html">تقارير الشفافية</a>.</span>
             </div>
 
             <a class="link-arrow" href="orphans.html">

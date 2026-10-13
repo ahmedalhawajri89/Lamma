@@ -35,6 +35,30 @@ class PublicOrphanResource extends JsonResource
             'health' => $this->health_status,
             'dream' => $this->dream,
             'story' => $this->story,
+
+            /*
+             * لصفحة الكفالة (صفحة الطفل الواحد وحدها، فلا يثقل الفهرس): المتبقي
+             * من حاجته بالمبالغ الفعلية لا بالنسبة المقرّبة، وعملته، وهل يقبل
+             * كفالة الآن. كانت الصفحة تعرض الحاجة كاملة ثم يُخصم غيرها.
+             */
+            $this->mergeWhen($request->routeIs('api.v1.public.orphans.show'), fn () => $this->checkoutFacts()),
+        ];
+    }
+
+    /** @return array<string, mixed> */
+    private function checkoutFacts(): array
+    {
+        $covered = (float) $this->sponsorships()
+            ->whereIn('status', array_filter(\App\Enums\SponsorshipStatus::cases(), fn ($s) => $s->countsTowardFunding()))
+            ->sum('monthly_amount');
+        $remaining = max(0, round((float) $this->monthly_need - $covered, 2));
+
+        return [
+            'remaining' => $remaining,
+            'currency' => $this->program?->currency ?? config('kafala.base_currency'),
+            'program_price' => $this->program ? (float) $this->program->monthly_price : null,
+            'program_name' => $this->program?->name_ar,
+            'accepting' => $this->status->acceptsSponsorship() && $remaining > 0,
         ];
     }
 }

@@ -67,14 +67,14 @@ function csrfToken() {
  * الخطأ كائن فيه `message` و`errors`، فيستطيع النموذج أن يعرض خطأ كل حقل
  * تحت حقله بدل رسالة عامة عائمة.
  */
-export async function request(path, { method = 'GET', body = null } = {}) {
+export async function request(path, { method = 'GET', body = null, headers: extra = {} } = {}) {
   if (DISABLED) {
     throw { message: 'هذه النسخة ساكنة بلا خادم.', errors: {} };
   }
 
   if (method !== 'GET') await ensureCsrf();
 
-  const headers = { Accept: 'application/json' };
+  const headers = { Accept: 'application/json', ...extra };
   if (body) headers['Content-Type'] = 'application/json';
 
   const token = csrfToken();
@@ -92,6 +92,8 @@ export async function request(path, { method = 'GET', body = null } = {}) {
   if (!response.ok) {
     throw {
       status: response.status,
+      // رمز الحالة من الخادم (مثل login_required أو payment_failed) لتتصرف الصفحة بحسبه
+      code: payload.code ?? null,
       message: errorMessage(response.status, payload),
       errors: payload.errors ?? {},
     };
@@ -215,6 +217,20 @@ export const fetchPost = (slug) => tryGet(`posts/${encodeURIComponent(slug)}`);
 
 export const submitContact = (payload) =>
   request('/public/contact', { method: 'POST', body: payload });
+
+/* =========================================================================
+   الكفالة
+   ========================================================================= */
+
+/** طفلٌ واحد برمزه، يرمي إن لم يوجد: صفحة الكفالة لا ترجع إلى طفل آخر بصمت */
+export const fetchOrphan = (reference) => request(`/public/orphans/${encodeURIComponent(reference)}`).then((r) => r.data);
+
+/** وضع البوابة (تجريبية؟)، وبيانات التحويل، ومهلة الحجز */
+export const fetchCheckoutConfig = () => request('/public/checkout/config').then((r) => r.data);
+
+/** الكفالة والدفع. المفتاح يجعل النقرة الثانية لا تخصم مرتين */
+export const submitCheckout = (payload, idempotencyKey) =>
+  request('/public/checkout', { method: 'POST', body: payload, headers: { 'Idempotency-Key': idempotencyKey } });
 
 export const subscribeNewsletter = (email, source = 'footer') =>
   request('/public/newsletter', { method: 'POST', body: { email, source } });

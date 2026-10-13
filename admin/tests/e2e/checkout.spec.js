@@ -1,0 +1,100 @@
+import { test, expect } from '@playwright/test'
+
+/**
+ * الكفالة من الموقع، كما يمرّ بها المتبرع.
+ *
+ * كانت الصفحة محاكاة: زرّ الدفع لا يصل الخادم، وصفحة الشكر تقول «تمّت
+ * الكفالة» لأي رابط. هذه الاختبارات تمرّ بالخادم فعلاً على قاعدة الاختبار.
+ */
+const SITE = process.env.E2E_SITE ?? 'http://127.0.0.1:8000'
+
+/** طفلٌ يقبل كفالة الآن، من الخادم نفسه */
+async function sponsorableChild(request, skip = 0) {
+  const res = await request.get(`${SITE}/api/v1/public/orphans?per_page=100`)
+  const list = (await res.json()).data.filter((o) => o.funded < 100)
+  return list[skip]
+}
+
+async function fillGuest(page, email) {
+  await page.fill('#donorName', 'متبرع اختبار')
+  await page.fill('#donorEmail', email)
+}
+
+async function fillCard(page, number) {
+  await page.fill('#cardHolder', 'متبرع اختبار')
+  await page.fill('#cardNumber', number)
+  await page.fill('#cardExpiry', '1230')
+  await page.fill('#cardCvc', '123')
+}
+
+test.describe('الكفالة من الموقع', () => {
+  test('زائر يكفل بالبطاقة سنوياً: حساب جديد، وصفحة شكر من بيانات الخادم', async ({ page, request }) => {
+    const child = await sponsorableChild(request, 0)
+    await page.goto(`${SITE}/checkout.html?id=${child.id}`)
+
+    // الطفل نفسه من الخادم، ووضع البوابة التجريبية معلَن
+    await expect(page.locator('[data-checkout="id"]').first()).toHaveText(child.id)
+    await expect(page.locator('[data-checkout="demo"]')).toBeVisible()
+
+    await page.locator('[data-chips] .chip[data-value="yearly"]').click()
+    const monthly = Number(await page.inputValue('#monthlyAmount'))
+    await expect(page.locator('[data-checkout="plan"]')).toContainText('اليوم')
+
+    await fillGuest(page, `donor${Date.now()}@example.com`)
+    await fillCard(page, '4242 4242 4242 4242')
+    await page.locator('#checkoutSubmit').click()
+
+    await page.waitForURL(/thank-you\.html\?ref=KFS-/, { timeout: 25_000 })
+    await expect(page.locator('[data-thanks-when="paid"]').first()).toBeVisible()
+    await expect(page.locator('[data-thanks="cycle"]').first()).toHaveText('سنوياً')
+    await expect(page.locator('[data-thanks="amount"]').first()).toContainText((monthly * 12).toFixed(2))
+    await expect(page.locator('[data-thanks="receipt"]').first()).toHaveText(/RCP-/)
+    await expect(page.locator('[data-thanks-when="account"]')).toBeVisible()
+
+    // والحساب الجديد داخلٌ يرى كفالته في لوحته
+    await page.goto(`${SITE}/dashboard.html`)
+    await expect(page.getByText(child.name).first()).toBeVisible({ timeout: 20_000 })
+  })
+
+  test('رفض البطاقة يُقال فوق الزر، ولا تُحجز الكفالة', async ({ page, request }) => {
+    const child = await sponsorableChild(request, 1)
+    await page.goto(`${SITE}/checkout.html?id=${child.id}`)
+    await expect(page.locator('#monthlyAmount')).not.toHaveValue('')
+
+    await fillGuest(page, `declined${Date.now()}@example.com`)
+    await fillCard(page, '4000 0000 0000 0002')
+    await page.locator('#checkoutSubmit').click()
+
+    await expect(page.locator('[data-checkout="error"]')).toContainText('رفض البنك', { timeout: 20_000 })
+    await expect(page).toHaveURL(/checkout\.html/)
+  })
+
+  test('التحويل البنكي: لا حقول بطاقة، ثم حجزٌ ببيانات الحساب والمرجع', async ({ page, request }) => {
+    const child = await sponsorableChild(request, 2)
+    await page.goto(`${SITE}/checkout.html?id=${child.id}`)
+    await expect(page.locator('#monthlyAmount')).not.toHaveValue('')
+
+    // الزر الدائري مخفيّ خلف بطاقته المصمّمة، فيُضغط على البطاقة كما يفعل المستخدم
+    await page.locator('label.pay-method', { has: page.locator('input[value="bank_transfer"]') }).click()
+    await expect(page.locator('input[name="method"][value="bank_transfer"]')).toBeChecked()
+    await expect(page.locator('[data-checkout="card-fields"]')).toBeHidden()
+    await expect(page.locator('[data-checkout="bank-note"]')).toBeVisible()
+
+    await fillGuest(page, `bank${Date.now()}@example.com`)
+    await page.locator('#checkoutSubmit').click()
+
+    await page.waitForURL(/thank-you\.html\?ref=KFS-/, { timeout: 25_000 })
+    await expect(page.locator('[data-thanks-when="pending"]')).toBeVisible()
+    await expect(page.locator('[data-thanks="bank-iban"]')).not.toHaveText('…')
+  })
+
+  test('رابط بلا طفل، وصفحة شكر بلا كفالة، لا يدّعيان شيئاً', async ({ page }) => {
+    await page.goto(`${SITE}/checkout.html?id=KFL-0000`)
+    await expect(page.locator('[data-checkout="blocked"]')).toBeVisible({ timeout: 20_000 })
+    await expect(page.locator('#checkoutForm')).toBeHidden()
+
+    await page.goto(`${SITE}/thank-you.html?ref=KFS-2026-99999`)
+    await expect(page.locator('#thanksNone')).toBeVisible()
+    await expect(page.locator('#thanksCard')).toBeHidden()
+  })
+})

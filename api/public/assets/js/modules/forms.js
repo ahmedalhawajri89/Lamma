@@ -14,6 +14,7 @@ import { login, logout, register, forgotPassword, resetPassword, markSignedIn, i
 import { submitContact, subscribeNewsletter } from './api.js';
 import { toast } from './ui.js';
 import { $, $$, clamp } from './utils.js';
+import { submitCheckoutForm } from './checkout.js';
 
 /**
  * وجهة ما بعد الدخول من الرابط، على هذا الموقع وحده.
@@ -55,6 +56,15 @@ const RULES = {
   expiry: (value) => validExpiry(value) || 'تاريخ الانتهاء غير صالح',
 
   cvc: (value) => /^\d{3,4}$/.test(value.trim()) || 'رمز الأمان من ٣ أو ٤ أرقام',
+
+  // مبلغ بين حدّين: `range:5:90`
+  range: (value, param) => {
+    const [min, max] = param.split(':').map(Number);
+    const n = Number(value);
+    if (!Number.isFinite(n)) return 'اكتب مبلغاً بالأرقام';
+    if (n < min) return `أقل مبلغ ${min}`;
+    return n <= max || `أكثر ما يمكن ${max}، وهو المتبقي من حاجته`;
+  },
 
   match: (value, param) => {
     const other = document.getElementById(param);
@@ -122,6 +132,12 @@ function setError(input, message) {
 
 /** تشغيل قواعد حقل واحد. الترتيب مهم: "مطلوب" أولاً. */
 function validateInput(input) {
+  // حقلٌ معطّل خارج النموذج الآن (حقول البطاقة حين يُختار التحويل)
+  if (input.disabled) {
+    setError(input, '');
+    return true;
+  }
+
   const value = input.value ?? '';
   const rules = (input.dataset.validate || '').split('|').filter(Boolean);
 
@@ -132,7 +148,8 @@ function validateInput(input) {
   }
 
   for (const rule of rules) {
-    const [name, param] = rule.split(':');
+    const [name, ...rest] = rule.split(':');
+    const param = rest.join(':');
     const check = RULES[name];
     if (!check) continue;
 
@@ -208,19 +225,13 @@ async function submit(form, button, original) {
 
   const action = form.dataset.action;
 
+  /*
+   * نموذجٌ بلا وجهة لا يدّعي النجاح. كان هذا الفرع «محاكاة» تنتقل بعد ثانية
+   * إلى صفحة الشكر، فبدت الكفالة تمّت ولم يصل الخادم شيء. صفحة الكفالة
+   * تضبط وجهتها بعد تحميل الطفل، فإن أُرسلت قبل ذلك يعود الزرّ ببساطة.
+   */
   if (!action) {
-    // لا خادم لهذا النموذج بعد — سلوك المحاكاة كما كان
-    setTimeout(() => {
-      const redirect = form.dataset.redirect;
-      if (redirect) {
-        window.location.href = redirect;
-        return;
-      }
-      restore();
-      form.reset();
-      $$('.field', form).forEach((f) => f.classList.remove('is-invalid'));
-      toast(form.dataset.successMessage || 'تم الإرسال بنجاح، شكراً لك', 'success');
-    }, 900);
+    restore();
     return;
   }
 
@@ -233,6 +244,12 @@ async function submit(form, button, original) {
   const staysOnPage = action === 'contact' || action === 'newsletter' || action === 'forgot';
 
   try {
+    // الكفالة: الوحدة تُرسل وتنتقل إلى صفحة الشكر، والأخطاء تعود إلى هنا
+    if (action === 'checkout') {
+      await submitCheckoutForm(form);
+      return;
+    }
+
     if (action === 'contact') {
       const { message } = await submitContact({
         name: values.name,
@@ -333,6 +350,13 @@ async function submit(form, button, original) {
     window.location.href = safeRedirect(params.get('redirect')) || form.dataset.redirect || 'dashboard.html';
   } catch (error) {
     restore();
+
+    // بريدٌ مسجَّل في صفحة الكفالة: إلى الدخول، والاختيارات محفوظة للعودة
+    if (error.redirect) {
+      toast(error.message, 'error');
+      setTimeout(() => { window.location.href = error.redirect; }, 1600);
+      return;
+    }
 
     const fields = error.errors ?? {};
     let focused = false;

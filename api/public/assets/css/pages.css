@@ -1590,3 +1590,25 @@
 .zakat-flow .columns { gap: 0; }
 .zakat-flow .columns > li { padding-block: var(--space-5); }
 .zakat-flow .columns h3 { font-size: var(--text-lg); }
+
+
+/* بيانات التحويل في صفحة الشكر: جدول هادئ يُنسخ منه */
+.thanks__bank {
+  display: grid;
+  gap: var(--space-2);
+  width: 100%;
+  margin: var(--space-6) 0;
+  padding: var(--space-5);
+  border: 1px solid var(--color-border, #e4e0d6);
+  border-radius: var(--radius-lg, 14px);
+  text-align: start;
+}
+
+.thanks__bank > div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.thanks__bank dt { color: var(--color-text-muted, #5f6b6f); }
+.thanks__bank dd { margin: 0; font-weight: 600; user-select: all; }
