@@ -56,7 +56,7 @@ async function cancel(row) {
   const answer = await confirmDialog({
     title: 'إلغاء الكفالة',
     message: 'يتوقف الخصم من الكافل، ويعود الطفل إلى قائمة من ينتظرون كافلاً.',
-    reason: 'optional',
+    reason: 'required',
     reasonLabel: 'سبب الإلغاء',
     confirmLabel: 'ألغِ الكفالة',
     danger: true,

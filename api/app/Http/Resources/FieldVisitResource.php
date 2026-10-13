@@ -18,7 +18,11 @@ class FieldVisitResource extends JsonResource
             'findings' => $this->findings,
             'needs_flagged' => $this->needs_flagged ?? [],
             'next_visit_due' => $this->next_visit_due?->toDateString(),
-            'is_overdue' => $this->next_visit_due !== null && $this->next_visit_due->isPast(),
+            // تعريف «متأخرة» نفسه في العدّاد (FieldVisit::scopeOverdue): موعد مضى
+            // قبل اليوم، ولم تتلُها زيارة أحدث للطفل نفسه
+            'is_overdue' => $this->next_visit_due !== null
+                && $this->next_visit_due->lt(now(config('kafala.display_timezone'))->startOfDay())
+                && ! $this->has_later,
             'coordinates' => $this->latitude !== null
                 ? ['lat' => (float) $this->latitude, 'lng' => (float) $this->longitude]
                 : null,

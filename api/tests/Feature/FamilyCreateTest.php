@@ -30,8 +30,9 @@ function familyPayload(array $overrides = []): array
             'occupation' => 'خياطة',
             'monthly_income' => 40,
         ],
-        'country_id' => Country::query()->value('id'),
-        'city_id' => City::query()->value('id'),
+        // المدينة من الدولة نفسها: الخادم يرفض مدينةً من دولة أخرى
+        'country_id' => ($city = City::query()->first())->country_id,
+        'city_id' => $city->id,
         'address' => 'حيّ النصر',
         'members_count' => 6,
         'monthly_income' => 40,

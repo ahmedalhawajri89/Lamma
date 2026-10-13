@@ -19,6 +19,9 @@ export const confirmState = reactive({
   /** null بلا حقل، 'optional' أو 'required' بحقل سبب */
   reason: null,
   reasonLabel: 'السبب',
+  /** حدود السبب كما في الخادم: كان يُقبل هنا ثم يردّه الخادم بعد أن تُغلق النافذة ويضيع ما كُتب */
+  minLength: 5,
+  maxLength: 255,
   confirmLabel: 'تأكيد',
   danger: false,
   resolve: null,
@@ -34,6 +37,8 @@ export function confirmDialog(options = {}) {
       message: '',
       reason: null,
       reasonLabel: 'السبب',
+      minLength: 5,
+      maxLength: 255,
       confirmLabel: 'تأكيد',
       danger: false,
       ...options,

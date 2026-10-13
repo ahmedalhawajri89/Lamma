@@ -62,6 +62,8 @@ class SponsorshipController extends Controller
                     }
                 });
             })
+            // الحيّة أولاً: كانت الصفحة الأولى كلها ملغاة، وما يحتاج متابعة في آخرها
+            ->orderByRaw("CASE WHEN status IN ('active', 'pending', 'paused') THEN 0 ELSE 1 END")
             ->latest('id')
             ->paginate($this->perPage($request, 20));
 
@@ -229,6 +231,12 @@ class SponsorshipController extends Controller
     public function destroy(Request $request, Sponsorship $sponsorship, CancelSponsorship $action): JsonResponse
     {
         $this->authorize('cancel', $sponsorship);
+
+        // الموظف يذكر سبب الإلغاء: هو ما يُقرأ في السجل بعد سنة (والكافل في بوابته اختياري)
+        $request->validate(['reason' => ['required', 'string', 'min:5', 'max:255']], [
+            'reason.required' => 'اذكر سبب الإلغاء، يبقى في سجل الكفالة.',
+            'reason.min' => 'وضّح سبب الإلغاء أكثر.',
+        ]);
 
         $action->handle($sponsorship, $request->string('reason')->toString() ?: null);
 

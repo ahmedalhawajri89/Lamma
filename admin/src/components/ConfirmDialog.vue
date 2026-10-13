@@ -36,6 +36,11 @@ function submit() {
     return
   }
 
+  if (reason && reason.length < confirmState.minLength) {
+    error.value = `وضّح أكثر: ${confirmState.minLength} أحرف على الأقل.`
+    return
+  }
+
   settleConfirm({ confirmed: true, reason: reason || null })
 }
 </script>
@@ -44,7 +49,8 @@ function submit() {
   <FormModal
     :open="confirmState.open"
     :title="confirmState.title"
-    :dirty="false"
+:dirty="false"
+    is-confirm
     @close="cancel"
     @submit="submit"
   >
@@ -59,8 +65,10 @@ function submit() {
       </label>
       <textarea
         id="confirm-reason" v-model="text" rows="3" class="input" data-autofocus
+        :maxlength="confirmState.maxLength"
         :aria-invalid="!!error" aria-describedby="confirm-reason-error"
       />
+      <p class="text-xs text-sand-400 mt-1 text-end num" aria-live="polite">{{ text.length }} / {{ confirmState.maxLength }}</p>
       <p v-if="error" id="confirm-reason-error" class="text-xs text-rose-700 mt-1" role="alert">{{ error }}</p>
     </div>
 

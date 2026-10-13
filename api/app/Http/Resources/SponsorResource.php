@@ -26,6 +26,11 @@ class SponsorResource extends JsonResource
             'email' => $this->whenLoaded('user', fn () => $this->user->email),
             'country' => new CountryResource($this->whenLoaded('country')),
 
+            // كفالاته في صفحة تفاصيله (show)، لا في القوائم
+            'sponsorships' => SponsorshipResource::collection($this->whenLoaded('sponsorships')),
+            // الهاتف حين يُحمَّل عموده (صفحة التفاصيل)؛ القوائم تحمّل الاسم والبريد وحدهما
+            'phone' => $this->whenLoaded('user', fn () => $this->user->getAttributes()['phone'] ?? null),
+
             'sponsorships_count' => $this->whenCounted('sponsorships'),
             'active_sponsorships_count' => $this->whenCounted('activeSponsorships'),
             'total_given' => $this->when(

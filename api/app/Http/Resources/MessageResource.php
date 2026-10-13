@@ -26,6 +26,7 @@ class MessageResource extends JsonResource
             'sponsorship' => $this->whenLoaded('sponsorship', fn () => [
                 'id' => $this->sponsorship->id,
                 'reference_code' => $this->sponsorship->reference_code,
+                'orphan_id' => $this->sponsorship->orphan_id,
                 'orphan_name' => $this->sponsorship->relationLoaded('orphan')
                     ? $this->sponsorship->orphan?->first_name
                     : null,

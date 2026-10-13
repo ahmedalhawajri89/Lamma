@@ -59,6 +59,25 @@ const CONFIRM = {
   },
 }
 
+/**
+ * تغيير المسار: تخرّج أو وفاة. للمدير وحده، بسببٍ إلزامي يبقى في سجل الملف،
+ * ويُخفي الملف من الموقع. كانت الحالة حقلاً في نموذج التعديل يقبل أي قيمة.
+ */
+const PATHS = {
+  graduated: { label: 'تسجيل تخرّج', title: 'تسجيل تخرّج الطفل', message: 'يُغلق الملف للكفالة الجديدة ويُخفى من الموقع. الكفالات القائمة تُراجَع بعدها.' },
+  deceased: { label: 'تسجيل وفاة', title: 'تسجيل وفاة الطفل', message: 'يُغلق الملف نهائياً ويُخفى من الموقع، ولا يُعدَّل بعدها إلا بيد المدير.', danger: true },
+}
+const canChangePath = computed(() => auth.isAdmin && orphan.value && !['deceased', 'withdrawn'].includes(orphan.value.status))
+
+async function changePath(status) {
+  const cfg = PATHS[status]
+  const answer = await confirmDialog({
+    title: cfg.title, message: cfg.message, reason: 'required', reasonLabel: 'السبب', confirmLabel: cfg.label, danger: cfg.danger ?? false,
+  })
+  if (!answer) return
+  await act((id) => admin.orphans.changeStatus(id, status, answer.reason), 'غُيّر مسار الملف.')
+}
+
 async function act(fn, successMessage, confirmKey = null) {
   if (confirmKey && !(await confirmDialog(CONFIRM[confirmKey]))) return
 
@@ -95,7 +114,8 @@ const formOpen = ref(false)
 const references = ref({})
 
 async function loadReferences() {
-  if (!auth.can('orphans.update')) return
+  // أنواع المستندات بأسمائها لكل من يرى الملف، لا لمن يعدّله وحده
+  if (!auth.can('orphans.view')) return
 
   try {
     const { data } = await admin.references()
@@ -141,7 +161,8 @@ watch(() => route.params.id, (id, previous) => {
     <PageHeader :title="orphan.full_name" :subtitle="`${orphan.reference_code} · ${years(orphan.age)}`">
       <template #actions>
         <button
-          v-if="auth.can('orphans.update')" class="btn btn-outline" type="button"
+          v-if="auth.can('orphans.update') && (auth.isAdmin || !['deceased', 'withdrawn'].includes(orphan.status))"
+          class="btn btn-outline" type="button"
           :disabled="busy" @click="formOpen = true"
         >
           <BaseIcon name="edit" :size="16" /> تحرير
@@ -171,6 +192,22 @@ watch(() => route.params.id, (id, previous) => {
         >
           إخفاء عن الموقع
         </button>
+
+        <details v-if="canChangePath" class="relative">
+          <summary class="btn btn-ghost list-none cursor-pointer" aria-label="تغيير مسار الملف">
+            <BaseIcon name="sliders" :size="16" /> تغيير المسار
+          </summary>
+          <div class="absolute end-0 mt-1 z-20 w-48 card p-1 shadow-lg">
+            <button
+              v-for="(cfg, key) in PATHS" :key="key" type="button" :disabled="busy"
+              class="w-full text-start px-3 py-2 rounded-lg text-sm hover:bg-sand-50"
+              :class="cfg.danger ? 'text-rose-700' : 'text-sand-800'"
+              @click="changePath(key)"
+            >
+              {{ cfg.label }}
+            </button>
+          </div>
+        </details>
       </template>
     </PageHeader>
 
@@ -191,6 +228,9 @@ watch(() => route.params.id, (id, previous) => {
               <div class="flex items-center gap-2 flex-wrap mb-2">
                 <StatusBadge :label="orphan.status_label" :value="orphan.status" />
                 <span v-if="orphan.is_urgent" class="badge bg-rose-600/10 text-rose-700">عاجل</span>
+                <span v-if="orphan.verified_at" class="badge bg-teal-600/10 text-teal-700" :title="`وُثّق ${date(orphan.verified_at)}`">
+                  موثّق <span class="num">· {{ date(orphan.verified_at) }}</span>
+                </span>
                 <span v-if="orphan.is_public" class="badge bg-olive-100 text-olive-700">منشور</span>
                 <span v-else class="badge bg-sand-100 text-sand-600">غير منشور</span>
               </div>

@@ -98,9 +98,19 @@ class ContentController extends Controller
             'status' => ['sometimes', Rule::in(PostStatus::values())],
             'published_at' => ['sometimes', 'nullable', 'date'],
             'is_featured' => ['sometimes', 'boolean'],
+            'cover' => ['sometimes', 'nullable', 'image', 'mimes:jpeg,png,webp', 'max:'.config('kafala.uploads.max_size_kb')],
         ]);
 
         $before = ['title' => $post->title, 'status' => $post->status->value, 'category_id' => $post->category_id];
+
+        // استبدال الغلاف: كان يُضبط عند الإنشاء وحده. والقديم يُحذف كي لا تتراكم ملفات بلا صاحب
+        if ($request->hasFile('cover')) {
+            if ($post->cover_path) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($post->cover_path);
+            }
+            $post->cover_path = $request->file('cover')->store('posts', 'public');
+        }
+        unset($validated['cover']);
 
         // النشر لاحقاً من مسوّدة يمرّ من هنا لا من الإنشاء
         $post->update($this->withPublishDate([

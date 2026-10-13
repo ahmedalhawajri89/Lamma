@@ -71,6 +71,8 @@ export const admin = {
     verify: (id) => client.post(`${v1}/admin/orphans/${id}/verify`),
     publish: (id) => client.post(`${v1}/admin/orphans/${id}/publish`),
     unpublish: (id) => client.post(`${v1}/admin/orphans/${id}/unpublish`),
+    /** تغيير المسار (تخرّج أو وفاة) للمدير، بسبب يبقى في السجل */
+    changeStatus: (id, status, reason) => client.post(`${v1}/admin/orphans/${id}/status`, { status, reason }),
     documents: (id) => client.get(`${v1}/admin/orphans/${id}/documents`),
     remove: (id) => client.delete(`${v1}/admin/orphans/${id}`),
   },
@@ -105,6 +107,7 @@ export const admin = {
   sponsors: {
     list: (params) => client.get(`${v1}/admin/sponsors`, { params }),
     show: (id) => client.get(`${v1}/admin/sponsors/${id}`),
+    update: (id, payload) => client.patch(`${v1}/admin/sponsors/${id}`, payload),
   },
 
   sponsorships: {
@@ -185,7 +188,13 @@ export const admin = {
       cover ? toFormData(payload, { cover }) : payload,
     ),
 
-    update: (id, payload) => client.patch(`${v1}/admin/posts/${id}`, payload),
+    /**
+     * والتحرير JSON إلا حين يُستبدل الغلاف: عندها `POST` بـ`_method=PATCH`
+     * (كما في صورة اليتيم)، لأن PHP لا يحلّل جسم `multipart` في `PATCH`.
+     */
+    update: (id, payload, cover = null) => (cover
+      ? client.post(`${v1}/admin/posts/${id}`, toFormData({ ...payload, _method: 'PATCH' }, { cover }))
+      : client.patch(`${v1}/admin/posts/${id}`, payload)),
   },
 
   /** الأسئلة الشائعة والشهادات والشركاء — بنية واحدة وقواعد مختلفة. */

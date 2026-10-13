@@ -9,6 +9,8 @@ use App\Http\Resources\MessageResource;
 use App\Models\Sponsorship;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use App\Enums\MessageStatus;
+use App\Models\Setting;
 
 /**
  * رسائل الكافل للطفل.
@@ -46,8 +48,20 @@ class MessageController extends Controller
             'body' => $validated['body'],
         ]);
 
+        /*
+         * إعداد «مراجعة رسائل الكفلاء» في لوحة الإدارة. كان مفتاحاً لا يقرؤه
+         * أحد: المراجعة دائمة أيّاً كانت قيمته. حين يُطفأ تُعتمد الرسالة فوراً،
+         * والحالة تُكتب صراحةً لأنها محميّة من التعبئة الجماعية.
+         */
+        $moderated = (bool) (Setting::cached()['policy.moderate_messages'] ?? true);
+        if (! $moderated) {
+            $message->forceFill(['status' => MessageStatus::Approved, 'reviewed_at' => now()])->save();
+        }
+
         return response()->json([
-            'message' => 'وصلتنا رسالتك. يراجعها المشرف الميداني قبل إيصالها للطفل، حمايةً لخصوصيته.',
+            'message' => $moderated
+                ? 'وصلتنا رسالتك. يراجعها المشرف الميداني قبل إيصالها للطفل، حمايةً لخصوصيته.'
+                : 'وصلت رسالتك.',
             'data' => new MessageResource($message),
         ], 201);
     }

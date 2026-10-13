@@ -15,6 +15,7 @@
  */
 import { nextTick, onBeforeUnmount, ref, useId, watch } from 'vue'
 import BaseIcon from './BaseIcon.vue'
+import { confirmDialog, confirmState } from '@/composables/useConfirm'
 
 const props = defineProps({
   open: { type: Boolean, default: false },
@@ -23,6 +24,9 @@ const props = defineProps({
   dirty: { type: Boolean, default: false },
   busy: { type: Boolean, default: false },
   wide: { type: Boolean, default: false },
+
+  /** نافذة التأكيد نفسها (ConfirmDialog): تملك Escape وTab حين تُفتح فوق غيرها */
+  isConfirm: { type: Boolean, default: false },
 })
 
 const emit = defineEmits(['close', 'submit'])
@@ -42,6 +46,9 @@ function focusables() {
 }
 
 function onKeydown(event) {
+  // نافذة تأكيد مفتوحة فوق هذه تملك لوحة المفاتيح وحدها
+  if (confirmState.open && !props.isConfirm) return
+
   if (event.key === 'Escape') {
     event.preventDefault()
     attemptClose()
@@ -67,11 +74,21 @@ function onKeydown(event) {
   }
 }
 
-function attemptClose() {
+/**
+ * التأكيد بنافذة اللوحة لا بـ`window.confirm`: نافذة المتصفح بلغة نظامه
+ * واتجاهه، وتوقف الصفحة كلها، وكانت الوحيدة الباقية بعد استبدال البقية.
+ */
+async function attemptClose() {
   if (props.busy) return
 
-  if (props.dirty && !window.confirm('لديك تعديلات غير محفوظة. أتريد إغلاق النافذة؟')) {
-    return
+  if (props.dirty) {
+    const ok = await confirmDialog({
+      title: 'تعديلات غير محفوظة',
+      message: 'ما كتبته في هذه النافذة لم يُحفظ بعد، ويضيع إن أغلقتها.',
+      confirmLabel: 'أغلق دون حفظ',
+      danger: true,
+    })
+    if (!ok) return
   }
 
   emit('close')

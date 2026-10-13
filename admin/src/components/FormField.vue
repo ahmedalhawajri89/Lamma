@@ -56,8 +56,10 @@ const control = computed(() => {
 })
 
 /**
- * الأرقام والتواريخ بأرقام لاتينية كبقية اللوحة. المتصفح يرسم أرقام هذه
- * الحقول بلغة العنصر، والصفحة عربية، فكانت تظهر «٢٠١٢» و«١٣/١٠/٢٠٢٦».
+ * الأرقام والتواريخ بأرقام لاتينية كبقية اللوحة؛ كانت تظهر «٢٠١٢» و«٦».
+ * حقل الرقم يُرسم نصّاً بلوحة أرقام (`inputmode`): Chrome يرسم أرقام
+ * `type=number` بلغة الصفحة أيّاً كانت `lang` الحقل، والتحويل إلى رقم
+ * باقٍ في `onInput`. والتاريخ يتبع `lang` فيكفيه.
  */
 const LATIN = ['number', 'date', 'datetime-local', 'time', 'tel', 'email', 'url']
 
@@ -81,7 +83,14 @@ function onInput(event) {
    * `0`: الصفر قيمة يقصدها المستخدم، والفراغ غيابها.
    */
   if (props.type === 'number') {
-    emit('update:modelValue', el.value === '' ? null : Number(el.value))
+    // ما يُكتب من لوحة عربية (٠-٩ و«٫») يصير أرقاماً لاتينية، وغير الأرقام يُحذف
+    const clean = el.value
+      .replace(/[٠-٩]/g, (d) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)))
+      .replace(/[٫,]/g, '.')
+      .replace(/[^\d.-]/g, '')
+    if (clean !== el.value) el.value = clean
+
+    emit('update:modelValue', clean === '' || clean === '-' || clean === '.' ? null : Number(clean))
     return
   }
 
@@ -125,7 +134,10 @@ function onInput(event) {
       />
 
       <input
-        v-else :id="id" class="input" :type="type"
+        v-else :id="id" class="input"
+        :type="type === 'number' ? 'text' : type"
+        :inputmode="type === 'number' ? 'decimal' : undefined"
+        :dir="type === 'number' ? 'ltr' : undefined"
         :lang="LATIN.includes(type) ? 'en' : undefined"
         :value="modelValue" :disabled="disabled" :required="required" :placeholder="placeholder"
         :min="min" :max="max" :step="step"

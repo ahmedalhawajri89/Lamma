@@ -1,10 +1,10 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { admin } from '@/api/endpoints'
 import { useResource } from '@/composables/useResource'
 import { useAuthStore } from '@/stores/auth'
-import { money, EMPTY } from '@/utils/format'
+import { money, num, EMPTY } from '@/utils/format'
 import PageHeader from '@/components/PageHeader.vue'
 import FilterBar from '@/components/FilterBar.vue'
 import DataTable from '@/components/DataTable.vue'
@@ -18,19 +18,35 @@ const router = useRouter()
 const auth = useAuthStore()
 
 const { items, meta, loading, filters, reset, load, error } = useResource(admin.orphans.list, {
-  q: '', status: '', urgent: false, unfunded: false, unverified: false, sort: 'created_at', dir: 'desc',
+  q: '', status: '', country_id: '', program_id: '', family_id: '',
+  urgent: false, unfunded: false, unverified: false, sort: 'created_at', dir: 'desc',
 })
 
+/** الأعمدة القابلة للترتيب يقبلها الخادم وحدها (OrphanController::SORTS) */
 const columns = [
-  { key: 'reference_code', label: 'المعرّف' },
-  { key: 'first_name', label: 'الاسم' },
-  { key: 'age', label: 'العمر' },
+  { key: 'reference_code', label: 'المعرّف', sortable: true },
+  { key: 'first_name', label: 'الاسم', sortable: true },
+  { key: 'age', label: 'العمر', sortable: true, sortKey: 'date_of_birth' },
   { key: 'country', label: 'الدولة' },
   { key: 'program', label: 'البرنامج' },
-  { key: 'funded_percent', label: 'التمويل' },
-  { key: 'monthly_need', label: 'الحاجة الشهرية', align: 'end' },
+  { key: 'funded_percent', label: 'التمويل', sortable: true },
+  { key: 'monthly_need', label: 'الحاجة الشهرية', align: 'end', sortable: true },
   { key: 'status', label: 'الحالة' },
 ]
+
+/** نقرة على عمود: ترتيبه تنازلياً، والثانية تعكسه. والعمر عكس تاريخ الميلاد */
+function onSort(key) {
+  if (filters.sort === key) {
+    filters.dir = filters.dir === 'asc' ? 'desc' : 'asc'
+  } else {
+    filters.sort = key
+    filters.dir = key === 'first_name' || key === 'reference_code' ? 'asc' : 'desc'
+  }
+}
+
+// المشرف مقيّد ببلده، فلا معنى لفلتر الدولة عنده
+const countries = computed(() => (auth.user?.staff_profile?.assigned_country_id ? [] : references.value.countries ?? []))
+const programs = computed(() => references.value.programs ?? [])
 
 /* ── الإنشاء ─────────────────────────────────────────────────────────── */
 
@@ -42,8 +58,7 @@ const references = ref({})
  * والأسرة يُبحث عنها في النافذة نفسها (SearchSelect)، لا تُحمَّل كلها هنا.
  */
 async function loadReferences() {
-  if (!auth.can('orphans.create')) return
-
+  // للفلاتر (الدول والبرامج) ولنافذة الإنشاء معاً
   try {
     const { data } = await admin.references()
     references.value = data.data ?? {}
@@ -63,7 +78,7 @@ onMounted(loadReferences)
 
 <template>
   <div>
-    <PageHeader title="الأيتام" :subtitle="`${meta.total} حالة`">
+    <PageHeader title="الأيتام" :subtitle="loading && !meta.total ? 'جارٍ التحميل…' : `${num(meta.total)} حالة`">
       <template #actions>
         <button
           v-if="auth.can('orphans.create')" class="btn btn-primary" type="button"
@@ -79,10 +94,21 @@ onMounted(loadReferences)
       <select v-model="filters.status" class="input !w-auto text-sm" aria-label="الحالة">
         <option value="">كل الحالات</option>
         <option value="active">نشط</option>
-        <option value="pending_verification">بانتظار التحقق</option>
+        <option value="pending_verification">بانتظار التوثيق</option>
         <option value="fully_funded">مكتمل التمويل</option>
         <option value="graduated">متخرّج</option>
         <option value="draft">مسوّدة</option>
+        <option value="deceased">متوفّى</option>
+      </select>
+
+      <select v-if="countries.length" v-model="filters.country_id" class="input !w-auto text-sm" aria-label="الدولة">
+        <option value="">كل الدول</option>
+        <option v-for="c in countries" :key="c.id" :value="c.id">{{ c.name }}</option>
+      </select>
+
+      <select v-if="programs.length" v-model="filters.program_id" class="input !w-auto text-sm" aria-label="البرنامج">
+        <option value="">كل البرامج</option>
+        <option v-for="p in programs" :key="p.id" :value="p.id">{{ p.name }}</option>
       </select>
 
       <label class="flex items-center gap-1.5 text-sm text-sand-700 cursor-pointer">
@@ -98,6 +124,7 @@ onMounted(loadReferences)
 
     <DataTable :error="error" @retry="load"
       :columns="columns" :rows="items" :loading="loading"
+      :sort="filters.sort" :dir="filters.dir" @sort="onSort"
       clickable @row-click="(r) => router.push(`/orphans/${r.id}`)"
     >
       <template #reference_code="{ row }">
@@ -121,7 +148,11 @@ onMounted(loadReferences)
       <template #age="{ row }"><span class="num">{{ row.age }}</span></template>
       <template #country="{ row }">{{ row.family?.country?.name ?? EMPTY }}</template>
       <template #program="{ row }">{{ row.program?.name ?? EMPTY }}</template>
-      <template #funded_percent="{ row }"><FundingBar :percent="row.funded_percent" /></template>
+      <!-- لا شريط تمويل لملف لم يُنشر بعد: «0%» عليه يوحي بإهمالٍ لا وجود له -->
+      <template #funded_percent="{ row }">
+        <FundingBar v-if="['active', 'fully_funded'].includes(row.status)" :percent="row.funded_percent" />
+        <span v-else class="text-xs text-sand-400">لم يُنشر بعد</span>
+      </template>
       <template #monthly_need="{ row }"><span class="num">{{ money(row.monthly_need) }}</span></template>
       <template #status="{ row }"><StatusBadge :label="row.status_label" :value="row.status" /></template>
     </DataTable>

@@ -12,6 +12,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { admin } from '@/api/endpoints'
 import { useForm } from '@/composables/useForm'
+import { confirmDialog } from '@/composables/useConfirm'
 import PageHeader from '@/components/PageHeader.vue'
 import FormField from '@/components/FormField.vue'
 import BaseIcon from '@/components/BaseIcon.vue'
@@ -114,6 +115,17 @@ function apply(stored) {
 }
 
 async function save() {
+  // إيقاف مراجعة الرسائل قرارُ حماية طفل، فيُؤكَّد بما يعنيه
+  if (form.changed()['policy.moderate_messages'] === false) {
+    const ok = await confirmDialog({
+      title: 'إيقاف مراجعة رسائل الكفلاء',
+      message: 'ستصل رسائل الكفلاء إلى الأطفال فوراً دون أن يقرأها أحد قبلهم. سياسة حماية الطفل المعلنة على الموقع تَعِد بالمراجعة.',
+      confirmLabel: 'أوقف المراجعة',
+      danger: true,
+    })
+    if (!ok) return
+  }
+
   const saved = await form.submit()
   if (saved && typeof saved === 'object') apply(saved)
 }

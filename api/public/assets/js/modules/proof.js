@@ -203,7 +203,7 @@ export function initFinanceBoard() {
 <article class="bento__tile">
   ${ring(PROOF.toChild)}
   <p class="bento__label text-center">يصل للطفل مباشرة</p>
-  <p class="bento__note text-center">٧٪ مصاريف إدارية مغطاة من داعمين مخصصين</p>
+  <p class="bento__note text-center"><span class="num">${100 - PROOF.toChild}%</span> مصاريف إدارية مغطاة من داعمين مخصصين</p>
 </article>
 
 <article class="bento__tile">

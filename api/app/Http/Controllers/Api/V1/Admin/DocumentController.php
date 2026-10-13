@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\V1\Admin;
 
 use App\Enums\DocumentType;
+use App\Enums\OrphanStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\OrphanDocumentResource;
 use App\Models\Orphan;
@@ -101,8 +102,22 @@ class DocumentController extends Controller
             'uploaded_by' => $request->user()->id,
         ]);
 
+        /*
+         * المسوّدة التي اكتملت مستنداتها الثلاثة تدخل طابور التوثيق وحدها.
+         * كان الملف الجديد يبقى «مسوّدة» إلى الأبد، والطابور وشارته يعدّان
+         * «بانتظار التوثيق» وحدها، فلا يعرف من يوثّق أن ملفاً ينتظره.
+         */
+        $required = array_map(fn (DocumentType $t) => $t->value, [DocumentType::BirthCertificate, DocumentType::DeathCertificate, DocumentType::GuardianshipProof]);
+        $have = $orphan->documents()->pluck('type')->map(fn ($t) => $t instanceof DocumentType ? $t->value : $t)->unique()->all();
+        $promoted = $orphan->status === OrphanStatus::Draft && array_diff($required, $have) === [];
+        if ($promoted) {
+            $orphan->forceFill(['status' => OrphanStatus::PendingVerification])->save();
+        }
+
         return response()->json([
-            'message' => 'رُفع المستند. يحتاج تحقّقاً قبل أن يُحتسب في توثيق الملف.',
+            'message' => $promoted
+                ? 'رُفع المستند. اكتملت المستندات فدخل الملف طابور التوثيق.'
+                : 'رُفع المستند. يحتاج تحقّقاً قبل أن يُحتسب في توثيق الملف.',
             'data' => new OrphanDocumentResource($document),
         ], 201);
     }

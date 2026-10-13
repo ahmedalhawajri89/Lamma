@@ -291,12 +291,29 @@ test.describe('نموذج الأسرة', () => {
     await pick(page, 'وضع السكن', 1)
     await pick(page, 'المدينة', 1)
 
-    // رقم الهوية يُقبل ويُخزَّن بصمةً — وتمريره كان يُسقط الطلب بـ٥٠٠
-    await fill(page, 'رقم الهوية', '900112233')
+    // رقم الهوية يُقبل ويُخزَّن بصمةً — وتمريره كان يُسقط الطلب بـ٥٠٠.
+    // رقمٌ جديد في كل تشغيل: الخادم يكشف الوصيّ المسجَّل من قبل برقمه
+    const nationalId = `9${Date.now().toString().slice(-8)}`
+    await fill(page, 'رقم الهوية', nationalId)
 
     await page.getByRole('button', { name: 'حفظ' }).click()
     await expect(page.locator('[role=dialog]')).toBeHidden({ timeout: 20_000 })
     await expect(page.getByText('أُنشئت الأسرة.')).toBeVisible()
+
+    // الرقم نفسه لأسرة ثانية يُكشف تحت حقله، لا يُنشئ أسرة مكررة
+    await page.getByRole('button', { name: 'أسرة جديدة' }).click()
+    await pick(page, 'الدولة', 1)
+    await fill(page, 'الاسم الكامل', `${guardian} مكرر`)
+    await pick(page, 'صلته بالأطفال', 1)
+    await fill(page, 'عدد الأفراد', '6')
+    await pick(page, 'وضع السكن', 1)
+    await fill(page, 'رقم الهوية', nationalId)
+    await page.getByRole('button', { name: 'حفظ' }).click()
+    await expect(page.locator('[role=dialog]').getByText(/رقم الهوية هذا مسجَّل/)).toBeVisible({ timeout: 20_000 })
+    // الإغلاق والنموذج معدَّل يسأل بنافذة اللوحة لا بنافذة المتصفح
+    await page.keyboard.press('Escape')
+    await page.getByRole('button', { name: 'أغلق دون حفظ' }).click()
+    await expect(page.locator('[role=dialog]')).toHaveCount(0)
 
     // ── التحرير: الصفّ يفتح النافذة مملوءة ──
     const row = page.locator('table tbody tr', { hasText: guardian }).first()
@@ -388,7 +405,7 @@ test.describe('تسجيل الصرف', () => {
 })
 
 test.describe('الدفعة اليدوية', () => {
-  test('تُسجَّل، ويظهر لها زرّ استرداد', async ({ page }) => {
+  test('تُسجَّل، والاسترداد في تفاصيلها لا في الصف', async ({ page }) => {
     await login(page, ACCOUNTANT)
     await page.goto('/payments')
     await expect(page.locator('table tbody tr td').first()).toBeVisible({ timeout: 20_000 })
@@ -413,9 +430,15 @@ test.describe('الدفعة اليدوية', () => {
     await expect(page.locator('[role=dialog]')).toBeHidden({ timeout: 25_000 })
     await expect(page.getByText('سُجّلت الدفعة.')).toBeVisible()
 
-    // الاسترداد للناجحة وحدها — `PaymentPolicy::refund` تشترط ذلك
-    await expect(page.locator('table tbody button', { hasText: 'استرداد' }).first())
-      .toBeVisible({ timeout: 20_000 })
+    /**
+     * الاسترداد في تفاصيل الدفعة لا في الصف: إجراءٌ لا يُتراجع عنه لا يكون
+     * على بعد نقرة من كل دفعة. وللناجحة وحدها (`PaymentPolicy::refund`).
+     */
+    await expect(page.locator('table tbody button', { hasText: 'استرداد' })).toHaveCount(0)
+    await page.locator('table tbody tr').filter({ hasText: 'مكتملة' }).first().click()
+    const details = page.locator('[role=dialog]')
+    await expect(details.getByText('رقم الحوالة أو الإيصال')).toBeVisible()
+    await expect(details.getByRole('button', { name: 'استرداد' })).toBeVisible()
   })
 })
 

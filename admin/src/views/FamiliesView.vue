@@ -13,7 +13,7 @@ import FamilyFormModal from '@/components/FamilyFormModal.vue'
 
 const auth = useAuthStore()
 
-const { items, meta, loading, filters, reset, load, error } = useResource(admin.families.list, { q: '' })
+const { items, meta, loading, filters, reset, load, error } = useResource(admin.families.list, { q: '', country_id: '' })
 
 const columns = [
   { key: 'family_code', label: 'الرمز' },
@@ -30,7 +30,7 @@ const editing = ref(null)
 const references = ref({})
 
 async function loadReferences() {
-  if (!auth.can('families.manage')) return
+  // للفلتر (لكل من يرى الأسر) ولنافذة الإنشاء
 
   try {
     const { data } = await admin.references()
@@ -79,7 +79,16 @@ onMounted(loadReferences)
       </template>
     </PageHeader>
 
-    <FilterBar v-model:search="filters.q" search-placeholder="رمز الأسرة أو اسم الوصي…" @reset="reset" />
+    <FilterBar v-model:search="filters.q" search-placeholder="رمز الأسرة أو اسم الوصي…" @reset="reset">
+      <!-- المشرف مقيّد ببلده، فالفلتر لمن يرى أكثر من بلد -->
+      <select
+        v-if="!auth.user?.staff_profile?.assigned_country_id && references.countries?.length"
+        v-model="filters.country_id" class="input !w-auto text-sm" aria-label="الدولة"
+      >
+        <option value="">كل الدول</option>
+        <option v-for="c in references.countries" :key="c.id" :value="c.id">{{ c.name }}</option>
+      </select>
+    </FilterBar>
 
     <DataTable :error="error" @retry="load"
       :columns="columns" :rows="items" :loading="loading"
@@ -95,7 +104,14 @@ onMounted(loadReferences)
         {{ row.country?.name }}
         <span class="text-xs text-sand-500">{{ row.city?.name }}</span>
       </template>
-      <template #orphans_count="{ row }"><span class="num">{{ row.orphans_count }}</span></template>
+      <!-- العدد يفتح أيتام الأسرة نفسها -->
+      <template #orphans_count="{ row }">
+        <RouterLink
+          v-if="row.orphans_count" :to="{ path: '/orphans', query: { family_id: row.id } }"
+          class="num text-clay-700 hover:underline" @click.stop
+        >{{ row.orphans_count }}</RouterLink>
+        <span v-else class="num text-sand-400">0</span>
+      </template>
       <template #members_count="{ row }"><span class="num">{{ row.members_count }}</span></template>
       <template #monthly_income="{ row }"><span class="num">{{ money(row.monthly_income) }}</span></template>
       <template #housing="{ row }">

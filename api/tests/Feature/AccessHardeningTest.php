@@ -246,3 +246,44 @@ it('رسائل التواصل لا تكشف عنوان الزائر', function (
     $this->actingAs(User::factory()->admin()->create())->getJson('/api/v1/admin/contacts')
         ->assertOk()->assertDontSee('10.1.2.3');
 });
+
+it('الأسرة: مدينة من دولة أخرى تُرفض، ورقم هوية مسجَّل يُكشف', function () {
+    $admin = User::factory()->admin()->create();
+    $city = City::query()->first();
+    $otherCountry = Country::where('id', '!=', $city->country_id)->value('id');
+
+    $payload = fn (array $o = []) => array_merge([
+        'guardian' => ['full_name' => 'أم سعيد', 'relation' => 'mother', 'national_id' => '4455667788'],
+        'country_id' => $city->country_id, 'city_id' => $city->id,
+        'members_count' => 4, 'housing_status' => 'rented',
+    ], $o);
+
+    $this->actingAs($admin)->postJson('/api/v1/admin/families', $payload(['country_id' => $otherCountry]))
+        ->assertUnprocessable()->assertJsonValidationErrors('city_id');
+
+    $this->actingAs($admin)->postJson('/api/v1/admin/families', $payload())->assertCreated();
+    $this->actingAs($admin)->postJson('/api/v1/admin/families', $payload())
+        ->assertUnprocessable()->assertJsonValidationErrors('guardian.national_id');
+});
+
+it('الزيارة: لا تُسجَّل لملف مغلق، ويُضبط موعدها القادم من دورية التقارير، و«متأخرة» لا تظهر على زيارة تلتها أخرى', function () {
+    $admin = User::factory()->admin()->create();
+    $closed = Orphan::factory()->create(['status' => OrphanStatus::Graduated]);
+    $this->actingAs($admin)->postJson('/api/v1/admin/visits', [
+        'orphan_id' => $closed->id, 'visited_at' => now()->toDateTimeString(), 'findings' => 'زيارة دورية للأسرة في البيت',
+    ])->assertUnprocessable();
+
+    $orphan = Orphan::factory()->create(['status' => OrphanStatus::Active]);
+    $res = $this->actingAs($admin)->postJson('/api/v1/admin/visits', [
+        'orphan_id' => $orphan->id, 'visited_at' => now()->subMonths(5)->toDateTimeString(), 'findings' => 'زيارة دورية للأسرة في البيت',
+    ])->assertCreated();
+    expect($res->json('data.next_visit_due'))->not->toBeNull();
+
+    // زيارة أحدث تُلغي تأخّر الأقدم في الصف كما في العدّاد
+    $this->actingAs($admin)->postJson('/api/v1/admin/visits', [
+        'orphan_id' => $orphan->id, 'visited_at' => now()->subDay()->toDateTimeString(), 'findings' => 'زيارة متابعة بعد شهر',
+    ])->assertCreated();
+
+    $rows = collect($this->actingAs($admin)->getJson("/api/v1/admin/visits?orphan_id={$orphan->id}")->json('data'));
+    expect($rows->where('is_overdue', true)->count())->toBe(0);
+});

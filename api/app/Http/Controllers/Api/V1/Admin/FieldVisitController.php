@@ -8,8 +8,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\FieldVisitResource;
 use App\Models\FieldVisit;
 use App\Models\Orphan;
+use App\Models\Setting;
+use App\Enums\OrphanStatus;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class FieldVisitController extends Controller
 {
@@ -27,8 +30,23 @@ class FieldVisitController extends Controller
         );
 
         $visits = $scoped()
+            ->select('field_visits.*')
+            /*
+             * هل تلتها زيارة أحدث للطفل نفسه؟ منها تُحسب «متأخرة» في كل صف بالقاعدة
+             * نفسها التي يُعدّ بها العدّاد. كانت الشارة الحمراء تظهر على زيارات
+             * قديمة تلتها زيارة أحدث، والعدّاد لا يحسبها.
+             */
+            ->addSelect(['has_later' => FieldVisit::from('field_visits as later')
+                ->selectRaw('1')
+                ->whereColumn('later.orphan_id', 'field_visits.orphan_id')
+                ->whereColumn('later.visited_at', '>', 'field_visits.visited_at')
+                ->limit(1)])
             ->with(['orphan:id,reference_code,first_name', 'supervisor:id,name'])
             ->when($request->filled('orphan_id'), fn ($q) => $q->where('orphan_id', $request->integer('orphan_id')))
+            ->when($request->filled('supervisor_id'), fn ($q) => $q->where('supervisor_id', $request->integer('supervisor_id')))
+            ->when($request->filled('from'), fn ($q) => $q->where('visited_at', '>=', $this->localDay($request->input('from'))))
+            ->when($request->filled('to'), fn ($q) => $q->where('visited_at', '<=', $this->localDay($request->input('to'), end: true)))
+            ->when($request->filled('q'), fn ($q) => $q->whereHas('orphan', fn ($o) => $o->search($request->string('q')->toString())))
             ->when($request->boolean('overdue'), fn ($q) => $q->overdue())
             ->latest('visited_at')
             ->paginate($this->perPage($request, 20));
@@ -40,6 +58,8 @@ class FieldVisitController extends Controller
                 'current_page' => $visits->currentPage(),
                 'last_page' => $visits->lastPage(),
                 'overdue' => $scoped()->overdue()->count(),
+                // لفلتر المشرف عند من يرى أكثر من مشرف
+                'supervisors' => \App\Models\User::role('field_supervisor')->orderBy('name')->get(['id', 'name']),
             ],
         ]);
     }
@@ -49,7 +69,8 @@ class FieldVisitController extends Controller
         abort_unless($request->user()->can('visits.record'), 403);
 
         $validated = $request->validate([
-            'orphan_id' => ['required', 'integer', 'exists:orphans,id'],
+            // المحذوف (المؤرشف) لا يُزار، فلا يمرّ من التحقق ليسقط بعده بخطأ 404
+            'orphan_id' => ['required', 'integer', Rule::exists('orphans', 'id')->whereNull('deleted_at')],
             'visited_at' => ['required', 'date', 'before_or_equal:now'],
             'findings' => ['required', 'string', 'min:10', 'max:4000'],
             'needs_flagged' => ['nullable', 'array'],
@@ -63,7 +84,23 @@ class FieldVisitController extends Controller
         ]);
 
         // لا تُسجَّل زيارة ليتيم خارج منطقة المشرف (السياسة نفسها التي تحجب ملفه عنه)
-        $this->authorize('view', Orphan::findOrFail($validated['orphan_id']));
+        $orphan = Orphan::findOrFail($validated['orphan_id']);
+        $this->authorize('view', $orphan);
+
+        // ملفٌ مغلق (متخرّج، متوفّى، منسحب) لا تُسجَّل له زيارة جديدة
+        abort_if(
+            in_array($orphan->status, [OrphanStatus::Graduated, OrphanStatus::Deceased, OrphanStatus::Withdrawn], true),
+            422,
+            "هذا ملف مغلق ({$orphan->status->label()}). لا تُسجَّل له زيارة.",
+        );
+
+        /*
+         * موعد الزيارة القادمة إن لم يُكتب: بعد دورية التقارير في الإعدادات.
+         * زيارةٌ بلا موعد قادم لا تصير «متأخرة» أبداً، فيُنسى الطفل.
+         */
+        $validated['next_visit_due'] ??= \Illuminate\Support\Carbon::parse($validated['visited_at'])
+            ->addMonthsNoOverflow((int) (Setting::cached()['policy.report_cadence_months'] ?? 3))
+            ->toDateString();
 
         $visit = FieldVisit::create([
             ...$validated,

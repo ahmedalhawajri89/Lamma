@@ -62,7 +62,8 @@ class FieldVisit extends Model
     public function scopeOverdue(Builder $query): Builder
     {
         return $query
-            ->whereDate('field_visits.next_visit_due', '<', now()->toDateString())
+            // «اليوم» يوم المنظمة لا يوم UTC
+            ->whereDate('field_visits.next_visit_due', '<', now(config('kafala.display_timezone'))->toDateString())
             ->whereNotExists(fn ($later) => $later
                 ->from('field_visits as later')
                 ->whereColumn('later.orphan_id', 'field_visits.orphan_id')

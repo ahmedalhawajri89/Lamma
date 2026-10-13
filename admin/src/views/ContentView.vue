@@ -21,6 +21,7 @@ import BaseIcon from '@/components/BaseIcon.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
 import PostFormModal from '@/components/PostFormModal.vue'
 import ContentItemModal from '@/components/ContentItemModal.vue'
+import PaginationBar from '@/components/PaginationBar.vue'
 
 const auth = useAuthStore()
 const ui = useUiStore()
@@ -65,6 +66,10 @@ const COLUMNS = {
 }
 
 const tab = ref('posts')
+
+// المقالات صفحات: كانت تُجلب أول خمسين وحدها، فما بعدها لا يُرى ولا يُحرَّر
+const postsPage = ref(1)
+const postsMeta = ref({})
 const items = ref([])
 const loading = ref(true)
 const categories = ref([])
@@ -90,12 +95,13 @@ async function load() {
 
   try {
     const { data } = isPosts.value
-      ? await admin.posts.list({ per_page: 50 })
+      ? await admin.posts.list({ per_page: 25, page: postsPage.value })
       : await admin.content.list(tab.value)
 
     if (mine !== sequence) return
     items.value = data.data ?? []
     if (isPosts.value) {
+      postsMeta.value = data.meta ?? {}
       categories.value = data.meta?.categories ?? []
       statuses.value = data.meta?.statuses ?? []
     }
@@ -107,7 +113,12 @@ async function load() {
 }
 
 
-watch(tab, load)
+watch(tab, () => { postsPage.value = 1; load() })
+watch(postsPage, load)
+
+/** رابط المقال على الموقع العام، للمنشور وحده */
+const siteBase = import.meta.env.DEV ? 'http://127.0.0.1:8000/' : '/'
+const postUrl = (row) => `${siteBase}post.html?slug=${encodeURIComponent(row.slug)}`
 
 function create() {
   editing.value = null
@@ -194,6 +205,10 @@ onMounted(load)
       <template #title="{ row }">
         <span class="font-medium">{{ row.title }}</span>
         <span v-if="row.featured" class="badge bg-clay-600/10 text-clay-700 ms-1.5">مميّز</span>
+        <a
+          v-if="row.status === 'published'" :href="postUrl(row)" target="_blank" rel="noopener"
+          class="ms-2 inline-flex items-center gap-1 text-xs text-clay-700 hover:underline" @click.stop
+        ><BaseIcon name="external" :size="12" /> على الموقع</a>
       </template>
       <template #category="{ row }">{{ row.category ?? EMPTY }}</template>
       <template #date="{ row }">{{ date(row.date) }}</template>
@@ -230,6 +245,8 @@ onMounted(load)
         </button>
       </template>
     </DataTable>
+
+    <PaginationBar v-if="isPosts" v-model="postsPage" :meta="postsMeta" />
 
     <PostFormModal
       :open="postOpen" :post="editing" :categories="categories" :statuses="statuses"

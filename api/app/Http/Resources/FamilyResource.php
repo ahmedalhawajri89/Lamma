@@ -31,7 +31,8 @@ class FamilyResource extends JsonResource
                 'full_name' => $this->guardian->full_name,
                 'relation' => $this->guardian->relation->value,
                 'relation_label' => $this->guardian->relation->label(),
-                'phone' => $this->guardian->phone,
+                // هاتف الوصيّ لمن يتعامل مع الأسر (المشرف والمدير)، لا للمحاسب
+                'phone' => $this->when((bool) $request->user()?->can('families.manage'), $this->guardian->phone),
                 'occupation' => $this->guardian->occupation,
                 'monthly_income' => $this->guardian->monthly_income !== null
                     ? (float) $this->guardian->monthly_income

@@ -21,7 +21,7 @@ use Illuminate\Validation\Rule;
 class OrphanController extends Controller
 {
     private const SORTS = [
-        'created_at', 'funded_percent', 'monthly_need', 'date_of_birth', 'reference_code',
+        'created_at', 'funded_percent', 'monthly_need', 'date_of_birth', 'reference_code', 'first_name',
     ];
 
     public function index(Request $request): JsonResponse
@@ -48,6 +48,8 @@ class OrphanController extends Controller
         $query
             ->when($request->filled('status'), fn ($q) => $q->where('status', $request->string('status')))
             ->when($request->filled('program_id'), fn ($q) => $q->where('program_id', $request->integer('program_id')))
+            // أيتام أسرة بعينها (من شاشة الأسر)
+            ->when($request->filled('family_id'), fn ($q) => $q->where('family_id', $request->integer('family_id')))
             ->when($request->filled('country_id'), fn ($q) => $q->whereHas(
                 'family',
                 fn ($f) => $f->where('country_id', $request->integer('country_id')),

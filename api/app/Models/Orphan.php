@@ -228,18 +228,27 @@ class Orphan extends Model
             return $query;
         }
 
+        $like = fn (string $s): string => addcslashes($s, '%_\\');
+
+        // رمز الطفل أو رمز أسرته
         if (preg_match('/\d/', $term) === 1) {
-            return $query->where('reference_code', 'like', "%{$term}%");
+            return $query->where(fn (Builder $q) => $q
+                ->where('reference_code', 'like', '%'.$like($term).'%')
+                ->orWhereHas('family', fn (Builder $f) => $f->where('family_code', 'like', '%'.$like($term).'%')));
         }
 
-        if (mb_strlen($term) >= 4) {
-            return $query->whereFullText(['first_name', 'last_name', 'story'], $term);
+        /*
+         * الاسم: كل كلمة بداية اسمٍ أول أو اسم عائلة، أيّاً كان طولها. كان البحث
+         * يتغيّر بعد الحرف الرابع إلى نصّ كامل بكلمات تامة، فـ«محم» تجد محمداً
+         * و«محمو» لا تجد شيئاً، ويدخل نصّ القصة فيأتي بما لا علاقة له.
+         */
+        foreach (preg_split('/\s+/u', $term) as $word) {
+            $query->where(fn (Builder $q) => $q
+                ->where('first_name', 'like', $like($word).'%')
+                ->orWhere('last_name', 'like', $like($word).'%'));
         }
 
-        return $query->where(function (Builder $q) use ($term): void {
-            $q->where('first_name', 'like', "{$term}%")
-                ->orWhere('last_name', 'like', "{$term}%");
-        });
+        return $query;
     }
 
     /* ----------------------------------------------------------------- المشتقات */

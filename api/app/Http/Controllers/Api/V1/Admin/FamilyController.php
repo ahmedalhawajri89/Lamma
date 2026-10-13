@@ -80,7 +80,8 @@ class FamilyController extends Controller
             'guardian.monthly_income' => ['nullable', 'numeric', 'min:0', 'max:100000'],
 
             'country_id' => ['required', 'integer', 'exists:countries,id'],
-            'city_id' => ['nullable', 'integer', 'exists:cities,id'],
+            // المدينة من الدولة المختارة: كان يُقبل حفظ أسرة في غزة بمدينة القاهرة
+            'city_id' => ['nullable', 'integer', Rule::exists('cities', 'id')->where('country_id', $request->integer('country_id'))],
             'address' => ['nullable', 'string', 'max:200'],
             'members_count' => ['required', 'integer', 'min:1', 'max:30'],
             'monthly_income' => ['nullable', 'numeric', 'min:0', 'max:100000'],
@@ -89,9 +90,26 @@ class FamilyController extends Controller
             'guardian.full_name.required' => 'اسم الوصي مطلوب.',
             'guardian.relation.required' => 'صلة الوصي بالطفل مطلوبة.',
             'country_id.required' => 'الدولة مطلوبة.',
+            'city_id.exists' => 'هذه المدينة ليست في الدولة المختارة.',
         ]);
 
         $this->ensureCountryAllowed($request, (int) $validated['country_id']);
+
+        /*
+         * كشف التكرار الذي يَعِد به النموذج: الوصيّ نفسه برقم هويته مسجَّل في
+         * أسرة أخرى. بلا هذا تُسجَّل الأسرة مرتين وتُموَّل مرتين.
+         */
+        if (! empty($validated['guardian']['national_id'])) {
+            $probe = new Guardian();
+            $probe->setNationalId($validated['guardian']['national_id']);
+            $existing = Family::whereHas('guardian', fn ($g) => $g->where('national_id_hash', $probe->national_id_hash))->first();
+
+            if ($existing !== null) {
+                throw ValidationException::withMessages([
+                    'guardian.national_id' => "رقم الهوية هذا مسجَّل لوصيّ الأسرة {$existing->family_code}. افتحها بدل إنشاء أسرة جديدة.",
+                ]);
+            }
+        }
 
         $family = DB::transaction(function () use ($validated): Family {
             /**
@@ -127,16 +145,18 @@ class FamilyController extends Controller
 
         $validated = $request->validate([
             'country_id' => ['sometimes', 'integer', 'exists:countries,id'],
-            'city_id' => ['sometimes', 'nullable', 'integer', 'exists:cities,id'],
+            'city_id' => ['sometimes', 'nullable', 'integer', Rule::exists('cities', 'id')->where('country_id', $request->integer('country_id', $family->country_id))],
             'address' => ['sometimes', 'nullable', 'string', 'max:200'],
             'members_count' => ['sometimes', 'integer', 'min:1', 'max:30'],
-            'monthly_income' => ['sometimes', 'nullable', 'numeric', 'min:0'],
+            'monthly_income' => ['sometimes', 'nullable', 'numeric', 'min:0', 'max:100000'],
             'housing_status' => ['sometimes', Rule::in(HousingStatus::values())],
             'guardian.full_name' => ['sometimes', 'string', 'min:3', 'max:120'],
             'guardian.relation' => ['sometimes', Rule::in(GuardianRelation::values())],
             'guardian.phone' => ['sometimes', 'nullable', 'string', 'max:24'],
             'guardian.occupation' => ['sometimes', 'nullable', 'string', 'max:80'],
-            'guardian.monthly_income' => ['sometimes', 'nullable', 'numeric', 'min:0'],
+            'guardian.monthly_income' => ['sometimes', 'nullable', 'numeric', 'min:0', 'max:100000'],
+        ], [
+            'city_id.exists' => 'هذه المدينة ليست في الدولة المختارة.',
         ]);
 
         if (isset($validated['country_id'])) {

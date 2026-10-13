@@ -5,7 +5,7 @@ import { confirmDialog } from '@/composables/useConfirm'
 import { useResource } from '@/composables/useResource'
 import { useUiStore } from '@/stores/ui'
 import { useQueueStore } from '@/stores/queue'
-import { dateTime, EMPTY } from '@/utils/format'
+import { dateTime, relative, EMPTY } from '@/utils/format'
 import PageHeader from '@/components/PageHeader.vue'
 import InlineNote from '@/components/InlineNote.vue'
 import FilterBar from '@/components/FilterBar.vue'
@@ -39,7 +39,8 @@ async function review(row, decision) {
     ui.success(decision === 'approve' ? 'اعتُمدت الرسالة.' : 'رُفضت الرسالة.')
     queue.refresh(true)
 
-    if (!filters.queue) return load()
+    // خارج الطابور، أو في صفحة غير الأولى (تنزاح صفحات الخادم بعد خروج الرسالة)
+    if (!filters.queue || filters.page > 1) return load()
 
     // في الطابور تخرج الرسالة مكانها، وينتقل التركيز إلى التالية فتُراجع
     // القائمة كلها من لوحة المفاتيح دون إعادة تحميل تقفز بالصفحة
@@ -70,6 +71,12 @@ async function review(row, decision) {
       <label class="flex items-center gap-1.5 text-sm cursor-pointer">
         <input v-model="filters.queue" type="checkbox" class="accent-clay-600" /> بانتظار المراجعة فقط
       </label>
+      <select v-if="!filters.queue" v-model="filters.status" class="input !w-auto text-sm" aria-label="الحالة">
+        <option value="">كل الحالات</option>
+        <option value="pending_review">بانتظار المراجعة</option>
+        <option value="approved">معتمدة</option>
+        <option value="rejected">مرفوضة</option>
+      </select>
     </FilterBar>
 
     <div v-if="loading" class="space-y-2">
@@ -87,14 +94,21 @@ async function review(row, decision) {
         <div class="flex items-start justify-between gap-3 mb-2">
           <div class="text-xs text-sand-500">
             <span class="num">{{ m.sponsorship?.reference_code }}</span>
-            · {{ m.sponsorship?.orphan_name ?? EMPTY }}
+            ·
+            <RouterLink
+              v-if="m.sponsorship?.orphan_id" :to="`/orphans/${m.sponsorship.orphan_id}`"
+              class="text-clay-700 hover:underline"
+            >{{ m.sponsorship?.orphan_name }}</RouterLink>
+            <template v-else>{{ m.sponsorship?.orphan_name ?? EMPTY }}</template>
             · {{ m.sender_type === 'sponsor' ? 'من الكافل' : 'من الطفل' }}
-            · {{ dateTime(m.created_at) }}
+            · <time :datetime="m.created_at" :title="dateTime(m.created_at)">{{ relative(m.created_at) }}</time>
+            <template v-if="m.reviewer"> · راجعها {{ m.reviewer }}</template>
           </div>
           <StatusBadge :label="m.status_label" :value="m.status" />
         </div>
 
-        <p class="text-sm text-sand-800 leading-relaxed">{{ m.body }}</p>
+        <!-- أسطر الرسالة كما كتبها صاحبها -->
+        <p class="text-sm text-sand-800 leading-relaxed whitespace-pre-line">{{ m.body }}</p>
 
         <div v-if="m.status === 'pending_review'" class="flex gap-2 mt-3 pt-3 border-t border-sand-100">
           <button class="js-approve btn btn-primary !py-1.5 text-xs" type="button" @click="review(m, 'approve')">

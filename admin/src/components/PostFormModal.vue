@@ -44,7 +44,7 @@ const BLANK = {
 
 const form = useForm(BLANK, (values) =>
   editing.value
-    ? admin.posts.update(props.post.id, values)
+    ? admin.posts.update(props.post.id, values, cover.value)
     : admin.posts.create(values, cover.value),
 )
 
@@ -168,8 +168,10 @@ async function save() {
     </div>
 
     <!-- الغلاف عند الإنشاء وحده: نقطة التعديل في الخادم لا تقبل ملفاً -->
-    <div v-if="!editing">
-      <label class="block text-sm font-medium mb-1.5" for="coverFile">صورة الغلاف</label>
+    <div>
+      <!-- الغلاف الحالي، ويُستبدل باختيار صورة أخرى (كان يُضبط عند الإنشاء وحده) -->
+      <img v-if="editing && post.image && !cover" :src="post.image" alt="" class="mb-2 h-24 rounded-lg object-cover">
+      <label class="block text-sm font-medium mb-1.5" for="coverFile">{{ editing ? 'استبدال صورة الغلاف' : 'صورة الغلاف' }}</label>
       <input
         id="coverFile" ref="coverInput" class="input" type="file"
         accept="image/jpeg,image/png,image/webp"

@@ -23,7 +23,7 @@ enum OrphanStatus: string
     {
         return match ($this) {
             self::Draft => 'مسوّدة',
-            self::PendingVerification => 'بانتظار التحقق',
+            self::PendingVerification => 'بانتظار التوثيق',
             self::Active => 'نشط',
             self::FullyFunded => 'مكتمل التمويل',
             self::Graduated => 'متخرّج',
