@@ -48,7 +48,7 @@ function submit() {
     @close="cancel"
     @submit="submit"
   >
-    <p v-if="confirmState.message" class="text-sm text-sand-700 leading-relaxed">
+    <p v-if="confirmState.message" class="text-sm text-sand-700 leading-relaxed whitespace-pre-line">
       {{ confirmState.message }}
     </p>
 

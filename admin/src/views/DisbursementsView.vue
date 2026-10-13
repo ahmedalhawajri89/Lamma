@@ -5,6 +5,7 @@ import { useResource } from '@/composables/useResource'
 import { useAuthStore } from '@/stores/auth'
 import { useUiStore } from '@/stores/ui'
 import { money, date, EMPTY } from '@/utils/format'
+import { confirmDialog } from '@/composables/useConfirm'
 import PageHeader from '@/components/PageHeader.vue'
 import InlineNote from '@/components/InlineNote.vue'
 import FilterBar from '@/components/FilterBar.vue'
@@ -26,6 +27,7 @@ const columns = [
   { key: 'orphan', label: 'الطفل' },
   { key: 'amount', label: 'المبلغ', align: 'end' },
   { key: 'recorder', label: 'سجّله' },
+  { key: 'receipt', label: 'الإيصال' },
   { key: 'status', label: 'الاعتماد' },
 ]
 
@@ -61,18 +63,49 @@ function onSaved() {
  * الزرّ لصاحب الصرف يعني نقرةً يردّها الخادم بـ٤٠٣ بلا سبب مفهوم.
  */
 function canApprove(row) {
-  return auth.can('disbursements.approve') && row.recorded_by !== auth.user?.id
+  return auth.can('disbursements.approve')
+    && row.recorded_by !== auth.user?.id
+    && row.updated_by !== auth.user?.id
 }
+
+/** المبلغ بعملته، ومعادله بالدولار إن اختلفت */
+function amountLabel(row) {
+  if (!row.currency || row.currency === 'USD') return money(row.amount)
+  return `${row.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })} ${row.currency}`
+}
+
+const approving = ref(null)
 
 onMounted(loadReferences)
 
+/**
+ * الاعتماد يُنشر في الشفافية ولا يُتراجع عنه، فيُؤكَّد بما سيُعتمد فعلاً.
+ * وبلا إيصال يُنبَّه المعتمِد: يعتمد ما لم يرَ دليله.
+ */
 async function approve(row) {
+  const what = [
+    row.category?.name,
+    row.orphan ? `لـ ${row.orphan.name}` : 'مصروف عام',
+    amountLabel(row),
+    row.currency && row.currency !== 'USD' ? `(≈ ${money(row.amount_base)})` : '',
+  ].filter(Boolean).join(' · ')
+
+  const ok = await confirmDialog({
+    title: 'اعتماد الصرف',
+    message: `${what}\n${row.has_receipt ? 'راجعتَ الإيصال؟' : 'لا إيصال مرفق بهذا الصرف.'} الاعتماد يُدخله أرقام الشفافية المنشورة ولا يُتراجع عنه.`,
+    confirmLabel: 'اعتمد',
+  })
+  if (!ok) return
+
+  approving.value = row.id
   try {
     await admin.disbursements.approve(row.id)
     ui.success('اعتُمد الصرف. صار جزءاً من أرقام الشفافية المنشورة.')
     load()
   } catch (e) {
     ui.error(e.userMessage)
+  } finally {
+    approving.value = null
   }
 }
 </script>
@@ -118,20 +151,35 @@ async function approve(row) {
         <span v-if="row.orphan">{{ row.orphan.name }}</span>
         <span v-else class="text-sand-500 text-xs">مصروف عام</span>
       </template>
-      <template #amount="{ row }"><span class="num font-medium">{{ money(row.amount) }}</span></template>
+      <template #amount="{ row }">
+        <span class="num font-medium">{{ amountLabel(row) }}</span>
+        <span v-if="row.currency && row.currency !== 'USD'" class="block text-xs text-sand-500 num">≈ {{ money(row.amount_base) }}</span>
+      </template>
+      <template #receipt="{ row }">
+        <a
+          v-if="row.receipt_url" :href="row.receipt_url" target="_blank" rel="noopener"
+          class="inline-flex items-center gap-1 text-sm text-clay-700 hover:underline"
+        >
+          <BaseIcon name="eye" :size="14" /> عرض
+        </a>
+        <span v-else class="text-xs text-sand-400">لا إيصال</span>
+      </template>
       <template #recorder="{ row }">{{ row.recorder ?? EMPTY }}</template>
       <template #status="{ row }">
         <span v-if="row.is_approved" class="badge bg-olive-100 text-olive-700">معتمَد</span>
         <button
           v-else-if="canApprove(row)"
-          class="btn btn-outline !py-1 !px-2 text-xs" type="button" @click="approve(row)"
+          class="btn btn-outline !py-1 !px-2 text-xs" type="button"
+          :disabled="approving === row.id" @click="approve(row)"
         >
           اعتماد
         </button>
         <span
           v-else class="badge bg-amber-100 text-amber-700"
-          :title="row.recorded_by === auth.user?.id ? 'أنت سجّلته، فيعتمده غيرك' : undefined"
         >بانتظار الاعتماد</span>
+        <span v-if="!row.is_approved && (row.recorded_by === auth.user?.id || row.updated_by === auth.user?.id)" class="block text-xs text-sand-500 mt-1">
+          {{ row.recorded_by === auth.user?.id ? 'سجّلته أنت، فيعتمده غيرك' : 'عدّلته أنت، فيعتمده غيرك' }}
+        </span>
       </template>
     </DataTable>
 

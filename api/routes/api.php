@@ -192,6 +192,7 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
             Route::post('disbursements', [Admin\DisbursementController::class, 'store'])->name('disbursements.store');
             Route::match(['put', 'patch'], 'disbursements/{disbursement}', [Admin\DisbursementController::class, 'update'])->name('disbursements.update');
             Route::post('disbursements/{disbursement}/approve', [Admin\DisbursementController::class, 'approve'])->name('disbursements.approve');
+            Route::get('disbursements/{disbursement}/receipt', [Admin\DisbursementController::class, 'receipt'])->name('disbursements.receipt');
 
             /* --- الميدان --- */
             Route::get('reports', [Admin\ReportController::class, 'index'])->name('reports.index');

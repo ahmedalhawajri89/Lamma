@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { confirmDialog } from '@/composables/useConfirm'
 import { admin } from '@/api/endpoints'
 import { useResource } from '@/composables/useResource'
@@ -17,18 +17,22 @@ import SponsorshipFormModal from '@/components/SponsorshipFormModal.vue'
 const auth = useAuthStore()
 const ui = useUiStore()
 const { items, meta, loading, filters, reset, load } = useResource(admin.sponsorships.list, {
-  q: '', status: '', zakat_only: false, due_soon: false,
+  q: '', status: '', zakat_only: false, due_soon: false, overdue: false,
 })
 
-const columns = [
+/**
+ * أعمدة المال لمن يملك رؤيته، والكافل لمن يملك رؤية الكفلاء (والخادم لا
+ * يرسلها لغيرهما أصلاً). وعمود الإجراءات لمن يدير الكفالات وحده.
+ */
+const columns = computed(() => [
   { key: 'reference_code', label: 'المرجع' },
   { key: 'orphan', label: 'الطفل' },
-  { key: 'sponsor', label: 'الكافل' },
-  { key: 'monthly_amount', label: 'المبلغ الشهري', align: 'end' },
-  { key: 'next_due_at', label: 'القسط القادم' },
+  auth.can('sponsors.view') && { key: 'sponsor', label: 'الكافل' },
+  auth.can('payments.view') && { key: 'monthly_amount', label: 'المبلغ الشهري', align: 'end' },
+  auth.can('payments.view') && { key: 'next_due_at', label: 'القسط القادم' },
   { key: 'status', label: 'الحالة' },
-  { key: 'actions', label: 'إجراءات', align: 'end' },
-]
+  auth.can('sponsorships.manage') && { key: 'actions', label: 'إجراءات', align: 'end' },
+].filter(Boolean))
 
 const formOpen = ref(false)
 const editing = ref(null)
@@ -73,19 +77,23 @@ async function cancel(row) {
   <div>
     <PageHeader title="الكفالات" :subtitle="`${meta.total} كفالة`" />
 
-    <FilterBar v-model:search="filters.q" search-placeholder="ابحث بالمرجع…" @reset="reset">
+    <FilterBar v-model:search="filters.q" search-placeholder="مرجع، طفل، أو كافل…" @reset="reset">
       <select v-model="filters.status" class="input !w-auto text-sm" aria-label="الحالة">
         <option value="">كل الحالات</option>
         <option value="active">نشطة</option>
         <option value="pending">بانتظار أول دفعة</option>
         <option value="paused">موقوفة</option>
         <option value="cancelled">ملغاة</option>
+        <option value="completed">منتهية</option>
       </select>
       <label class="flex items-center gap-1.5 text-sm cursor-pointer">
         <input v-model="filters.zakat_only" type="checkbox" class="accent-clay-600" /> من الزكاة
       </label>
       <label class="flex items-center gap-1.5 text-sm cursor-pointer">
         <input v-model="filters.due_soon" type="checkbox" class="accent-clay-600" /> تستحق خلال أسبوع
+      </label>
+      <label v-if="auth.can('payments.view')" class="flex items-center gap-1.5 text-sm cursor-pointer">
+        <input v-model="filters.overdue" type="checkbox" class="accent-clay-600" /> متأخرة عن موعدها
       </label>
     </FilterBar>
 
@@ -109,7 +117,7 @@ async function cancel(row) {
         <span class="inline-flex items-center gap-0.5">
           <button
             v-if="editable(row)" class="btn btn-ghost p-1.5" type="button"
-            title="تعديل" @click.stop="edit(row)"
+            title="تعديل" :aria-label="`تعديل ${row.reference_code}`" @click.stop="edit(row)"
           >
             <BaseIcon name="edit" :size="14" />
           </button>

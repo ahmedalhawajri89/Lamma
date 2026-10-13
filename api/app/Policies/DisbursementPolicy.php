@@ -25,11 +25,20 @@ class DisbursementPolicy
         return $user->can('disbursements.record') && $disbursement->approved_at === null;
     }
 
-    /** ولا يعتمد المسجِّل صرفه بنفسه. */
+    /**
+     * ولا يعتمد المسجِّل صرفه بنفسه، ولا من عدّل مبلغه: كان من يملك الصلاحيتين
+     * يعدّل مبلغ صرفٍ سجّله غيره ثم يعتمده، فتسقط العين الثانية.
+     */
     public function approve(User $user, Disbursement $disbursement): bool
     {
         return $user->can('disbursements.approve')
             && $disbursement->approved_at === null
-            && $disbursement->recorded_by !== $user->id;
+            && $disbursement->recorded_by !== $user->id
+            && $disbursement->updated_by !== $user->id;
+    }
+
+    public function viewReceipt(User $user, Disbursement $disbursement): bool
+    {
+        return $user->can('disbursements.view');
     }
 }

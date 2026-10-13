@@ -29,11 +29,11 @@ class SponsorshipController extends Controller
         $items = Sponsorship::query()
             ->with([
                 'orphan:id,reference_code,first_name,photo_path,date_of_birth,funded_percent',
-                'sponsor',
                 'program',
             ])
-            // اسم الكافل وبريده لمن يملك رؤية الكفلاء وحده، لا للمشرف الميداني
-            ->when($user->can('sponsors.view'), fn ($q) => $q->with('sponsor.user:id,name,email'))
+            // الكافل وبياناته لمن يملك رؤية الكفلاء وحده: المشرف الميداني كان يتلقّى
+            // مدينة الكافل وعملته وتفضيلات تواصله وإن غاب اسمه
+            ->when($user->can('sponsors.view'), fn ($q) => $q->with(['sponsor', 'sponsor.user:id,name,email']))
             // والمشرف يرى كفالات أيتام بلده وحده
             ->when(
                 $user->assignedCountryId() !== null && ! $user->isAdmin(),
@@ -41,11 +41,26 @@ class SponsorshipController extends Controller
             )
             ->withCount('payments')
             ->when($request->filled('status'), fn ($q) => $q->where('status', $request->string('status')))
+            // الحيّة كلها: بانتظار الدفع ونشطة وموقوفة (لقائمة الدفعة اليدوية)
+            ->when($request->boolean('live'), fn ($q) => $q->whereIn('status', [SponsorshipStatus::Pending, SponsorshipStatus::Active, SponsorshipStatus::Paused]))
             ->when($request->filled('program_id'), fn ($q) => $q->where('program_id', $request->integer('program_id')))
             ->when($request->boolean('zakat_only'), fn ($q) => $q->where('is_zakat', true))
             ->when($request->boolean('due_soon'), fn ($q) => $q->active()
                 ->whereBetween('next_due_at', [now()->toDateString(), now()->addDays(7)->toDateString()]))
-            ->when($request->filled('q'), fn ($q) => $q->where('reference_code', 'like', '%'.$request->string('q')->toString().'%'))
+            // المتأخرة: موعد قسطها مضى وهي ما زالت حيّة. هي ما يحتاج متابعة،
+            // و«تستحق خلال أسبوع» لا تشملها
+            ->when($request->boolean('overdue'), fn ($q) => $q->whereIn('status', [SponsorshipStatus::Active, SponsorshipStatus::Pending])
+                ->whereDate('next_due_at', '<', now()->toDateString()))
+            ->when($request->filled('q'), function ($q) use ($request, $user): void {
+                $term = addcslashes($request->string('q')->toString(), '%_\\');
+                $q->where(function ($w) use ($term, $user): void {
+                    $w->where('reference_code', 'like', "%{$term}%")
+                        ->orWhereHas('orphan', fn ($o) => $o->where('first_name', 'like', "%{$term}%")->orWhere('reference_code', 'like', "%{$term}%"));
+                    if ($user->can('sponsors.view')) {
+                        $w->orWhereHas('sponsor.user', fn ($u) => $u->where('name', 'like', "%{$term}%")->orWhere('email', 'like', "%{$term}%"));
+                    }
+                });
+            })
             ->latest('id')
             ->paginate($request->integer('per_page', 20));
 

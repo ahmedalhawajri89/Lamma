@@ -31,6 +31,7 @@ const BLANK = {
   amount: null,
   method: 'bank_transfer',
   reference: '',
+  paid_at: '',
 }
 
 const form = useForm(BLANK, (values) => admin.payments.record(values))
@@ -38,7 +39,7 @@ const form = useForm(BLANK, (values) => admin.payments.record(values))
 const sponsorshipOptions = computed(() =>
   props.sponsorships.map((s) => ({
     value: s.id,
-    label: `${s.sponsor?.name ?? s.sponsor?.sponsor_code ?? EMPTY} ← ${s.orphan?.first_name ?? s.orphan?.reference_code ?? EMPTY}`,
+    label: `${s.reference_code} · ${s.sponsor?.name ?? s.sponsor?.sponsor_code ?? EMPTY} ← ${s.orphan?.name ?? s.orphan?.reference_code ?? EMPTY}${s.status === 'pending' ? ' (بانتظار أول دفعة)' : s.status === 'paused' ? ' (موقوفة)' : ''}`,
   })),
 )
 
@@ -52,6 +53,10 @@ const methods = [
 ]
 
 const searchRef = ref(null)
+
+// اليوم بالتاريخ المحلي لا UTC: بعد منتصف الليل محلياً كان يظهر أمس
+const now = new Date()
+const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
 
 watch(
   () => props.open,
@@ -95,12 +100,19 @@ async function save() {
       />
     </div>
 
-    <FormField
-      v-model="form.values.reference" label="رقم الحوالة أو الإيصال" required
-      placeholder="TRX-88213"
-      hint="منه يُشتقّ مفتاح التفرّد: تسجيل الحوالة نفسها مرتين لا يخصم مرتين."
-      :error="form.errors.value.reference" @update:model-value="form.touch('reference')"
-    />
+    <div class="grid sm:grid-cols-2 gap-4">
+      <FormField
+        v-model="form.values.reference" label="رقم الحوالة أو الإيصال" required
+        placeholder="TRX-88213"
+        hint="يُحفظ للمطابقة مع كشف البنك، ويمنع تسجيل الحوالة نفسها مرتين."
+        :error="form.errors.value.reference" @update:model-value="form.touch('reference')"
+      />
+      <FormField
+        v-model="form.values.paid_at" label="تاريخ وصول المال" type="date" :max="today"
+        hint="اتركه فارغاً إن وصل اليوم."
+        :error="form.errors.value.paid_at" @update:model-value="form.touch('paid_at')"
+      />
+    </div>
 
     <template #actions>
       <button class="btn btn-outline" type="button" :disabled="form.submitting.value" @click="emit('close')">

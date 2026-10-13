@@ -28,6 +28,9 @@ class PaymentResource extends JsonResource
 
             'paid_at' => $this->paid_at?->toIso8601String(),
             'failure_reason' => $this->failure_reason,
+            'gateway_reference' => $this->gateway_reference,
+            'refunded_at' => $this->refunded_at?->toIso8601String(),
+            'refund_reason' => $this->refund_reason,
             'receipt_number' => $this->receipt_number,
             'created_at' => $this->created_at?->toIso8601String(),
 

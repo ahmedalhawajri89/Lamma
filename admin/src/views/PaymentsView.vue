@@ -39,7 +39,9 @@ async function loadSponsorships() {
   if (!auth.can('payments.record')) return
 
   try {
-    const { data } = await admin.sponsorships.list({ per_page: 200, status: 'active' })
+    // الحيّة كلها لا النشطة وحدها: كافل جديد يدفع بتحويل كفالته «بانتظار الدفع»،
+    // وكان لا يظهر هنا فيُلغى حجزه بعد أيام السماح وماله وصل
+    const { data } = await admin.sponsorships.list({ per_page: 200, live: 1 })
     sponsorships.value = data.data ?? []
   } catch {
     // فشل القائمة لا يمنع تصفّح الجدول — النافذة وحدها تتعطّل

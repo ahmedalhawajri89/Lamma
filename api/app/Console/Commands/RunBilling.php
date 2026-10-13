@@ -6,10 +6,13 @@ namespace App\Console\Commands;
 
 use App\Actions\Payments\RecordPayment;
 use App\Enums\PaymentMethod;
+use App\Enums\PaymentStatus;
+use App\Models\Payment;
 use App\Enums\SponsorshipStatus;
 use App\Models\Sponsorship;
 use App\Services\MetricsService;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 use Throwable;
 
 /**
@@ -53,9 +56,22 @@ class RunBilling extends Command
 
         $done = 0;
         $failed = 0;
+        $manual = 0;
 
         foreach ($due as $sponsorship) {
             $key = hash('sha256', "{$sponsorship->id}-".now()->format('Y-m'));
+
+            /*
+             * من يدفع بتحويل أو نقداً لا يُخصم منه آلياً. كان الأمر ينشئ دفعة
+             * «بطاقة» ناجحة لكل كفالة مستحقة، فإذا سجّل المحاسب التحويل الحقيقي
+             * حُسب الشهر مرتين. يبقى قسطه مستحقاً يتابعه المحاسب يدوياً.
+             */
+            $lastMethod = $sponsorship->payments()->where('status', PaymentStatus::Succeeded)->latest('paid_at')->value('method');
+            if (in_array($lastMethod, [PaymentMethod::BankTransfer, PaymentMethod::Cash], true)) {
+                $manual++;
+
+                continue;
+            }
 
             if ($dry) {
                 $this->line("  · {$sponsorship->reference_code} — {$sponsorship->monthly_amount} {$sponsorship->currency}");
@@ -74,6 +90,11 @@ class RunBilling extends Command
             } catch (Throwable $e) {
                 // كفالة واحدة فاشلة لا توقف التشغيلة كلها
                 $failed++;
+
+                // المحاولة الفاشلة تُحفظ كي يتابعها المحاسب («دفعات فشلت هذا الشهر»)؛
+                // كانت تُرمى وحدها فلا أثر لها في أي شاشة. مفتاحها غير مفتاح النجاح،
+                // فإعادة المحاولة لاحقاً تبقى ممكنة.
+                $this->recordFailure($sponsorship, $key, $e->getMessage());
                 $this->error("  × {$sponsorship->reference_code}: {$e->getMessage()}");
                 report($e);
             }
@@ -84,9 +105,34 @@ class RunBilling extends Command
         }
 
         $this->newLine();
-        $this->info("نجح: {$done}".($failed > 0 ? " · فشل: {$failed}" : ''));
+        $this->info("نجح: {$done}".($failed > 0 ? " · فشل: {$failed}" : '').($manual > 0 ? " · يدوي يتابعه المحاسب: {$manual}" : ''));
 
         return $failed > 0 ? self::FAILURE : self::SUCCESS;
+    }
+
+    private function recordFailure(Sponsorship $sponsorship, string $key, string $reason): void
+    {
+        try {
+            DB::transaction(fn () => Payment::firstOrCreate(
+                ['idempotency_key' => $key.'-failed-'.now()->format('Ymd')],
+                [
+                    // من مولّد المراجع نفسه: مرجع بصيغة أخرى كان يُفسد حساب «الأكبر»
+                    'reference_code' => app(RecordPayment::class)->nextReference(),
+                    'sponsorship_id' => $sponsorship->id,
+                    'sponsor_id' => $sponsorship->sponsor_id,
+                    'amount' => $sponsorship->monthly_amount,
+                    'currency' => $sponsorship->currency,
+                    'fx_rate' => 1,
+                    'amount_base' => $sponsorship->monthly_amount,
+                    'method' => PaymentMethod::Card,
+                    'gateway' => config('kafala.gateway', 'manual'),
+                    'status' => PaymentStatus::Failed,
+                    'failure_reason' => mb_substr($reason, 0, 255),
+                ],
+            ));
+        } catch (Throwable $e) {
+            report($e);
+        }
     }
 
     /**
