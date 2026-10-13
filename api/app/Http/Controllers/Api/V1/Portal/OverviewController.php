@@ -39,7 +39,7 @@ class OverviewController extends Controller
             ->active()
             ->whereNotNull('next_due_at')
             ->orderBy('next_due_at')
-            ->first(['id', 'next_due_at', 'monthly_amount', 'currency']);
+            ->first();
 
         return response()->json([
             'data' => [
@@ -50,7 +50,9 @@ class OverviewController extends Controller
                 ],
 
                 'stats' => [
-                    'orphans_sponsored' => $sponsor->sponsorships()->live()->distinct()->count('orphan_id'),
+                    // من بدأت كفالتهم فعلاً: الحجز بانتظار التحويل ليس كفالة بعد
+                    'orphans_sponsored' => $sponsor->sponsorships()->funded()->distinct()->count('orphan_id'),
+                    'pending_count' => $sponsor->sponsorships()->where('status', \App\Enums\SponsorshipStatus::Pending)->count(),
                     'monthly_commitment' => $sponsor->monthlyCommitment(),
 
                     // كل ما قدّمه فعلاً — مجموع الدفعات الناجحة لا الالتزام المُعلَن
@@ -65,7 +67,9 @@ class OverviewController extends Controller
 
                 'next_payment' => $nextDue === null ? null : [
                     'due_at' => $nextDue->next_due_at?->toDateString(),
-                    'amount' => (float) $nextDue->monthly_amount,
+                    // ما يُخصم فعلاً في ذلك الموعد: القسط الربعي أو السنوي كاملاً
+                    'amount' => $nextDue->cycleAmount(),
+                    'interval_months' => (int) $nextDue->interval_months,
                     'currency' => $nextDue->currency,
                 ],
 
@@ -77,6 +81,19 @@ class OverviewController extends Controller
                         ->withCount(['payments' => fn ($q) => $q->settled()])
                         ->withSum(['payments' => fn ($q) => $q->settled()], 'amount_base')
                         ->orderBy('next_due_at')
+                        ->get(),
+                )->resolve(),
+
+                // كفالات انتهت: تاريخه معها لا يختفي من لوحته
+                'past_sponsorships' => SponsorshipResource::collection(
+                    $sponsor->sponsorships()
+                        ->whereIn('status', [\App\Enums\SponsorshipStatus::Cancelled, \App\Enums\SponsorshipStatus::Completed])
+                        // حجزٌ سقط بلا دفع لم يكن كفالة: لا يُعرض كتاريخ
+                        ->whereHas('payments', fn ($q) => $q->settled())
+                        ->with(['orphan:id,reference_code,first_name,photo_path,date_of_birth,funded_percent', 'program'])
+                        ->withSum(['payments' => fn ($q) => $q->settled()], 'amount_base')
+                        ->latest('ended_at')
+                        ->limit(10)
                         ->get(),
                 )->resolve(),
 

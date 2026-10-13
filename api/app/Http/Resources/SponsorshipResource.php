@@ -29,6 +29,15 @@ class SponsorshipResource extends JsonResource
             'status' => $this->status->value,
             'status_label' => $this->status->label(),
             'billing_day' => $this->when($money, $this->billing_day),
+            'interval_months' => (int) ($this->interval_months ?? 1),
+            'cycle_amount' => $this->when($money, fn () => $this->cycleAmount()),
+            'payment_method' => $this->payment_method,
+            'paused_at' => $this->paused_at?->toDateString(),
+            // الحجز بانتظار أول دفعة يسقط بعد مهلة: يعرف الكافل حتى متى
+            'hold_expires_at' => $this->when(
+                $this->status === \App\Enums\SponsorshipStatus::Pending,
+                fn () => $this->created_at?->copy()->addDays((int) config('kafala.billing.grace_days'))->toDateString(),
+            ),
             'started_at' => $this->started_at?->toDateString(),
             'next_due_at' => $this->when($money, fn () => $this->next_due_at?->toDateString()),
             'ended_at' => $this->ended_at?->toIso8601String(),

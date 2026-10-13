@@ -23,7 +23,6 @@ export const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
  */
 export const formatNumber = (value) => new Intl.NumberFormat('en-US').format(value);
 
-/** تنسيق مبلغ بالدولار. */
 /**
  * المال.
  *
@@ -31,14 +30,16 @@ export const formatNumber = (value) => new Intl.NumberFormat('en-US').format(val
  * مدفوعات. إظهارها دائماً يضيف ضجيجاً على الأسعار، وإخفاؤها دائماً يجعل
  * مجموعاً حقيقياً يبدو مقرَّباً — و«$522.2» أسوأ الاثنين لأنه ليس مبلغاً.
  */
-export const formatMoney = (value) => {
+export const formatMoney = (value, currency = 'USD') => {
   const amount = Number(value) || 0;
   const hasCents = Math.round(amount * 100) % 100 !== 0;
-
-  return `$${new Intl.NumberFormat('en-US', {
+  const digits = new Intl.NumberFormat('en-US', {
     minimumFractionDigits: hasCents ? 2 : 0,
     maximumFractionDigits: 2,
-  }).format(amount)}`;
+  }).format(amount);
+
+  // كفالةٌ بعملة أخرى لا تُكتب بعلامة الدولار
+  return !currency || currency === 'USD' ? `$${digits}` : `${digits} ${currency}`;
 };
 
 /** تأخير تنفيذ دالة حتى يهدأ الاستدعاء. */

@@ -53,7 +53,19 @@ test.describe('الكفالة من الموقع', () => {
 
     // والحساب الجديد داخلٌ يرى كفالته في لوحته
     await page.goto(`${SITE}/dashboard.html`)
-    await expect(page.getByText(child.name).first()).toBeVisible({ timeout: 20_000 })
+    const row = page.locator(`.sponsor-row[data-status="active"]`, { hasText: child.name })
+    await expect(row).toBeVisible({ timeout: 20_000 })
+    await expect(row).toContainText('سنوياً')
+
+    // استراحة بدل الإنهاء: من نافذة الإنهاء نفسها، ثم استئناف
+    await row.locator('[data-cancel-open]').click()
+    await page.locator('[data-cancel-pause]').click()
+    const paused = page.locator('.sponsor-row[data-status="paused"]', { hasText: child.name })
+    await expect(paused).toBeVisible({ timeout: 20_000 })
+    await expect(paused).toContainText('موقوفة مؤقتاً')
+
+    await paused.locator('[data-resume]').click()
+    await expect(page.locator('.sponsor-row[data-status="active"]', { hasText: child.name })).toBeVisible({ timeout: 20_000 })
   })
 
   test('رفض البطاقة يُقال فوق الزر، ولا تُحجز الكفالة', async ({ page, request }) => {
@@ -86,6 +98,25 @@ test.describe('الكفالة من الموقع', () => {
     await page.waitForURL(/thank-you\.html\?ref=KFS-/, { timeout: 25_000 })
     await expect(page.locator('[data-thanks-when="pending"]')).toBeVisible()
     await expect(page.locator('[data-thanks="bank-iban"]')).not.toHaveText('…')
+
+    // في اللوحة: حجزٌ بانتظار التحويل، لا يُعدّ يتيماً مكفولاً، وبياناته في متناوله
+    await page.goto(`${SITE}/dashboard.html`)
+    const row = page.locator('.sponsor-row[data-status="pending"]', { hasText: child.name })
+    await expect(row).toBeVisible({ timeout: 20_000 })
+    await expect(row).toContainText('بانتظار تحويلك')
+    await expect(row.locator('[data-message-open]')).toHaveCount(0)
+    await expect(page.locator('[data-stat="orphans"]')).toHaveText('0')
+    await expect(page.locator('[data-portal-subtitle]')).toContainText('بانتظار تحويلك')
+
+    await row.locator('[data-bank-open]').click()
+    await expect(page.locator('#bankModal [data-bank="reference"]')).toHaveText(/KFS-/)
+
+    // إلغاء الحجز: بلا عرض استراحة ولا سؤال عن السبب
+    await page.locator('#bankModal [data-modal-close]').click()
+    await row.locator('[data-cancel-open]').click()
+    await expect(page.locator('[data-cancel-pause]')).toBeHidden()
+    await page.locator('[data-cancel-submit]').click()
+    await expect(page.locator('[data-portal-sponsorships]')).toContainText('لا كفالات قائمة', { timeout: 20_000 })
   })
 
   test('رابط بلا طفل، وصفحة شكر بلا كفالة، لا يدّعيان شيئاً', async ({ page }) => {

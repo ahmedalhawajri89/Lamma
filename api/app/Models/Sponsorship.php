@@ -147,10 +147,17 @@ class Sponsorship extends Model
     /* -------------------------------------------------------------------- سلوك */
 
     /**
-     * موعد القسط التالي.
-     * billing_day مقيَّد بـ 1..28 في التحقق، فلا حاجة لمعالجة فبراير هنا —
-     * وهذا بالضبط سبب ذلك القيد.
+     * أقرب يوم فوترة قادم (بعد اليوم). يُستعمل عند الاستئناف وتغيير اليوم:
+     * موعدٌ قديم كان يُخصم فوراً ويُبقي الجدول كله متأخراً.
      */
+    public function upcomingBillingDate(?int $day = null): string
+    {
+        $day ??= $this->billing_day;
+        $candidate = now()->startOfDay()->setDay(min($day, now()->daysInMonth));
+
+        return ($candidate->isPast() ? now()->addMonthNoOverflow()->setDay($day) : $candidate)->toDateString();
+    }
+
     /**
      * يقدّم موعد القسط بعدد من الأشهر، على يوم الفوترة. الافتراضي دورة الكفالة
      * نفسها (شهر، أو 3، أو 12)، فدفعة سنوية لا تجعل الكفالة متأخرة بعد شهر.

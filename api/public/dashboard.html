@@ -114,6 +114,11 @@
           <div class="pkids" data-portal-sponsorships>
             <p class="muted">جارٍ التحميل…</p>
           </div>
+
+          <details class="ppast-wrap" data-portal-past hidden>
+            <summary>كفالات سابقة (<span class="num" data-portal-past-count>0</span>)</summary>
+            <ul class="ppast-list" role="list" data-portal-past-list></ul>
+          </details>
         </div>
       </section>
 
@@ -157,6 +162,7 @@
               </tbody>
             </table>
           </div>
+          <button class="btn btn--outline btn--sm ptable__more" type="button" data-payments-more hidden>دفعات أقدم</button>
         </div>
       </section>
 
@@ -182,6 +188,11 @@
                 <label class="field__label" for="profilePhone">رقم الجوال</label>
                 <input class="input" type="tel" id="profilePhone" name="phone" autocomplete="tel" dir="ltr">
               </div>
+              <div class="field" data-profile-confirm hidden>
+                <label class="field__label" for="profileCurrent">كلمة المرور الحالية</label>
+                <input class="input" type="password" id="profileCurrent" name="current_password" autocomplete="current-password">
+                <p class="field__hint">لتغيير البريد نتأكد أنك صاحب الحساب.</p>
+              </div>
               <button class="btn btn--primary" type="submit">احفظ التعديلات</button>
             </form>
 
@@ -190,6 +201,7 @@
               <div class="field">
                 <label class="field__label" for="currentPassword">كلمة المرور الحالية</label>
                 <input class="input" type="password" id="currentPassword" name="current_password" autocomplete="current-password" required>
+                <p class="field__hint">أنشأنا حسابك عند الكفالة ولم تضع كلمة مرور؟ <button class="link-button" type="button" data-send-reset>أرسل لي رابط تعيينها</button>.</p>
               </div>
               <div class="field">
                 <label class="field__label" for="newPassword">كلمة المرور الجديدة</label>
@@ -249,19 +261,51 @@
         <i class="fa-solid fa-xmark" aria-hidden="true"></i>
       </button>
       <div class="modal__head">
-        <h2 id="cancelTitle">إيقاف كفالة <span data-cancel-name></span></h2>
-        <p>لا رسوم ولا التزام. نتوقف عن الخصم من اليوم، ونؤمّن كافلاً بديلاً للطفل كي لا تنقطع رعايته.</p>
+        <h2 id="cancelTitle"><span data-cancel-verb>إنهاء كفالة</span> <span data-cancel-name></span></h2>
+        <p data-cancel-lede></p>
       </div>
+
+      <!-- من يحتاج استراحة لا يخسر مكانه عند الطفل -->
+      <div class="pcancel__pause" data-cancel-pause-box>
+        <p><strong>تحتاج استراحة فقط؟</strong> أوقف الخصم مؤقتاً، ويبقى الطفل محجوزاً لك حتى تستأنف.</p>
+        <button class="btn btn--primary btn--sm" type="button" data-cancel-pause>
+          <i class="fa-solid fa-pause" aria-hidden="true"></i> أوقفها مؤقتاً
+        </button>
+      </div>
+
       <form data-cancel-form novalidate>
-        <div class="field">
+        <div class="field" data-cancel-reason>
           <label class="field__label" for="cancelReason">هل تخبرنا بالسبب؟ <span class="muted">(اختياري)</span></label>
-          <textarea class="textarea" id="cancelReason" name="reason" rows="3" maxlength="500"></textarea>
+          <textarea class="textarea" id="cancelReason" name="reason" rows="3" maxlength="255"></textarea>
         </div>
         <div class="cluster pcancel__actions">
-          <button class="btn btn--danger" type="submit">أوقف الكفالة</button>
+          <button class="btn btn--danger" type="submit" data-cancel-submit>أنهِ الكفالة</button>
           <button class="btn btn--outline" type="button" data-modal-close>تراجع</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- نافذة بيانات التحويل للحجز -->
+  <div class="modal" id="bankModal" role="dialog" aria-modal="true" aria-labelledby="bankTitle">
+    <div class="modal__backdrop"></div>
+    <div class="modal__panel">
+      <button class="modal__close" type="button" data-modal-close aria-label="إغلاق">
+        <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+      </button>
+      <div class="modal__head">
+        <h2 id="bankTitle">بيانات التحويل</h2>
+        <p>اكتب مرجع الكفالة في خانة البيان حتى نربط التحويل بك. تبدأ الكفالة حين يصل.</p>
+      </div>
+      <dl class="thanks__bank">
+        <div><dt>المبلغ</dt><dd class="num" data-bank="amount"></dd></div>
+        <div><dt>مرجع الكفالة</dt><dd class="num" dir="ltr" data-bank="reference"></dd></div>
+        <div><dt>البنك</dt><dd data-bank="name"></dd></div>
+        <div><dt>اسم الحساب</dt><dd data-bank="account"></dd></div>
+        <div><dt>IBAN</dt><dd class="num" dir="ltr" data-bank="iban"></dd></div>
+        <div><dt>SWIFT</dt><dd class="num" dir="ltr" data-bank="swift"></dd></div>
+        <div><dt>يبقى الحجز حتى</dt><dd data-bank="until"></dd></div>
+      </dl>
     </div>
   </div>
 

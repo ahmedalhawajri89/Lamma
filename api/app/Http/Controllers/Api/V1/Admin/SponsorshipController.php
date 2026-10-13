@@ -208,9 +208,7 @@ class SponsorshipController extends Controller
              * فيُخصم فوراً ويتأخر الجدول كله إلى الأبد.
              */
             if (isset($changes['billing_day']) || ($current === SponsorshipStatus::Paused && $status === SponsorshipStatus::Active)) {
-                $day = $changes['billing_day'] ?? $sponsorship->billing_day;
-                $candidate = now()->startOfDay()->setDay(min($day, now()->daysInMonth));
-                $changes['next_due_at'] = ($candidate->isPast() ? now()->addMonthNoOverflow()->setDay($day) : $candidate)->toDateString();
+                $changes['next_due_at'] = $sponsorship->upcomingBillingDate($changes['billing_day'] ?? null);
             }
 
             if ($changes !== []) {

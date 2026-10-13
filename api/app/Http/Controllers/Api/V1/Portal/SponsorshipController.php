@@ -7,11 +7,14 @@ namespace App\Http\Controllers\Api\V1\Portal;
 use App\Actions\Sponsorships\CancelSponsorship;
 use App\Actions\Sponsorships\CreateSponsorship;
 use App\Http\Controllers\Controller;
+use App\Enums\SponsorshipStatus;
 use App\Http\Resources\SponsorshipResource;
 use App\Models\Orphan;
 use App\Models\Sponsorship;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class SponsorshipController extends Controller
 {
@@ -63,6 +66,58 @@ class SponsorshipController extends Controller
             'message' => 'أنشأنا كفالتك. تبدأ فعلياً بعد أول دفعة.',
             'data' => new SponsorshipResource($sponsorship->load(['orphan', 'program'])),
         ], 201);
+    }
+
+    /**
+     * إيقاف مؤقت واستئناف بيد الكافل.
+     *
+     * كان الخيار الوحيد في لوحته «إيقاف الكفالة» وهو إلغاءٌ نهائي، فمن
+     * أراد استراحة شهرين خسر مكانه عند الطفل. الإيقاف يُبقي الطفل محجوزاً له
+     * ولا يُخصم شيء، والاستئناف يبدأ من يوم الفوترة القادم لا من موعد فات.
+     */
+    public function update(Request $request, Sponsorship $sponsorship): JsonResponse
+    {
+        $this->authorize('pause', $sponsorship);
+
+        $validated = $request->validate([
+            'status' => ['required', Rule::in([SponsorshipStatus::Active->value, SponsorshipStatus::Paused->value])],
+        ]);
+        $target = SponsorshipStatus::from($validated['status']);
+
+        $sponsorship = DB::transaction(function () use ($sponsorship, $target): Sponsorship {
+            $locked = Sponsorship::query()->lockForUpdate()->findOrFail($sponsorship->id);
+
+            $allowed = [
+                SponsorshipStatus::Active->value => SponsorshipStatus::Paused,
+                SponsorshipStatus::Paused->value => SponsorshipStatus::Active,
+            ];
+            abort_unless(
+                ($allowed[$locked->status->value] ?? null) === $target,
+                409,
+                $locked->status === SponsorshipStatus::Pending
+                    ? 'الكفالة لم تبدأ بعد. تبدأ بأول دفعة تصل.'
+                    : 'حالة الكفالة تغيّرت. حدّث الصفحة.',
+            );
+
+            $locked->update($target === SponsorshipStatus::Paused
+                ? ['status' => $target, 'paused_at' => now()]
+                : ['status' => $target, 'paused_at' => null, 'next_due_at' => $locked->upcomingBillingDate()]);
+
+            return $locked;
+        });
+
+        activity('sponsorships')
+            ->performedOn($sponsorship)
+            ->causedBy($request->user())
+            ->withProperties(['status' => $target->value, 'by' => 'sponsor'])
+            ->log($target === SponsorshipStatus::Paused ? 'أوقف الكافل كفالته مؤقتاً' : 'استأنف الكافل كفالته');
+
+        return response()->json([
+            'message' => $target === SponsorshipStatus::Paused
+                ? 'أوقفنا الخصم مؤقتاً. يبقى الطفل محجوزاً لك، واستأنف متى شئت.'
+                : 'استأنفت الكفالة. أول قسط في '.$sponsorship->next_due_at?->toDateString().'.',
+            'data' => new SponsorshipResource($sponsorship->load(['orphan', 'program'])),
+        ]);
     }
 
     public function destroy(Request $request, Sponsorship $sponsorship, CancelSponsorship $action): JsonResponse

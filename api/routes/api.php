@@ -127,6 +127,9 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
                 ->middleware('throttle:5,1')
                 ->name('sponsorships.store');
             Route::delete('sponsorships/{sponsorship}', [Portal\SponsorshipController::class, 'destroy'])->name('sponsorships.destroy');
+            Route::patch('sponsorships/{sponsorship}', [Portal\SponsorshipController::class, 'update'])
+                ->middleware('throttle:10,1')
+                ->name('sponsorships.update');
 
             Route::get('payments', [Portal\PaymentController::class, 'index'])->name('payments.index');
 

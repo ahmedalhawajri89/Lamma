@@ -186,3 +186,50 @@ it('سبب الإلغاء الطويل يُرفض برسالة واضحة لا �
     $this->actingAs($sponsor->user)->deleteJson("/api/v1/portal/sponsorships/{$s->id}", ['reason' => str_repeat('س', 300)])
         ->assertUnprocessable()->assertJsonValidationErrors('reason');
 });
+
+it('الكافل يوقف كفالته مؤقتاً ويستأنفها، والاستئناف لا يُخصم على موعد فات', function () {
+    $sponsor = Sponsor::factory()->create();
+    $s = Sponsorship::factory()->for($sponsor)->create([
+        'status' => SponsorshipStatus::Active, 'billing_day' => 1, 'next_due_at' => now()->subMonths(2),
+    ]);
+
+    $this->actingAs($sponsor->user)->patchJson("/api/v1/portal/sponsorships/{$s->id}", ['status' => 'paused'])->assertOk();
+    expect($s->fresh())->status->toBe(SponsorshipStatus::Paused)->paused_at->not->toBeNull();
+
+    $this->actingAs($sponsor->user)->patchJson("/api/v1/portal/sponsorships/{$s->id}", ['status' => 'active'])->assertOk();
+    expect($s->fresh())->status->toBe(SponsorshipStatus::Active)
+        ->and($s->fresh()->next_due_at->isFuture())->toBeTrue();
+
+    // استئنافٌ مكرر لا يغيّر شيئاً
+    $this->actingAs($sponsor->user)->patchJson("/api/v1/portal/sponsorships/{$s->id}", ['status' => 'active'])->assertStatus(409);
+});
+
+it('الحجز لا يُفعَّل بالإيقاف والاستئناف، وكافلٌ آخر لا يلمس كفالة غيره', function () {
+    $sponsor = Sponsor::factory()->create();
+    $pending = Sponsorship::factory()->for($sponsor)->create(['status' => SponsorshipStatus::Pending]);
+    $this->actingAs($sponsor->user)->patchJson("/api/v1/portal/sponsorships/{$pending->id}", ['status' => 'active'])->assertStatus(409);
+    $this->actingAs($sponsor->user)->patchJson("/api/v1/portal/sponsorships/{$pending->id}", ['status' => 'paused'])->assertStatus(409);
+    expect($pending->fresh()->status)->toBe(SponsorshipStatus::Pending);
+
+    $other = Sponsor::factory()->create();
+    $mine = Sponsorship::factory()->for($sponsor)->create(['status' => SponsorshipStatus::Active]);
+    $this->actingAs($other->user)->patchJson("/api/v1/portal/sponsorships/{$mine->id}", ['status' => 'paused'])->assertForbidden();
+});
+
+it('لوحة الكافل: الحجز لا يُعدّ يتيماً مكفولاً، ويُعرف موعد سقوطه، والمنتهية تبقى في تاريخه', function () {
+    $sponsor = Sponsor::factory()->create();
+    Sponsorship::factory()->for($sponsor)->create(['status' => SponsorshipStatus::Pending]);
+    $ended = Sponsorship::factory()->for($sponsor)->create(['status' => SponsorshipStatus::Cancelled, 'ended_at' => now()]);
+    Payment::create([
+        'reference_code' => 'PAY-810001', 'sponsorship_id' => $ended->id, 'sponsor_id' => $sponsor->id,
+        'amount' => 30, 'currency' => 'USD', 'fx_rate' => 1, 'amount_base' => 30,
+        'method' => 'card', 'status' => PaymentStatus::Succeeded, 'paid_at' => now(), 'idempotency_key' => 'past1',
+    ]);
+
+    $data = $this->actingAs($sponsor->user)->getJson('/api/v1/portal/overview')->json('data');
+    expect($data['stats']['orphans_sponsored'])->toBe(0)
+        ->and($data['stats']['pending_count'])->toBe(1)
+        ->and($data['sponsorships'][0]['hold_expires_at'])->not->toBeNull()
+        ->and($data['past_sponsorships'])->toHaveCount(1)
+        ->and($data['past_sponsorships'][0]['total_paid'])->toEqual(30);
+});

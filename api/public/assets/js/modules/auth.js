@@ -40,14 +40,22 @@ export const isSponsor = (user) =>
   Boolean(user?.sponsor) || (user?.roles ?? []).includes('sponsor');
 
 /** يُرجع المستخدم أو `null` — والـ 401 هنا حالة طبيعية لا خطأ. */
-export async function me() {
+export async function me({ strict = false } = {}) {
   try {
     const { data } = await request('/auth/me');
     return data;
-  } catch {
+  } catch (error) {
+    /*
+     * في `strict` لا يُعدّ انقطاع الشبكة أو عطل الخادم خروجاً: كانت اللوحة
+     * تُرسل الكافل إلى صفحة الدخول ويُمسح تلميحه كلما تعثّر الخادم ثانية.
+     */
+    if (strict && !isAuthLoss(error)) throw error;
     return null;
   }
 }
+
+/** الجلسة انتهت أو رُفض رمزها: 401 أو 419 (CSRF). */
+export const isAuthLoss = (error) => error?.status === 401 || error?.status === 419;
 
 /**
  * تلميح «سبق له الدخول» للهيدر.
@@ -79,9 +87,13 @@ export const portalMessages = (sponsorshipId) =>
 export const sendPortalMessage = (sponsorshipId, body) =>
   request(`/portal/sponsorships/${sponsorshipId}/messages`, { method: 'POST', body: { body } });
 
-/** الإيقاف إلغاءٌ على الخادم: يتوقف الخصم، ويُؤمَّن للطفل كافل بديل. */
+/** الإنهاء إلغاءٌ نهائي على الخادم: يتوقف الخصم، ويُؤمَّن للطفل كافل بديل. */
 export const cancelSponsorship = (sponsorshipId, reason = '') =>
   request(`/portal/sponsorships/${sponsorshipId}`, { method: 'DELETE', body: { reason } });
+
+/** إيقاف مؤقت (`paused`) أو استئناف (`active`): الطفل يبقى محجوزاً للكافل. */
+export const setSponsorshipStatus = (sponsorshipId, status) =>
+  request(`/portal/sponsorships/${sponsorshipId}`, { method: 'PATCH', body: { status } });
 
 export const updateProfile = (payload) =>
   request('/portal/profile', { method: 'PATCH', body: payload });

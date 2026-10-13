@@ -30,6 +30,12 @@ class SponsorshipPolicy
         return $this->owns($user, $sponsorship) || $user->can('sponsorships.manage');
     }
 
+    /** الإيقاف المؤقت والاستئناف: صاحب الكفالة في بوابته. */
+    public function pause(User $user, Sponsorship $sponsorship): bool
+    {
+        return $this->owns($user, $sponsorship);
+    }
+
     /** الرسائل تخصّ صاحب الكفالة وحده. */
     public function message(User $user, Sponsorship $sponsorship): bool
     {
