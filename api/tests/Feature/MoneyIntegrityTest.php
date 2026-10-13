@@ -172,3 +172,20 @@ it('عمليات المال تُكتب في سجل النشاط', function () {
     expect($events)->toContain('recorded');
     expect(count(array_filter($events, fn ($e) => $e === 'recorded')))->toBe(2);
 });
+
+it('سجل النشاط يُقرأ: فعل عربي، والسجل باسمه ورابطه، والقيم بتسمياتها', function () {
+    $admin = User::factory()->admin()->create();
+    $s = Sponsorship::factory()->create(['status' => SponsorshipStatus::Active, 'billing_day' => 5]);
+
+    $this->actingAs($admin)->patchJson("/api/v1/admin/sponsorships/{$s->id}", ['status' => 'paused'])->assertOk();
+
+    $row = collect($this->actingAs($admin)->getJson('/api/v1/admin/activity?subject_type=Sponsorship')->assertOk()->json('data'))
+        ->firstWhere('subject_name', $s->reference_code);
+
+    expect($row['action'])->toBe('عدّل كفالة')
+        ->and($row['subject_path'])->toContain($s->reference_code)
+        ->and(collect($row['changes'])->firstWhere('field', 'status'))
+        ->toMatchArray(['label' => 'الحالة', 'before' => 'نشطة', 'after' => SponsorshipStatus::Paused->label()]);
+
+    $this->actingAs($admin)->getJson('/api/v1/admin/activity?subject_type=Nope')->assertUnprocessable();
+});

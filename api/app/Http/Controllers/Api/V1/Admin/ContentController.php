@@ -77,6 +77,8 @@ class ContentController extends Controller
                 : null,
         ]);
 
+        $this->audit($request, $post, 'created', 'أنشأ مقالاً', ['title' => $post->title, 'status' => $post->status->value]);
+
         return response()->json([
             'message' => 'أُنشئ المقال.',
             'data' => new PostResource($post->load('category')),
@@ -98,12 +100,17 @@ class ContentController extends Controller
             'is_featured' => ['sometimes', 'boolean'],
         ]);
 
+        $before = ['title' => $post->title, 'status' => $post->status->value, 'category_id' => $post->category_id];
+
         // النشر لاحقاً من مسوّدة يمرّ من هنا لا من الإنشاء
         $post->update($this->withPublishDate([
             ...$validated,
             'status' => $validated['status'] ?? $post->status->value,
             'published_at' => $validated['published_at'] ?? $post->published_at,
         ]));
+
+        $after = ['title' => $post->title, 'status' => $post->status->value, 'category_id' => $post->category_id];
+        $this->audit($request, $post, 'updated', 'عدّل مقالاً', array_diff_assoc($after, $before), array_intersect_key($before, array_diff_assoc($after, $before)));
 
         return response()->json([
             'message' => 'حُفظت التعديلات.',
@@ -126,9 +133,13 @@ class ContentController extends Controller
         $model = $this->modelFor($type);
         $validated = $request->validate($this->rulesFor($type));
 
+        $item = $model::create($validated);
+        $this->audit($request, $item, 'created', 'أضاف عنصر محتوى', $validated);
+        $this->flushPublic();
+
         return response()->json([
             'message' => 'أُضيف العنصر.',
-            'data' => $model::create($validated),
+            'data' => $item,
         ], 201);
     }
 
@@ -138,7 +149,11 @@ class ContentController extends Controller
 
         $model = $this->modelFor($type);
         $item = $model::findOrFail($id);
-        $item->update($request->validate($this->rulesFor($type, partial: true)));
+        $validated = $request->validate($this->rulesFor($type, partial: true));
+        $before = $item->only(array_keys($validated));
+        $item->update($validated);
+        $this->audit($request, $item, 'updated', 'عدّل عنصر محتوى', $item->only(array_keys($validated)), $before);
+        $this->flushPublic();
 
         return response()->json(['message' => 'حُفظت التعديلات.', 'data' => $item->fresh()]);
     }
@@ -147,7 +162,13 @@ class ContentController extends Controller
     {
         abort_unless($request->user()->can('content.manage'), 403);
 
-        $this->modelFor($type)::findOrFail($id)->delete();
+        $item = $this->modelFor($type)::findOrFail($id);
+        $snapshot = $item->toArray();
+        $item->delete();
+
+        // المحذوف يبقى أثره: ما كان نصّه ومن حذفه
+        $this->audit($request, $item, 'deleted', 'حذف عنصر محتوى', [], $snapshot);
+        $this->flushPublic();
 
         return response()->json(['message' => 'حُذف العنصر.']);
     }
@@ -159,7 +180,9 @@ class ContentController extends Controller
         $messages = ContactMessage::query()
             ->with('handler:id,name')
             ->when($request->boolean('open_only'), fn ($q) => $q->open())
-            ->latest()
+            // المفتوحة الأقدم أولاً: هي الأقرب إلى تجاوز وعد الرد خلال 72 ساعة.
+            // كانت الأحدث أولاً، فيغرق ما يوشك أن يتأخر في آخر القائمة
+            ->when($request->boolean('open_only'), fn ($q) => $q->oldest(), fn ($q) => $q->latest())
             ->paginate($request->integer('per_page', 25));
 
         return response()->json([
@@ -183,6 +206,7 @@ class ContentController extends Controller
         ]);
 
         $closing = $validated['status'] !== ContactStatus::New->value;
+        $old = $contact->status;
 
         $contact->update([
             'status' => $validated['status'],
@@ -190,10 +214,31 @@ class ContentController extends Controller
             'handled_at' => $closing ? now() : null,
         ]);
 
+        // كل انتقال يُسجَّل: إعادة الفتح كانت تمسح من عالجها، فيضيع من أغلقها
+        $this->audit($request, $contact, 'status_changed', 'غيّر حالة رسالة تواصل',
+            ['status' => $validated['status']], ['status' => $old instanceof \BackedEnum ? $old->value : $old]);
+
         return response()->json([
             'message' => 'حُدّثت حالة الرسالة.',
             'data' => $contact->fresh()->load('handler:id,name'),
         ]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $after
+     * @param  array<string, mixed>  $before
+     */
+    private function audit(Request $request, \Illuminate\Database\Eloquent\Model $subject, string $event, string $text, array $after = [], array $before = []): void
+    {
+        activity()->performedOn($subject)->causedBy($request->user())->event($event)
+            ->withProperties(['attributes' => $after, 'old' => $before])
+            ->log($text);
+    }
+
+    /** الأسئلة والشهادات والشركاء في ذاكرة الموقع العام؛ كانت تبقى قديمة عشر دقائق */
+    private function flushPublic(): void
+    {
+        Cache::forget('public.bootstrap');
     }
 
     public function settings(Request $request): JsonResponse
