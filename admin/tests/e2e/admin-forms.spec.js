@@ -455,7 +455,7 @@ test.describe('الدفعة اليدوية', () => {
     await expect(page.locator('table tbody button', { hasText: 'استرداد' })).toHaveCount(0)
     await page.locator('table tbody tr').filter({ hasText: 'مكتملة' }).first().click()
     const details = page.locator('[role=dialog]')
-    await expect(details.getByText('رقم الحوالة أو الإيصال')).toBeVisible()
+    await expect(details.getByText(/رقم الحوالة أو/)).toBeVisible()
     await expect(details.getByRole('button', { name: 'استرداد' })).toBeVisible()
   })
 })

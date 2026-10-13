@@ -13,6 +13,8 @@ use App\Models\Payment;
 use App\Models\Sponsorship;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Carbon;
 use App\Actions\Payments\RefundPayment;
@@ -20,19 +22,93 @@ use Illuminate\Validation\Rule;
 
 class PaymentController extends Controller
 {
+    private const SORTS = ['date', 'amount_base'];
+
     public function index(Request $request): JsonResponse
     {
         $this->authorize('viewAny', Payment::class);
 
-        $query = Payment::query()
+        $query = $this->filtered($request)
             ->with([
                 'sponsor', 'sponsor.user:id,name,email',
                 'sponsorship', 'sponsorship.orphan:id,reference_code,first_name,photo_path,date_of_birth,funded_percent',
             ])
-            ->when($request->filled('status'), fn ($q) => $q->where('status', $request->string('status')))
+            ->when($request->filled('status'), fn ($q) => $q->where('status', $request->string('status')));
+
+        $sort = in_array($request->string('sort')->toString(), self::SORTS, true) ? $request->string('sort')->toString() : 'date';
+        $dir = $request->string('dir')->toString() === 'asc' ? 'ASC' : 'DESC';
+
+        $payments = $query
+            ->when($sort === 'date', fn ($q) => $q->orderByRaw("COALESCE(paid_at, created_at) {$dir}"), fn ($q) => $q->orderBy('amount_base', $dir))
+            ->orderBy('id', 'desc')
+            ->paginate($this->perPage($request, 25));
+
+        return response()->json([
+            'data' => PaymentResource::collection($payments->items()),
+            'meta' => [
+                'total' => $payments->total(),
+                'current_page' => $payments->currentPage(),
+                'last_page' => $payments->lastPage(),
+                ...$this->summary($request),
+            ],
+        ]);
+    }
+
+    /**
+     * ملخّص الفترة تحت الفلاتر نفسها (عدا الحالة): ما حُصّل، وما فشل، وما
+     * استُرد، ونسبة النجاح، وكم فشلت ولم تُستدرك بعد. المجاميع على الاستعلام
+     * كله لا على الصفحة الظاهرة.
+     */
+    private function summary(Request $request): array
+    {
+        $base = $this->filtered($request);
+
+        $rows = (clone $base)->toBase()
+            ->select('status', DB::raw('COUNT(*) as n'), DB::raw('COALESCE(SUM(amount_base), 0) as total'))
+            ->groupBy('status')->get()->keyBy('status');
+
+        $n = fn (string $s) => (int) ($rows[$s]->n ?? 0);
+        $t = fn (string $s) => round((float) ($rows[$s]->total ?? 0), 2);
+        $attempts = $n('succeeded') + $n('failed') + $n('refunded');
+
+        return [
+            'status_counts' => $rows->map(fn ($r) => (int) $r->n),
+            'all_count' => $rows->sum('n'),
+            'settled_count' => $n('succeeded'),
+            'settled_amount' => $t('succeeded'),
+            'failed_count' => $n('failed'),
+            'failed_amount' => $t('failed'),
+            'refunded_count' => $n('refunded'),
+            'refunded_amount' => $t('refunded'),
+            // المستردّة نجحت ثم رُدّت: من محاولات الدفع لا من فشلها
+            'success_rate' => $attempts ? round(($n('succeeded') + $n('refunded')) / $attempts * 100) : null,
+            'unrecovered_count' => (clone $base)->tap(fn ($q) => $this->unrecovered($q))->count(),
+        ];
+    }
+
+    /**
+     * فشلت ولم تُستدرك: دفعة فاشلة لكفالة ما زالت قائمة، ولم تأتِ بعدها دفعة
+     * ناجحة على الكفالة نفسها. هذه ما يُتصل بالكافل بشأنها.
+     */
+    private function unrecovered($query)
+    {
+        return $query->where('payments.status', PaymentStatus::Failed)
+            ->whereHas('sponsorship', fn ($s) => $s->whereIn('status', ['active', 'pending', 'paused']))
+            ->whereNotExists(fn ($later) => $later->from('payments as later')
+                ->whereColumn('later.sponsorship_id', 'payments.sponsorship_id')
+                ->where('later.status', PaymentStatus::Succeeded->value)
+                ->whereRaw('COALESCE(later.paid_at, later.created_at) > payments.created_at'));
+    }
+
+    /** الفلاتر المشتركة بين الجدول وملخّصه والتصدير، عدا الحالة */
+    private function filtered(Request $request): \Illuminate\Database\Eloquent\Builder
+    {
+        return Payment::query()
             ->when($request->filled('method'), fn ($q) => $q->where('method', $request->string('method')))
-            ->when($request->filled('from'), fn ($q) => $q->where('paid_at', '>=', $this->localDay($request->input('from'))))
-            ->when($request->filled('to'), fn ($q) => $q->where('paid_at', '<=', $this->localDay($request->input('to'), end: true)))
+            // الفترة بتاريخ الحدث: الدفع للناجحة، والمحاولة للفاشلة (paid_at فيها فارغ)
+            ->when($request->filled('from'), fn ($q) => $q->whereRaw('COALESCE(paid_at, created_at) >= ?', [$this->localDay($request->input('from'))]))
+            ->when($request->filled('to'), fn ($q) => $q->whereRaw('COALESCE(paid_at, created_at) <= ?', [$this->localDay($request->input('to'), end: true)]))
+            ->when($request->boolean('unrecovered'), fn ($q) => $this->unrecovered($q))
             ->when($request->filled('q'), fn ($q) => $q->where(function ($w) use ($request): void {
                 $term = addcslashes($request->string('q')->toString(), '%_\\');
                 // المرجع الداخلي والإيصال ورقم الحوالة، واسم الكافل أو الطفل
@@ -44,31 +120,54 @@ class PaymentController extends Controller
                     ->orWhereHas('sponsor', fn ($s) => $s->where('sponsor_code', $term))
                     ->orWhereHas('sponsorship.orphan', fn ($o) => $o->where('first_name', 'like', "%{$term}%"));
             }));
+    }
 
-        // المجاميع تُحسب على الاستعلام نفسه قبل التصفيح، لا على الصفحة الظاهرة —
-        // «إجمالي المحصّل» يجب أن يعني الكل لا العشرين المعروضة
-        // withoutEagerLoads() لازم: النسخة ترث with() من الاستعلام الأصلي،
-        // فيحاول Eloquent تحميل العلاقات على صفٍّ يحمل COUNT و SUM فقط
-        // بلا مفاتيحه الأجنبية — فيسقط الطلب.
-        $totals = (clone $query)->settled()
-            ->toBase()
-            ->selectRaw('COUNT(*) as count, COALESCE(SUM(amount_base), 0) as total')
-            ->first();
+    /**
+     * تصدير المدفوعات بفلاترها: ما يحتاجه المحاسب لمطابقة كشف البنك والبوابة.
+     * يُسجَّل في سجل النشاط، ولا يحمل إلا ما يلزم المطابقة.
+     */
+    public function export(Request $request): StreamedResponse
+    {
+        $this->authorize('viewAny', Payment::class);
 
-        $payments = $query
-            ->orderByRaw('COALESCE(paid_at, created_at) DESC')
-            ->paginate($this->perPage($request, 25));
+        $query = $this->filtered($request)
+            ->with(['sponsor:id,user_id,sponsor_code', 'sponsor.user:id,name', 'sponsorship:id,reference_code,orphan_id', 'sponsorship.orphan:id,reference_code,first_name'])
+            ->when($request->filled('status'), fn ($q) => $q->where('status', $request->string('status')))
+            ->orderByRaw('COALESCE(paid_at, created_at) ASC');
 
-        return response()->json([
-            'data' => PaymentResource::collection($payments->items()),
-            'meta' => [
-                'total' => $payments->total(),
-                'current_page' => $payments->currentPage(),
-                'last_page' => $payments->lastPage(),
-                'settled_count' => (int) $totals->count,
-                'settled_amount' => round((float) $totals->total, 2),
-            ],
-        ]);
+        activity('payments')
+            ->causedBy($request->user())
+            ->withProperties(['filters' => $request->only(['q', 'status', 'method', 'from', 'to', 'unrecovered']), 'rows' => (clone $query)->count()])
+            ->log('صدّر المدفوعات');
+
+        return response()->streamDownload(function () use ($query): void {
+            $out = fopen('php://output', 'w');
+            fwrite($out, "\xEF\xBB\xBF");
+            fputcsv($out, ['المرجع', 'الإيصال', 'التاريخ', 'الكافل', 'رمز الكافل', 'الطفل', 'الكفالة', 'المبلغ', 'العملة', 'بالدولار', 'الوسيلة', 'رقم الحوالة', 'الحالة', 'ملاحظة']);
+
+            $query->chunk(500, function ($rows) use ($out): void {
+                foreach ($rows as $p) {
+                    fputcsv($out, [
+                        $p->reference_code,
+                        $p->receipt_number,
+                        ($p->paid_at ?? $p->created_at)?->timezone(config('kafala.display_timezone'))->format('Y-m-d H:i'),
+                        $p->sponsor?->user?->name,
+                        $p->sponsor?->sponsor_code,
+                        $p->sponsorship?->orphan?->first_name,
+                        $p->sponsorship?->reference_code,
+                        number_format((float) $p->amount, 2, '.', ''),
+                        $p->currency,
+                        number_format((float) $p->amount_base, 2, '.', ''),
+                        $p->method->label(),
+                        $p->gateway_reference,
+                        $p->status->label(),
+                        $p->refund_reason ?? $p->failure_reason,
+                    ]);
+                }
+            });
+
+            fclose($out);
+        }, 'payments-'.now()->format('Y-m-d').'.csv', ['Content-Type' => 'text/csv; charset=UTF-8']);
     }
 
     /** تسجيل دفعة يدوية — تحويل بنكي أو نقد وصل المكتب. */

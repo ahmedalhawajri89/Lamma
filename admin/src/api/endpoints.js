@@ -125,6 +125,8 @@ export const admin = {
 
   payments: {
     list: (params) => client.get(`${v1}/admin/payments`, { params }),
+    /** المدفوعات بفلاترها CSV للمطابقة المحاسبية */
+    export: (params) => client.get(`${v1}/admin/payments/export`, { params, responseType: 'blob' }),
     record: (payload) => client.post(`${v1}/admin/payments`, payload),
     refund: (id, reason) => client.post(`${v1}/admin/payments/${id}/refund`, { reason }),
   },

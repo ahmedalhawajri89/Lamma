@@ -16,6 +16,7 @@ import FilterBar from '@/components/FilterBar.vue'
 import DataTable from '@/components/DataTable.vue'
 import PaginationBar from '@/components/PaginationBar.vue'
 import FormModal from '@/components/FormModal.vue'
+import PeriodSelect from '@/components/PeriodSelect.vue'
 
 const auth = useAuthStore()
 
@@ -36,34 +37,8 @@ const columns = [
 const supervisors = ref([])
 watch(meta, (m) => { if (m?.supervisors?.length) supervisors.value = m.supervisors })
 
-/* ── الفترة: اختيارات جاهزة، والمخصّصة لمن يحتاجها ───────────────────── */
-
-const iso = (d) => {
-  const x = new Date(d)
-  x.setMinutes(x.getMinutes() - x.getTimezoneOffset())
-  return x.toISOString().slice(0, 10)
-}
-const PRESETS = {
-  week: () => { const d = new Date(); d.setDate(d.getDate() - 6); return [iso(d), ''] },
-  month: () => { const d = new Date(); d.setDate(d.getDate() - 29); return [iso(d), ''] },
-  quarter: () => { const n = new Date(); return [iso(new Date(n.getFullYear(), Math.floor(n.getMonth() / 3) * 3, 1)), ''] },
-}
-const custom = ref(false)
-const period = computed({
-  get() {
-    if (custom.value) return 'custom'
-    if (!filters.from && !filters.to) return ''
-    const match = Object.entries(PRESETS).find(([, fn]) => { const [f, t] = fn(); return f === filters.from && t === filters.to })
-    return match ? match[0] : 'custom'
-  },
-  set(v) {
-    custom.value = v === 'custom'
-    if (v === 'custom') return
-    const [f, t] = v ? PRESETS[v]() : ['', '']
-    filters.from = f
-    filters.to = t
-  },
-})
+const period = ref(null)
+function resetAll() { reset(); period.value?.reset() }
 
 const needs = computed(() => Object.entries(meta.value.needs ?? {}))
 
@@ -85,22 +60,8 @@ const viewing = ref(null)
       </div>
     </section>
 
-    <FilterBar v-model:search="filters.q" search-placeholder="اسم الطفل أو رمزه…" :dirty="dirty" @reset="reset(); custom = false">
-      <select v-model="period" class="input !w-auto text-sm" aria-label="الفترة">
-        <option value="">كل الفترات</option>
-        <option value="week">آخر 7 أيام</option>
-        <option value="month">آخر 30 يوماً</option>
-        <option value="quarter">هذا الربع</option>
-        <option value="custom">فترة مخصّصة…</option>
-      </select>
-      <template v-if="period === 'custom'">
-        <label class="flex items-center gap-1.5 text-sm text-sand-600">
-          من <input v-model="filters.from" type="date" lang="en" class="input !w-auto text-sm" />
-        </label>
-        <label class="flex items-center gap-1.5 text-sm text-sand-600">
-          إلى <input v-model="filters.to" type="date" lang="en" class="input !w-auto text-sm" />
-        </label>
-      </template>
+    <FilterBar v-model:search="filters.q" search-placeholder="اسم الطفل أو رمزه…" :dirty="dirty" @reset="resetAll">
+      <PeriodSelect ref="period" v-model:from="filters.from" v-model:to="filters.to" :presets="['week', 'days30', 'month', 'quarter']" />
       <select
         v-if="supervisors.length > 1 && (auth.isAdmin || !auth.user?.staff_profile?.assigned_country_id)"
         v-model="filters.supervisor_id" class="input !w-auto text-sm" aria-label="المشرف"
@@ -142,7 +103,7 @@ const viewing = ref(null)
       </template>
 
       <template #empty-action>
-        <button v-if="dirty" class="btn btn-outline mt-4" type="button" @click="reset(); custom = false">مسح الفلاتر</button>
+        <button v-if="dirty" class="btn btn-outline mt-4" type="button" @click="resetAll">مسح الفلاتر</button>
       </template>
     </DataTable>
 

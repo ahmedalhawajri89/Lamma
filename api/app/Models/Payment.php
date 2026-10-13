@@ -88,6 +88,11 @@ class Payment extends Model
     /** «فيزا ••42» كما تعرضها لوحة الكافل. */
     public function maskedCard(): ?string
     {
+        // البطاقة لما دُفع ببطاقة وحده: كان التحويل البنكي يظهر «فيزا ••4147»
+        if (! in_array($this->method, [PaymentMethod::Card, PaymentMethod::ApplePay], true)) {
+            return null;
+        }
+
         return $this->card_last4 ? trim("{$this->card_brand} ••{$this->card_last4}") : null;
     }
 }

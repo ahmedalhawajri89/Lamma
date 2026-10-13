@@ -204,6 +204,9 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
 
             /* --- المال --- */
             Route::get('payments', [Admin\PaymentController::class, 'index'])->name('payments.index');
+            Route::get('payments/export', [Admin\PaymentController::class, 'export'])
+                ->middleware('throttle:10,1')
+                ->name('payments.export');
             Route::post('payments', [Admin\PaymentController::class, 'store'])->name('payments.store');
             Route::post('payments/{payment}/refund', [Admin\PaymentController::class, 'refund'])->name('payments.refund');
 
