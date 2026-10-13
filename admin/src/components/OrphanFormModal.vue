@@ -28,6 +28,9 @@ const props = defineProps({
 
   /** الأسر للاختيار منها — `[{ id, family_code, guardian_name }]`. */
   families: { type: Array, default: () => [] },
+
+  /** أسرةٌ مختارة سلفاً عند الإنشاء من صفحة الأسرة نفسها */
+  presetFamily: { type: Object, default: null },
 })
 
 const emit = defineEmits(['close', 'saved'])
@@ -142,7 +145,7 @@ watch(
         story: o.story ?? '',
       })
     } else {
-      form.setValues(BLANK)
+      form.setValues({ ...BLANK, family_id: props.presetFamily?.id ?? '' })
     }
   },
   { immediate: true },
@@ -188,7 +191,7 @@ async function save() {
 
       <SearchSelect
         v-model="form.values.family_id" label="الأسرة" required
-        :search="searchFamilies" :initial-label="familyLabel(orphan?.family)"
+        :search="searchFamilies" :initial-label="familyLabel(orphan?.family ?? presetFamily)"
         placeholder="رمز الأسرة أو اسم الوصيّ…"
         hint="لا يُنشأ يتيم بلا أسرة، فالوصيّ والعنوان يأتيان منها."
         :error="form.errors.value.family_id" @update:model-value="form.touch('family_id')"

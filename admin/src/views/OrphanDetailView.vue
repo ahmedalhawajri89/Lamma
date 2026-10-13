@@ -5,12 +5,13 @@ import { admin } from '@/api/endpoints'
 import { confirmDialog } from '@/composables/useConfirm'
 import { useAuthStore } from '@/stores/auth'
 import { useUiStore } from '@/stores/ui'
-import { money, date, dateTime, years, relative, num, EMPTY } from '@/utils/format'
+import { money, date, dateTime, years, num, EMPTY } from '@/utils/format'
 import StatusBadge from '@/components/StatusBadge.vue'
 import FundingBar from '@/components/FundingBar.vue'
 import BaseIcon from '@/components/BaseIcon.vue'
 import DocumentsPanel from '@/components/DocumentsPanel.vue'
 import OrphanFormModal from '@/components/OrphanFormModal.vue'
+import ActivityTimeline from '@/components/ActivityTimeline.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -175,26 +176,6 @@ const tabs = computed(() => [
   ...(auth.can('activity.view') ? [{ key: 'history', label: 'السجل' }] : []),
 ])
 
-/* ── سجل الملف: من فعل ماذا ومتى، من سجل النشاط نفسه ───────────────────── */
-
-const history = ref(null)
-const historyLoading = ref(false)
-
-async function loadHistory() {
-  if (!orphan.value || historyLoading.value) return
-  historyLoading.value = true
-  try {
-    const { data } = await admin.activity({ subject_type: 'Orphan', subject_id: orphan.value.id, per_page: 50 })
-    history.value = data.data ?? []
-  } catch (e) {
-    history.value = null
-    ui.error(e.userMessage ?? 'تعذّر تحميل السجل.')
-  } finally {
-    historyLoading.value = false
-  }
-}
-watch([tab, orphan], ([t]) => { if (t === 'history' && history.value === null) loadHistory() })
-
 /* ── التحرير ─────────────────────────────────────────────────────────── */
 
 const formOpen = ref(false)
@@ -212,10 +193,12 @@ async function loadReferences() {
   }
 }
 
+const timeline = ref(null)
+
 async function onSaved() {
   formOpen.value = false
-  history.value = null
   await load()
+  timeline.value?.reload()
 }
 
 onMounted(() => {
@@ -230,7 +213,6 @@ onMounted(() => {
 watch(() => route.params.id, (id, previous) => {
   if (!id || id === previous) return
   orphan.value = null
-  history.value = null
   tab.value = 'profile'
   load()
 })
@@ -395,7 +377,7 @@ const CYCLE = { 1: 'شهرياً', 3: 'كل 3 أشهر', 12: 'سنوياً' }
         <h2 class="text-sm font-semibold mb-3">الأسرة</h2>
         <dl class="space-y-2.5 text-sm">
           <div class="flex justify-between gap-3"><dt class="text-sand-500">رمز الأسرة</dt>
-            <dd><RouterLink :to="`/families?q=${orphan.family?.family_code ?? ''}`" class="num text-clay-700 hover:underline">{{ orphan.family?.family_code }}</RouterLink></dd>
+            <dd><RouterLink :to="`/families/${orphan.family?.id}`" class="num text-clay-700 hover:underline">{{ orphan.family?.family_code }}</RouterLink></dd>
           </div>
           <div class="flex justify-between gap-3"><dt class="text-sand-500">الوصي</dt>
             <dd class="text-end">{{ orphan.family?.guardian?.full_name ?? EMPTY }}
@@ -507,34 +489,7 @@ const CYCLE = { 1: 'شهرياً', 3: 'كل 3 أشهر', 12: 'سنوياً' }
 
     <!-- السجل: كل تغيير على الملف، بمن فعله ومتى -->
     <section v-else-if="tab === 'history'" class="card p-5">
-      <div v-if="historyLoading" class="space-y-3">
-        <div v-for="n in 4" :key="n" class="h-10 rounded bg-sand-100 animate-pulse" />
-      </div>
-      <ol v-else-if="history?.length" data-history class="relative border-s border-sand-200 ms-1.5 space-y-5">
-        <li v-for="a in history" :key="a.id" class="ps-4 relative">
-          <span class="absolute -start-[5px] top-1.5 size-2.5 rounded-full bg-sand-400" />
-          <p class="text-sm"><span class="font-medium">{{ a.actor }}</span> {{ a.action }}</p>
-          <p class="text-xs text-sand-500" :title="dateTime(a.created_at)">{{ relative(a.created_at) }}</p>
-          <ul v-if="a.changes?.length" class="mt-1.5 space-y-0.5 text-[0.8rem]">
-            <li v-for="c in a.changes" :key="c.field" class="flex flex-wrap items-baseline gap-x-2">
-              <span class="text-sand-500">{{ c.label }}:</span>
-              <template v-if="c.before !== null && c.after !== null">
-                <span class="text-sand-400 line-through">{{ c.before }}</span>
-                <span class="text-sand-400">←</span>
-                <span class="text-sand-900">{{ c.after }}</span>
-              </template>
-              <span v-else-if="c.after !== null" class="text-sand-900">{{ c.after }}</span>
-              <span v-else class="text-sand-500">كان: {{ c.before }}</span>
-            </li>
-          </ul>
-          <p v-if="a.note" class="mt-1.5 text-[0.8rem] text-sand-700 bg-sand-50 rounded-lg px-3 py-1.5">{{ a.note }}</p>
-        </li>
-      </ol>
-      <p v-else-if="history" class="text-sm text-sand-500 py-4">لا تغييرات مسجّلة على هذا الملف.</p>
-      <div v-else class="text-center py-6">
-        <p class="text-sm text-sand-500 mb-3">تعذّر تحميل السجل.</p>
-        <button class="btn btn-outline" type="button" @click="loadHistory">إعادة المحاولة</button>
-      </div>
+      <ActivityTimeline ref="timeline" subject-type="Orphan" :subject-id="orphan.id" empty-text="لا تغييرات مسجّلة على هذا الملف." />
     </section>
 
     <OrphanFormModal

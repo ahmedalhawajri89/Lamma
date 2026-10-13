@@ -44,6 +44,12 @@ const routes = [
     meta: { group: 'cases', title: 'الأسر', icon: 'home', permission: 'orphans.view' },
   },
   {
+    path: '/families/:id',
+    name: 'family-detail',
+    component: () => import('@/views/FamilyDetailView.vue'),
+    meta: { title: 'ملف أسرة', permission: 'orphans.view', hidden: true },
+  },
+  {
     path: '/sponsors',
     name: 'sponsors',
     component: () => import('@/views/SponsorsView.vue'),

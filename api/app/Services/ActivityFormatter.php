@@ -56,6 +56,17 @@ class ActivityFormatter
         'role' => 'الدور',
         'assigned_country_id' => 'البلد المُسنَد',
         'name' => 'الاسم',
+        'country_id' => 'الدولة',
+        'city_id' => 'المدينة',
+        'address' => 'العنوان',
+        'members_count' => 'عدد الأفراد',
+        'monthly_income' => 'دخل الأسرة الشهري',
+        'housing_status' => 'السكن',
+        'guardian.full_name' => 'اسم الوصي',
+        'guardian.relation' => 'صلة الوصي',
+        'guardian.phone' => 'هاتف الوصي',
+        'guardian.occupation' => 'عمل الوصي',
+        'guardian.monthly_income' => 'دخل الوصي',
         'phone' => 'الهاتف',
         'title' => 'العنوان',
         'method' => 'الوسيلة',
@@ -73,6 +84,7 @@ class ActivityFormatter
     {
         $this->subjects = [
             'Orphan' => ['label' => 'ملف يتيم', 'path' => fn ($m, $id) => "/orphans/{$id}"],
+            'Family' => ['label' => 'أسرة', 'path' => fn ($m, $id) => "/families/{$id}"],
             'Sponsorship' => ['label' => 'كفالة', 'path' => fn ($m, $id) => '/sponsorships?q='.urlencode((string) ($m?->reference_code ?? ''))],
             'Payment' => ['label' => 'دفعة', 'path' => fn ($m, $id) => '/payments?q='.urlencode((string) ($m?->reference_code ?? ''))],
             'Disbursement' => ['label' => 'صرف', 'path' => fn () => '/disbursements'],
@@ -140,6 +152,7 @@ class ActivityFormatter
         return match ($type) {
             'Orphan' => trim("{$subject->first_name} · {$subject->reference_code}"),
             'Sponsorship', 'Payment' => $subject->reference_code,
+            'Family' => $subject->family_code,
             'Report' => $subject->title,
             'User' => $subject->name,
             'Post' => $subject->title,
@@ -200,6 +213,8 @@ class ActivityFormatter
                 default => null,
             },
             $field === 'role' => UserRole::class,
+            $field === 'housing_status' => \App\Enums\HousingStatus::class,
+            $field === 'guardian.relation' => \App\Enums\GuardianRelation::class,
             $field === 'method' => PaymentMethod::class,
             default => null,
         };
@@ -216,7 +231,8 @@ class ActivityFormatter
         $named = match ($field) {
             'program_id' => Program::find($value)?->name_ar,
             'category_id' => ($type === 'Post' ? PostCategory::find($value) : DisbursementCategory::find($value))?->name_ar,
-            'assigned_country_id' => Country::find($value)?->name_ar,
+            'assigned_country_id', 'country_id' => Country::find($value)?->name_ar,
+            'city_id' => \App\Models\City::find($value)?->name_ar,
             'orphan_id' => ($o = \App\Models\Orphan::withTrashed()->find($value)) ? "{$o->first_name} · {$o->reference_code}" : null,
             default => null,
         };

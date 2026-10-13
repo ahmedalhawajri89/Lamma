@@ -22,32 +22,65 @@ use Illuminate\Validation\ValidationException;
 
 class FamilyController extends Controller
 {
+    /** الترتيب المسموح؛ «دخل الفرد» مشتقّ فيُحسب في الاستعلام */
+    private const SORTS = ['id', 'members_count', 'monthly_income', 'per_capita', 'orphans_count'];
+
     public function index(Request $request): JsonResponse
     {
         abort_unless($request->user()->can('families.manage') || $request->user()->can('orphans.view'), 403);
 
-        $query = Family::query()
+        $query = $this->filtered($request)
             ->with(['country', 'city:id,name_ar', 'guardian'])
-            ->withCount('orphans');
+            ->withCount('orphans')
+            ->when($request->filled('housing_status'), fn ($q) => $q->where('housing_status', $request->string('housing_status')));
+
+        $sort = in_array($request->string('sort')->toString(), self::SORTS, true) ? $request->string('sort')->toString() : 'id';
+        $dir = $request->string('dir')->toString() === 'asc' ? 'asc' : 'desc';
+
+        $query = $sort === 'per_capita'
+            // الدخل المجهول آخراً في الاتجاهين: ليس «صفراً»
+            ? $query->orderByRaw('monthly_income IS NULL')->orderByRaw("monthly_income / GREATEST(members_count, 1) {$dir}")
+            : $query->orderBy($sort, $dir);
+
+        $families = $query->orderBy('id', 'desc')->paginate($this->perPage($request, 20));
+
+        $base = $this->filtered($request);
+
+        return response()->json([
+            'data' => FamilyResource::collection($families->items()),
+            'meta' => [
+                'total' => $families->total(), 'current_page' => $families->currentPage(), 'last_page' => $families->lastPage(),
+                // تبويبات السكن بأعدادها تحت الفلاتر الأخرى، وما يحتاج متابعة
+                'housing_counts' => (clone $base)->toBase()->select('housing_status', DB::raw('COUNT(*) as aggregate'))
+                    ->groupBy('housing_status')->pluck('aggregate', 'housing_status')->map(fn ($n) => (int) $n),
+                'all_count' => (clone $base)->count(),
+                'without_orphans_count' => (clone $base)->doesntHave('orphans')->count(),
+            ],
+        ]);
+    }
+
+    /**
+     * الفلاتر المشتركة بين الجدول وعدّاداته، عدا السكن. والمشرف مقيّد ببلده
+     * في الاستعلام نفسه، فلا يتسرّب عددٌ من بلد آخر.
+     */
+    private function filtered(Request $request): \Illuminate\Database\Eloquent\Builder
+    {
+        $query = Family::query();
 
         if (($countryId = $request->user()->assignedCountryId()) !== null && ! $request->user()->isAdmin()) {
             $query->where('country_id', $countryId);
         }
 
-        $families = $query
+        return $query
             ->when($request->filled('q'), fn ($q) => $q->where(function ($w) use ($request): void {
-                $term = $request->string('q')->toString();
+                $term = addcslashes($request->string('q')->toString(), '%_\\');
                 $w->where('family_code', 'like', "%{$term}%")
-                    ->orWhereHas('guardian', fn ($g) => $g->where('full_name', 'like', "%{$term}%"));
+                    ->orWhereHas('guardian', fn ($g) => $g->where('full_name', 'like', "%{$term}%"))
+                    // اسم أحد أيتامها: من يبحث عن «أمنية» يجد أسرتها
+                    ->orWhereHas('orphans', fn ($o) => $o->where('first_name', 'like', "{$term}%"));
             }))
             ->when($request->filled('country_id'), fn ($q) => $q->where('country_id', $request->integer('country_id')))
-            ->latest('id')
-            ->paginate($this->perPage($request, 20));
-
-        return response()->json([
-            'data' => FamilyResource::collection($families->items()),
-            'meta' => ['total' => $families->total(), 'current_page' => $families->currentPage(), 'last_page' => $families->lastPage()],
-        ]);
+            ->when($request->boolean('without_orphans'), fn ($q) => $q->doesntHave('orphans'));
     }
 
     public function show(Request $request, Family $family): JsonResponse
@@ -59,7 +92,11 @@ class FamilyController extends Controller
         abort_unless($this->inScope($request, $family->country_id), 404);
 
         return response()->json([
-            'data' => new FamilyResource($family->load(['country', 'city', 'guardian', 'orphans.program'])),
+            'data' => new FamilyResource($family->load([
+                'country', 'city', 'guardian',
+                'orphans' => fn ($q) => $q->orderBy('date_of_birth'),
+                'orphans.program',
+            ])),
         ]);
     }
 
@@ -163,11 +200,27 @@ class FamilyController extends Controller
             $this->ensureCountryAllowed($request, (int) $validated['country_id']);
         }
 
-        DB::transaction(function () use ($validated, $family): void {
+        DB::transaction(function () use ($validated, $family, $request): void {
             $family->update(collect($validated)->except('guardian')->all());
 
             if (isset($validated['guardian'])) {
-                $family->guardian->update($validated['guardian']);
+                $guardian = $family->guardian;
+                $guardian->fill($validated['guardian']);
+                $dirty = $guardian->getDirty();
+
+                /*
+                 * الوصيّ جزءٌ من ملف الأسرة في السجل: من غيّر اسمه أو صلته.
+                 * والهاتف يُسجَّل أنه تغيّر دون قيمته، فالسجل يقرؤه من لا يرى الهاتف.
+                 */
+                if ($dirty !== []) {
+                    $old = collect($dirty)->keys()->mapWithKeys(fn ($k) => ["guardian.{$k}" => $k === 'phone' ? '•••' : $guardian->getOriginal($k)])->all();
+                    $new = collect($dirty)->mapWithKeys(fn ($v, $k) => ["guardian.{$k}" => $k === 'phone' ? '•••' : $v])->all();
+                    $guardian->save();
+
+                    activity('families')->performedOn($family)->causedBy($request->user())->event('updated')
+                        ->withProperties(['old' => $old, 'attributes' => $new])
+                        ->log('updated');
+                }
             }
         });
 

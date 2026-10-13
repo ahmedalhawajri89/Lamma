@@ -301,26 +301,17 @@ test.describe('نموذج الأسرة', () => {
     await expect(page.locator('[role=dialog]')).toBeHidden({ timeout: 20_000 })
     await expect(page.getByText('أُنشئت الأسرة.')).toBeVisible()
 
-    // الرقم نفسه لأسرة ثانية يُكشف تحت حقله، لا يُنشئ أسرة مكررة
-    await page.getByRole('button', { name: 'أسرة جديدة' }).click()
-    await pick(page, 'الدولة', 1)
-    await fill(page, 'الاسم الكامل', `${guardian} مكرر`)
-    await pick(page, 'صلته بالأطفال', 1)
-    await fill(page, 'عدد الأفراد', '6')
-    await pick(page, 'وضع السكن', 1)
-    await fill(page, 'رقم الهوية', nationalId)
-    await page.getByRole('button', { name: 'حفظ' }).click()
-    await expect(page.locator('[role=dialog]').getByText(/رقم الهوية هذا مسجَّل/)).toBeVisible({ timeout: 20_000 })
-    // الإغلاق والنموذج معدَّل يسأل بنافذة اللوحة لا بنافذة المتصفح
+    // ── الأسرة الجديدة تُفتح صفحتها، وخطوتها التالية إضافة أيتامها ──
+    await page.waitForURL(/\/families\/\d+/, { timeout: 20_000 })
+    await expect(page.locator('h1')).toContainText(guardian)
+    await page.getByRole('button', { name: 'أضف أول يتيم' }).click()
+    // الأسرة مختارة سلفاً في نموذج اليتيم
+    await expect(page.locator('[role=dialog]').getByLabel('الأسرة')).toHaveValue(new RegExp(guardian))
     await page.keyboard.press('Escape')
-    await page.getByRole('button', { name: 'أغلق دون حفظ' }).click()
     await expect(page.locator('[role=dialog]')).toHaveCount(0)
 
-    // ── التحرير: الصفّ يفتح النافذة مملوءة ──
-    const row = page.locator('table tbody tr', { hasText: guardian }).first()
-    await expect(row).toBeVisible({ timeout: 20_000 })
-    await row.locator('td').first().click()
-
+    // ── التحرير من صفحتها: النافذة مملوءة، والتعديل يظهر في سجلّها ──
+    await page.getByRole('button', { name: 'تحرير' }).click()
     await expect(page.locator('[role=dialog]')).toBeVisible()
     expect(await page.evaluate(() => {
       const el = [...document.querySelectorAll('[role=dialog] label')]
@@ -335,6 +326,29 @@ test.describe('نموذج الأسرة', () => {
      * يوحي بأن الرقم ضاع.
      */
     await expect(page.locator('[role=dialog] label').filter({ hasText: 'رقم الهوية' })).toHaveCount(0)
+
+    await fill(page, 'عدد الأفراد', '7')
+    await page.getByRole('button', { name: 'حفظ' }).click()
+    await expect(page.locator('[role=dialog]')).toBeHidden({ timeout: 20_000 })
+    await expect(page.locator('[data-history]')).toContainText('عدد الأفراد', { timeout: 20_000 })
+
+    // ── الرقم نفسه لأسرة ثانية يُكشف تحت حقله، لا يُنشئ أسرة مكررة ──
+    await page.goto('/families')
+    // القوائم المرجعية حُمّلت (فلتر الدولة يظهر بها) قبل فتح النموذج
+    await expect(page.getByLabel('الدولة')).toBeVisible({ timeout: 20_000 })
+    await page.getByRole('button', { name: 'أسرة جديدة' }).click()
+    await pick(page, 'الدولة', 1)
+    await fill(page, 'الاسم الكامل', `${guardian} مكرر`)
+    await pick(page, 'صلته بالأطفال', 1)
+    await fill(page, 'عدد الأفراد', '6')
+    await pick(page, 'وضع السكن', 1)
+    await fill(page, 'رقم الهوية', nationalId)
+    await page.getByRole('button', { name: 'حفظ' }).click()
+    await expect(page.locator('[role=dialog]').getByText(/رقم الهوية هذا مسجَّل/)).toBeVisible({ timeout: 20_000 })
+    // الإغلاق والنموذج معدَّل يسأل بنافذة اللوحة لا بنافذة المتصفح
+    await page.keyboard.press('Escape')
+    await page.getByRole('button', { name: 'أغلق دون حفظ' }).click()
+    await expect(page.locator('[role=dialog]')).toHaveCount(0)
   })
 })
 
