@@ -40,6 +40,8 @@ class PaymentController extends Controller
                     ->orWhere('receipt_number', 'like', "%{$term}%")
                     ->orWhere('gateway_reference', 'like', "%{$term}%")
                     ->orWhereHas('sponsor.user', fn ($u) => $u->where('name', 'like', "%{$term}%"))
+                    // رمز الكافل: من صفحة الكافل «كل دفعاته»
+                    ->orWhereHas('sponsor', fn ($s) => $s->where('sponsor_code', $term))
                     ->orWhereHas('sponsorship.orphan', fn ($o) => $o->where('first_name', 'like', "%{$term}%"));
             }));
 

@@ -56,6 +56,12 @@ const routes = [
     meta: { group: 'money', title: 'الكفلاء', icon: 'users', permission: 'sponsors.view' },
   },
   {
+    path: '/sponsors/:id',
+    name: 'sponsor-detail',
+    component: () => import('@/views/SponsorDetailView.vue'),
+    meta: { title: 'ملف كافل', permission: 'sponsors.view', hidden: true },
+  },
+  {
     path: '/sponsorships',
     name: 'sponsorships',
     component: () => import('@/views/SponsorshipsView.vue'),

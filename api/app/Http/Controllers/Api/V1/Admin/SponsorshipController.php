@@ -58,7 +58,8 @@ class SponsorshipController extends Controller
                     $w->where('reference_code', 'like', "%{$term}%")
                         ->orWhereHas('orphan', fn ($o) => $o->where('first_name', 'like', "%{$term}%")->orWhere('reference_code', 'like', "%{$term}%"));
                     if ($user->can('sponsors.view')) {
-                        $w->orWhereHas('sponsor.user', fn ($u) => $u->where('name', 'like', "%{$term}%")->orWhere('email', 'like', "%{$term}%"));
+                        $w->orWhereHas('sponsor.user', fn ($u) => $u->where('name', 'like', "%{$term}%")->orWhere('email', 'like', "%{$term}%"))
+                            ->orWhereHas('sponsor', fn ($s) => $s->where('sponsor_code', $term));
                     }
                 });
             })

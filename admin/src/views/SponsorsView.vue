@@ -1,148 +1,149 @@
 <script setup>
-import { ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
+import { useRouter, RouterLink } from 'vue-router'
 import { admin } from '@/api/endpoints'
-import { useAuthStore } from '@/stores/auth'
-import { useUiStore } from '@/stores/ui'
-import FormModal from '@/components/FormModal.vue'
-import StatusBadge from '@/components/StatusBadge.vue'
 import { useResource } from '@/composables/useResource'
-import { money, date, EMPTY } from '@/utils/format'
+import { money, date, num, relative, EMPTY } from '@/utils/format'
 import PageHeader from '@/components/PageHeader.vue'
 import FilterBar from '@/components/FilterBar.vue'
+import StatusTabs from '@/components/StatusTabs.vue'
 import DataTable from '@/components/DataTable.vue'
 import PaginationBar from '@/components/PaginationBar.vue'
+import BaseIcon from '@/components/BaseIcon.vue'
 
-const { items, meta, loading, filters, reset, error, load } = useResource(admin.sponsors.list, {
-  q: '', active_only: false, zakat_only: false,
-})
+const router = useRouter()
 
-const columns = [
-  { key: 'sponsor_code', label: 'الرمز' },
-  { key: 'name', label: 'الاسم' },
-  { key: 'country', label: 'الدولة' },
-  { key: 'active_sponsorships_count', label: 'كفالات نشطة', align: 'end' },
-  { key: 'total_given', label: 'إجمالي ما قدّمه', align: 'end' },
-  { key: 'sponsoring_since', label: 'كافل منذ' },
-]
-
-const auth = useAuthStore()
-const ui = useUiStore()
+const DEFAULTS = { q: '', segment: '', country_id: '', zakat_only: false, overdue: false, sort: 'id', dir: 'desc' }
+const { items, meta, loading, filters, reset, error, load } = useResource(admin.sponsors.list, DEFAULTS)
 
 /**
- * تفاصيل الكافل: كفالاته وملاحظات الإدارة. كانت نقطة التفاصيل والتعديل
- * موجودتين في الخادم بلا شاشة تصلهما.
+ * مراحل الكافل. «سابق» و«لم يكفل بعد» هما من يُتواصل معهم: من توقّف، ومن
+ * سجّل ولم يبدأ. وكانوا مختلطين بالنشطين في قائمة واحدة بلا تمييز.
  */
-const viewing = ref(null)
-const detail = ref(null)
-const notes = ref('')
-const saving = ref(false)
+const SEGMENTS = [
+  { value: 'active', label: 'نشط' },
+  { value: 'paused', label: 'موقوف مؤقتاً' },
+  { value: 'pending', label: 'بانتظار الدفع' },
+  { value: 'past', label: 'سابق' },
+  { value: 'never', label: 'لم يكفل بعد' },
+]
 
-async function open(row) {
-  viewing.value = row
-  detail.value = null
-  try {
-    const { data } = await admin.sponsors.show(row.id)
-    detail.value = data.data
-    notes.value = data.data.internal_notes ?? ''
-  } catch (e) {
-    ui.error(e.userMessage)
-    viewing.value = null
-  }
+const columns = [
+  { key: 'name', label: 'الكافل' },
+  { key: 'country', label: 'الدولة' },
+  { key: 'sponsorships', label: 'الكفالات' },
+  { key: 'monthly_commitment', label: 'التزام شهري', sortable: true, align: 'end' },
+  { key: 'total_given', label: 'ما قدّمه', sortable: true, align: 'end' },
+  { key: 'last_payment_at', label: 'آخر دفعة', sortable: true },
+]
+
+function onSort(key) {
+  if (filters.sort === key) filters.dir = filters.dir === 'asc' ? 'desc' : 'asc'
+  else { filters.sort = key; filters.dir = 'desc' }
 }
 
-async function saveNotes() {
-  saving.value = true
+const dirty = computed(() => ['q', 'segment', 'country_id', 'zakat_only', 'overdue'].some((k) => filters[k] !== DEFAULTS[k]))
+
+const subtitle = computed(() => {
+  if (loading.value && !meta.value.total) return 'جارٍ التحميل…'
+  const parts = [`${num(meta.value.all_count ?? meta.value.total)} كافل`]
+  if (meta.value.segment_counts?.active) parts.push(`${num(meta.value.segment_counts.active)} نشطون`)
+  if (meta.value.monthly_commitment) parts.push(`التزام شهري ${money(meta.value.monthly_commitment)}`)
+  return parts.join(' · ')
+})
+
+const countries = ref([])
+onMounted(async () => {
   try {
-    await admin.sponsors.update(viewing.value.id, { internal_notes: notes.value || null })
-    ui.success('حُفظت الملاحظات.')
-  } catch (e) {
-    ui.error(e.userMessage)
-  } finally {
-    saving.value = false
+    const { data } = await admin.references()
+    countries.value = data.data?.countries ?? []
+  } catch {
+    // فلتر الدولة يغيب، والقائمة تعمل
   }
-}
+})
 </script>
 
 <template>
   <div>
-    <PageHeader title="الكفلاء" :subtitle="`${meta.total} كافل`" />
+    <PageHeader title="الكفلاء" :subtitle="subtitle" />
 
-    <FilterBar v-model:search="filters.q" search-placeholder="اسم أو بريد أو رمز…" @reset="reset">
-      <label class="flex items-center gap-1.5 text-sm cursor-pointer">
-        <input v-model="filters.active_only" type="checkbox" class="accent-clay-600" /> نشط فقط
-      </label>
-      <label class="flex items-center gap-1.5 text-sm cursor-pointer">
-        <input v-model="filters.zakat_only" type="checkbox" class="accent-clay-600" /> يفضّل الزكاة
-      </label>
+    <StatusTabs
+      v-model="filters.segment" :options="SEGMENTS"
+      :counts="meta.segment_counts ?? {}" :total="meta.all_count ?? null" label="مرحلة الكافل"
+    />
+
+    <FilterBar v-model:search="filters.q" search-placeholder="اسم أو بريد أو رمز…" :dirty="dirty" @reset="reset">
+      <select v-if="countries.length" v-model="filters.country_id" class="input !w-auto text-sm" aria-label="دولة الكافل">
+        <option value="">كل الدول</option>
+        <option v-for="c in countries" :key="c.id" :value="String(c.id)">{{ c.name }}</option>
+      </select>
+
+      <!-- من فات موعد قسطه: يُتابَع قبل أن تسقط كفالته -->
+      <button type="button" class="chip" :aria-pressed="filters.overdue" @click="filters.overdue = !filters.overdue">
+        <BaseIcon name="clock" :size="14" /> قسطه متأخر
+        <span v-if="meta.overdue_count" class="chip__count">{{ num(meta.overdue_count) }}</span>
+      </button>
+      <button type="button" class="chip" :aria-pressed="filters.zakat_only" @click="filters.zakat_only = !filters.zakat_only">
+        يفضّل الزكاة
+      </button>
     </FilterBar>
 
-    <DataTable :error="error" @retry="load" :columns="columns" :rows="items" :loading="loading" clickable @row-click="open">
-      <template #sponsor_code="{ row }"><span class="num text-xs text-sand-600">{{ row.sponsor_code }}</span></template>
+    <DataTable
+      :error="error" :columns="columns" :rows="items" :loading="loading"
+      :sort="filters.sort" :dir="filters.dir" @sort="onSort"
+      :empty-text="dirty ? 'لا كفلاء يطابقون هذه الفلاتر.' : 'لا كفلاء بعد.'"
+      clickable @retry="load" @row-click="(r) => router.push(`/sponsors/${r.id}`)"
+    >
       <template #name="{ row }">
-        <!--
-          المجهولية للموقع العام لا للإدارة: كان يظهر «كافل يفضّل عدم ذكر اسمه»
-          بلا بريد، فلا يعرف الموظف مع من يتعامل، والبحث بالاسم يجده مع ذلك
-        -->
-        <span class="font-medium">{{ row.name ?? EMPTY }}</span>
-        <span v-if="row.is_anonymous" class="badge bg-sand-100 text-sand-600 ms-1.5">مجهول للعامة</span>
-        <span class="block text-xs text-sand-500 num" dir="ltr">{{ row.email }}</span>
+        <span class="flex items-center gap-3 min-w-0">
+          <span class="size-9 rounded-full bg-amber-50 text-amber-800 grid place-items-center text-sm font-semibold shrink-0">
+            {{ row.name?.charAt(0) ?? '؟' }}
+          </span>
+          <span class="min-w-0">
+            <span class="flex items-center gap-1.5">
+              <!--
+                المجهولية للموقع العام لا للإدارة: الموظف يعرف مع من يتعامل
+              -->
+              <RouterLink :to="`/sponsors/${row.id}`" class="font-medium text-sand-900 hover:text-clay-700 truncate" @click.stop>
+                {{ row.name ?? EMPTY }}
+              </RouterLink>
+              <span v-if="row.is_anonymous" class="badge bg-sand-100 text-sand-600">مجهول للعامة</span>
+              <span v-if="row.overdue_sponsorships_count" class="badge bg-rose-600/10 text-rose-700">قسطه متأخر</span>
+            </span>
+            <span class="block text-xs text-sand-500"><span class="num">{{ row.sponsor_code }}</span> · <span class="num" dir="ltr">{{ row.email }}</span></span>
+          </span>
+        </span>
       </template>
+
       <template #country="{ row }">{{ row.country?.name ?? EMPTY }}</template>
-      <template #active_sponsorships_count="{ row }">
-        <span class="num">{{ row.active_sponsorships_count ?? 0 }}</span>
+
+      <template #sponsorships="{ row }">
+        <span v-if="row.sponsorships_count" class="text-sm">
+          <span class="num font-medium">{{ row.active_sponsorships_count ?? 0 }}</span>
+          <span class="text-sand-500"> نشطة من <span class="num">{{ row.sponsorships_count }}</span></span>
+        </span>
+        <span v-else class="text-xs text-sand-400">لم يكفل بعد</span>
       </template>
-      <template #total_given="{ row }"><span class="num font-medium">{{ money(row.total_given ?? 0) }}</span></template>
-      <template #sponsoring_since="{ row }">{{ date(row.sponsoring_since) }}</template>
+
+      <template #monthly_commitment="{ row }">
+        <span v-if="row.monthly_commitment" class="num">{{ money(row.monthly_commitment) }}</span>
+        <span v-else class="text-sand-400">·</span>
+      </template>
+
+      <template #total_given="{ row }">
+        <span class="num font-medium" :class="row.total_given ? '' : 'text-sand-400 font-normal'">{{ money(row.total_given ?? 0) }}</span>
+      </template>
+
+      <template #last_payment_at="{ row }">
+        <span v-if="row.last_payment_at" class="text-sm" :title="date(row.last_payment_at)">{{ relative(row.last_payment_at) }}</span>
+        <span v-else class="text-xs text-sand-400">لا دفعات</span>
+      </template>
+
+      <template #empty-action>
+        <button v-if="dirty" class="btn btn-outline mt-4" type="button" @click="reset">مسح الفلاتر</button>
+      </template>
     </DataTable>
 
     <PaginationBar v-model="filters.page" :meta="meta" />
-
-    <FormModal
-      :open="viewing !== null" wide
-      :title="viewing?.name ?? 'الكافل'" :subtitle="viewing ? `${viewing.sponsor_code}${viewing.is_anonymous ? ' · مجهول للعامة' : ''}` : ''"
-      @close="viewing = null"
-    >
-      <div v-if="!detail" class="py-8 grid place-items-center text-sand-500">
-        <span class="text-sm">جارٍ التحميل…</span>
-      </div>
-
-      <template v-else>
-        <dl class="grid sm:grid-cols-3 gap-3 text-sm">
-          <div><dt class="text-xs text-sand-500">البريد</dt><dd class="num" dir="ltr">{{ detail.email ?? EMPTY }}</dd></div>
-          <div><dt class="text-xs text-sand-500">الهاتف</dt><dd class="num" dir="ltr">{{ detail.phone ?? EMPTY }}</dd></div>
-          <div><dt class="text-xs text-sand-500">الدولة</dt><dd>{{ detail.country?.name ?? EMPTY }}<template v-if="detail.city">، {{ detail.city }}</template></dd></div>
-          <div><dt class="text-xs text-sand-500">العملة المفضّلة</dt><dd class="num">{{ detail.preferred_currency ?? EMPTY }}</dd></div>
-          <div><dt class="text-xs text-sand-500">يفضّل الزكاة</dt><dd>{{ detail.prefers_zakat ? 'نعم' : 'لا' }}</dd></div>
-          <div><dt class="text-xs text-sand-500">كافل منذ</dt><dd>{{ date(detail.sponsoring_since) }}</dd></div>
-        </dl>
-
-        <section>
-          <h3 class="text-xs font-semibold text-sand-500 mb-2">الكفالات</h3>
-          <ul v-if="detail.sponsorships?.length" class="divide-y divide-sand-100 border border-sand-100 rounded-xl">
-            <li v-for="s in detail.sponsorships" :key="s.id" class="flex items-center gap-3 px-3 py-2.5 text-sm">
-              <RouterLink :to="`/orphans/${s.orphan?.id}`" class="flex-1 min-w-0 text-clay-700 hover:underline truncate">
-                {{ s.orphan?.name }} <span class="text-xs text-sand-500 num">{{ s.reference_code }}</span>
-              </RouterLink>
-              <span v-if="s.monthly_amount !== undefined" class="num text-sand-700">{{ money(s.monthly_amount, s.currency) }}</span>
-              <StatusBadge :label="s.status_label" :value="s.status" />
-            </li>
-          </ul>
-          <p v-else class="text-sm text-sand-500">لا كفالات بعد.</p>
-        </section>
-
-        <section v-if="auth.can('sponsors.manage')">
-          <label class="block text-xs font-semibold text-sand-500 mb-1.5" for="sponsorNotes">ملاحظات الإدارة (لا يراها الكافل)</label>
-          <textarea id="sponsorNotes" v-model="notes" class="input" rows="3" maxlength="2000" />
-        </section>
-      </template>
-
-      <template #actions="{ close }">
-        <button class="btn btn-outline" type="button" @click="close">إغلاق</button>
-        <button
-          v-if="detail && auth.can('sponsors.manage')" class="btn btn-primary" type="button"
-          :disabled="saving" @click="saveNotes"
-        >حفظ الملاحظات</button>
-      </template>
-    </FormModal>
   </div>
 </template>
