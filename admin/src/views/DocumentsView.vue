@@ -7,7 +7,7 @@
  * المفاتيح (V تحقّق، R رفض، J وK للتنقّل) وينتقل وحده إلى التالي، فطابورٌ
  * من ثلاثين مستنداً يُنجز دون فتح نافذة واحدة.
  */
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter, RouterLink } from 'vue-router'
 import { admin } from '@/api/endpoints'
 import { useResource } from '@/composables/useResource'
@@ -17,6 +17,7 @@ import { useUiStore } from '@/stores/ui'
 import { date, num, relative, years } from '@/utils/format'
 import BaseIcon from '@/components/BaseIcon.vue'
 import DocumentViewer from '@/components/DocumentViewer.vue'
+import DocumentDecision from '@/components/DocumentDecision.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -53,8 +54,6 @@ const HINTS = {
   other: 'صلة المستند بالطفل واضحة ومفهومة.',
 }
 
-/** أسباب الرفض الشائعة بنقرة، والنص الحر لما سواها */
-const REASONS = ['الصورة غير واضحة', 'المستند لا يخص هذا الطفل', 'البيانات لا تطابق ملف الطفل', 'المستند ناقص أو مقصوص', 'ليس النوع المختار']
 
 /* ── الطابور مجمّعاً بالطفل ──────────────────────────────────────────── */
 
@@ -84,12 +83,26 @@ watch(items, (list) => {
 
 const age = (dob) => (dob ? Math.floor((Date.now() - new Date(dob).getTime()) / 31557600000) : null)
 
+/* ── العرض: بزرّ لا تلقائياً ──────────────────────────────────────── */
+
+/**
+ * المستند يُعرض حين يطلبه المراجع (زرّ أو O)، بملء الشاشة وبجانبه ما
+ * يُطابَق به. وما فُتح يُتذكّر: «تحقّقت منه» لا يعمل لمستند لم يُنظر إليه.
+ */
+const viewing = ref(false)
+const viewed = ref(new Set())
+const isViewed = computed(() => viewed.value.has(current.value?.id))
+
+function view() {
+  if (!current.value) return
+  viewed.value = new Set(viewed.value).add(current.value.id)
+  viewing.value = true
+}
+
 /* ── القرار ──────────────────────────────────────────────────────────── */
 
 const busy = ref(false)
 const rejecting = ref(false)
-const reason = ref('')
-const reasonInput = ref(null)
 const ready = ref(null)
 const own = computed(() => current.value?.uploaded_by === auth.user?.id)
 
@@ -104,6 +117,8 @@ function removeCurrent(doc) {
     decided_today: (meta.value.decided_today ?? 0) + 1,
     type_counts: { ...meta.value.type_counts, [doc.type]: Math.max(0, (meta.value.type_counts?.[doc.type] ?? 1) - 1) },
   }
+  // بعد القرار يُغلق العرض: المستند التالي يُفتح بطلب لا وحده
+  viewing.value = false
   select(next)
   queue.refresh(true)
   if (!items.value.length) load()
@@ -112,6 +127,10 @@ function removeCurrent(doc) {
 async function verify() {
   const doc = current.value
   if (!doc || own.value || busy.value) return
+  if (!isViewed.value) {
+    ui.error('افتح المستند أولاً (O)، ثم تحقّق منه.')
+    return
+  }
   busy.value = true
   try {
     const { data } = await admin.documents.verify(doc.id)
@@ -125,25 +144,12 @@ async function verify() {
   }
 }
 
-async function startReject() {
-  if (!current.value || own.value || busy.value) return
-  rejecting.value = true
-  reason.value = ''
-  await nextTick()
-  reasonInput.value?.focus()
-}
-
-async function confirmReject() {
+async function reject(reason) {
   const doc = current.value
   if (!doc || busy.value) return
-  if (reason.value.trim().length < 5) {
-    ui.error('اكتب سبب الرفض، يقرؤه من رفع المستند.')
-    reasonInput.value?.focus()
-    return
-  }
   busy.value = true
   try {
-    await admin.documents.reject(doc.id, reason.value.trim())
+    await admin.documents.reject(doc.id, reason)
     ui.success(`رُفض ${doc.type_label} لـ ${doc.orphan.name}، والسبب في ملفه.`)
     rejecting.value = false
     removeCurrent(doc)
@@ -165,16 +171,22 @@ function onKey(e) {
   if (e.ctrlKey || e.metaKey || e.altKey) return
   const t = e.target
   const typing = t instanceof HTMLElement && (t.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName))
-  if (document.querySelector('[role="dialog"][aria-modal="true"]')) return
+  // نافذة تأكيد أو غيرها فوق الشاشة تملك المفاتيح؛ العرض بملء الشاشة جزءٌ من هذه الشاشة
+  if (document.querySelector('[role="dialog"][aria-modal="true"]:not([data-viewer])')) return
 
-  if (e.key === 'Escape' && rejecting.value) {
-    e.preventDefault()
-    rejecting.value = false
-    return
+  if (e.key === 'Escape') {
+    if (rejecting.value) { e.preventDefault(); rejecting.value = false; return }
+    if (viewing.value) { e.preventDefault(); viewing.value = false; return }
   }
   if (typing || !current.value) return
 
-  const action = { KeyV: verify, KeyR: startReject, KeyJ: () => go(1), KeyK: () => go(-1) }[e.code]
+  const action = {
+    KeyO: view,
+    KeyV: verify,
+    KeyR: () => { if (!own.value) rejecting.value = true },
+    KeyJ: () => { if (!viewing.value) go(1) },
+    KeyK: () => { if (!viewing.value) go(-1) },
+  }[e.code]
   if (action) {
     e.preventDefault()
     action()
@@ -182,6 +194,9 @@ function onKey(e) {
 }
 onMounted(() => document.addEventListener('keydown', onKey))
 onBeforeUnmount(() => document.removeEventListener('keydown', onKey))
+
+const size = (bytes) => (bytes >= 1048576 ? `${(bytes / 1048576).toFixed(1)} م.ب` : `${Math.max(1, Math.round(bytes / 1024))} ك.ب`)
+const kind = (d) => (d?.mime?.startsWith('image/') ? 'صورة' : d?.mime === 'application/pdf' ? 'PDF' : 'ملف')
 
 const DOT = { verified: 'bg-olive-600', pending: 'bg-amber-400', rejected: 'bg-rose-500', missing: 'bg-sand-300' }
 const DOT_LABEL = { verified: 'مُتحقَّق منه', pending: 'ينتظر', rejected: 'مرفوض', missing: 'لم يُرفع' }
@@ -202,7 +217,7 @@ const DOT_LABEL = { verified: 'مُتحقَّق منه', pending: 'ينتظر', 
       </div>
       <div class="flex items-center gap-3 text-xs text-sand-500">
         <span class="hidden lg:flex items-center gap-1.5">
-          <kbd class="kbd">V</kbd> تحقّق <kbd class="kbd">R</kbd> رفض <kbd class="kbd">J</kbd><kbd class="kbd">K</kbd> تنقّل
+          <kbd class="kbd">O</kbd> عرض <kbd class="kbd">V</kbd> تحقّق <kbd class="kbd">R</kbd> رفض <kbd class="kbd">J</kbd><kbd class="kbd">K</kbd> تنقّل
         </span>
         <span class="rounded-full bg-clay-50 text-clay-700 px-3 py-1 font-medium">
           أنجزت اليوم <span class="num">{{ num(meta.decided_today ?? 0) }}</span>
@@ -210,7 +225,7 @@ const DOT_LABEL = { verified: 'مُتحقَّق منه', pending: 'ينتظر', 
       </div>
     </header>
 
-    <div class="card flex-1 min-h-0 grid lg:grid-cols-[22rem_minmax(0,1fr)] overflow-hidden">
+    <div class="card flex-1 min-h-0 grid lg:grid-cols-[22rem_minmax(0,1fr)] lg:grid-rows-[minmax(0,1fr)] overflow-hidden">
       <!-- ══ الطابور ══ -->
       <aside class="flex flex-col min-h-0 border-sand-200 lg:border-e" aria-label="الطابور">
         <div class="p-3 space-y-2 border-b border-sand-200">
@@ -329,51 +344,49 @@ const DOT_LABEL = { verified: 'مُتحقَّق منه', pending: 'ينتظر', 
           <button class="btn btn-ghost !p-1" type="button" aria-label="إخفاء" @click="ready = null"><BaseIcon name="close" :size="14" /></button>
         </div>
 
-        <!-- المستند -->
-        <div class="flex-1 min-h-[45vh]">
-          <DocumentViewer :document="current" />
+        <!--
+          المستند بطاقةٌ تُفتح بطلب، لا عارضٌ يُحمَّل وحده: المراجع يقرأ
+          البيانات أولاً، ثم يفتح المستند حين يكون مستعداً للمطابقة.
+        -->
+        <div class="flex-1 min-h-0 grid place-items-center p-6 overflow-y-auto">
+          <div class="w-full max-w-md text-center">
+            <button
+              type="button"
+              class="group w-full rounded-2xl border-2 border-dashed border-sand-200 hover:border-clay-300 bg-sand-25 hover:bg-clay-50/40 transition-colors px-6 py-10"
+              @click="view"
+            >
+              <span class="mx-auto mb-4 size-16 grid place-items-center rounded-2xl bg-sand-0 border border-sand-200 text-clay-700 group-hover:border-clay-300">
+                <BaseIcon :name="current.mime?.startsWith('image/') ? 'eye' : 'file'" :size="28" />
+              </span>
+              <span class="block font-semibold text-sand-900">{{ current.type_label }}</span>
+              <span class="block text-xs text-sand-500 mt-1">
+                <span class="num" dir="ltr">{{ current.original_name }}</span> · {{ kind(current) }} · <span class="num">{{ size(current.size_bytes) }}</span>
+              </span>
+              <span class="btn btn-primary mt-5 pointer-events-none">
+                <BaseIcon name="eye" :size="16" /> عرض المستند <kbd class="kbd !bg-white/15 !border-white/25 !text-white">O</kbd>
+              </span>
+            </button>
+            <p class="mt-3 text-xs" :class="isViewed ? 'text-olive-700' : 'text-sand-500'">
+              <template v-if="isViewed"><BaseIcon name="check" :size="12" class="inline" /> فتحته في هذه الجلسة</template>
+              <template v-else>يُفتح بملء الشاشة وبجانبه بيانات الطفل.</template>
+            </p>
+          </div>
         </div>
 
         <!-- القرار -->
-        <div class="border-t border-sand-200 px-4 py-3">
-          <p v-if="own" class="text-sm text-sand-500 py-1.5">رفعت هذا المستند بنفسك، فيتحقق منه غيرك.</p>
-
-          <!-- الرفض في مكانه: أسباب جاهزة بنقرة، أو سبب يُكتب -->
-          <form v-else-if="rejecting" class="space-y-2.5" @submit.prevent="confirmReject">
-            <div class="flex flex-wrap gap-1.5">
-              <button
-                v-for="r in REASONS" :key="r" type="button" class="chip !py-1 !text-xs"
-                :aria-pressed="reason === r" @click="reason = r"
-              >{{ r }}</button>
-            </div>
-            <div class="flex flex-wrap items-center gap-2">
-              <label class="sr-only" for="rejectReason">سبب الرفض</label>
-              <input
-                id="rejectReason" ref="reasonInput" v-model="reason" class="input flex-1 min-w-48"
-                maxlength="255" placeholder="سبب الرفض، يقرؤه من رفع المستند…"
-              />
-              <button class="btn bg-rose-600 text-white hover:bg-rose-700" type="submit" :disabled="busy">ارفض المستند</button>
-              <button class="btn btn-ghost" type="button" :disabled="busy" @click="rejecting = false">إلغاء <kbd class="kbd">Esc</kbd></button>
-            </div>
-          </form>
-
-          <div v-else class="flex flex-wrap items-center gap-2">
-            <button class="btn btn-primary" type="button" :disabled="busy" @click="verify">
-              <BaseIcon :name="busy ? 'loader' : 'check'" :size="15" :class="{ 'animate-spin': busy }" />
-              تحقّقت منه <kbd class="kbd !bg-white/15 !border-white/25 !text-white">V</kbd>
-            </button>
-            <button class="btn btn-outline text-rose-700" type="button" :disabled="busy" @click="startReject">
-              رفض <kbd class="kbd">R</kbd>
-            </button>
-            <span class="ms-auto flex items-center gap-1">
-              <button class="btn btn-ghost" type="button" :disabled="index <= 0" @click="go(-1)">
-                <BaseIcon name="chevron" :size="15" /> السابق
-              </button>
-              <button class="btn btn-ghost" type="button" :disabled="index >= order.length - 1" @click="go(1)">
-                التالي <BaseIcon name="chevron" :size="15" style="transform: scaleX(-1)" />
-              </button>
-            </span>
+        <div class="border-t border-sand-200 px-4 py-3 flex flex-wrap items-center gap-2">
+          <div class="flex-1 min-w-0">
+            <!-- القرار في مكان واحد ظاهر: هنا، أو في العرض بملء الشاشة حين يُفتح -->
+            <DocumentDecision v-if="!viewing" v-model:rejecting="rejecting" :busy="busy" :own="own" :viewed="isViewed" @verify="verify" @reject="reject" @view="view" />
           </div>
+          <span v-if="!rejecting" class="flex items-center gap-1">
+            <button class="btn btn-ghost" type="button" :disabled="index <= 0" @click="go(-1)">
+              <BaseIcon name="chevron" :size="15" /> السابق
+            </button>
+            <button class="btn btn-ghost" type="button" :disabled="index >= order.length - 1" @click="go(1)">
+              التالي <BaseIcon name="chevron" :size="15" style="transform: scaleX(-1)" />
+            </button>
+          </span>
         </div>
       </section>
 
@@ -390,5 +403,55 @@ const DOT_LABEL = { verified: 'مُتحقَّق منه', pending: 'ينتظر', 
         </div>
       </section>
     </div>
+    <!-- ══ العرض بملء الشاشة: المستند، وبجانبه المطابقة والقرار ══ -->
+    <Teleport to="body">
+      <div
+        v-if="viewing && current" data-viewer role="dialog" aria-modal="true" aria-labelledby="viewerTitle"
+        class="fixed inset-0 z-50 bg-sand-900 flex flex-col"
+      >
+        <div class="flex items-center gap-3 px-4 py-3 text-white">
+          <div class="flex-1 min-w-0">
+            <h2 id="viewerTitle" class="font-semibold truncate">{{ current.type_label }} · {{ current.orphan.full_name }}</h2>
+            <p class="text-xs text-white/60 truncate"><span class="num" dir="ltr">{{ current.original_name }}</span> · رفعه {{ current.uploader ?? 'غير محدد' }}</p>
+          </div>
+          <a class="btn !p-2 text-white hover:bg-white/10" :href="admin.documents.downloadUrl(current.id)" aria-label="تنزيل" title="تنزيل">
+            <BaseIcon name="download" :size="18" />
+          </a>
+          <button class="btn !p-2 text-white hover:bg-white/10" type="button" aria-label="إغلاق العرض" title="إغلاق (Esc)" @click="viewing = false">
+            <BaseIcon name="close" :size="20" />
+          </button>
+        </div>
+
+        <div class="flex-1 min-h-0 grid lg:grid-cols-[minmax(0,1fr)_20rem]">
+          <div class="min-h-[50vh] lg:min-h-0 rounded-t-xl lg:rounded-xl lg:ms-4 lg:mb-4 overflow-hidden">
+            <DocumentViewer :document="current" />
+          </div>
+
+          <aside class="bg-sand-900 text-white p-4 lg:pt-0 space-y-4 overflow-y-auto">
+            <dl class="space-y-2.5 text-sm">
+              <div><dt class="text-[0.7rem] text-white/50">الاسم الكامل</dt><dd class="font-medium">{{ current.orphan.full_name }}</dd></div>
+              <div><dt class="text-[0.7rem] text-white/50">تاريخ الميلاد</dt>
+                <dd>{{ date(current.orphan.date_of_birth) }} <span class="text-xs text-white/50">({{ years(age(current.orphan.date_of_birth)) }})</span></dd>
+              </div>
+              <div><dt class="text-[0.7rem] text-white/50">الجنس</dt><dd>{{ current.orphan.gender_label }}</dd></div>
+              <div><dt class="text-[0.7rem] text-white/50">الوصي</dt>
+                <dd>{{ current.orphan.guardian ?? 'غير محدد' }} <span v-if="current.orphan.guardian_relation" class="text-xs text-white/50">({{ current.orphan.guardian_relation }})</span></dd>
+              </div>
+              <div><dt class="text-[0.7rem] text-white/50">الأسرة</dt><dd class="num">{{ current.orphan.family_code }}</dd></div>
+            </dl>
+            <p class="text-xs text-amber-200 flex items-start gap-1.5 border-t border-white/10 pt-3">
+              <BaseIcon name="alert" :size="13" class="mt-0.5 shrink-0" />
+              {{ HINTS[current.type] ?? HINTS.other }}
+            </p>
+            <div class="border-t border-white/10 pt-4">
+              <DocumentDecision
+                v-model:rejecting="rejecting" dark stacked
+                :busy="busy" :own="own" :viewed="isViewed" @verify="verify" @reject="reject"
+              />
+            </div>
+          </aside>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>

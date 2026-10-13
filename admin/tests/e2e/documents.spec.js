@@ -53,7 +53,17 @@ test('مستند يُراجَع بجانب بيانات الطفل، ويُرف�
   await group.locator('li button').first().click()
 
   await expect(page.locator('#reviewTitle')).toContainText(name)
-  await expect(page.locator('iframe[src^="blob:"]')).toBeVisible({ timeout: 20_000 })
+
+  // لا عرض تلقائي، ولا تحقّق قبل فتح المستند
+  await expect(page.locator('iframe')).toHaveCount(0)
+  await expect(page.getByRole('button', { name: /تحقّقت منه/ })).toBeDisabled()
+
+  // العرض بملء الشاشة بطلب (O)، وبجانبه بيانات الطفل
+  await page.keyboard.press('KeyO')
+  const viewer = page.locator('[data-viewer]')
+  await expect(viewer.locator('iframe[src^="blob:"]')).toBeVisible({ timeout: 20_000 })
+  await expect(viewer).toContainText(name)
+  await expect(viewer.getByRole('button', { name: /تحقّقت منه/ })).toBeEnabled()
 
   // الرفض بلوحة المفاتيح، والسبب إلزامي، ثم سبب جاهز بنقرة
   await page.keyboard.press('KeyR')
@@ -62,6 +72,8 @@ test('مستند يُراجَع بجانب بيانات الطفل، ويُرف�
   await page.getByRole('button', { name: 'المستند لا يخص هذا الطفل' }).click()
   await page.getByRole('button', { name: 'ارفض المستند' }).click()
   await expect(page.getByText(/والسبب في ملفه/)).toBeVisible({ timeout: 20_000 })
+  // القرار يغلق العرض: التالي يُفتح بطلب
+  await expect(viewer).toHaveCount(0)
 
   // ── في ملف الطفل: مرفوض بسببه ──
   await page.goto(`${fileUrl}?tab=documents`)

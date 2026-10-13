@@ -91,6 +91,7 @@ defineExpose({ zoomBy, rotate, reset })
       </div>
     </template>
 
-    <iframe v-else-if="url" :src="url" :title="document.type_label" class="absolute inset-0 w-full h-full border-0 bg-white" />
+    <!-- بلا عمود الصفحات المصغّرة، وبعرض الإطار: المستند هو ما يُرى -->
+    <iframe v-else-if="url" :src="`${url}#navpanes=0&view=FitH`" :title="document.type_label" class="absolute inset-0 w-full h-full border-0 bg-white" />
   </div>
 </template>
