@@ -16,6 +16,13 @@ const route = useRoute()
 
 const blank = computed(() => route.meta.layout === 'blank')
 
+/**
+ * قبل أن يُحسم «هل هذا موظف داخل؟» لا نرسم إطار اللوحة: كان يظهر فارغاً،
+ * بلا اسم ولا روابط، طوال انتظار الخادم، فيبدو كأن دخولاً تمّ بلا كلمة مرور.
+ * `matched` فارغة قبل أن ينتهي أول تنقّل.
+ */
+const booting = computed(() => !auth.checked || route.matched.length === 0)
+
 /** القائمة تُبنى من الموجّه نفسه، فإضافة شاشة لا تحتاج تعديل مكانين. */
 const links = computed(() =>
   router.getRoutes().filter(
@@ -86,7 +93,15 @@ onMounted(() => auth.fetchUser())
 </script>
 
 <template>
-  <RouterView v-if="blank" />
+  <!-- شاشة انتظار التحقق من الجلسة -->
+  <div v-if="booting" class="min-h-screen grid place-items-center bg-sand-50" role="status" aria-live="polite">
+    <div class="flex flex-col items-center gap-3 text-sand-500">
+      <img src="/logo.svg" alt="" width="44" height="44" />
+      <span class="text-sm">جارٍ التحقق من الجلسة…</span>
+    </div>
+  </div>
+
+  <RouterView v-else-if="blank" />
 
   <div v-else class="min-h-screen flex bg-sand-50">
     <a

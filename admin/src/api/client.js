@@ -15,6 +15,9 @@ const client = axios.create({
   baseURL: import.meta.env.VITE_API_URL ?? '',
   withCredentials: true,
   withXSRFToken: true,
+
+  // خادم لا يردّ يُعامَل كخطأ بعد مهلة، لا كانتظار بلا نهاية أمام شاشة فارغة
+  timeout: 20_000,
   headers: { Accept: 'application/json' },
 })
 
@@ -42,6 +45,28 @@ client.interceptors.request.use(async (config) => {
  * ونعيد المحاولة **مرة واحدة**: بلا حارس `_retried` يدخل الطلب في حلقة
  * لا نهائية إن بقي الخطأ.
  */
+/**
+ * ما يُعرض للمستخدم من الخطأ.
+ *
+ * رسائل 4xx مكتوبة له (تحقّق، صلاحية، غير موجود) فتُعرض كما هي. أما 5xx
+ * فعطلٌ في الخادم، ونصّه قد يحمل تفاصيل داخلية (استعلام، عنوان قاعدة
+ * البيانات، معرّف جلسة) لو أفلت من معالج الخادم. فلا يُعرض منه إلا رسالتنا
+ * العامة التي تحمل رقم مرجع، وكل ما سواها يُستبدل بنصّ ثابت.
+ */
+function userMessage(response) {
+  if (!response) return 'لا اتصال بالخادم الآن. تأكد من تشغيله ثم أعد المحاولة.'
+
+  const { status, data } = response
+
+  if (status >= 500) {
+    return data?.reference
+      ? `${data.message} (المرجع ${data.reference})`
+      : 'تعذّر إتمام الطلب بسبب عطل في الخادم. حاول بعد قليل.'
+  }
+
+  return data?.message ?? 'تعذّر إتمام الطلب.'
+}
+
 client.interceptors.response.use(
   (response) => {
     /*
@@ -65,9 +90,7 @@ client.interceptors.response.use(
       return client(config)
     }
 
-    error.userMessage =
-      response?.data?.message ??
-      (response ? 'تعذّر إتمام الطلب.' : 'لا اتصال بالخادم. تحقّق من تشغيله على المنفذ 8000.')
+    error.userMessage = userMessage(response)
 
     error.fieldErrors = response?.data?.errors ?? {}
 

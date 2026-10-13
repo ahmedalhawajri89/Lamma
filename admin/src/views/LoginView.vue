@@ -143,6 +143,9 @@ async function submit() {
           </div>
 
           <p v-if="message" class="text-sm text-rose-700" role="alert">{{ message }}</p>
+          <p v-else-if="auth.offline" class="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2" role="status">
+            لا اتصال بالخادم الآن. تأكد من تشغيله ثم أعد المحاولة.
+          </p>
           <p v-if="sponsorAccount" class="text-sm text-rose-700" role="alert">
             هذا حساب كافل، والدخول به من موقع كفالة.
             <a :href="siteLogin" class="font-semibold underline">افتح صفحة دخول الكفلاء</a>

@@ -92,12 +92,29 @@ export async function request(path, { method = 'GET', body = null } = {}) {
   if (!response.ok) {
     throw {
       status: response.status,
-      message: payload.message ?? 'تعذّر إتمام الطلب.',
+      message: errorMessage(response.status, payload),
       errors: payload.errors ?? {},
     };
   }
 
   return payload;
+}
+
+/**
+ * نصّ الخطأ المعروض للزائر.
+ *
+ * رسائل 4xx مكتوبة له فتُعرض. أما 5xx فعطلٌ في الخادم قد يحمل نصّه تفاصيل
+ * داخلية لو أفلت من معالج الخادم، فلا يُعرض منه إلا رسالتنا العامة ذات
+ * رقم المرجع.
+ */
+function errorMessage(status, payload) {
+  if (status >= 500) {
+    return payload.reference
+      ? `${payload.message} (المرجع ${payload.reference})`
+      : 'تعذّر إتمام الطلب بسبب عطل في الخادم. حاول بعد قليل.';
+  }
+
+  return payload.message ?? 'تعذّر إتمام الطلب.';
 }
 
 /**
