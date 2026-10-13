@@ -60,6 +60,14 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
 
         Route::post('newsletter', [Pub\ContactController::class, 'subscribe'])
             ->middleware('throttle:6,1,newsletter')->name('newsletter');
+
+        /**
+         * الكفالة من صفحة الموقع: للزائر (يُنشأ حسابه) وللكافل الداخل.
+         * ستّ محاولات في الدقيقة، ولكلٍّ دلوه، فلا يُكرَّر الحجز ولا الخصم بلا حدّ.
+         */
+        Route::get('checkout/config', [Pub\CheckoutController::class, 'config'])->name('checkout.config');
+        Route::post('checkout', [Pub\CheckoutController::class, 'store'])
+            ->middleware('throttle:6,1,checkout')->name('checkout');
     });
 
     /* ==================================================================
@@ -114,7 +122,10 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
             Route::get('overview', Portal\OverviewController::class)->name('overview');
 
             Route::get('sponsorships', [Portal\SponsorshipController::class, 'index'])->name('sponsorships.index');
-            Route::post('sponsorships', [Portal\SponsorshipController::class, 'store'])->name('sponsorships.store');
+            // الحجز يُمسك حصة الطفل، فلا يُكرَّر بلا حدّ
+            Route::post('sponsorships', [Portal\SponsorshipController::class, 'store'])
+                ->middleware('throttle:5,1')
+                ->name('sponsorships.store');
             Route::delete('sponsorships/{sponsorship}', [Portal\SponsorshipController::class, 'destroy'])->name('sponsorships.destroy');
 
             Route::get('payments', [Portal\PaymentController::class, 'index'])->name('payments.index');
@@ -127,7 +138,9 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
                 ->middleware('throttle:20,1')
                 ->name('messages.store');
 
-            Route::patch('profile', [Portal\ProfileController::class, 'update'])->name('profile.update');
+            Route::patch('profile', [Portal\ProfileController::class, 'update'])
+                ->middleware('throttle:10,1')
+                ->name('profile.update');
             Route::put('profile/password', [Portal\ProfileController::class, 'updatePassword'])
                 ->middleware('throttle:6,1')
                 ->name('profile.password');

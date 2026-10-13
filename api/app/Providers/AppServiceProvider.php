@@ -18,6 +18,11 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        // البوابة من الإعداد؛ والتجريبية افتراضاً حتى تُربط بوابة حقيقية
+        $this->app->bind(\App\Payments\PaymentGateway::class, fn () => match (config('kafala.gateway')) {
+            default => new \App\Payments\DemoGateway(),
+        });
+
         //
     }
 

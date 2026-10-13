@@ -31,7 +31,7 @@ class ReportPolicy
 
         return $user->sponsor->sponsorships()
             ->where('orphan_id', $report->orphan_id)
-            ->live()
+            ->funded()
             ->exists();
     }
 

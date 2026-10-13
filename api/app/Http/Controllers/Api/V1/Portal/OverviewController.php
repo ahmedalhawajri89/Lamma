@@ -31,7 +31,7 @@ class OverviewController extends Controller
 
         $unseenReports = Report::query()
             ->unseenBy($sponsor->id)
-            ->whereIn('orphan_id', $sponsor->sponsorships()->live()->select('orphan_id'))
+            ->whereIn('orphan_id', $sponsor->sponsorships()->funded()->select('orphan_id'))
             ->count();
 
         $nextDue = Sponsorship::query()
@@ -73,8 +73,9 @@ class OverviewController extends Controller
                     $sponsor->sponsorships()
                         ->live()
                         ->with(['orphan:id,reference_code,first_name,photo_path,date_of_birth,funded_percent', 'program'])
-                        ->withCount('payments')
-                        ->withSum('payments', 'amount_base')
+                        // الدفعات المكتملة وحدها: كانت الفاشلة والمستردّة تُحسب فيما «قدّمه له»
+                        ->withCount(['payments' => fn ($q) => $q->settled()])
+                        ->withSum(['payments' => fn ($q) => $q->settled()], 'amount_base')
                         ->orderBy('next_due_at')
                         ->get(),
                 )->resolve(),
@@ -82,7 +83,7 @@ class OverviewController extends Controller
                 'latest_reports' => ReportResource::collection(
                     Report::query()
                         ->published()
-                        ->whereIn('orphan_id', $sponsor->sponsorships()->live()->select('orphan_id'))
+                        ->whereIn('orphan_id', $sponsor->sponsorships()->funded()->select('orphan_id'))
                         ->with(['orphan:id,reference_code,first_name,photo_path'])
                         ->withCount(['views' => fn ($q) => $q->where('sponsor_id', $sponsor->id)])
                         ->latest('published_at')

@@ -15,6 +15,25 @@ import { submitContact, subscribeNewsletter } from './api.js';
 import { toast } from './ui.js';
 import { $, $$, clamp } from './utils.js';
 
+/**
+ * وجهة ما بعد الدخول من الرابط، على هذا الموقع وحده.
+ *
+ * كانت تُستعمل كما هي: `login.html?redirect=https://موقع-آخر` يرسل الكافل
+ * بعد دخولٍ حقيقي إلى صفحة تصيّد تشبه الموقع. المقبول مسار نسبي على الأصل
+ * نفسه، وما سواه يُتجاهل.
+ */
+export function safeRedirect(value) {
+  // `/\evil.com` يقرؤه بعض المتصفحات `//evil.com`، فالشرطة المائلة العكسية تُرفض كلها
+  if (!value || value.startsWith('//') || value.includes('\\')) return null;
+  try {
+    const url = new URL(value, window.location.origin);
+    if (url.origin !== window.location.origin) return null;
+    return url.pathname.replace(/^\//, '') + url.search + url.hash;
+  } catch {
+    return null;
+  }
+}
+
 /* =========================================================================
    قواعد التحقق
    ========================================================================= */
@@ -311,7 +330,7 @@ async function submit(form, button, original) {
 
     // ?redirect= يعيد الكافل إلى الصفحة التي طُرد منها، لا إلى اللوحة دائماً
     const params = new URLSearchParams(window.location.search);
-    window.location.href = params.get('redirect') || form.dataset.redirect || 'dashboard.html';
+    window.location.href = safeRedirect(params.get('redirect')) || form.dataset.redirect || 'dashboard.html';
   } catch (error) {
     restore();
 

@@ -14,58 +14,99 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 /**
- * إنشاء كفالة.
+ * إنشاء كفالة (حجزٌ بانتظار أول دفعة).
  *
- * ثلاث قواعد تعيش هنا لا في المتحكّم، لأن الكفالة تُنشأ من ثلاثة مسارات
- * (الموقع العام، ولوحة الكافل، ولوحة الإدارة) ولا يجوز أن تختلف بينها:
+ * القواعد تعيش هنا لا في المتحكّم، لأن الكفالة تُنشأ من ثلاثة مسارات
+ * (صفحة الكفالة على الموقع، ولوحة الكافل، ولوحة الإدارة) ولا يجوز أن تختلف:
  *
- *  1. المبلغ يُنسخ من البرنامج لحظة الإنشاء — snapshot pricing.
- *  2. يوم الفوترة مقيَّد بـ 1..28، فلا يختفي القسط في فبراير.
- *  3. لا كفالة على ملف لا يقبلها (مسوّدة، أو بانتظار تحقق، أو متخرّج).
+ *  1. المبلغ لا يتجاوز ما تبقّى من حاجة الطفل، والمتبقي يُحسب من مبالغ
+ *     الكفالات القائمة لا من نسبة التمويل المقرَّبة.
+ *  2. يوم الفوترة 1..28 فلا يختفي القسط في فبراير، والدورة 1 أو 3 أو 12 شهراً.
+ *  3. لا كفالة على ملف لا يقبلها، ويُعاد الفحص بعد القفل.
+ *  4. الحجز يُمسك حصة الطفل، فلا يُكرَّر للطفل نفسه، ولا تتجاوز حجوزات
+ *     الكافل غير المدفوعة حدّاً صغيراً. بلا هذا كان حسابٌ واحد يحجز كل
+ *     الأطفال فيظهرون «مكتملي التمويل» ويختفون من الموقع أياماً.
  */
 class CreateSponsorship
 {
+    /** أقصى حجوزات غير مدفوعة لكافل واحد في وقت واحد */
+    public const MAX_OPEN_HOLDS = 3;
+
+    public const INTERVALS = [1, 3, 12];
+
     public function handle(
         Sponsor $sponsor,
         Orphan $orphan,
         ?float $monthlyAmount = null,
         bool $isZakat = false,
         ?int $billingDay = null,
+        int $intervalMonths = 1,
+        ?string $paymentMethod = null,
     ): Sponsorship {
-        if (! $orphan->status->acceptsSponsorship()) {
-            throw ValidationException::withMessages([
-                'orphan_id' => 'هذا الملف لا يقبل كفالة جديدة حالياً.',
-            ]);
+        if (! in_array($intervalMonths, self::INTERVALS, true)) {
+            throw ValidationException::withMessages(['interval_months' => 'دورة الدفع شهرية أو كل 3 أشهر أو سنوية.']);
         }
 
-        return DB::transaction(function () use ($sponsor, $orphan, $monthlyAmount, $isZakat, $billingDay): Sponsorship {
+        return DB::transaction(function () use ($sponsor, $orphan, $monthlyAmount, $isZakat, $billingDay, $intervalMonths, $paymentMethod): Sponsorship {
             /**
-             * قفل الصف يمنع سباقاً واقعياً: كافلان يفتحان صفحة الطفل نفسها
-             * ويضغطان «اكفل» في اللحظة نفسها. بلا القفل يمرّ الاثنان من فحص
-             * التمويل ويتجاوز المجموع حاجة الطفل.
+             * قفل صف الطفل يمنع سباقاً واقعياً: كافلان يضغطان «اكفل» في اللحظة
+             * نفسها. بلا القفل يمرّ الاثنان من فحص التمويل ويتجاوز المجموع الحاجة.
              */
             $orphan = Orphan::query()->lockForUpdate()->findOrFail($orphan->id);
 
-            $program = Program::findOrFail($orphan->program_id);
-            $amount = $monthlyAmount ?? (float) $program->monthly_price;
+            // الحالة بعد القفل: قد يُخفى الملف أو يتخرّج بين فتح الصفحة والضغط
+            if (! $orphan->status->acceptsSponsorship()) {
+                throw ValidationException::withMessages([
+                    'orphan_reference' => 'هذا الملف لا يقبل كفالة جديدة حالياً.',
+                ]);
+            }
 
-            $remaining = (float) $orphan->monthly_need * (100 - $orphan->funded_percent) / 100;
+            $mine = $sponsor->sponsorships()->where('orphan_id', $orphan->id)->live()->first();
+            if ($mine !== null) {
+                throw ValidationException::withMessages([
+                    'orphan_reference' => $mine->status === SponsorshipStatus::Pending
+                        ? 'لديك حجز قائم لهذا الطفل بانتظار الدفع. أكمل دفعته من لوحتك.'
+                        : 'أنت تكفل هذا الطفل بالفعل.',
+                ]);
+            }
+
+            $holds = $sponsor->sponsorships()->where('status', SponsorshipStatus::Pending)->count();
+            if ($holds >= self::MAX_OPEN_HOLDS) {
+                throw ValidationException::withMessages([
+                    'orphan_reference' => 'لديك '.self::MAX_OPEN_HOLDS.' حجوزات بانتظار الدفع. أكمل دفعها أو ألغِها قبل حجز طفل آخر.',
+                ]);
+            }
+
+            $program = Program::findOrFail($orphan->program_id);
+
+            $covered = (float) $orphan->sponsorships()
+                ->whereIn('status', array_filter(SponsorshipStatus::cases(), fn (SponsorshipStatus $s) => $s->countsTowardFunding()))
+                ->sum('monthly_amount');
+            $remaining = round((float) $orphan->monthly_need - $covered, 2);
 
             if ($remaining <= 0) {
                 throw ValidationException::withMessages([
-                    'orphan_id' => 'اكتمل تمويل هذا الطفل. اختر حالة أخرى تنتظر كافلاً.',
+                    'orphan_reference' => 'اكتمل تمويل هذا الطفل. اختر حالة أخرى تنتظر كافلاً.',
                 ]);
             }
 
-            $amount = min($amount, round($remaining, 2));
+            $amount = round($monthlyAmount ?? min((float) $program->monthly_price, $remaining), 2);
 
-            if ($amount < 5) {
+            // مبلغٌ أكبر من المتبقي يُرفض بوضوح: كان يُخفَّض بصمت فيُخصم غير ما رآه الكافل
+            if ($amount > $remaining) {
                 throw ValidationException::withMessages([
-                    'monthly_amount' => 'أقل مبلغ للكفالة ٥ دولارات شهرياً.',
+                    'monthly_amount' => 'المتبقي من حاجة هذا الطفل '.number_format($remaining, 2).' '.$program->currency.' شهرياً. اختر مبلغاً لا يتجاوزه.',
                 ]);
             }
 
-            $day = max(1, min(config('kafala.billing.max_billing_day'), $billingDay ?? (int) now()->day));
+            // الحدّ الأدنى 5، إلا أن يكون هو كل ما تبقّى (فلا يبقى كسرٌ لا يكفله أحد)
+            if ($amount < 5 && $amount < $remaining) {
+                throw ValidationException::withMessages([
+                    'monthly_amount' => 'أقل مبلغ للكفالة 5 '.$program->currency.' شهرياً.',
+                ]);
+            }
+
+            $day = max(1, min((int) config('kafala.billing.max_billing_day'), $billingDay ?? (int) now()->day));
 
             $sponsorship = new Sponsorship([
                 'sponsor_id' => $sponsor->id,
@@ -77,13 +118,15 @@ class CreateSponsorship
                 'is_zakat' => $isZakat,
                 'status' => SponsorshipStatus::Pending,
                 'billing_day' => $day,
+                'interval_months' => $intervalMonths,
+                'payment_method' => $paymentMethod,
                 'started_at' => now()->toDateString(),
-                'next_due_at' => Carbon::now()->setDay($day)->isPast()
-                    ? Carbon::now()->addMonthNoOverflow()->setDay($day)->toDateString()
-                    : Carbon::now()->setDay($day)->toDateString(),
+                // أول قسط اليوم: الدفعة الأولى تُحسب منه وتقدّمه دورةً كاملة
+                'next_due_at' => now()->toDateString(),
             ]);
 
             $sponsorship->reference_code = $this->nextReference();
+            // SponsorshipObserver يعيد حساب تمويل الطفل بعد الحفظ
             $sponsorship->save();
 
             return $sponsorship;

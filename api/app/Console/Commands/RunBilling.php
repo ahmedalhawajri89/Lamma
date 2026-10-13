@@ -38,7 +38,10 @@ class RunBilling extends Command
         $dry = (bool) $this->option('dry');
         $limit = (int) $this->option('limit');
 
-        $this->expireAbandonedHolds();
+        // التجربة لا تلغي شيئاً: كان «--dry» يلغي حجوزاً حقيقية قبل أن يعرض ما سيحدث
+        if (! $dry) {
+            $this->expireAbandonedHolds();
+        }
 
         $due = Sponsorship::query()
             ->dueBy()
@@ -66,8 +69,9 @@ class RunBilling extends Command
              * «بطاقة» ناجحة لكل كفالة مستحقة، فإذا سجّل المحاسب التحويل الحقيقي
              * حُسب الشهر مرتين. يبقى قسطه مستحقاً يتابعه المحاسب يدوياً.
              */
-            $lastMethod = $sponsorship->payments()->where('status', PaymentStatus::Succeeded)->latest('paid_at')->value('method');
-            if (in_array($lastMethod, [PaymentMethod::BankTransfer, PaymentMethod::Cash], true)) {
+            $lastMethod = $sponsorship->payment_method
+                ?? $sponsorship->payments()->where('status', PaymentStatus::Succeeded)->latest('paid_at')->value('method')?->value;
+            if (in_array($lastMethod, [PaymentMethod::BankTransfer->value, PaymentMethod::Cash->value], true)) {
                 $manual++;
 
                 continue;
@@ -120,10 +124,10 @@ class RunBilling extends Command
                     'reference_code' => app(RecordPayment::class)->nextReference(),
                     'sponsorship_id' => $sponsorship->id,
                     'sponsor_id' => $sponsorship->sponsor_id,
-                    'amount' => $sponsorship->monthly_amount,
+                    'amount' => $sponsorship->cycleAmount(),
                     'currency' => $sponsorship->currency,
                     'fx_rate' => 1,
-                    'amount_base' => $sponsorship->monthly_amount,
+                    'amount_base' => $sponsorship->cycleAmount(),
                     'method' => PaymentMethod::Card,
                     'gateway' => config('kafala.gateway', 'manual'),
                     'status' => PaymentStatus::Failed,
@@ -152,7 +156,8 @@ class RunBilling extends Command
         $abandoned = Sponsorship::query()
             ->where('status', SponsorshipStatus::Pending)
             ->where('created_at', '<', $deadline)
-            ->whereDoesntHave('payments')
+            // محاولة دفع فاشلة ليست دفعاً: كانت تُبقي الحجز إلى الأبد
+            ->whereDoesntHave('payments', fn ($q) => $q->where('status', PaymentStatus::Succeeded))
             ->get();
 
         foreach ($abandoned as $sponsorship) {

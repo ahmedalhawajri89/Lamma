@@ -20,7 +20,7 @@ class ReportController extends Controller
 
         $reports = Report::query()
             ->published()
-            ->whereIn('orphan_id', $sponsor->sponsorships()->live()->select('orphan_id'))
+            ->whereIn('orphan_id', $sponsor->sponsorships()->funded()->select('orphan_id'))
             ->with(['orphan:id,reference_code,first_name,photo_path', 'media'])
             ->withCount(['views' => fn ($q) => $q->where('sponsor_id', $sponsor->id)])
             ->latest('published_at')

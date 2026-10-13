@@ -70,7 +70,8 @@ class RecordPayment
         return DB::transaction(function () use (
             $sponsorship, $idempotencyKey, $amount, $method, $cardBrand, $cardLast4, $fxRate, $gatewayReference, $paidAt, $recordedBy
         ): Payment {
-            $value = $amount ?? (float) $sponsorship->monthly_amount;
+            // الافتراضي دورة كاملة (شهر، أو ثلاثة، أو سنة)
+            $value = $amount ?? $sponsorship->cycleAmount();
 
             $payment = Payment::create([
                 'reference_code' => $this->nextReference(),
@@ -103,7 +104,12 @@ class RecordPayment
                 $sponsorship->status = SponsorshipStatus::Active;
             }
 
-            $sponsorship->advanceDueDate();
+            /*
+             * الدفعة تقدّم الموعد بما تغطيه من أشهر: دفعة يدوية بمبلغ ستة أقساط
+             * تغطي ستة أشهر، لا شهراً واحداً فتصير الكفالة متأخرة بعده.
+             */
+            $months = max(1, (int) floor(($value + 0.005) / max(0.01, (float) $sponsorship->monthly_amount)));
+            $sponsorship->advanceDueDate($months);
             $sponsorship->save();
 
             return $payment;

@@ -50,7 +50,7 @@ class Sponsorship extends Model
     protected $fillable = [
         'reference_code', 'sponsor_id', 'orphan_id', 'program_id',
         'monthly_amount', 'currency', 'share_percent', 'is_zakat',
-        'status', 'billing_day', 'started_at', 'next_due_at',
+        'status', 'billing_day', 'interval_months', 'payment_method', 'started_at', 'next_due_at',
 
         // تُسندها CancelSponsorship و SponsorshipController لا طلب المستخدم
         'paused_at', 'ended_at', 'cancellation_reason',
@@ -68,6 +68,7 @@ class Sponsorship extends Model
             'monthly_amount' => 'decimal:2',
             'share_percent' => 'integer',
             'billing_day' => 'integer',
+            'interval_months' => 'integer',
             'is_zakat' => 'boolean',
             'status' => SponsorshipStatus::class,
             'started_at' => 'date',
@@ -120,6 +121,16 @@ class Sponsorship extends Model
         ]);
     }
 
+    /**
+     * كفالة دُفع لها: نشطة أو موقوفة مؤقتاً. منها يُفتح للكافل ما يخصّ الطفل
+     * (التقارير والرسائل). الحجز المعلّق بانتظار أول دفعة ليس منها: كان يفتح
+     * تقارير الطفل الصحية والنفسية لمن سجّل وحجز ولم يدفع شيئاً.
+     */
+    public function scopeFunded(Builder $query): Builder
+    {
+        return $query->whereIn('status', [SponsorshipStatus::Active, SponsorshipStatus::Paused]);
+    }
+
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('status', SponsorshipStatus::Active);
@@ -140,12 +151,22 @@ class Sponsorship extends Model
      * billing_day مقيَّد بـ 1..28 في التحقق، فلا حاجة لمعالجة فبراير هنا —
      * وهذا بالضبط سبب ذلك القيد.
      */
-    public function advanceDueDate(): void
+    /**
+     * يقدّم موعد القسط بعدد من الأشهر، على يوم الفوترة. الافتراضي دورة الكفالة
+     * نفسها (شهر، أو 3، أو 12)، فدفعة سنوية لا تجعل الكفالة متأخرة بعد شهر.
+     */
+    public function advanceDueDate(?int $months = null): void
     {
-        $this->next_due_at = ($this->next_due_at ?? now())
-            ->copy()
-            ->addMonthNoOverflow()
-            ->setDay($this->billing_day);
+        $months ??= max(1, (int) ($this->interval_months ?? 1));
+        $from = ($this->next_due_at ?? now())->copy()->startOfMonth()->addMonthsNoOverflow($months);
+
+        $this->next_due_at = $from->setDay(min($this->billing_day, $from->daysInMonth));
+    }
+
+    /** ما يُخصم في الدورة الواحدة: القسط الشهري × أشهر الدورة */
+    public function cycleAmount(): float
+    {
+        return round((float) $this->monthly_amount * max(1, (int) ($this->interval_months ?? 1)), 2);
     }
 
     public function getActivitylogOptions(): LogOptions

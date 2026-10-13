@@ -22,8 +22,8 @@ class SponsorshipController extends Controller
 
         $items = $sponsor->sponsorships()
             ->with(['orphan:id,reference_code,first_name,photo_path,date_of_birth,funded_percent', 'program'])
-            ->withCount('payments')
-            ->withSum('payments', 'amount_base')
+            ->withCount(['payments' => fn ($q) => $q->settled()])
+            ->withSum(['payments' => fn ($q) => $q->settled()], 'amount_base')
             ->latest('started_at')
             ->paginate($this->perPage($request, 15));
 
@@ -69,7 +69,12 @@ class SponsorshipController extends Controller
     {
         $this->authorize('cancel', $sponsorship);
 
-        $action->handle($sponsorship, $request->string('reason')->toString() ?: null);
+        // العمود 255 حرفاً: سببٌ أطول كان يُسقط الطلب فيظهر «الخدمة غير متاحة»
+        $validated = $request->validate(['reason' => ['nullable', 'string', 'max:255']], [
+            'reason.max' => 'اختصر السبب إلى 255 حرفاً.',
+        ]);
+
+        $action->handle($sponsorship, $validated['reason'] ?? null);
 
         return response()->json([
             'message' => 'أُلغيت الكفالة. شكراً لما قدّمته، وسنؤمّن كافلاً بديلاً للطفل.',
