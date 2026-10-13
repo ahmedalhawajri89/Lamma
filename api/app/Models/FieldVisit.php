@@ -69,4 +69,20 @@ class FieldVisit extends Model
                 ->whereColumn('later.orphan_id', 'field_visits.orphan_id')
                 ->whereColumn('later.visited_at', '>', 'field_visits.visited_at'));
     }
+
+    /**
+     * هل تلتها زيارة أحدث للطفل نفسه؟ منها تُحسب «متأخرة» في كل صف بالقاعدة
+     * نفسها التي يُعدّ بها العدّاد. كل استعلام يمرّ بـ FieldVisitResource
+     * يحتاجها: كان ملف الطفل يحمّل زياراته بدونها فيسقط بخطأ ٥٠٠.
+     */
+    public function scopeWithHasLater(Builder $query): Builder
+    {
+        return $query
+            ->select('field_visits.*')
+            ->addSelect(['has_later' => static::from('field_visits as later')
+                ->selectRaw('1')
+                ->whereColumn('later.orphan_id', 'field_visits.orphan_id')
+                ->whereColumn('later.visited_at', '>', 'field_visits.visited_at')
+                ->limit(1)]);
+    }
 }

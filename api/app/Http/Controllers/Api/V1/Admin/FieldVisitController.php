@@ -30,17 +30,7 @@ class FieldVisitController extends Controller
         );
 
         $visits = $scoped()
-            ->select('field_visits.*')
-            /*
-             * هل تلتها زيارة أحدث للطفل نفسه؟ منها تُحسب «متأخرة» في كل صف بالقاعدة
-             * نفسها التي يُعدّ بها العدّاد. كانت الشارة الحمراء تظهر على زيارات
-             * قديمة تلتها زيارة أحدث، والعدّاد لا يحسبها.
-             */
-            ->addSelect(['has_later' => FieldVisit::from('field_visits as later')
-                ->selectRaw('1')
-                ->whereColumn('later.orphan_id', 'field_visits.orphan_id')
-                ->whereColumn('later.visited_at', '>', 'field_visits.visited_at')
-                ->limit(1)])
+            ->withHasLater()
             ->with(['orphan:id,reference_code,first_name', 'supervisor:id,name'])
             ->when($request->filled('orphan_id'), fn ($q) => $q->where('orphan_id', $request->integer('orphan_id')))
             ->when($request->filled('supervisor_id'), fn ($q) => $q->where('supervisor_id', $request->integer('supervisor_id')))

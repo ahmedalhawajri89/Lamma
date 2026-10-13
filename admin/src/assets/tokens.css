@@ -164,6 +164,35 @@
     box-shadow: 0 0 0 3px rgb(15 92 92 / 0.12);
   }
 
+  /* مفتاح فلتر يُشغَّل ويُطفأ: حالته في aria-pressed، فالشكل يتبع المعنى */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.375rem 0.75rem;
+    border: 1px solid var(--color-sand-200);
+    border-radius: 99px;
+    background: var(--color-sand-0);
+    color: var(--color-sand-700);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+  }
+  .chip:hover { border-color: var(--color-clay-300); color: var(--color-clay-700); }
+  .chip[aria-pressed="true"] {
+    background: var(--color-clay-50);
+    border-color: var(--color-clay-400);
+    color: var(--color-clay-700);
+  }
+  .chip__count {
+    font-variant-numeric: tabular-nums;
+    font-size: 0.75rem;
+    color: var(--color-sand-500);
+  }
+  .chip[aria-pressed="true"] .chip__count { color: var(--color-clay-600); }
+
   .badge {
     display: inline-flex;
     align-items: center;

@@ -111,6 +111,7 @@ onBeforeUnmount(() => query?.removeEventListener?.('change', onChange))
               <td :colspan="columns.length" class="px-4 py-14 text-center">
                 <BaseIcon name="search" :size="28" class="mx-auto text-sand-300 mb-2" />
                 <p class="text-sand-500">{{ emptyText }}</p>
+                <slot name="empty-action" />
               </td>
             </tr>
 
@@ -146,7 +147,10 @@ onBeforeUnmount(() => query?.removeEventListener?.('change', onChange))
           </li>
         </template>
 
-        <li v-else-if="!rows.length" class="px-4 py-12 text-center text-sand-500">{{ emptyText }}</li>
+        <li v-else-if="!rows.length" class="px-4 py-12 text-center text-sand-500">
+          {{ emptyText }}
+          <slot name="empty-action" />
+        </li>
 
         <li
           v-else v-for="row in rows" :key="`m-${row[rowKey]}`"
@@ -164,7 +168,7 @@ onBeforeUnmount(() => query?.removeEventListener?.('change', onChange))
           </div>
 
           <dl class="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-sm">
-            <template v-for="col in columns.slice(1)" :key="col.key">
+            <template v-for="col in columns.slice(1).filter((c) => c.mobile !== false)" :key="col.key">
               <dt class="text-xs text-sand-500 pt-0.5">{{ col.label }}</dt>
               <dd class="min-w-0 text-sand-800">
                 <slot :name="col.key" :row="row" :value="row[col.key]">

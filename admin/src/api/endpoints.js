@@ -52,6 +52,8 @@ export const admin = {
 
   orphans: {
     list: (params) => client.get(`${v1}/admin/orphans`, { params }),
+    /** القائمة بفلاترها CSV؛ يُحفظ بـ saveBlob */
+    export: (params) => client.get(`${v1}/admin/orphans/export`, { params, responseType: 'blob' }),
     show: (id) => client.get(`${v1}/admin/orphans/${id}`),
     create: (payload, photo = null) => client.post(
       `${v1}/admin/orphans`,

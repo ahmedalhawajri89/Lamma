@@ -161,6 +161,9 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
 
             /* --- الأيتام --- */
             Route::get('orphans', [Admin\OrphanController::class, 'index'])->name('orphans.index');
+            Route::get('orphans/export', [Admin\OrphanController::class, 'export'])
+                ->middleware('throttle:10,1')
+                ->name('orphans.export');
             Route::post('orphans', [Admin\OrphanController::class, 'store'])->name('orphans.store');
             Route::get('orphans/{orphan}', [Admin\OrphanController::class, 'show'])->name('orphans.show');
             Route::match(['put', 'patch'], 'orphans/{orphan}', [Admin\OrphanController::class, 'update'])->name('orphans.update');

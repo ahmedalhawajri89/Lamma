@@ -181,14 +181,15 @@ test.describe('نموذج اليتيم', () => {
     await page.waitForURL(/\/orphans\/\d+/, { timeout: 25_000 })
     await expect(page.locator('h1')).toContainText(name)
 
-    const documents = page.locator('.card', { hasText: 'مستندات التحقق' })
-
     /**
-     * «توثيق الملف» معطّل ما دامت المستندات ناقصة.
-     *
-     * الخادم يرفضه بخطأ، وزرٌّ يُعرض ليُرفض فخٌّ لا واجهة.
+     * لا زرّ توثيق ما دامت المستندات ناقصة: مسار الملف يقول ما ينقص ويأخذ
+     * إليه. الخادم يرفض التوثيق بخطأ، وزرٌّ يُعرض ليُرفض فخٌّ لا واجهة.
      */
-    await expect(page.getByRole('button', { name: 'توثيق الملف' })).toBeDisabled()
+    await expect(page.getByText('تنتظر الرفع أو التحقق قبل التوثيق')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'وثّق الملف' })).toHaveCount(0)
+    await page.getByRole('button', { name: 'إلى المستندات' }).click()
+
+    const documents = page.locator('.card', { hasText: 'مستندات التحقق' })
 
     // ── رفع ──
     await documents.getByRole('button', { name: 'رفع' }).click()

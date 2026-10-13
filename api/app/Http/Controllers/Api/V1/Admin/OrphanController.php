@@ -6,17 +6,21 @@ namespace App\Http\Controllers\Api\V1\Admin;
 
 use App\Actions\Orphans\VerifyOrphan;
 use App\Enums\OrphanStatus;
+use App\Enums\SponsorshipStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreOrphanRequest;
 use App\Http\Requests\Admin\UpdateOrphanRequest;
 use App\Http\Resources\OrphanResource;
 use App\Models\Family;
 use App\Models\Orphan;
+use App\Models\Sponsorship;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class OrphanController extends Controller
 {
@@ -28,35 +32,16 @@ class OrphanController extends Controller
     {
         $this->authorize('viewAny', Orphan::class);
 
-        $query = Orphan::query()
+        $query = $this->filtered($request)
             ->with([
                 'program',
                 'family', 'family.country', 'family.city', 'family.guardian',
             ])
             ->withCount(['sponsorships', 'reports', 'documents'])
-            ->search($request->string('q')->toString());
-
-        /**
-         * تقييد المشرف الميداني ببلده — على مستوى الاستعلام لا بعد جلبه.
-         * الترشيح في PHP بعد الجلب يسرّب العدد الكلي في التصفيح، وهو تسريبٌ
-         * حقيقي وإن بدا صغيراً.
-         */
-        if (($countryId = $request->user()->assignedCountryId()) !== null && ! $request->user()->isAdmin()) {
-            $query->whereHas('family', fn ($q) => $q->where('country_id', $countryId));
-        }
-
-        $query
-            ->when($request->filled('status'), fn ($q) => $q->where('status', $request->string('status')))
-            ->when($request->filled('program_id'), fn ($q) => $q->where('program_id', $request->integer('program_id')))
-            // أيتام أسرة بعينها (من شاشة الأسر)
-            ->when($request->filled('family_id'), fn ($q) => $q->where('family_id', $request->integer('family_id')))
-            ->when($request->filled('country_id'), fn ($q) => $q->whereHas(
-                'family',
-                fn ($f) => $f->where('country_id', $request->integer('country_id')),
-            ))
-            ->when($request->boolean('urgent'), fn ($q) => $q->where('is_urgent', true))
-            ->when($request->boolean('unfunded'), fn ($q) => $q->where('funded_percent', '<', 100))
-            ->when($request->boolean('unverified'), fn ($q) => $q->whereNull('verified_at'));
+            ->withSum(['sponsorships as funded_amount' => fn ($q) => $q->whereIn(
+                'status', array_filter(SponsorshipStatus::cases(), fn ($c) => $c->countsTowardFunding()),
+            )], 'monthly_amount')
+            ->when($request->filled('status'), fn ($q) => $q->where('status', $request->string('status')));
 
         $sort = in_array($request->string('sort')->toString(), self::SORTS, true)
             ? $request->string('sort')->toString()
@@ -75,8 +60,116 @@ class OrphanController extends Controller
                 'per_page' => $orphans->perPage(),
                 'current_page' => $orphans->currentPage(),
                 'last_page' => $orphans->lastPage(),
+                ...$this->facets($request),
             ],
         ]);
+    }
+
+    /**
+     * ما يجيب عنه رأس الشاشة قبل الجدول.
+     *
+     * عدد كل حالة تحت الفلاتر الأخرى نفسها (فتبويب «بانتظار التوثيق» يقول كم
+     * ينتظر قبل أن يُضغط)، وكم ينقص الأيتامَ النشطين من حاجتهم الشهرية: الرقم
+     * الذي يقرّر عليه فريق التسويق أين يوجّه الكفلاء.
+     */
+    private function facets(Request $request): array
+    {
+        $base = $this->filtered($request);
+
+        $counts = (clone $base)->toBase()
+            ->select('status', DB::raw('COUNT(*) as aggregate'))
+            ->groupBy('status')
+            ->pluck('aggregate', 'status')
+            ->map(fn ($n) => (int) $n);
+
+        $active = (clone $base)->where('status', OrphanStatus::Active);
+        $need = (float) (clone $active)->sum('monthly_need');
+        $covered = (float) Sponsorship::query()
+            ->whereIn('orphan_id', (clone $active)->select('orphans.id'))
+            ->whereIn('status', array_filter(SponsorshipStatus::cases(), fn ($c) => $c->countsTowardFunding()))
+            ->sum('monthly_amount');
+
+        return [
+            'status_counts' => $counts,
+            'all_count' => $counts->sum(),
+            'urgent_count' => (clone $base)->where('is_urgent', true)->whereIn('status', [OrphanStatus::Active, OrphanStatus::PendingVerification])->count(),
+            'funding_gap' => round(max(0, $need - $covered), 2),
+        ];
+    }
+
+    /**
+     * الفلاتر المشتركة بين الجدول وعدّاداته والتصدير، عدا الحالة.
+     * تقييد المشرف ببلده هنا: على مستوى الاستعلام لا بعد الجلب، فلا يتسرّب
+     * عددٌ ولا صفٌّ من بلد آخر في أيٍّ منها.
+     */
+    private function filtered(Request $request): Builder
+    {
+        $query = Orphan::query()->search($request->string('q')->toString());
+
+        if (($countryId = $request->user()->assignedCountryId()) !== null && ! $request->user()->isAdmin()) {
+            $query->whereHas('family', fn ($q) => $q->where('country_id', $countryId));
+        }
+
+        return $query
+            ->when($request->filled('program_id'), fn ($q) => $q->where('program_id', $request->integer('program_id')))
+            // أيتام أسرة بعينها (من شاشة الأسر)
+            ->when($request->filled('family_id'), fn ($q) => $q->where('family_id', $request->integer('family_id')))
+            ->when($request->filled('country_id'), fn ($q) => $q->whereHas(
+                'family',
+                fn ($f) => $f->where('country_id', $request->integer('country_id')),
+            ))
+            ->when($request->boolean('urgent'), fn ($q) => $q->where('is_urgent', true))
+            ->when($request->boolean('unfunded'), fn ($q) => $q->where('funded_percent', '<', 100))
+            ->when($request->boolean('unverified'), fn ($q) => $q->whereNull('verified_at'));
+    }
+
+    /**
+     * تصدير القائمة كما تُرى (بفلاترها) إلى CSV يفتحه Excel بالعربية.
+     *
+     * بلا بيانات الأسرة الحساسة (الهوية، الهاتف، الدخل): الملف يخرج من
+     * المنصة، فيحمل ما يلزم للمتابعة لا أكثر. والتصدير يُسجَّل في سجل النشاط.
+     */
+    public function export(Request $request): StreamedResponse
+    {
+        $this->authorize('viewAny', Orphan::class);
+
+        $query = $this->filtered($request)
+            ->with(['program', 'family.country'])
+            ->when($request->filled('status'), fn ($q) => $q->where('status', $request->string('status')))
+            ->orderBy('reference_code');
+
+        activity('orphans')
+            ->causedBy($request->user())
+            ->withProperties(['filters' => $request->only(['q', 'status', 'program_id', 'country_id', 'urgent', 'unfunded', 'unverified']), 'rows' => (clone $query)->count()])
+            ->log('صدّر قائمة الأيتام');
+
+        return response()->streamDownload(function () use ($query): void {
+            $out = fopen('php://output', 'w');
+            // BOM: بدونه يفتح Excel العربية رموزاً
+            fwrite($out, "\xEF\xBB\xBF");
+            fputcsv($out, ['المعرّف', 'الاسم', 'العمر', 'الجنس', 'الدولة', 'البرنامج', 'الحالة', 'عاجل', 'موثّق', 'منشور', 'الحاجة الشهرية', 'نسبة التمويل']);
+
+            $query->chunk(200, function ($rows) use ($out): void {
+                foreach ($rows as $o) {
+                    fputcsv($out, [
+                        $o->reference_code,
+                        $o->full_name,
+                        $o->age,
+                        $o->gender?->label(),
+                        $o->family?->country?->name_ar,
+                        $o->program?->name_ar,
+                        $o->status->label(),
+                        $o->is_urgent ? 'نعم' : 'لا',
+                        $o->verified_at ? 'نعم' : 'لا',
+                        $o->published_at ? 'نعم' : 'لا',
+                        number_format((float) $o->monthly_need, 2, '.', ''),
+                        $o->funded_percent.'%',
+                    ]);
+                }
+            });
+
+            fclose($out);
+        }, 'orphans-'.now()->format('Y-m-d').'.csv', ['Content-Type' => 'text/csv; charset=UTF-8']);
     }
 
     public function show(Orphan $orphan): JsonResponse
@@ -90,7 +183,7 @@ class OrphanController extends Controller
                 'documents',
                 'sponsorships.sponsor.user:id,name,email',
                 'reports' => fn ($q) => $q->latest('period_year')->latest('period_quarter'),
-                'fieldVisits' => fn ($q) => $q->latest('visited_at')->limit(10),
+                'fieldVisits' => fn ($q) => $q->withHasLater()->latest('visited_at')->limit(10),
                 'fieldVisits.supervisor:id,name',
                 'familyMembers',
             ])),

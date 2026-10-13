@@ -87,15 +87,18 @@ test('قائمة الأيتام تُفلتر وتفتح ملفاً كاملاً'
   await expect(firstRow).toBeVisible({ timeout: 20_000 })
   const code = (await firstRow.innerText()).match(/KFL-\d+/)[0]
 
-  await page.getByPlaceholder('ابحث بالاسم أو المعرّف…').fill(code)
+  await page.getByPlaceholder(/ابحث بالاسم أو المعرّف/).fill(code)
   const match = page.locator('table tbody tr').filter({ hasText: code })
   await expect(match).toHaveCount(1, { timeout: 10_000 })
 
   await match.locator('td').nth(1).click()
   await page.waitForURL(/\/orphans\/\d+/)
 
-  await expect(page.getByRole('heading', { name: 'مستندات التحقق' })).toBeVisible()
+  // الملف أقسامٌ في تبويبات: الأسرة في «الملف»، والباقي في تبويبه
   await expect(page.getByRole('heading', { name: 'الأسرة', exact: true })).toBeVisible()
+  await page.getByRole('button', { name: /^المستندات/ }).click()
+  await expect(page.getByRole('heading', { name: 'مستندات التحقق' })).toBeVisible()
+  await page.getByRole('button', { name: /^المتابعة/ }).click()
   await expect(page.getByRole('heading', { name: 'التقارير الربعية' })).toBeVisible()
 })
 
