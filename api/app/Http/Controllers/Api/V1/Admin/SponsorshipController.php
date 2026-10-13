@@ -20,38 +20,105 @@ use Illuminate\Validation\Rule;
 
 class SponsorshipController extends Controller
 {
+    private const SORTS = ['id', 'next_due_at', 'monthly_amount', 'started_at'];
+
     public function index(Request $request): JsonResponse
     {
         $this->authorize('viewAny', Sponsorship::class);
 
         $user = $request->user();
+        $money = $user->can('payments.view');
+        $sort = in_array($request->string('sort')->toString(), self::SORTS, true) ? $request->string('sort')->toString() : 'id';
+        // من لا يرى المال لا يرتّب به: الترتيب نفسه يكشف المبالغ
+        if (! $money && in_array($sort, ['next_due_at', 'monthly_amount'], true)) {
+            $sort = 'id';
+        }
+        $dir = $request->string('dir')->toString() === 'asc' ? 'asc' : 'desc';
 
-        $items = Sponsorship::query()
+        $items = $this->filtered($request)
             ->with([
-                'orphan:id,reference_code,first_name,photo_path,date_of_birth,funded_percent',
+                'orphan:id,reference_code,first_name,last_name,photo_path,date_of_birth,funded_percent',
                 'program',
             ])
-            // الكافل وبياناته لمن يملك رؤية الكفلاء وحده: المشرف الميداني كان يتلقّى
-            // مدينة الكافل وعملته وتفضيلات تواصله وإن غاب اسمه
+            // الكافل وبياناته لمن يملك رؤية الكفلاء وحده
             ->when($user->can('sponsors.view'), fn ($q) => $q->with(['sponsor', 'sponsor.user:id,name,email']))
-            // والمشرف يرى كفالات أيتام بلده وحده
+            ->withCount(['payments' => fn ($q) => $q->settled()])
+            // «منتهية»: ملغاة ومكتملة معاً، فكلتاهما سجلٌّ مغلق
+            ->when($request->filled('status'), fn ($q) => $request->string('status')->toString() === 'ended'
+                ? $q->whereIn('status', [SponsorshipStatus::Cancelled, SponsorshipStatus::Completed])
+                : $q->where('status', $request->string('status')))
+            // الحيّة أولاً: كانت الصفحة الأولى كلها ملغاة، وما يحتاج متابعة في آخرها
+            ->orderByRaw("CASE WHEN status IN ('active', 'pending', 'paused') THEN 0 ELSE 1 END")
+            ->when($sort !== 'id', fn ($q) => $q->orderByRaw("{$sort} IS NULL")->orderBy($sort, $dir))
+            ->latest('id')
+            ->paginate($this->perPage($request, 20));
+
+        return response()->json([
+            'data' => SponsorshipResource::collection($items->items()),
+            'meta' => [
+                'total' => $items->total(), 'current_page' => $items->currentPage(), 'last_page' => $items->lastPage(),
+                ...$this->facets($request),
+            ],
+        ]);
+    }
+
+    /**
+     * رأس الشاشة: عدد كل حالة، وما يحتاج متابعة (المتأخرة)، وما يُنتظر
+     * تحصيله هذا الأسبوع. والمال لمن يملك رؤيته وحده.
+     */
+    private function facets(Request $request): array
+    {
+        $base = $this->filtered($request);
+        $tz = config('kafala.display_timezone');
+        $today = now($tz)->toDateString();
+        $week = now($tz)->addDays(7)->toDateString();
+
+        $counts = (clone $base)->toBase()->select('status', DB::raw('COUNT(*) as aggregate'))
+            ->groupBy('status')->pluck('aggregate', 'status')->map(fn ($n) => (int) $n);
+
+        $out = [
+            'status_counts' => [
+                ...$counts->only(['active', 'paused', 'pending'])->all(),
+                'ended' => ($counts['cancelled'] ?? 0) + ($counts['completed'] ?? 0),
+            ],
+            'all_count' => $counts->sum(),
+            'overdue_count' => (clone $base)->whereIn('status', [SponsorshipStatus::Active, SponsorshipStatus::Pending])
+                ->whereDate('next_due_at', '<', $today)->count(),
+        ];
+
+        if ($request->user()->can('payments.view')) {
+            $dueWeek = (clone $base)->active()->whereBetween('next_due_at', [$today, $week])->get(['monthly_amount', 'interval_months']);
+            $out['due_week_count'] = $dueWeek->count();
+            // ما يُخصم فعلاً: القسط الربعي أو السنوي كاملاً لا الشهري
+            $out['due_week_amount'] = round($dueWeek->sum(fn ($s) => (float) $s->monthly_amount * max(1, (int) $s->interval_months)), 2);
+            $out['monthly_commitment'] = round((float) (clone $base)->active()->sum('monthly_amount'), 2);
+        }
+
+        return $out;
+    }
+
+    /** الفلاتر المشتركة بين الجدول وعدّاداته، عدا الحالة */
+    private function filtered(Request $request): \Illuminate\Database\Eloquent\Builder
+    {
+        $user = $request->user();
+        $tz = config('kafala.display_timezone');
+
+        return Sponsorship::query()
+            // المشرف يرى كفالات أيتام بلده وحده
             ->when(
                 $user->assignedCountryId() !== null && ! $user->isAdmin(),
                 fn ($q) => $q->whereHas('orphan.family', fn ($f) => $f->where('country_id', $user->assignedCountryId())),
             )
-            ->withCount('payments')
-            ->when($request->filled('status'), fn ($q) => $q->where('status', $request->string('status')))
             // الحيّة كلها: بانتظار الدفع ونشطة وموقوفة (لقائمة الدفعة اليدوية)
             ->when($request->boolean('live'), fn ($q) => $q->whereIn('status', [SponsorshipStatus::Pending, SponsorshipStatus::Active, SponsorshipStatus::Paused]))
             ->when($request->filled('program_id'), fn ($q) => $q->where('program_id', $request->integer('program_id')))
             ->when($request->boolean('zakat_only'), fn ($q) => $q->where('is_zakat', true))
             ->when($request->boolean('due_soon'), fn ($q) => $q->active()
-                // «اليوم» يوم المنظمة لا يوم UTC: بين منتصف الليل والثالثة فجراً كان يُحسب أمس
-                ->whereBetween('next_due_at', [now(config('kafala.display_timezone'))->toDateString(), now(config('kafala.display_timezone'))->addDays(7)->toDateString()]))
-            // المتأخرة: موعد قسطها مضى وهي ما زالت حيّة. هي ما يحتاج متابعة،
-            // و«تستحق خلال أسبوع» لا تشملها
+                // «اليوم» يوم المنظمة لا يوم UTC
+                ->whereBetween('next_due_at', [now($tz)->toDateString(), now($tz)->addDays(7)->toDateString()]))
+            // المتأخرة: موعد قسطها مضى وهي ما زالت حيّة
             ->when($request->boolean('overdue'), fn ($q) => $q->whereIn('status', [SponsorshipStatus::Active, SponsorshipStatus::Pending])
-                ->whereDate('next_due_at', '<', now(config('kafala.display_timezone'))->toDateString()))
+                ->whereDate('next_due_at', '<', now($tz)->toDateString()))
             ->when($request->filled('q'), function ($q) use ($request, $user): void {
                 $term = addcslashes($request->string('q')->toString(), '%_\\');
                 $q->where(function ($w) use ($term, $user): void {
@@ -62,16 +129,7 @@ class SponsorshipController extends Controller
                             ->orWhereHas('sponsor', fn ($s) => $s->where('sponsor_code', $term));
                     }
                 });
-            })
-            // الحيّة أولاً: كانت الصفحة الأولى كلها ملغاة، وما يحتاج متابعة في آخرها
-            ->orderByRaw("CASE WHEN status IN ('active', 'pending', 'paused') THEN 0 ELSE 1 END")
-            ->latest('id')
-            ->paginate($this->perPage($request, 20));
-
-        return response()->json([
-            'data' => SponsorshipResource::collection($items->items()),
-            'meta' => ['total' => $items->total(), 'current_page' => $items->currentPage(), 'last_page' => $items->lastPage()],
-        ]);
+            });
     }
 
     public function show(Request $request, Sponsorship $sponsorship): JsonResponse
@@ -96,7 +154,7 @@ class SponsorshipController extends Controller
         return response()->json([
             'data' => new SponsorshipResource($sponsorship->load([
                 'program',
-                'payments' => fn ($q) => $q->latest('created_at')->limit(24),
+                'payments' => fn ($q) => $q->orderByRaw('COALESCE(paid_at, created_at) DESC')->limit(24),
             ])),
         ]);
     }

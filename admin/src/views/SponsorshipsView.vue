@@ -1,139 +1,176 @@
 <script setup>
 import { computed, ref } from 'vue'
-import { confirmDialog } from '@/composables/useConfirm'
+import { useRoute, useRouter, RouterLink } from 'vue-router'
 import { admin } from '@/api/endpoints'
 import { useResource } from '@/composables/useResource'
 import { useAuthStore } from '@/stores/auth'
-import { useUiStore } from '@/stores/ui'
-import { money, date, EMPTY } from '@/utils/format'
+import { money, date, num, EMPTY } from '@/utils/format'
 import PageHeader from '@/components/PageHeader.vue'
 import FilterBar from '@/components/FilterBar.vue'
+import StatusTabs from '@/components/StatusTabs.vue'
 import DataTable from '@/components/DataTable.vue'
 import PaginationBar from '@/components/PaginationBar.vue'
-import StatusBadge from '@/components/StatusBadge.vue'
 import BaseIcon from '@/components/BaseIcon.vue'
+import StatusBadge from '@/components/StatusBadge.vue'
 import SponsorshipFormModal from '@/components/SponsorshipFormModal.vue'
+import SponsorshipDrawer from '@/components/SponsorshipDrawer.vue'
 
 const auth = useAuthStore()
-const ui = useUiStore()
-const { items, meta, loading, filters, reset, load, error } = useResource(admin.sponsorships.list, {
-  q: '', status: '', zakat_only: false, due_soon: false, overdue: false,
-})
+const route = useRoute()
+const router = useRouter()
+
+const DEFAULTS = { q: '', status: '', zakat_only: false, due_soon: false, overdue: false, sort: 'id', dir: 'desc' }
+const { items, meta, loading, filters, reset, load, error } = useResource(admin.sponsorships.list, DEFAULTS)
+
+const STATUSES = [
+  { value: 'active', label: 'نشطة' },
+  { value: 'paused', label: 'موقوفة مؤقتاً' },
+  { value: 'pending', label: 'بانتظار أول دفعة' },
+  { value: 'ended', label: 'منتهية' },
+]
+
+const canMoney = computed(() => auth.can('payments.view'))
 
 /**
- * أعمدة المال لمن يملك رؤيته، والكافل لمن يملك رؤية الكفلاء (والخادم لا
- * يرسلها لغيرهما أصلاً). وعمود الإجراءات لمن يدير الكفالات وحده.
+ * لا عمود إجراءات: الإجراءات في الدرج بعد رؤية الكفالة كاملة. والمال
+ * والكافل لمن يملك رؤيتهما (والخادم لا يرسلهما لغيره أصلاً).
  */
 const columns = computed(() => [
-  { key: 'reference_code', label: 'المرجع' },
   { key: 'orphan', label: 'الطفل' },
   auth.can('sponsors.view') && { key: 'sponsor', label: 'الكافل' },
-  auth.can('payments.view') && { key: 'monthly_amount', label: 'المبلغ الشهري', align: 'end' },
-  auth.can('payments.view') && { key: 'next_due_at', label: 'القسط القادم' },
+  canMoney.value && { key: 'monthly_amount', label: 'المبلغ', sortable: true, align: 'end' },
+  canMoney.value && { key: 'next_due_at', label: 'القسط القادم', sortable: true },
   { key: 'status', label: 'الحالة' },
-  auth.can('sponsorships.manage') && { key: 'actions', label: 'إجراءات', align: 'end' },
 ].filter(Boolean))
 
+function onSort(key) {
+  if (filters.sort === key) filters.dir = filters.dir === 'asc' ? 'desc' : 'asc'
+  else { filters.sort = key; filters.dir = key === 'next_due_at' ? 'asc' : 'desc' }
+}
+
+const dirty = computed(() => ['q', 'status', 'zakat_only', 'due_soon', 'overdue'].some((k) => filters[k] !== DEFAULTS[k]))
+
+const subtitle = computed(() => {
+  if (loading.value && !meta.value.total) return 'جارٍ التحميل…'
+  const m = meta.value
+  const parts = [`${num(m.all_count ?? m.total)} كفالة`]
+  if (m.monthly_commitment) parts.push(`التزام شهري ${money(m.monthly_commitment)}`)
+  if (m.due_week_count) parts.push(`${num(m.due_week_count)} قسطاً هذا الأسبوع بـ ${money(m.due_week_amount)}`)
+  return parts.join(' · ')
+})
+
+/* ── القسط القادم بلغة من يتابع ──────────────────────────────────────── */
+
+const today = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d }
+const daysTo = (v) => Math.round((new Date(`${v}T00:00:00`) - today()) / 86400000)
+const daysLabel = (n) => (n === 1 ? 'يوم واحد' : n === 2 ? 'يومين' : n <= 10 ? `${num(n)} أيام` : `${num(n)} يوماً`)
+
+function due(row) {
+  if (row.status === 'paused') return { text: row.paused_at ? `موقوفة منذ ${date(row.paused_at)}` : 'لا خصم أثناء الإيقاف', tone: 'text-sand-500' }
+  if (row.status === 'pending') return { text: row.hold_expires_at ? `حجز حتى ${date(row.hold_expires_at)}` : 'عند أول دفعة', tone: 'text-amber-700' }
+  if (row.status !== 'active' || !row.next_due_at) return { text: row.ended_at ? `انتهت ${date(row.ended_at)}` : EMPTY, tone: 'text-sand-400' }
+  const d = daysTo(row.next_due_at)
+  if (d < 0) return { text: `متأخر ${daysLabel(-d)}`, tone: 'text-rose-700 font-medium', badge: true }
+  if (d === 0) return { text: 'اليوم', tone: 'text-amber-700 font-medium' }
+  if (d <= 7) return { text: `بعد ${daysLabel(d)}`, tone: 'text-amber-700' }
+  return { text: date(row.next_due_at), tone: 'text-sand-700' }
+}
+
+const CYCLE = { 3: 'كل 3 أشهر', 12: 'سنوياً' }
+
+/* ── الدرج والتعديل ──────────────────────────────────────────────────── */
+
+const openId = computed(() => (route.query.open ? Number(route.query.open) : null))
+function open(id) { router.replace({ query: { ...route.query, open: id } }) }
+function close() { const { open: _, ...rest } = route.query; router.replace({ query: rest }) }
+
+const drawer = ref(null)
 const formOpen = ref(false)
 const editing = ref(null)
 
-/** الكفالة الملغاة سجلٌّ تاريخي لا تُعدَّل. */
-const editable = (row) => auth.can('sponsorships.manage')
-  && ['active', 'pending', 'paused'].includes(row.status)
-
-function edit(row) {
-  if (!editable(row)) return
-  editing.value = row
+function edit(s) {
+  editing.value = s
   formOpen.value = true
 }
 
 function onSaved() {
   formOpen.value = false
   load()
-}
-
-async function cancel(row) {
-  const answer = await confirmDialog({
-    title: 'إلغاء الكفالة',
-    message: 'يتوقف الخصم من الكافل، ويعود الطفل إلى قائمة من ينتظرون كافلاً.',
-    reason: 'required',
-    reasonLabel: 'سبب الإلغاء',
-    confirmLabel: 'ألغِ الكفالة',
-    danger: true,
-  })
-  if (!answer) return
-
-  try {
-    await admin.sponsorships.cancel(row.id, answer.reason)
-    ui.success('أُلغيت الكفالة.')
-    load()
-  } catch (e) {
-    ui.error(e.userMessage)
-  }
+  drawer.value?.reload()
 }
 </script>
 
 <template>
   <div>
-    <PageHeader title="الكفالات" :subtitle="`${meta.total} كفالة`" />
+    <PageHeader title="الكفالات" :subtitle="subtitle" />
 
-    <FilterBar v-model:search="filters.q" search-placeholder="مرجع، طفل، أو كافل…" @reset="reset">
-      <select v-model="filters.status" class="input !w-auto text-sm" aria-label="الحالة">
-        <option value="">كل الحالات</option>
-        <option value="active">نشطة</option>
-        <option value="pending">بانتظار أول دفعة</option>
-        <option value="paused">موقوفة</option>
-        <option value="cancelled">ملغاة</option>
-        <option value="completed">منتهية</option>
-      </select>
-      <label class="flex items-center gap-1.5 text-sm cursor-pointer">
-        <input v-model="filters.zakat_only" type="checkbox" class="accent-clay-600" /> من الزكاة
-      </label>
-      <label class="flex items-center gap-1.5 text-sm cursor-pointer">
-        <input v-model="filters.due_soon" type="checkbox" class="accent-clay-600" /> تستحق خلال أسبوع
-      </label>
-      <label v-if="auth.can('payments.view')" class="flex items-center gap-1.5 text-sm cursor-pointer">
-        <input v-model="filters.overdue" type="checkbox" class="accent-clay-600" /> متأخرة عن موعدها
-      </label>
+    <StatusTabs
+      v-model="filters.status" :options="STATUSES"
+      :counts="meta.status_counts ?? {}" :total="meta.all_count ?? null" label="حالة الكفالة"
+    />
+
+    <FilterBar v-model:search="filters.q" search-placeholder="مرجع، طفل، كافل، أو رمزه…" :dirty="dirty" @reset="reset">
+      <button v-if="canMoney" type="button" class="chip" :aria-pressed="filters.overdue" @click="filters.overdue = !filters.overdue">
+        <BaseIcon name="clock" :size="14" /> متأخرة عن موعدها
+        <span v-if="meta.overdue_count" class="chip__count">{{ num(meta.overdue_count) }}</span>
+      </button>
+      <button v-if="canMoney" type="button" class="chip" :aria-pressed="filters.due_soon" @click="filters.due_soon = !filters.due_soon">
+        تستحق خلال أسبوع
+        <span v-if="meta.due_week_count" class="chip__count">{{ num(meta.due_week_count) }}</span>
+      </button>
+      <button type="button" class="chip" :aria-pressed="filters.zakat_only" @click="filters.zakat_only = !filters.zakat_only">
+        من الزكاة
+      </button>
     </FilterBar>
 
-    <DataTable :error="error" @retry="load" :columns="columns" :rows="items" :loading="loading">
-      <template #reference_code="{ row }">
-        <span class="num text-xs text-sand-600">{{ row.reference_code }}</span>
-      </template>
+    <DataTable
+      :error="error" :columns="columns" :rows="items" :loading="loading"
+      :sort="filters.sort" :dir="filters.dir" @sort="onSort"
+      :empty-text="dirty ? 'لا كفالات تطابق هذه الفلاتر.' : 'لا كفالات بعد.'"
+      clickable @retry="load" @row-click="(r) => open(r.id)"
+    >
       <template #orphan="{ row }">
-        <RouterLink :to="`/orphans/${row.orphan?.id}`" class="text-clay-700 hover:underline">
-          {{ row.orphan?.name }}
-        </RouterLink>
-      </template>
-      <template #sponsor="{ row }">{{ row.sponsor?.name ?? row.sponsor?.sponsor_code ?? EMPTY }}</template>
-      <template #monthly_amount="{ row }">
-        <span class="num">{{ money(row.monthly_amount, row.currency) }}</span>
-        <span v-if="row.is_zakat" class="badge bg-teal-600/10 text-teal-700 ms-1">زكاة</span>
-      </template>
-      <template #next_due_at="{ row }">{{ date(row.next_due_at) }}</template>
-      <template #status="{ row }"><StatusBadge :label="row.status_label" :value="row.status" /></template>
-      <template #actions="{ row }">
-        <span class="inline-flex items-center gap-0.5">
-          <button
-            v-if="editable(row)" class="btn btn-ghost p-1.5" type="button"
-            title="تعديل" :aria-label="`تعديل ${row.reference_code}`" @click.stop="edit(row)"
-          >
-            <BaseIcon name="edit" :size="14" />
-          </button>
-
-          <button
-            v-if="editable(row)"
-            class="btn btn-ghost !py-1 !px-2 text-xs text-rose-700" type="button"
-            @click.stop="cancel(row)"
-          >
-            إلغاء
-          </button>
+        <span class="flex items-center gap-3 min-w-0">
+          <img v-if="row.orphan?.photo_url" :src="row.orphan.photo_url" alt="" class="size-9 rounded-full object-cover shrink-0" width="36" height="36" loading="lazy" />
+          <span v-else class="size-9 rounded-full bg-clay-50 text-clay-700 grid place-items-center text-sm font-semibold shrink-0">{{ row.orphan?.name?.charAt(0) }}</span>
+          <span class="min-w-0">
+            <RouterLink :to="`/orphans/${row.orphan?.id}`" class="block font-medium text-sand-900 hover:text-clay-700 truncate" @click.stop>
+              {{ row.orphan?.name }}
+            </RouterLink>
+            <span class="block text-xs text-sand-500 num">{{ row.reference_code }}</span>
+          </span>
         </span>
+      </template>
+
+      <template #sponsor="{ row }">
+        <RouterLink v-if="row.sponsor" :to="`/sponsors/${row.sponsor.id}`" class="text-sand-800 hover:text-clay-700" @click.stop>
+          {{ row.sponsor.name ?? row.sponsor.sponsor_code }}
+        </RouterLink>
+        <span v-else>{{ EMPTY }}</span>
+      </template>
+
+      <template #monthly_amount="{ row }">
+        <span class="num font-medium">{{ money(row.monthly_amount, row.currency) }}</span>
+        <span class="block text-xs text-sand-500">
+          <template v-if="row.interval_months > 1">{{ CYCLE[row.interval_months] }} </template>
+          <span v-if="row.is_zakat" class="text-teal-700">· زكاة</span>
+        </span>
+      </template>
+
+      <template #next_due_at="{ row }">
+        <span class="text-sm" :class="due(row).tone">{{ due(row).text }}</span>
+      </template>
+
+      <template #status="{ row }"><StatusBadge :label="row.status_label" :value="row.status" /></template>
+
+      <template #empty-action>
+        <button v-if="dirty" class="btn btn-outline mt-4" type="button" @click="reset">مسح الفلاتر</button>
       </template>
     </DataTable>
 
     <PaginationBar v-model="filters.page" :meta="meta" />
+
+    <SponsorshipDrawer ref="drawer" :id="formOpen ? null : openId" @close="close" @changed="load" @edit="edit" />
 
     <SponsorshipFormModal
       :open="formOpen" :sponsorship="editing"

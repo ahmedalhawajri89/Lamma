@@ -55,6 +55,8 @@ class SponsorshipResource extends JsonResource
             ]),
             'sponsor' => new SponsorResource($this->whenLoaded('sponsor')),
             'program' => new ProgramResource($this->whenLoaded('program')),
+            // سجل دفعات الكفالة (صفحة تفاصيلها) لمن يرى المال
+            'payments' => $this->when($money, fn () => PaymentResource::collection($this->whenLoaded('payments'))),
 
             'payments_count' => $this->when($money, fn () => $this->whenCounted('payments')),
             'total_paid' => $this->when(
