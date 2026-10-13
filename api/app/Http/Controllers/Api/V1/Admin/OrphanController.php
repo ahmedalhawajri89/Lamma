@@ -121,6 +121,8 @@ class OrphanController extends Controller
             ->when($request->boolean('urgent'), fn ($q) => $q->where('is_urgent', true))
             ->when($request->boolean('unfunded'), fn ($q) => $q->where('funded_percent', '<', 100))
             ->when($request->boolean('unverified'), fn ($q) => $q->whereNull('verified_at'))
+            // يُزار: كل ملف غير مغلق (كان النموذج يبحث في «نشط» وحده فيغيب المكتمل تمويله)
+            ->when($request->boolean('visitable'), fn ($q) => $q->whereIn('status', [OrphanStatus::Active, OrphanStatus::FullyFunded, OrphanStatus::PendingVerification]))
             // «بلا تقرير»: طفل نشط لم يُكتب له تقرير في الربع المحدد (2026-4)
             ->when(preg_match('/^(\d{4})-([1-4])$/', $request->string('missing_report')->toString(), $m) === 1, fn ($q) => $q
                 ->whereIn('status', [OrphanStatus::Active, OrphanStatus::FullyFunded])

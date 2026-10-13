@@ -18,6 +18,9 @@ import { searchOrphans } from '@/composables/lookups'
 const props = defineProps({
   open: { type: Boolean, default: false },
   orphans: { type: Array, default: () => [] },
+
+  /** طفلٌ مختار سلفاً من خطة الزيارات: `{ id, label }` */
+  presetOrphan: { type: Object, default: null },
 })
 
 const emit = defineEmits(['close', 'saved'])
@@ -88,7 +91,7 @@ watch(
   () => props.open,
   (isOpen) => {
     if (!isOpen) return
-    form.setValues({ ...BLANK, visited_at: localNow() })
+    form.setValues({ ...BLANK, orphan_id: props.presetOrphan?.id ?? '', visited_at: localNow() })
     flags.value = []
   },
   { immediate: true },
@@ -107,10 +110,13 @@ async function save() {
     :busy="form.submitting.value" :dirty="form.dirty.value"
     @close="emit('close')" @submit="save"
   >
-    <!-- الأطفال النشطون وحدهم: لا زيارة لملف متوفّى أو متخرّج -->
+    <!--
+      كل ملف مفتوح يُزار (نشط، مكتمل التمويل، بانتظار التوثيق)؛ كان البحث في
+      «نشط» وحده فيغيب الطفل المكتمل تمويله، وهو أحوج للمتابعة لا أقل.
+    -->
     <SearchSelect
-      v-model="form.values.orphan_id" label="الطفل" required autofocus
-      :search="(q) => searchOrphans(q, { status: 'active' })"
+      v-model="form.values.orphan_id" label="الطفل" required :autofocus="!presetOrphan"
+      :search="(q) => searchOrphans(q, { visitable: 1 })" :initial-label="presetOrphan?.label ?? ''"
       placeholder="اسم الطفل أو رمزه…"
       :error="form.errors.value.orphan_id" @update:model-value="form.touch('orphan_id')"
     />

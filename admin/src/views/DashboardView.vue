@@ -101,7 +101,7 @@ const KPI_CATALOG = [
   { key: 'orphans_awaiting', label: 'ينتظرون اكتمال كفالتهم', to: '/orphans?unfunded=1' },
   { key: 'urgent_unfunded', label: 'حالات عاجلة بلا تمويل', to: '/orphans?urgent=1&unfunded=1', tone: 'urgent',
     hint: () => 'تنتظر كافلاً' },
-  { key: 'visits_month', label: 'زيارات هذا الشهر', to: '/visits',
+  { key: 'visits_month', label: 'زيارات هذا الشهر', to: '/visits/log',
     hint: (v) => (v.overdue_visits ? `${num(v.overdue_visits)} متأخرة` : 'لا زيارات متأخرة') },
 ]
 

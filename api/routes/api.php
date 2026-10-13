@@ -225,6 +225,7 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
             Route::post('reports/{report}/publish', [Admin\ReportController::class, 'publish'])->name('reports.publish');
 
             Route::get('visits', [Admin\FieldVisitController::class, 'index'])->name('visits.index');
+            Route::get('visits/schedule', [Admin\FieldVisitController::class, 'schedule'])->name('visits.schedule');
             Route::post('visits', [Admin\FieldVisitController::class, 'store'])->name('visits.store');
 
             Route::get('messages', [Admin\MessageController::class, 'index'])->name('messages.index');

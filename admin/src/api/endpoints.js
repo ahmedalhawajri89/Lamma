@@ -160,6 +160,8 @@ export const admin = {
 
   visits: {
     list: (params) => client.get(`${v1}/admin/visits`, { params }),
+    /** خطة الزيارات: كل طفل مفتوح الملف بموعد زيارته القادمة */
+    schedule: (params) => client.get(`${v1}/admin/visits/schedule`, { params }),
     create: (payload) => client.post(`${v1}/admin/visits`, payload),
   },
 

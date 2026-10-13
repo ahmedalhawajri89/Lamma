@@ -760,7 +760,7 @@ class DemoSeeder extends Seeder
                     'visited_at' => $when,
                     'findings' => 'الوضع مستقر، والاحتياجات موثّقة في التقرير الربعي.',
                     'needs_flagged' => json_encode(
-                        random_int(0, 100) < 30 ? ['winter_clothes'] : [],
+                        random_int(0, 100) < 30 ? [['ملابس شتوية', 'تعثّر دراسي', 'حاجة صحية', 'دعم نفسي', 'مواصلات'][random_int(0, 4)]] : [],
                         JSON_UNESCAPED_UNICODE,
                     ),
                     'next_visit_due' => $when->copy()->addMonths(2)->toDateString(),

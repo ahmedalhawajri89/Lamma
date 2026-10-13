@@ -146,10 +146,11 @@ class WorkQueueService
         if ($user->can('visits.record')) {
             $tasks[] = $this->task(
                 'visits_overdue',
-                $inCountry(FieldVisit::overdue(), 'orphan.family')->count(),
+                // بتعريف خطة الزيارات نفسه: ملفٌ مغلق لا يُزار فلا يُعدّ متأخراً
+                $inCountry(FieldVisit::overdue()->whereHas('orphan', fn ($o) => $o->whereIn('status', [\App\Enums\OrphanStatus::Active, \App\Enums\OrphanStatus::FullyFunded, \App\Enums\OrphanStatus::PendingVerification])), 'orphan.family')->count(),
                 'زيارات ميدانية متأخرة',
                 'تجاوزت موعد الزيارة القادمة.',
-                '/visits', ['overdue' => 1],
+                '/visits', ['bucket' => 'overdue'],
                 urgent: true,
             );
         }

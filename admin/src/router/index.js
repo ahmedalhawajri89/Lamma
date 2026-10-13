@@ -86,7 +86,8 @@ const routes = [
     meta: { group: 'cases', title: 'التحقق من المستندات', icon: 'file-check', permission: 'orphans.verify' },
   },
   {
-    path: '/visits',
+    // الخطة (/visits) والسجل (/visits/log) شاشة واحدة بعرضين
+    path: '/visits/:view(log)?',
     name: 'visits',
     component: () => import('@/views/VisitsView.vue'),
     meta: { group: 'cases', title: 'الزيارات', icon: 'map', permission: 'visits.view' },

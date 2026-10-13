@@ -24,11 +24,15 @@ const blank = computed(() => route.meta.layout === 'blank')
 const booting = computed(() => !auth.checked || route.matched.length === 0)
 
 /** القائمة تُبنى من الموجّه نفسه، فإضافة شاشة لا تحتاج تعديل مكانين. */
+const declared = router.options.routes.map((r) => r.name)
 const links = computed(() =>
   router.getRoutes().filter(
     (r) => r.meta?.title && !r.meta.hidden && !r.meta.guest &&
       (!r.meta.permission || auth.can(r.meta.permission)),
-  ),
+  )
+    // بترتيب التعريف: getRoutes() يرتّب بخصوصية المسار، فمسارٌ بمُعامِل
+    // (‏/visits/:view?) كان يقفز فوق غيره في الشريط
+    .sort((a, b) => declared.indexOf(a.name) - declared.indexOf(b.name)),
 )
 
 /**

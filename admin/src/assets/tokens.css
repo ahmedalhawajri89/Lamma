@@ -76,6 +76,13 @@
     background: var(--color-sand-50);
     color: var(--color-sand-900);
     -webkit-text-size-adjust: 100%;
+
+    /*
+     * مكان شريط التمرير محجوز دائماً. النوافذ تقفل تمرير الصفحة
+     * (overflow: hidden) فيختفي الشريط، وكان عرض الصفحة يتّسع بعرضه فجأة
+     * فيقفز الشريط الجانبي والمحتوى عند كل فتح وإغلاق.
+     */
+    scrollbar-gutter: stable;
   }
 
   h1, h2, h3, h4 {
