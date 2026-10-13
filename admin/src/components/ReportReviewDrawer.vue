@@ -109,15 +109,22 @@ async function load(id) {
   }
 }
 
-async function run(fn, message) {
+/**
+ * `advance`: بعد قرارٍ على تقرير (اعتماد، إرجاع، نشر) ينتقل الدرج إلى التالي
+ * في القائمة. المراجع يمرّ على طابورٍ من عشرات التقارير، وكان يضغط «التالي»
+ * بعد كل قرار.
+ */
+async function run(fn, message, advance = false) {
   busy.value = true
 
   try {
     const { data } = await fn()
     ui.success(data?.message ?? message)
+    const next = nextId.value
     report.value = { ...report.value, ...data.data }
     emit('changed')
     queue.refresh?.(true)
+    if (advance && next) emit('open', next)
   } catch (e) {
     ui.error(e.fieldErrors?.note?.[0] ?? e.fieldErrors?.status?.[0] ?? e.userMessage)
   } finally {
@@ -125,8 +132,8 @@ async function run(fn, message) {
   }
 }
 
-const approve = () => run(() => admin.reports.approve(report.value.id), 'اعتُمد التقرير.')
-const publish = () => run(() => admin.reports.publish(report.value.id), 'نُشر التقرير للكفلاء.')
+const approve = () => run(() => admin.reports.approve(report.value.id), 'اعتُمد التقرير.', true)
+const publish = () => run(() => admin.reports.publish(report.value.id), 'نُشر التقرير للكفلاء.', true)
 const submit = () => run(() => admin.reports.submit(report.value.id), 'أُرسل التقرير للمراجعة.')
 
 async function sendBack() {
@@ -139,7 +146,7 @@ async function sendBack() {
   })
   if (!r) return
 
-  await run(() => admin.reports.sendBack(report.value.id, r.reason), 'أُرجع التقرير.')
+  await run(() => admin.reports.sendBack(report.value.id, r.reason), 'أُرجع التقرير.', true)
 }
 
 function close() {

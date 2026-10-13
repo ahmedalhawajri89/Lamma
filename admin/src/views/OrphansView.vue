@@ -23,7 +23,7 @@ const ui = useUiStore()
 
 const DEFAULTS = {
   q: '', status: '', country_id: '', program_id: '', family_id: '',
-  urgent: false, unfunded: false, unverified: false, sort: 'created_at', dir: 'desc',
+  urgent: false, unfunded: false, unverified: false, missing_report: '', sort: 'created_at', dir: 'desc',
 }
 const { items, meta, loading, filters, reset, load, error } = useResource(admin.orphans.list, DEFAULTS)
 
@@ -67,7 +67,7 @@ const countries = computed(() => (auth.isAdmin || !auth.user?.staff_profile?.ass
 const programs = computed(() => references.value.programs ?? [])
 
 /** فيه ما يُمسح؟ (الترتيب ليس فلتراً) */
-const dirty = computed(() => ['q', 'status', 'country_id', 'program_id', 'family_id', 'urgent', 'unfunded', 'unverified']
+const dirty = computed(() => ['q', 'status', 'country_id', 'program_id', 'family_id', 'urgent', 'unfunded', 'unverified', 'missing_report']
   .some((k) => filters[k] !== DEFAULTS[k]))
 
 /** ما ينقص الطفل شهرياً: الحاجة ناقص المغطّى فعلاً، لا تقديرٌ من النسبة */
@@ -168,6 +168,12 @@ onMounted(loadReferences)
       </button>
       <button type="button" class="chip" :aria-pressed="filters.unverified" @click="filters.unverified = !filters.unverified">
         بلا توثيق
+      </button>
+
+      <!-- يصل من شريط تغطية التقارير؛ يُرى ويُزال لا يختفي في الرابط -->
+      <button v-if="filters.missing_report" type="button" class="chip" aria-pressed="true" @click="filters.missing_report = ''">
+        بلا تقرير للربع {{ filters.missing_report.split('-')[1] }} من {{ filters.missing_report.split('-')[0] }}
+        <BaseIcon name="close" :size="12" />
       </button>
     </FilterBar>
 

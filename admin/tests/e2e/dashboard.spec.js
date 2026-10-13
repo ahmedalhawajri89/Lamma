@@ -131,7 +131,7 @@ test('مهمة في «بانتظارك» تفتح شاشتها مفلترة، و
   await expect(page).toHaveURL(/\/reports\?status=submitted/)
   await page.reload()
   await expect(page).toHaveURL(/status=submitted/)
-  await expect(page.getByRole('combobox').filter({ hasText: 'مُرسل للمراجعة' })).toBeVisible()
+  await expect(page.getByRole('button', { name: /بانتظار المراجعة/ })).toHaveAttribute('aria-pressed', 'true')
 })
 
 test('التقرير يُقرأ كاملاً قبل القرار، والإرجاع لا يمرّ بلا ملاحظة', async ({ page }) => {

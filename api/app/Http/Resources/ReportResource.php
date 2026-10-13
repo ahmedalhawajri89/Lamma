@@ -31,6 +31,10 @@ class ReportResource extends JsonResource
             'review_note' => $this->when($this->isStaff($request), $this->review_note),
             'returned_at' => $this->when($this->isStaff($request), fn () => $this->returned_at?->toIso8601String()),
             'published_at' => $this->published_at?->toIso8601String(),
+            // آخر تغيير: للمُرسَل هو لحظة الإرسال، ومنه «ينتظر منذ»
+            'updated_at' => $this->when($this->isStaff($request), fn () => $this->updated_at?->toIso8601String()),
+            // كم مرة فُتح من الكفلاء بعد نشره
+            'views_count' => $this->when($this->isStaff($request) && isset($this->views_count), fn () => (int) $this->views_count),
 
             // تُضاف بـ withCount في استعلام بوابة الكافل
             'is_new' => $this->when(

@@ -20,7 +20,7 @@ enum ReportStatus: string
     {
         return match ($this) {
             self::Draft => 'مسوّدة',
-            self::Submitted => 'مُرسل للمراجعة',
+            self::Submitted => 'بانتظار المراجعة',
             self::Approved => 'معتمَد',
             self::Published => 'منشور للكافل',
         };
