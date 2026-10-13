@@ -208,11 +208,14 @@ test.describe('نموذج اليتيم', () => {
     await expect(documents.locator('button[title="تحقّق من هذا المستند"]')).toHaveCount(0)
     await expect(documents.locator('button[title="حذف"]')).toHaveCount(1)
 
+    // في الطابور: مجموعة الطفل، ولوحة المراجعة لا تعطي رافعه قراراً
     await page.goto('/documents')
-    const row = page.locator('li', { hasText: name })
-    await expect(row).toBeVisible({ timeout: 20_000 })
-    await expect(row.getByText('رفعته أنت، فيتحقق منه غيرك')).toBeVisible()
-    await expect(row.getByRole('button', { name: 'تحقّقت منه' })).toHaveCount(0)
+    const group = page.locator('aside section', { hasText: name })
+    await expect(group).toBeVisible({ timeout: 20_000 })
+    await expect(group.getByText('رفعته أنت')).toBeVisible()
+    await group.locator('li button').first().click()
+    await expect(page.getByText('رفعت هذا المستند بنفسك، فيتحقق منه غيرك.')).toBeVisible()
+    await expect(page.getByRole('button', { name: /تحقّقت منه/ })).toHaveCount(0)
   })
 
   test('نافذة التحرير تُملأ وتُغلق بـEscape', async ({ page }) => {

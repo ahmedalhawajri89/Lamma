@@ -58,7 +58,7 @@ class WorkQueueService
         if ($user->can('orphans.verify')) {
             $tasks[] = $this->task(
                 'documents_verify',
-                $inCountry(OrphanDocument::whereNull('verified_at'), 'orphan.family')->count(),
+                $inCountry(OrphanDocument::whereNull('verified_at')->whereNull('rejected_at'), 'orphan.family')->count(),
                 'مستندات بانتظار التحقق',
                 'لا يُوثَّق ملف قبل التحقق من مستنداته.',
                 '/documents', [],

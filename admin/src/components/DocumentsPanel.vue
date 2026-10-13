@@ -60,11 +60,14 @@ const REQUIRED = ['birth_certificate', 'death_certificate', 'guardianship_proof'
 
 const checklist = computed(() =>
   REQUIRED.map((type) => {
-    const found = documents.value.find((d) => d.type === type)
+    // المرفوض لا يُحسب: النوع ناقص حتى يُرفع بدلاً منه مستند جديد
+    const live = documents.value.filter((d) => d.type === type && !d.is_rejected)
+    const found = live.find((d) => d.is_verified) ?? live[0]
+    const rejected = !found && documents.value.some((d) => d.type === type && d.is_rejected)
     return {
       type,
       label: props.types.find((t) => t.value === type)?.label ?? type,
-      state: !found ? 'missing' : found.is_verified ? 'done' : 'pending',
+      state: !found ? (rejected ? 'rejected' : 'missing') : found.is_verified ? 'done' : 'pending',
     }
   }),
 )
@@ -200,8 +203,8 @@ defineExpose({ load })
           class="flex items-center gap-2 text-sm px-1 py-1.5 rounded-lg hover:bg-sand-50"
         >
           <BaseIcon
-            :name="d.is_verified ? 'check' : 'clock'" :size="15"
-            :class="d.is_verified ? 'text-olive-600' : 'text-amber-600'"
+            :name="d.is_verified ? 'check' : d.is_rejected ? 'close' : 'clock'" :size="15"
+            :class="d.is_verified ? 'text-olive-600' : d.is_rejected ? 'text-rose-600' : 'text-amber-600'"
           />
 
           <span class="flex-1 min-w-0">
@@ -209,6 +212,10 @@ defineExpose({ load })
             <span class="block text-xs text-sand-500 truncate">
               {{ d.original_name }} · {{ size(d.size_bytes) }}
               <template v-if="d.is_verified"> · تُحقِّق {{ dateTime(d.verified_at) }}</template>
+            </span>
+            <!-- سبب الرفض لمن رفعه: يرفع بدلاً منه مستنداً جديداً -->
+            <span v-if="d.is_rejected" class="block text-xs text-rose-700 mt-0.5">
+              مرفوض: {{ d.rejection_reason }}
             </span>
           </span>
 
@@ -221,7 +228,7 @@ defineExpose({ load })
             </a>
 
             <button
-              v-if="canVerify(d) && !d.is_verified" class="btn btn-ghost p-1.5 text-olive-700"
+              v-if="canVerify(d) && !d.is_verified && !d.is_rejected" class="btn btn-ghost p-1.5 text-olive-700"
               type="button" :disabled="busyId === d.id" title="تحقّق من هذا المستند"
               :aria-label="`تحقّق من ${d.type_label ?? 'المستند'}`"
               @click="verify(d)"
@@ -261,10 +268,11 @@ defineExpose({ load })
             <BaseIcon
               :name="c.state === 'done' ? 'check' : c.state === 'pending' ? 'clock' : 'close'"
               :size="12"
-              :class="{ 'text-amber-600': c.state === 'pending', 'text-sand-400': c.state === 'missing' }"
+              :class="{ 'text-amber-600': c.state === 'pending', 'text-sand-400': c.state === 'missing', 'text-rose-600': c.state === 'rejected' }"
             />
             {{ c.label }}
             <span v-if="c.state === 'pending'" class="text-amber-700">(مرفوع، ينتظر التحقق)</span>
+            <span v-else-if="c.state === 'rejected'" class="text-rose-700">(رُفض، ارفع بدلاً منه)</span>
           </li>
         </ul>
       </div>

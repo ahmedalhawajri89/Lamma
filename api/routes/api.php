@@ -178,6 +178,7 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
             Route::post('orphans/{orphan}/documents', [Admin\DocumentController::class, 'store'])->name('documents.store');
             Route::get('documents', [Admin\DocumentController::class, 'queue'])->name('documents.queue');
             Route::post('documents/{document}/verify', [Admin\DocumentController::class, 'verify'])->name('documents.verify');
+            Route::post('documents/{document}/reject', [Admin\DocumentController::class, 'reject'])->name('documents.reject');
             Route::get('documents/{document}/download', [Admin\DocumentController::class, 'download'])->name('documents.download');
             Route::delete('documents/{document}', [Admin\DocumentController::class, 'destroy'])->name('documents.destroy');
 

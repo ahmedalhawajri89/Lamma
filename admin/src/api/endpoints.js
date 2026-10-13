@@ -92,6 +92,10 @@ export const admin = {
     /** طابور التحقق: غير المُتحقَّق منها من كل الملفات، الأقدم أولاً */
     queue: (params) => client.get(`${v1}/admin/documents`, { params }),
     verify: (id) => client.post(`${v1}/admin/documents/${id}/verify`),
+    /** رفض بسبب يقرؤه رافع المستند في ملف الطفل */
+    reject: (id, reason) => client.post(`${v1}/admin/documents/${id}/reject`, { reason }),
+    /** الملف نفسه للعرض داخل اللوحة (blob بجلسة المستخدم) */
+    preview: (id) => client.get(`${v1}/admin/documents/${id}/download`, { params: { inline: 1 }, responseType: 'blob' }),
     remove: (id) => client.delete(`${v1}/admin/documents/${id}`),
     downloadUrl: (id) => `${v1}/admin/documents/${id}/download`,
   },

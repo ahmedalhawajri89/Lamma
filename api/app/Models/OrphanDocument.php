@@ -35,6 +35,9 @@ class OrphanDocument extends Model
 
         // يُسندها DocumentController عند التحقق
         'verified_at', 'verified_by',
+
+        // يُسندها DocumentController::reject
+        'rejected_at', 'rejected_by', 'rejection_reason',
     ];
 
     protected function casts(): array
@@ -43,6 +46,7 @@ class OrphanDocument extends Model
             'type' => DocumentType::class,
             'size_bytes' => 'integer',
             'verified_at' => 'datetime',
+            'rejected_at' => 'datetime',
         ];
     }
 

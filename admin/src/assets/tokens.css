@@ -193,6 +193,26 @@
   }
   .chip[aria-pressed="true"] .chip__count { color: var(--color-clay-600); }
 
+  /* اختصار لوحة مفاتيح يُذكر بجانب زرّه */
+  .kbd {
+    /* لا لوحة مفاتيح على الجوال: الاختصار يظهر على الشاشة العريضة وحدها */
+    display: none;
+    place-items: center;
+    min-width: 1.25rem;
+    height: 1.25rem;
+    padding-inline: 0.3rem;
+    border: 1px solid var(--color-sand-200);
+    border-radius: 0.3rem;
+    background: var(--color-sand-0);
+    color: var(--color-sand-600);
+    font-family: ui-monospace, monospace;
+    font-size: 0.7rem;
+    line-height: 1;
+  }
+  @media (min-width: 1024px) {
+    .kbd { display: inline-grid; }
+  }
+
   .badge {
     display: inline-flex;
     align-items: center;

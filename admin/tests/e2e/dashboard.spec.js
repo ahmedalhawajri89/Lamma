@@ -168,7 +168,7 @@ test('طابور المستندات يفتح من القائمة الجانبي�
   await page.getByRole('link', { name: /التحقق من المستندات/ }).click()
 
   await expect(page.getByRole('heading', { name: 'التحقق من المستندات', level: 1 })).toBeVisible()
-  await expect(page.getByText(/بانتظار التحقق/).first()).toBeVisible()
+  await expect(page.getByText(/بانتظار قرار/).first()).toBeVisible()
 })
 
 test('اعتماد رسالة ينقص رقمها في الشريط الجانبي دون تحديث الصفحة', async ({ page }) => {
