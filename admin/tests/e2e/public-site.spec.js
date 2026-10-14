@@ -84,8 +84,16 @@ test.describe('نماذج الموقع', () => {
     await page.getByRole('button', { name: 'دخول' }).click()
     await page.waitForURL('**/dashboard')
 
-    await page.goto(`${UI}/contacts`)
-    await expect(page.getByText(email)).toBeVisible({ timeout: 20_000 })
+    await page.goto(`${UI}/contacts?q=${encodeURIComponent(email)}`)
+    // الأولى مختارة وحدها، وبريد المرسل في رأسها
+    await expect(page.locator('#ctTitle')).toContainText('زائر اختبار', { timeout: 20_000 })
+    await expect(page.getByRole('link', { name: email })).toBeVisible()
+
+    // الرد من المنصة نفسها، ثم الإغلاق معه
+    await page.getByRole('button', { name: 'ابدأ من قالب' }).click()
+    await page.locator('#ctReply').pressSequentially('النسبة منشورة شهرياً في صفحة الشفافية.')
+    await page.getByRole('button', { name: 'أرسل وأغلق' }).click()
+    await expect(page.getByText('أُرسل الرد وأُغلقت الرسالة.')).toBeVisible({ timeout: 20_000 })
   })
 
   test('التحقق يمنع الإرسال قبل اكتمال الحقول', async ({ page }) => {

@@ -102,13 +102,13 @@ const routes = [
     path: '/messages',
     name: 'messages',
     component: () => import('@/views/MessagesView.vue'),
-    meta: { group: 'comms', title: 'الرسائل', icon: 'chat', permission: 'messages.review' },
+    meta: { group: 'comms', title: 'مراسلات الكفالات', icon: 'chat', permission: 'messages.review' },
   },
   {
     path: '/contacts',
     name: 'contacts',
     component: () => import('@/views/ContactsView.vue'),
-    meta: { group: 'comms', title: 'رسائل التواصل', icon: 'mail', permission: 'content.manage' },
+    meta: { group: 'comms', title: 'استفسارات الزوار', icon: 'mail', permission: 'content.manage' },
   },
   {
     path: '/users',

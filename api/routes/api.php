@@ -260,7 +260,11 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
                 Route::delete('content/{type}/{id}', [Admin\ContentController::class, 'destroySimple'])->name('content.destroy');
             });
 
-            Route::get('contacts', [Admin\ContentController::class, 'contacts'])->name('contacts.index');
+            Route::get('contacts', [Admin\ContactInboxController::class, 'index'])->name('contacts.index');
+            Route::get('contacts/{contact}', [Admin\ContactInboxController::class, 'show'])->name('contacts.show');
+            Route::post('contacts/{contact}/reply', [Admin\ContactInboxController::class, 'reply'])
+                ->middleware('throttle:20,1')
+                ->name('contacts.reply');
             Route::match(['put', 'patch'], 'contacts/{contact}', [Admin\ContentController::class, 'updateContact'])->name('contacts.update');
             Route::get('settings', [Admin\ContentController::class, 'settings'])->name('settings.index');
             Route::put('settings', [Admin\ContentController::class, 'updateSettings'])->name('settings.update');

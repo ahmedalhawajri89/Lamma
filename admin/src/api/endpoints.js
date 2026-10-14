@@ -224,6 +224,10 @@ export const admin = {
   },
   contacts: (params) => client.get(`${v1}/admin/contacts`, { params }),
   updateContact: (id, status) => client.patch(`${v1}/admin/contacts/${id}`, { status }),
+  /** رسالة التواصل بردودها */
+  contact: (id) => client.get(`${v1}/admin/contacts/${id}`),
+  /** الرد من المنصة: بريدٌ للمرسل ويُحفظ؛ `close` يغلقها معه */
+  replyContact: (id, body, close = false) => client.post(`${v1}/admin/contacts/${id}/reply`, { body, close }),
   settings: () => client.get(`${v1}/admin/settings`),
   updateSettings: (settings) => client.put(`${v1}/admin/settings`, { settings }),
 }

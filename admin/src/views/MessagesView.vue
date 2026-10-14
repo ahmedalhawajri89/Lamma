@@ -177,7 +177,7 @@ const fromLabel = (m) => (m.sender_type === 'sponsor' ? 'من الكافل' : '�
   <div class="flex flex-col lg:h-[calc(100dvh-4rem)]">
     <header class="flex flex-wrap items-end justify-between gap-3 mb-3">
       <div>
-        <h1 class="text-2xl font-bold text-sand-900">الرسائل</h1>
+        <h1 class="text-2xl font-bold text-sand-900">مراسلات الكفالات</h1>
         <p class="text-sm text-sand-500 mt-0.5">
           كل رسالة بين كافل وطفل تُراجَع قبل وصولها، حمايةً للطفل.
           <template v-if="meta.flagged_pending"> · <span class="text-rose-700 font-medium"><span class="num">{{ num(meta.flagged_pending) }}</span> فيها ما يستدعي النظر</span></template>

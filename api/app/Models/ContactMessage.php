@@ -36,6 +36,11 @@ class ContactMessage extends Model
     }
 
     /** @return BelongsTo<User, $this> */
+    public function replies(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(ContactReply::class)->oldest();
+    }
+
     public function handler(): BelongsTo
     {
         return $this->belongsTo(User::class, 'handled_by');
