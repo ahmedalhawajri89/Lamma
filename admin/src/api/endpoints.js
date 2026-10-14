@@ -174,6 +174,10 @@ export const admin = {
   messages: {
     list: (params) => client.get(`${v1}/admin/messages`, { params }),
     review: (id, payload) => client.post(`${v1}/admin/messages/${id}/review`, payload),
+    /** ما دار قبلها في الكفالة نفسها */
+    thread: (id) => client.get(`${v1}/admin/messages/${id}/thread`),
+    /** رسالة معتمدة سُلّمت للطفل في زيارة */
+    deliver: (id) => client.post(`${v1}/admin/messages/${id}/deliver`),
   },
 
   users: {

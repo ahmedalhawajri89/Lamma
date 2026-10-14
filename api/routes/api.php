@@ -236,6 +236,8 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
 
             Route::get('messages', [Admin\MessageController::class, 'index'])->name('messages.index');
             Route::post('messages/{message}/review', [Admin\MessageController::class, 'review'])->name('messages.review');
+            Route::get('messages/{message}/thread', [Admin\MessageController::class, 'thread'])->name('messages.thread');
+            Route::post('messages/{message}/deliver', [Admin\MessageController::class, 'deliver'])->name('messages.deliver');
 
             /* --- المحتوى --- */
             Route::get('posts', [Admin\ContentController::class, 'posts'])->name('posts.index');

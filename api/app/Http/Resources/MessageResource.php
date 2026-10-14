@@ -30,8 +30,20 @@ class MessageResource extends JsonResource
                 'orphan_name' => $this->sponsorship->relationLoaded('orphan')
                     ? $this->sponsorship->orphan?->first_name
                     : null,
+                'orphan_code' => $this->sponsorship->relationLoaded('orphan') ? $this->sponsorship->orphan?->reference_code : null,
+                'orphan_photo' => $this->sponsorship->relationLoaded('orphan') && $this->sponsorship->orphan?->photo_path
+                    ? asset('storage/'.$this->sponsorship->orphan->photo_path) : null,
             ]),
             'reviewer' => $this->whenLoaded('reviewer', fn () => $this->reviewer?->name),
+            // للموظفين: الكافل في الكفالة، وتنبيهات حماية الطفل في النص
+            'sponsor_name' => $this->when(
+                $this->relationLoaded('sponsorship') && $this->sponsorship->relationLoaded('sponsor'),
+                fn () => $this->sponsorship->sponsor?->user?->name ?? $this->sponsorship->sponsor?->sponsor_code,
+            ),
+            'flags' => $this->when(
+                (bool) $request->user()?->can('messages.review'),
+                fn () => app(\App\Services\MessageSafety::class)->flags($this->body),
+            ),
         ];
     }
 }

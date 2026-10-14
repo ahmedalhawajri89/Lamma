@@ -91,7 +91,7 @@ class WorkQueueService
                 Message::where('status', MessageStatus::PendingReview)->count(),
                 'رسائل بانتظار المراجعة',
                 'لا تصل رسالة إلى الطفل قبل مراجعتها.',
-                '/messages', ['queue' => 1],
+                '/messages', [],
             );
         }
 
