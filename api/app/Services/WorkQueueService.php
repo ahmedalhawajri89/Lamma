@@ -104,7 +104,7 @@ class WorkQueueService
                     ->count(),
                 'صرف بانتظار اعتمادك',
                 'سجّله غيرك، ولا يُحسب في الشفافية قبل اعتماده.',
-                '/disbursements', ['pending_only' => 1],
+                '/disbursements', ['status' => 'pending'],
             );
         }
 

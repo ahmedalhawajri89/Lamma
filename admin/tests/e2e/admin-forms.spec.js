@@ -413,12 +413,37 @@ test.describe('تسجيل الصرف', () => {
 
     await pick(page, 'بند الصرف', 1)
     await fill(page, 'المبلغ', '125.50')
-    await fill(page, 'البيان', `اختبار ${Date.now().toString().slice(-5)}`)
+    const statement = `اختبار ${Date.now().toString().slice(-5)}`
+    await fill(page, 'البيان', statement)
     await page.setInputFiles('#receiptFile', samplePdf())
 
     await page.getByRole('button', { name: 'سجّل الصرف' }).click()
     await expect(page.locator('[role=dialog]')).toBeHidden({ timeout: 25_000 })
     await expect(page.getByText(/يحتاج اعتماداً/)).toBeVisible()
+
+    // ── مبدأ العينين: من سجّله لا يعتمده ──
+    await page.goto(`/disbursements?status=pending&q=${encodeURIComponent(statement)}`)
+    const mine = page.locator('table tbody tr', { hasText: '125.50' }).first()
+    await expect(mine).toBeVisible({ timeout: 20_000 })
+    await mine.click()
+    await expect(page.getByText('سجّلته أنت، فيعتمده غيرك.')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'اعتمد الصرف' })).toHaveCount(0)
+
+    // ── والمدير يعتمده من الدرج بعد رؤية الإيصال ──
+    await page.keyboard.press('Escape')
+    await page.getByRole('button', { name: 'تسجيل الخروج' }).click()
+    await page.waitForURL('**/login')
+    await login(page, ADMIN)
+    await page.goto(`/disbursements?status=pending&q=${encodeURIComponent(statement)}`)
+    const row = page.locator('table tbody tr', { hasText: '125.50' }).first()
+    await expect(row).toBeVisible({ timeout: 20_000 })
+    await row.click()
+
+    const drawer = page.getByRole('dialog')
+    await drawer.getByRole('button', { name: 'عرض الإيصال' }).click()
+    await expect(drawer.locator('iframe[src^="blob:"]')).toBeVisible({ timeout: 20_000 })
+    await drawer.getByRole('button', { name: 'اعتمد الصرف' }).click()
+    await expect(page.getByText(/اعتُمد الصرف/)).toBeVisible({ timeout: 20_000 })
   })
 })
 

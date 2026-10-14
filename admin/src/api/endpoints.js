@@ -146,6 +146,10 @@ export const admin = {
     ),
 
     approve: (id) => client.post(`${v1}/admin/disbursements/${id}/approve`),
+    /** الإيصال للعرض داخل اللوحة (blob بجلسة المستخدم) */
+    receipt: (id) => client.get(`${v1}/admin/disbursements/${id}/receipt`, { responseType: 'blob' }),
+    /** الصرف بفلاتره CSV للمراجعة المحاسبية */
+    export: (params) => client.get(`${v1}/admin/disbursements/export`, { params, responseType: 'blob' }),
   },
 
   reports: {

@@ -211,6 +211,9 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
             Route::post('payments/{payment}/refund', [Admin\PaymentController::class, 'refund'])->name('payments.refund');
 
             Route::get('disbursements', [Admin\DisbursementController::class, 'index'])->name('disbursements.index');
+            Route::get('disbursements/export', [Admin\DisbursementController::class, 'export'])
+                ->middleware('throttle:10,1')
+                ->name('disbursements.export');
             Route::get('disbursement-categories', [Admin\DisbursementController::class, 'categories'])->name('disbursements.categories');
             Route::post('disbursements', [Admin\DisbursementController::class, 'store'])->name('disbursements.store');
             Route::match(['put', 'patch'], 'disbursements/{disbursement}', [Admin\DisbursementController::class, 'update'])->name('disbursements.update');
