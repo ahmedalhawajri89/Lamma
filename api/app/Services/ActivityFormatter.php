@@ -105,6 +105,57 @@ class ActivityFormatter
         return array_map(fn ($s) => $s['label'], $this->subjects);
     }
 
+    /**
+     * أقسام السجل كما يفكّر فيها من يراجعه: «ماذا جرى على المال هذا الأسبوع؟»
+     * لا «ماذا جرى على جدول Payment». والإعدادات بلا سجلٍّ مرتبط (subject).
+     *
+     * @var array<string, array{label: string, types: array<int, string>}>
+     */
+    public const GROUPS = [
+        'children' => ['label' => 'الأطفال والأسر', 'types' => ['Orphan', 'Family', 'Report']],
+        'money' => ['label' => 'المال', 'types' => ['Sponsorship', 'Payment', 'Disbursement']],
+        'comms' => ['label' => 'التواصل', 'types' => ['Message', 'ContactMessage']],
+        'content' => ['label' => 'المحتوى', 'types' => ['Post', 'Faq', 'Testimonial', 'Partner']],
+        'system' => ['label' => 'الحسابات والإعدادات', 'types' => ['User']],
+    ];
+
+    /**
+     * ما يستحق نظرة ثانية: حسابات الفريق والإعدادات، والحذف والاسترداد،
+     * وتغيير مسار ملف طفل ورفض مستنداته، وكل تصدير أو تنزيل لبيانات خرجت
+     * من المنصة. لا كل دفعة وصرف: ذاك عمل المحاسب اليومي، وعلامةٌ على ثلث
+     * السجل لا تلفت النظر إلى شيء.
+     */
+    public const SENSITIVE_TYPES = ['User'];
+
+    public const SENSITIVE_EVENTS = ['deleted', 'refunded', 'settings_updated', 'status_changed', 'document_rejected'];
+
+    /** الوصف يبدأ بفعل تصدير أو تنزيل: بيانات غادرت المنصة */
+    public const EXPORT_PATTERN = ['صدّر%', 'نزّل%'];
+
+    public static function groupOf(string $type, ?string $event): ?string
+    {
+        if ($type === '' && $event === 'settings_updated') {
+            return 'system';
+        }
+
+        foreach (self::GROUPS as $key => $group) {
+            if (in_array($type, $group['types'], true)) {
+                return $key;
+            }
+        }
+
+        return null;
+    }
+
+    public static function isSensitive(Activity $a): bool
+    {
+        $type = class_basename((string) $a->subject_type);
+
+        return in_array($type, self::SENSITIVE_TYPES, true)
+            || in_array($a->event, self::SENSITIVE_EVENTS, true)
+            || preg_match('/^(صدّر|نزّل)/u', (string) $a->description) === 1;
+    }
+
     /** @return array<string, mixed> */
     public function format(Activity $activity): array
     {
@@ -119,7 +170,10 @@ class ActivityFormatter
             'actor' => $activity->causer?->name ?? 'النظام',
             'action' => $this->action($activity, $meta),
             'subject_type' => $type ?: null,
-            'subject_label' => $meta['label'] ?? null,
+            'subject_label' => $meta['label'] ?? ($activity->event === 'settings_updated' ? 'الإعدادات' : null),
+            'group' => self::groupOf($type, $activity->event),
+            'sensitive' => self::isSensitive($activity),
+            'actor_id' => $activity->causer_id,
             'subject_name' => $this->subjectName($type, $subject, $activity->subject_id),
             'subject_path' => $meta && $activity->subject_id ? ($meta['path'])($subject, $activity->subject_id) : ($type === '' && $activity->event === 'settings_updated' ? '/settings' : null),
             'changes' => $this->changes($type, $props['old'] ?? [], $props['attributes'] ?? []),

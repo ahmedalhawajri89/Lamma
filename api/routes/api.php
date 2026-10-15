@@ -284,6 +284,9 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
                 ->name('users.invite');
             Route::get('roles', [Admin\UserController::class, 'roles'])->name('roles');
 
+            Route::get('activity/export', [Admin\ActivityController::class, 'export'])
+                ->middleware('throttle:10,1')
+                ->name('activity.export');
             Route::get('activity', [Admin\ActivityController::class, 'index'])->name('activity.index');
         });
 });

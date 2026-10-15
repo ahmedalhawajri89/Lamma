@@ -192,9 +192,14 @@ class ReportController extends Controller
     {
         $this->authorize('approve', $report);
 
+        $approved = $action->approve($report, request()->user());
+
+        // الاعتماد والنشر قراران يصلان الكفلاء: يُسجَّلان كالإرجاع
+        activity()->performedOn($report)->causedBy(request()->user())->event('approved')->log('اعتمد تقريراً');
+
         return response()->json([
             'message' => 'اعتُمد التقرير، وأُخذت لقطة من صرف الربع.',
-            'data' => new ReportResource($action->approve($report, request()->user())),
+            'data' => new ReportResource($approved),
         ]);
     }
 
@@ -226,6 +231,7 @@ class ReportController extends Controller
         activity()
             ->performedOn($report)
             ->causedBy($request->user())
+            ->event('returned')
             ->withProperties(['note' => $validated['note']])
             ->log('أرجع تقريراً للتعديل');
 
@@ -239,9 +245,12 @@ class ReportController extends Controller
     {
         $this->authorize('publish', $report);
 
+        $published = $action->publish($report);
+        activity()->performedOn($report)->causedBy(request()->user())->event('published')->log('نشر تقريراً للكفلاء');
+
         return response()->json([
             'message' => 'نُشر التقرير. سيراه الكفلاء في لوحاتهم.',
-            'data' => new ReportResource($action->publish($report)),
+            'data' => new ReportResource($published),
         ]);
     }
 }

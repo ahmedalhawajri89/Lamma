@@ -191,6 +191,7 @@ export const admin = {
   },
 
   activity: (params) => client.get(`${v1}/admin/activity`, { params }),
+  activityExport: (params) => client.get(`${v1}/admin/activity/export`, { params, responseType: 'blob' }),
 
   posts: {
     list: (params) => client.get(`${v1}/admin/posts`, { params }),

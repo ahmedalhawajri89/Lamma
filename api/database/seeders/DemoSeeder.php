@@ -85,6 +85,9 @@ class DemoSeeder extends Seeder
         $this->disbursements($orphanIds, $staff);
         $this->reportsAndVisits($orphanIds, $staff, $sponsorIds);
 
+        $this->command->info('  · سجل النشاط…');
+        $this->call(ActivityDemoSeeder::class);
+
         $this->command->info('  · إعادة حساب نسب التمويل…');
         Orphan::query()->chunkById(200, function ($chunk): void {
             foreach ($chunk as $orphan) {
