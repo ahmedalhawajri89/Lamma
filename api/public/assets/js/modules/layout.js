@@ -77,7 +77,6 @@ function footerMarkup() {
   const quickLinks = [
     { label: 'الرئيسية', href: 'index.html' },
     ...NAV_LINKS,
-    { label: 'المدونة', href: 'blog.html' },
   ]
     .map(({ label, href }) => `<li><a href="${href}">${label}</a></li>`)
     .join('');

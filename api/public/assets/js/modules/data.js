@@ -44,6 +44,7 @@ export const NAV_LINKS = [
   { label: 'الأيتام', href: 'orphans.html' },
   { label: 'برامج الكفالة', href: 'programs.html' },
   { label: 'الشفافية', href: 'transparency.html' },
+  { label: 'المدونة', href: 'blog.html' },
   { label: 'من نحن', href: 'about.html' },
   { label: 'تواصل معنا', href: 'contact.html' },
 ];
