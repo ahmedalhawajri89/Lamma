@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Models\Orphan;
 use App\Models\TransparencyDocument;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
@@ -62,4 +63,16 @@ it('الحمولة العامة تحمل الشهور ونسبة التشغيل 
         ->assertOk()
         ->assertJsonCount(12, 'data.monthly')
         ->assertJsonStructure(['data' => ['overhead' => ['actual', 'target', 'year'], 'years', 'documents', 'spending', 'proof', 'annual']]);
+});
+
+it('مدة التحقق محسوبة من السجلات: متوسط الأيام بين فتح الملف وتوثيقه', function () {
+    $this->getJson('/api/v1/public/transparency')->assertJsonPath('data.proof.verifyDays', null);
+
+    Cache::flush();
+    Orphan::factory()->create(['created_at' => now()->subDays(30), 'verified_at' => now()->subDays(20)]);
+    Orphan::factory()->create(['created_at' => now()->subDays(30), 'verified_at' => now()->subDays(10)]);
+    Orphan::factory()->pending()->create(['created_at' => now()->subDays(90)]);
+
+    // (10 + 20) / 2، والملف غير الموثّق لا يدخل الحساب
+    $this->getJson('/api/v1/public/transparency')->assertJsonPath('data.proof.verifyDays', 15);
 });

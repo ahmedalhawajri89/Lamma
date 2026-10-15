@@ -42,6 +42,7 @@ import { renderHomeSections } from './modules/home.js';
 import { initCatalog } from './modules/catalog.js';
 import { initTransparency } from './modules/transparency.js';
 import { initBlog } from './modules/blog.js';
+import { initAbout } from './modules/about.js';
 import { initProofBoard, initCredentials } from './modules/proof.js';
 import { initPortal } from './modules/portal.js';
 
@@ -55,6 +56,7 @@ function boot() {
   initProofBoard();
   initCredentials();
   initTransparency();
+  initAbout();
   initCatalog();
   initOrphanDetail();
   initCheckout();

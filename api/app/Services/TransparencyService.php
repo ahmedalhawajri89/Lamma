@@ -85,6 +85,10 @@ class TransparencyService
                     ->distinct()
                     ->count('families.country_id'),
                 'monthlyCommitment' => round((float) Sponsorship::active()->sum('monthly_amount'), 2),
+                // من فتح الملف إلى توثيقه، بالأيام: صفحة «من نحن» كانت تكتب «23» بيدها
+                'verifyDays' => ($d = DB::table('orphans')->whereNotNull('verified_at')
+                    ->selectRaw('AVG(DATEDIFF(verified_at, created_at)) as d')->value('d')) !== null
+                    ? (int) round((float) $d) : null,
             ];
         });
     }
