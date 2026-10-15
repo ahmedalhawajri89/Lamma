@@ -758,7 +758,7 @@
   align-items: center;
   padding-block: clamp(var(--space-10), 6vw, var(--space-16));
 }
-@media (min-width: 64rem) { .kids-hero__inner { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); } }
+@media (min-width: 64rem) { .kids-hero__inner { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); } }
 
 .breadcrumb--on-ink a, .breadcrumb--on-ink span { color: var(--color-on-ink-muted, rgba(255,255,255,.7)); }
 .breadcrumb--on-ink [aria-current] { color: var(--color-on-ink, #fff); }
@@ -798,7 +798,7 @@
   display: none;
   gap: var(--space-3);
   inline-size: 100%;
-  max-inline-size: 34rem;
+  max-inline-size: 40rem;
   justify-self: end;
   opacity: 0;
   transform: translateY(16px);
@@ -806,11 +806,11 @@
 }
 .mosaic.is-in { opacity: 1; transform: none; }
 @media (min-width: 64rem) { .mosaic { display: grid; } }
-.mosaic--3 { grid-template-columns: 1.55fr 1fr; grid-template-rows: 1fr 1fr; }
+.mosaic--3 { grid-template-columns: 1.6fr 1fr; grid-template-rows: 1fr 1fr; }
 .mosaic--2 { grid-template-columns: 1.55fr 1fr; }
 .mosaic--1 { grid-template-columns: 1fr; }
 
-.mosaic figure { position: relative; margin: 0; overflow: hidden; border-radius: var(--radius-2xl); background: rgba(255, 255, 255, 0.06); }
+.mosaic figure { position: relative; margin: 0; overflow: hidden; border-radius: var(--radius-md); background: rgba(255, 255, 255, 0.06); }
 .mosaic img { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; object-fit: cover; }
 
 .mosaic__main { grid-row: span 2; aspect-ratio: 4 / 5; }
@@ -831,7 +831,7 @@
   flex-direction: column;
   gap: 0.2rem;
   padding: var(--space-3) var(--space-4);
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-sm);
   background: rgba(8, 38, 38, 0.72);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
