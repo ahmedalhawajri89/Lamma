@@ -11,8 +11,9 @@ import { defineConfig, devices } from '@playwright/test'
  * من الصفر قبل كل تشغيل (global-setup.js)، ولوحة Vite على 5175 توجّه إليه.
  * فلا تكتب شيئاً في قاعدة التطوير، ولا تتعارض مع خادمَي التطوير القائمين.
  */
-const API_PORT = 8001
-const UI_PORT = 5175
+// يُغيَّران حين يشغل المنفذَ مشروعٌ آخر: E2E_API_PORT=8011 npx playwright test
+const API_PORT = Number(process.env.E2E_API_PORT ?? 8001)
+const UI_PORT = Number(process.env.E2E_UI_PORT ?? 5175)
 
 // عناوين البيئة للاختبارات نفسها (الموقع العام واللوحة)، بدل عناوين التطوير مكتوبةً فيها
 process.env.E2E_SITE = `http://127.0.0.1:${API_PORT}`
@@ -65,7 +66,12 @@ export default defineConfig({
       // لارافل على قاعدة الاختبارات (يقرأ .env.e2e حين APP_ENV=e2e)
       command: `php artisan serve --host=127.0.0.1 --port=${API_PORT}`,
       cwd: '../api',
-      env: { APP_ENV: 'e2e' },
+      // عنوان التطبيق ونطاقات الجلسة تتبع المنفذين (متغيرات البيئة تتقدّم على .env.e2e)
+      env: {
+        APP_ENV: 'e2e',
+        APP_URL: `http://127.0.0.1:${API_PORT}`,
+        SANCTUM_STATEFUL_DOMAINS: `localhost:${API_PORT},127.0.0.1:${API_PORT},localhost:${UI_PORT},127.0.0.1:${UI_PORT}`,
+      },
       url: `http://127.0.0.1:${API_PORT}/up`,
       reuseExistingServer: false,
       timeout: 60_000,

@@ -23,6 +23,13 @@ class DatabaseSeeder extends Seeder
         // بيانات العرض للتطوير والاختبارات (ومنها بيئة E2E المنفصلة)، لا للإنتاج
         if (app()->environment(['local', 'testing', 'e2e'])) {
             $this->call(DemoSeeder::class);
+
+            // مخططات اللوحة تقرأ daily_metrics: بلا بنائه تُرسم خطاً مسطّحاً عند الصفر
+            // بعد كل `migrate:fresh --seed` (الاختبارات تبنيه حين تحتاجه)
+            if (! app()->environment('testing')) {
+                $this->command?->info('  · بناء مؤشرات الأيام…');
+                \Illuminate\Support\Facades\Artisan::call('metrics:rollup', ['--all' => true]);
+            }
         }
     }
 }

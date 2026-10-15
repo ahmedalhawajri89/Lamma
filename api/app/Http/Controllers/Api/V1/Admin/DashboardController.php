@@ -11,6 +11,7 @@ use App\Http\Resources\ActivityResource;
 use App\Http\Resources\OrphanResource;
 use App\Models\Orphan;
 use App\Models\User;
+use App\Services\FinanceDashboardService;
 use App\Services\MetricsService;
 use App\Services\SinceLastVisitService;
 use App\Services\TransparencyService;
@@ -56,6 +57,9 @@ class DashboardController extends Controller
         return response()->json([
             'data' => [
                 'scope' => $this->scope($user, $country),
+
+                // لوحة المحاسب: مال الشهر وما يُتابَع منه
+                'finance' => $user->hasRole(UserRole::Accountant->value) ? app(FinanceDashboardService::class)->build() : null,
                 'tasks' => $this->queue->tasks($user),
                 'kpis' => $this->kpis($user, $country),
 

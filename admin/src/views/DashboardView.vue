@@ -23,6 +23,7 @@ import FundingBar from '@/components/FundingBar.vue'
 import Sparkline from '@/components/Sparkline.vue'
 import BaseIcon from '@/components/BaseIcon.vue'
 import SinceLastVisit from '@/components/SinceLastVisit.vue'
+import AccountantDashboard from '@/components/AccountantDashboard.vue'
 
 const ui = useUiStore()
 const auth = useAuthStore()
@@ -268,6 +269,10 @@ const retention = computed(() => data.value?.retention ?? {})
     <!-- ما جرى والموظف غائب: يظهر حتى يقول «اطّلعت» -->
     <SinceLastVisit />
 
+    <!-- المحاسب: لوحة المال وحدها، لا صورة المنصة كلها -->
+    <AccountantDashboard v-if="data?.finance" :finance="data.finance" :monthly="monthly" :spending="spending" />
+
+    <template v-else>
     <!-- ١. المؤشرات: شريط واحد بخلايا مفصولة -->
     <section class="card kpis mb-6" aria-label="المؤشرات الرئيسية">
       <template v-if="loading && !data">
@@ -510,6 +515,7 @@ const retention = computed(() => data.value?.retention ?? {})
 
       <p v-else-if="!loading" class="text-sm text-sand-500 px-5 pb-6">لا حالات عاجلة بلا تمويل.</p>
     </section>
+    </template>
   </div>
 </template>
 

@@ -196,3 +196,19 @@ test('تسجيل الخروج ينهي الجلسة فعلاً', async ({ page }
   await page.goto('/dashboard')
   await expect(page).toHaveURL(/\/login/)
 })
+
+test('المحاسب يرى لوحة المال: التحصيل، وما ينتظر استدراكاً، والأقساط القادمة', async ({ page }) => {
+  await login(page, { email: 'accountant@kafala.org', password: 'password' })
+
+  await expect(page.getByRole('heading', { name: /^تحصيل / })).toBeVisible({ timeout: 20_000 })
+  await expect(page.getByRole('heading', { name: 'دفعات تنتظر استدراكاً' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'الأقساط القادمة' })).toBeVisible()
+
+  // لا أقسام المدير: الحالات العاجلة والدول ليست عمل المحاسب
+  await expect(page.getByText('حالات عاجلة تنتظر كافلاً')).toHaveCount(0)
+  await expect(page.getByText('أكثر الدول حالات')).toHaveCount(0)
+
+  // «فشل ولم يُستدرك» يقود إلى قائمته
+  await page.getByRole('link', { name: /فشل ولم يُستدرك/ }).click()
+  await expect(page).toHaveURL(/\/payments\?unrecovered=1/)
+})
