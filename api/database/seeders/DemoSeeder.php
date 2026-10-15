@@ -401,9 +401,14 @@ class DemoSeeder extends Seeder
                 'prefers_zakat' => random_int(0, 100) < 35,
                 'is_anonymous' => random_int(0, 100) < 12,
                 'communication_prefs' => ['email' => true, 'sms' => random_int(0, 1) === 1],
-                'sponsoring_since' => now()->subDays(random_int(20, 1600)),
+                // آخر ثلاثة سجّلوا هذا الأسبوع: «كفلاء جدد» في «منذ آخر دخول»
+                'sponsoring_since' => $i > 177 ? now()->subDays(random_int(0, 4)) : now()->subDays(random_int(20, 1600)),
             ])->id;
         }
+
+        // تاريخ التسجيل تاريخ الكفالة الأولى، لا لحظة البذر: وإلا بدا الكفلاء
+        // كلهم «جدداً» اليوم
+        Sponsor::query()->update(['created_at' => DB::raw('sponsoring_since')]);
 
         return $ids;
     }

@@ -16,6 +16,7 @@ import PaginationBar from '@/components/PaginationBar.vue'
 import BaseIcon from '@/components/BaseIcon.vue'
 import DisbursementFormModal from '@/components/DisbursementFormModal.vue'
 import DisbursementDrawer from '@/components/DisbursementDrawer.vue'
+import NewArrivalsBar from '@/components/NewArrivalsBar.vue'
 
 const auth = useAuthStore()
 const ui = useUiStore()
@@ -116,6 +117,7 @@ function onApproved({ id, next }) {
 
 <template>
   <div>
+    <NewArrivalsBar @refresh="load" />
     <PageHeader title="الصرف" :subtitle="loading && !meta.total ? 'جارٍ التحميل…' : `${num(meta.all_count ?? 0)} عملية صرف بـ ${money(meta.sum_all ?? 0)}`">
       <template #actions>
         <button class="btn btn-outline" type="button" :disabled="exporting || !meta.total" @click="exportCsv">

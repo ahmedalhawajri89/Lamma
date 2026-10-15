@@ -18,6 +18,7 @@ import { date, num, relative, years } from '@/utils/format'
 import BaseIcon from '@/components/BaseIcon.vue'
 import DocumentViewer from '@/components/DocumentViewer.vue'
 import DocumentDecision from '@/components/DocumentDecision.vue'
+import NewArrivalsBar from '@/components/NewArrivalsBar.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -204,6 +205,7 @@ const DOT_LABEL = { verified: 'مُتحقَّق منه', pending: 'ينتظر', 
 
 <template>
   <div class="flex flex-col lg:h-[calc(100dvh-4rem)]">
+    <NewArrivalsBar @refresh="load" />
     <!-- ── الرأس: العدد، وإنجاز اليوم، والاختصارات ── -->
     <header class="flex flex-wrap items-end justify-between gap-3 mb-4">
       <div>

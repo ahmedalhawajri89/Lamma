@@ -49,6 +49,7 @@ export const auth = {
 export const admin = {
   dashboard: (params) => client.get(`${v1}/admin/dashboard`, { params }),
   queue: () => client.get(`${v1}/admin/queue`),
+  since: () => client.get(`${v1}/admin/since`),
 
   orphans: {
     list: (params) => client.get(`${v1}/admin/orphans`, { params }),

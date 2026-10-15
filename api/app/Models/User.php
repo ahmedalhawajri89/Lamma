@@ -34,6 +34,7 @@ use Spatie\Permission\Traits\HasRoles;
  * @property UserStatus $status
  * @property Carbon|null $email_verified_at
  * @property Carbon|null $last_login_at
+ * @property Carbon|null $previous_login_at
  * @property Carbon|null $two_factor_confirmed_at
  */
 class User extends Authenticatable
@@ -70,6 +71,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'last_login_at' => 'datetime',
+            'previous_login_at' => 'datetime',
             'two_factor_confirmed_at' => 'datetime',
             'password' => 'hashed',
             'status' => UserStatus::class,

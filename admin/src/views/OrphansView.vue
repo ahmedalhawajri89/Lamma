@@ -16,6 +16,7 @@ import StatusBadge from '@/components/StatusBadge.vue'
 import FundingBar from '@/components/FundingBar.vue'
 import BaseIcon from '@/components/BaseIcon.vue'
 import OrphanFormModal from '@/components/OrphanFormModal.vue'
+import NewArrivalsBar from '@/components/NewArrivalsBar.vue'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -127,6 +128,7 @@ onMounted(loadReferences)
 
 <template>
   <div>
+    <NewArrivalsBar @refresh="load" />
     <PageHeader title="الأيتام" :subtitle="subtitle">
       <template #actions>
         <button class="btn btn-outline" type="button" :disabled="exporting || !meta.total" @click="exportCsv">

@@ -17,6 +17,7 @@ import { dateTime, num, relative } from '@/utils/format'
 import StatusTabs from '@/components/StatusTabs.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
 import BaseIcon from '@/components/BaseIcon.vue'
+import NewArrivalsBar from '@/components/NewArrivalsBar.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -175,6 +176,7 @@ const fromLabel = (m) => (m.sender_type === 'sponsor' ? 'من الكافل' : '�
 
 <template>
   <div class="flex flex-col lg:h-[calc(100dvh-4rem)]">
+    <NewArrivalsBar @refresh="load" />
     <header class="flex flex-wrap items-end justify-between gap-3 mb-3">
       <div>
         <h1 class="text-2xl font-bold text-sand-900">مراسلات الكفالات</h1>

@@ -67,6 +67,8 @@ class AuthController extends Controller
         }
 
         $user->forceFill([
+            // السابق يُحفظ قبل أن يُكتب الحالي: منه تُحسب «منذ آخر دخول»
+            'previous_login_at' => $user->last_login_at,
             'last_login_at' => now(),
             'last_login_ip' => $request->ip(),
         ])->saveQuietly();

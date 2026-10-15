@@ -158,6 +158,7 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
 
             Route::get('dashboard', Admin\DashboardController::class)->name('dashboard');
             Route::get('queue', [Admin\DashboardController::class, 'queue'])->name('queue');
+            Route::get('since', [Admin\DashboardController::class, 'since'])->name('since');
 
             /* --- الأيتام --- */
             Route::get('orphans', [Admin\OrphanController::class, 'index'])->name('orphans.index');

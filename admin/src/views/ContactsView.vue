@@ -16,6 +16,7 @@ import { dateTime, num, relative } from '@/utils/format'
 import StatusTabs from '@/components/StatusTabs.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
 import BaseIcon from '@/components/BaseIcon.vue'
+import NewArrivalsBar from '@/components/NewArrivalsBar.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -155,6 +156,7 @@ async function setStatus(status) {
 
 <template>
   <div class="flex flex-col lg:h-[calc(100dvh-4rem)]">
+    <NewArrivalsBar @refresh="load" />
     <header class="mb-3">
       <h1 class="text-2xl font-bold text-sand-900">استفسارات الزوار</h1>
       <p class="text-sm text-sand-500 mt-0.5">

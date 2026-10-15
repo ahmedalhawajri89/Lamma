@@ -12,6 +12,7 @@ use App\Http\Resources\OrphanResource;
 use App\Models\Orphan;
 use App\Models\User;
 use App\Services\MetricsService;
+use App\Services\SinceLastVisitService;
 use App\Services\TransparencyService;
 use App\Services\WorkQueueService;
 use Illuminate\Http\JsonResponse;
@@ -98,6 +99,14 @@ class DashboardController extends Controller
         $this->authorize('viewAny', Orphan::class);
 
         return response()->json(['data' => $this->queue->tasks($request->user())]);
+    }
+
+    /** «منذ آخر دخول»: ما جرى والموظف غائب، مما لا يدخل طابور مهامه. */
+    public function since(Request $request, SinceLastVisitService $service): JsonResponse
+    {
+        $this->authorize('viewAny', Orphan::class);
+
+        return response()->json(['data' => $service->for($request->user())]);
     }
 
     /** @return array<string, mixed> */

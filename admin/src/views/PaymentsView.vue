@@ -18,6 +18,7 @@ import StatusBadge from '@/components/StatusBadge.vue'
 import BaseIcon from '@/components/BaseIcon.vue'
 import PaymentFormModal from '@/components/PaymentFormModal.vue'
 import FormModal from '@/components/FormModal.vue'
+import NewArrivalsBar from '@/components/NewArrivalsBar.vue'
 
 const auth = useAuthStore()
 const ui = useUiStore()
@@ -108,6 +109,7 @@ const time = (v) => (v ? new Intl.DateTimeFormat('ar', { hour: '2-digit', minute
 
 <template>
   <div>
+    <NewArrivalsBar @refresh="load" />
     <PageHeader title="المدفوعات" :subtitle="loading && !meta.total ? 'جارٍ التحميل…' : `${num(meta.all_count ?? meta.total ?? 0)} دفعة`">
       <template #actions>
         <button class="btn btn-outline" type="button" :disabled="exporting || !meta.total" @click="exportCsv">

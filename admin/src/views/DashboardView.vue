@@ -22,6 +22,7 @@ import ChartCard from '@/components/ChartCard.vue'
 import FundingBar from '@/components/FundingBar.vue'
 import Sparkline from '@/components/Sparkline.vue'
 import BaseIcon from '@/components/BaseIcon.vue'
+import SinceLastVisit from '@/components/SinceLastVisit.vue'
 
 const ui = useUiStore()
 const auth = useAuthStore()
@@ -263,6 +264,9 @@ const retention = computed(() => data.value?.retention ?? {})
         </button>
       </div>
     </header>
+
+    <!-- ما جرى والموظف غائب: يظهر حتى يقول «اطّلعت» -->
+    <SinceLastVisit />
 
     <!-- ١. المؤشرات: شريط واحد بخلايا مفصولة -->
     <section class="card kpis mb-6" aria-label="المؤشرات الرئيسية">

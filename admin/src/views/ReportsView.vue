@@ -14,6 +14,7 @@ import StatusBadge from '@/components/StatusBadge.vue'
 import BaseIcon from '@/components/BaseIcon.vue'
 import ReportFormModal from '@/components/ReportFormModal.vue'
 import ReportReviewDrawer from '@/components/ReportReviewDrawer.vue'
+import NewArrivalsBar from '@/components/NewArrivalsBar.vue'
 
 const auth = useAuthStore()
 const route = useRoute()
@@ -138,6 +139,7 @@ function onSaved() {
 
 <template>
   <div>
+    <NewArrivalsBar @refresh="load" />
     <PageHeader title="التقارير الربعية" :subtitle="subtitle">
       <template #actions>
         <button

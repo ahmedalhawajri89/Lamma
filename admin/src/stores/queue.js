@@ -25,6 +25,10 @@ const MUTATION_DEBOUNCE = 500
 
 export const useQueueStore = defineStore('queue', () => {
   const tasks = ref([])
+  /** جُلبت المهام مرة على الأقل: قبلها لا يُقارَن بشيء (NewArrivalsBar) */
+  const loaded = ref(false)
+  /** يزيد بعد كل جلبٍ تلا إجراءً من الموظف نفسه: ما زاد حينها ليس «وصل» */
+  const ownChange = ref(0)
   let fetchedAt = 0
   let pending = null
   let known = null            // آخر أعداد معروفة لكل مهمة، للمقارنة
@@ -37,7 +41,9 @@ export const useQueueStore = defineStore('queue', () => {
 
     // بعد إجراء الموظف نفسه لا تنبيه: مسوّدته الجديدة ليست «وصلت»
     if (known && !quiet) {
-      const grew = list.filter((t) => t.count > (known[t.key] ?? 0))
+      // ما وصل إلى الشاشة المفتوحة يقوله شريطها («وصل جديد · اعرض»)، لا تنبيهٌ ثانٍ
+      const here = window.location.pathname.replace(/^\/admin(?=\/)/, '')
+      const grew = list.filter((t) => t.count > (known[t.key] ?? 0) && t.to?.path !== here)
       if (grew.length === 1) {
         const t = grew[0]
         useUiStore().toast(`وصل جديد: ${t.title} (${t.count - (known[t.key] ?? 0)})`, 'info', 5000)
@@ -51,6 +57,8 @@ export const useQueueStore = defineStore('queue', () => {
 
   function set(list, quiet = false) {
     tasks.value = list ?? []
+    loaded.value = true
+    if (quiet) ownChange.value++
     fetchedAt = Date.now()
     announce(tasks.value, quiet)
   }
@@ -110,9 +118,10 @@ export const useQueueStore = defineStore('queue', () => {
 
   function clear() {
     tasks.value = []
+    loaded.value = false
     fetchedAt = 0
     known = null
   }
 
-  return { tasks, countsByPath, refresh, set, clear, start, stop }
+  return { tasks, loaded, ownChange, countsByPath, refresh, set, clear, start, stop }
 })
