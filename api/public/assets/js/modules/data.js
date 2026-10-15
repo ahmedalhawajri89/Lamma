@@ -16,6 +16,7 @@
 
 import {
   fetchBootstrap,
+  fetchOrphan,
   fetchOrphans,
   fetchPosts,
   fetchTransparency,
@@ -433,8 +434,9 @@ export async function hydrate() {
    */
   const has = (selectors) => selectors.some((s) => document.querySelector(s) !== null);
 
+  // صفحة الأيتام (#catalogGrid) تطلب صفحتها بنفسها من الخادم، فلا تحتاج القائمة هنا
   const needsOrphans = has([
-    '#orphansGrid', '#homeOrphans', '#orphanDetail', '#similarOrphans', '#checkoutSummary',
+    '#homeOrphans', '#orphanDetail', '#similarOrphans', '#checkoutSummary',
   ]);
   const needsTransparency = has(['#spendingDonut', '#spendingLegend', '#financeBoard', '#proofBoard']);
   const needsPosts = has(['#postsGrid']);
@@ -460,6 +462,16 @@ export async function hydrate() {
   }
 
   if (orphans) ORPHANS = take(orphans, ORPHANS);
+
+  /**
+   * صفحة الطفل: إن لم يكن بين المحمَّلين (القائمة أول مئة، والفهرس يصفّح كل
+   * الأطفال) يُطلب برمزه قبل البناء. كانت الصفحة تعرض أول طفل مكانه بصمت.
+   */
+  const wanted = document.querySelector('#orphanDetail') && new URLSearchParams(window.location.search).get('id');
+  if (wanted && orphans && !ORPHANS.some((o) => o.id === wanted)) {
+    const one = await fetchOrphan(wanted).catch(() => null);
+    if (one) ORPHANS = [...ORPHANS, one];
+  }
   if (posts) POSTS = take(posts, POSTS);
 
   if (transparency) {

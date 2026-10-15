@@ -34,13 +34,13 @@ import { initForms, initCardInput, initPasswordStrength } from './modules/forms.
 import { initCheckout, initThankYou } from './modules/checkout.js';
 import {
   initImpactCalculator,
-  initOrphanFilters,
   initOrphanDetail,
   initPostDetail,
   initPostsPager,
   initResetPassword,
 } from './modules/features.js';
 import { renderHomeSections } from './modules/home.js';
+import { initCatalog } from './modules/catalog.js';
 import { initProofBoard, initCredentials, initFinanceBoard } from './modules/proof.js';
 import { initPortal } from './modules/portal.js';
 
@@ -54,7 +54,7 @@ function boot() {
   initProofBoard();
   initCredentials();
   initFinanceBoard();
-  initOrphanFilters();
+  initCatalog();
   initOrphanDetail();
   initCheckout();
   initPostDetail();

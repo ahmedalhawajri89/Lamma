@@ -8,46 +8,57 @@
 import { escapeHtml, formatMoney, arabicDigits, readingTime } from './utils.js';
 
 /**
- * بطاقة يتيم: ملف طفل مفتوح بلا صندوق.
- * صورة نظيفة، ثم الاسم والعمر والمدينة، وسطران من قصته، وسطر تغطية واحد،
- * ثم المبلغ. البطاقة كلها رابط واحد إلى ملفه (عبر رابط الاسم الممتد).
+ * بطاقة يتيم: من هو، وأين، وكم ينقصه، وزرّ واحد لكفالته.
+ *
+ * الصورة بنسبة 4:3 لا 5:4 طولاً: أغلب الملفات تصل بلا صورة بعد (تُرفع بعد
+ * موافقة الوصي)، وكان المربع الفارغ بحرفٍ واحد يأخذ ثلثي البطاقة. ولا نعيد
+ * استعمال صورة طفل آخر لسدّ الفراغ: تلك هي السياسة التي يعلنها الموقع.
+ *
+ * الاسم رابطٌ ممتد إلى ملفه (البطاقة كلها تُضغط)، وزرّ «اكفل» فوقه إلى الكفالة.
  */
+const TINTS = ['brand', 'cta', 'growth'];
+
 export function orphanCard(orphan, { delay = 0 } = {}) {
   const name = escapeHtml(orphan.name);
   const age = Number(orphan.age);
   const ageLabel = `${age} ${age >= 3 && age <= 10 ? 'سنوات' : 'سنة'}`;
-  const remaining = Math.max(0, Math.round((orphan.monthly * (100 - orphan.funded)) / 100));
+  const funded = Math.max(0, Math.min(100, Number(orphan.funded) || 0));
+  const remaining = Math.max(0, Math.round((orphan.monthly * (100 - funded)) / 100));
+  const id = encodeURIComponent(orphan.id);
+  // لونٌ ثابت لكل طفل من رمزه: البطاقات بلا صور لا تبدو نسخة واحدة
+  const tint = TINTS[[...String(orphan.id)].reduce((n, c) => n + c.charCodeAt(0), 0) % TINTS.length];
 
-  /**
-   * الحالة قد تصل بلا صورة، وهذا وضعٌ مشروع لا خطأ: الملف يُنشأ ميدانياً
-   * وتُرفع صورته لاحقاً بعد موافقة الوصي. ولا نعيد استعمال صورة طفل آخر
-   * لسدّ الفراغ، فتلك هي السياسة نفسها التي يعلنها الموقع.
-   */
   const media = orphan.photo
-    ? `<img class="kid__img" src="${escapeHtml(orphan.photo)}" alt="" loading="lazy" width="400" height="500">`
-    : `<span class="kid__img kid__img--empty" aria-hidden="true">${escapeHtml(orphan.name.charAt(0))}</span>`;
+    ? `<img class="kid__img" src="${escapeHtml(orphan.photo)}" alt="" loading="lazy" width="400" height="300">`
+    : `<span class="kid__img kid__img--empty kid__img--${tint}" aria-hidden="true">
+         <span class="kid__initial">${escapeHtml(orphan.name.charAt(0))}</span>
+       </span>`;
 
   return `
 <article class="kid" data-reveal data-reveal-delay="${delay}">
-  <div class="kid__media">${media}</div>
+  <div class="kid__media">
+    ${media}
+    ${orphan.urgent ? '<span class="kid__flag">حالة عاجلة</span>' : ''}
+  </div>
 
   <div class="kid__body">
-    ${orphan.urgent ? '<p class="kid__urgent">حالة عاجلة</p>' : ''}
     <h3 class="kid__name">
-      <a href="orphan.html?id=${encodeURIComponent(orphan.id)}">${name}</a><span>، ${ageLabel}</span>
+      <a href="orphan.html?id=${id}">${name}</a><span class="kid__age">${ageLabel}</span>
     </h3>
-    <p class="kid__place">${escapeHtml(orphan.city)}، ${escapeHtml(orphan.country)}</p>
-    <p class="kid__story">${escapeHtml(orphan.story ?? '')}</p>
+    <p class="kid__place"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> ${escapeHtml(orphan.city ?? '')}${orphan.city ? '، ' : ''}${escapeHtml(orphan.country ?? '')}</p>
 
     <div class="kid__fund">
-      <span class="kid__track" style="--v:${Number(orphan.funded)}%"><span></span></span>
-      <span>مكفول <b class="num">${Number(orphan.funded)}٪</b>، ويتبقى <b class="num">$${remaining}</b> في الشهر</span>
+      <div class="kid__fund-row">
+        <span>مكفول <b class="num">${funded}%</b></span>
+        <span>${remaining ? `ينقصه <b class="num">$${remaining}</b> شهرياً` : '<b>مكفول بالكامل</b>'}</span>
+      </div>
+      <span class="kid__track" style="--v:${funded}%"><span></span></span>
     </div>
 
-    <p class="kid__foot">
-      <span><strong class="num">${formatMoney(orphan.monthly)}</strong> في الشهر</span>
-      <span class="kid__cta" aria-hidden="true">اكفل ${name} <i class="fa-solid fa-arrow-left"></i></span>
-    </p>
+    <div class="kid__foot">
+      <span class="kid__price"><strong class="num">${formatMoney(orphan.monthly)}</strong><small>في الشهر</small></span>
+      <a class="btn btn--primary kid__cta" href="checkout.html?id=${id}">اكفل ${name}</a>
+    </div>
   </div>
 </article>`;
 }

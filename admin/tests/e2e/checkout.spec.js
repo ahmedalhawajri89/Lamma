@@ -47,7 +47,9 @@ test.describe('الكفالة من الموقع', () => {
     await page.waitForURL(/thank-you\.html\?ref=KFS-/, { timeout: 25_000 })
     await expect(page.locator('[data-thanks-when="paid"]').first()).toBeVisible()
     await expect(page.locator('[data-thanks="cycle"]').first()).toHaveText('سنوياً')
-    await expect(page.locator('[data-thanks="amount"]').first()).toContainText((monthly * 12).toFixed(2))
+    // القيمة لا شكلها: formatMoney يكتب المبلغ الصحيح بلا كسور («$780» لا «780.00»)
+    await expect.poll(async () => Number((await page.locator('[data-thanks="amount"]').first().innerText()).replace(/[^\d.]/g, '')))
+      .toBeCloseTo(monthly * 12, 2)
     await expect(page.locator('[data-thanks="receipt"]').first()).toHaveText(/RCP-/)
     await expect(page.locator('[data-thanks-when="account"]')).toBeVisible()
 

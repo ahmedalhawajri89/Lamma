@@ -43,7 +43,7 @@
 
   <main id="main">
 
-    <section class="page-hero">
+    <section class="page-hero page-hero--compact">
       <div class="container">
         <div class="page-hero__inner">
           <nav aria-label="مسار التنقل">
@@ -54,62 +54,124 @@
           </nav>
           <h1 class="page-hero__title">أطفال ينتظرون كافلاً</h1>
           <p class="page-hero__lede">
-            كل حالة هنا مرّت بثلاث مراحل تحقّق وزيارة ميدانية غير معلنة.
-            رتّبناها بحيث تظهر الأشد احتياجاً أولاً.
+            كل طفل هنا زاره مشرفنا في بيته، وتحقّقت لجنة مستقلة من أوراقه.
+            اختر بالبرنامج أو العمر أو البلد، أو ابدأ بالأشد احتياجاً.
           </p>
         </div>
       </div>
     </section>
 
-    <section class="section section--catalog">
-      <div class="container">
-
-        <!-- شريط الفلترة -->
-        <div class="finder" role="search" aria-label="تصفية الأطفال">
-          <div class="finder__programs" role="radiogroup" aria-label="البرنامج" id="filterProgram">
-            <button class="chip" type="button" role="radio" aria-checked="true" data-value="">الكل</button>
+    <section class="section section--catalog" id="catalogTop">
+      <div class="container catalog">
+        <!-- ══ الفلاتر: عمود ثابت على الشاشة العريضة ══ -->
+        <aside class="filters" aria-label="تصفية الأطفال" data-filters>
+          <div class="filters__head">
+            <h2 class="filters__title">تصفية</h2>
+            <button type="button" class="filters__reset" data-reset>مسح الكل</button>
           </div>
-
-          <div class="finder__row">
-            <div class="field finder__search">
-              <label class="sr-only" for="orphanSearch">ابحث بالاسم أو الدولة</label>
+            <div class="filters__search field">
+              <label class="sr-only" for="catalogSearch">ابحث بالاسم أو المدينة</label>
               <div class="field__control">
                 <i class="fa-solid fa-magnifying-glass field__icon" aria-hidden="true"></i>
-                <input class="input" type="search" id="orphanSearch"
-                       placeholder="ابحث بالاسم أو الدولة أو المدينة" autocomplete="off">
+                <input class="input" type="search" id="catalogSearch" data-filter-search placeholder="اسم، مدينة، أو رمز KFL" autocomplete="off">
               </div>
             </div>
 
-            <div class="field">
-              <label class="sr-only" for="filterCountry">الدولة</label>
-              <select class="select" id="filterCountry">
-                <option value="">كل الدول</option>
-              </select>
-            </div>
+            <button type="button" class="urgent-toggle" role="switch" aria-checked="false" data-filter="urgent" data-value="1">
+              <span class="urgent-toggle__text"><span class="urgent-toggle__dot" aria-hidden="true"></span>الحالات العاجلة فقط</span>
+              <span class="urgent-toggle__count num" data-urgent-count>0</span>
+            </button>
 
-            <div class="field">
-              <label class="sr-only" for="filterSort">الترتيب</label>
-              <select class="select" id="filterSort">
-                <option value="urgent">الأشد احتياجاً</option>
-                <option value="funded-asc">الأقل تغطية</option>
-                <option value="price-asc">الأقل مبلغاً</option>
-                <option value="price-desc">الأعلى مبلغاً</option>
-                <option value="age-asc">الأصغر سناً</option>
-              </select>
+            <fieldset class="filters__group">
+              <legend>البرنامج</legend>
+              <ul data-group="program"></ul>
+            </fieldset>
+            <fieldset class="filters__group">
+              <legend>الجنس</legend>
+              <ul class="filters__row" data-group="gender"></ul>
+            </fieldset>
+            <fieldset class="filters__group">
+              <legend>العمر</legend>
+              <ul data-group="age"></ul>
+            </fieldset>
+            <fieldset class="filters__group">
+              <legend>الدولة</legend>
+              <ul class="filters__scroll" data-group="country"></ul>
+            </fieldset>
+        </aside>
+
+        <!-- ══ النتائج ══ -->
+        <div class="catalog__main">
+          <div class="catalog__bar">
+            <p class="catalog__count" role="status" aria-live="polite">
+              <span id="catalogCount"><strong class="num">0</strong> طفلاً</span>
+              <span class="catalog__range num" id="catalogRange"></span>
+            </p>
+            <div class="catalog__tools">
+              <button type="button" class="btn btn--outline catalog__open-filters" id="openFilters">
+                <i class="fa-solid fa-sliders" aria-hidden="true"></i> الفلاتر
+                <span class="badge-count num" data-active-count hidden></span>
+              </button>
+              <label class="catalog__sort">
+                <span>ترتيب</span>
+                <select class="select" id="catalogSort"></select>
+              </label>
             </div>
           </div>
+          <div class="active-filters" id="activeFilters" hidden></div>
 
-          <p class="finder__status" role="status" aria-live="polite">
-            <span><strong class="num" id="orphanCount">0</strong> <span id="orphanCountLabel">طفلاً ينتظرون كافلاً</span></span>
-            <button class="finder__reset" type="button" id="filterReset" hidden>إزالة الفلاتر</button>
-          </p>
+          <h2 class="sr-only">الأطفال المتاحون للكفالة</h2>
+          <div class="kids kids--catalog" id="catalogGrid" aria-busy="true">
+            <div class="kid-skeleton"></div><div class="kid-skeleton"></div><div class="kid-skeleton"></div>
+            <div class="kid-skeleton"></div><div class="kid-skeleton"></div><div class="kid-skeleton"></div>
+          </div>
+
+          <nav class="pager" id="catalogPager" aria-label="صفحات النتائج" hidden></nav>
         </div>
-
-        <!-- الشبكة -->
-        <h2 class="sr-only">نتائج الحالات المتاحة للكفالة</h2>
-        <div class="kids" id="orphansGrid"></div>
-
       </div>
+
+      <!-- ══ الفلاتر على الجوال: لوحة من الأسفل ══ -->
+      <dialog class="filter-sheet" id="filterSheet" aria-label="تصفية الأطفال">
+        <div class="filter-sheet__inner" data-filters>
+          <div class="filters__head">
+            <h2 class="filters__title">تصفية</h2>
+            <button type="button" class="filter-sheet__close" data-close-sheet aria-label="إغلاق"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+          </div>
+            <div class="filters__search field">
+              <label class="sr-only" for="catalogSearchSheet">ابحث بالاسم أو المدينة</label>
+              <div class="field__control">
+                <i class="fa-solid fa-magnifying-glass field__icon" aria-hidden="true"></i>
+                <input class="input" type="search" id="catalogSearchSheet" data-filter-search placeholder="اسم، مدينة، أو رمز KFL" autocomplete="off">
+              </div>
+            </div>
+
+            <button type="button" class="urgent-toggle" role="switch" aria-checked="false" data-filter="urgent" data-value="1">
+              <span class="urgent-toggle__text"><span class="urgent-toggle__dot" aria-hidden="true"></span>الحالات العاجلة فقط</span>
+              <span class="urgent-toggle__count num" data-urgent-count>0</span>
+            </button>
+
+            <fieldset class="filters__group">
+              <legend>البرنامج</legend>
+              <ul data-group="program"></ul>
+            </fieldset>
+            <fieldset class="filters__group">
+              <legend>الجنس</legend>
+              <ul class="filters__row" data-group="gender"></ul>
+            </fieldset>
+            <fieldset class="filters__group">
+              <legend>العمر</legend>
+              <ul data-group="age"></ul>
+            </fieldset>
+            <fieldset class="filters__group">
+              <legend>الدولة</legend>
+              <ul class="filters__scroll" data-group="country"></ul>
+            </fieldset>
+        </div>
+        <div class="filter-sheet__foot">
+          <button type="button" class="btn btn--ghost" data-reset>مسح الكل</button>
+          <button type="button" class="btn btn--primary" data-close-sheet>اعرض <span class="num" data-sheet-total>0</span> طفلاً</button>
+        </div>
+      </dialog>
     </section>
 
     <!-- طمأنة -->

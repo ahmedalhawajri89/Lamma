@@ -3,7 +3,7 @@
  * حاسبة الأثر، وفلترة الأيتام، وصفحة تفاصيل اليتيم.
  */
 
-import { $, $$, formatNumber, escapeHtml, debounce, arabicDigits, readingTime } from './utils.js';
+import { $, $$, formatNumber, escapeHtml, arabicDigits, readingTime } from './utils.js';
 import { ORPHANS, IMPACT_TIERS, PROGRAMS, getProgram } from './data.js';
 import { orphanCard, postCard } from './render.js';
 import { fetchPost, fetchPostsPage } from './api.js';
@@ -58,130 +58,35 @@ export function initImpactCalculator() {
 }
 
 /* =========================================================================
-   2. فلترة الأيتام
+   2. فلترة الأيتام: انتقلت إلى catalog.js (فلترة وتصفيح على الخادم)
    ========================================================================= */
-export function initOrphanFilters() {
-  const grid = $('#orphansGrid');
-  if (!grid) return;
-
-  const search = $('#orphanSearch');
-  const programSelect = $('#filterProgram');
-  const countrySelect = $('#filterCountry');
-  const sortSelect = $('#filterSort');
-  const countEl = $('#orphanCount');
-  const resetBtn = $('#filterReset');
-
-  /* --- تعبئة قوائم الفلترة من البيانات --- */
-  // البرامج أزرار ظاهرة بدل قائمة منسدلة: هي أهم اختيار في الصفحة
-  if (programSelect) {
-    programSelect.insertAdjacentHTML('beforeend', PROGRAMS
-      .map((p) => `<button class="chip" type="button" role="radio" aria-checked="false"
-                    data-value="${escapeHtml(p.id)}">${escapeHtml(p.name)}</button>`)
-      .join(''));
-  }
-
-  const chips = programSelect ? $$('.chip', programSelect) : [];
-  let program = '';
-
-  const setProgram = (value) => {
-    program = value;
-    chips.forEach((chip) => {
-      const on = chip.dataset.value === value;
-      chip.setAttribute('aria-checked', String(on));
-      chip.tabIndex = on ? 0 : -1;
-    });
-  };
-
-  if (countrySelect) {
-    const countries = [...new Set(ORPHANS.map((o) => o.country))].sort();
-    countrySelect.insertAdjacentHTML('beforeend', countries
-      .map((c) => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`)
-      .join(''));
-  }
-
-  /* --- قراءة الفلتر الأولي من الرابط (قادم من صفحة البرامج) --- */
-  const params = new URLSearchParams(window.location.search);
-  const initialProgram = params.get('program');
-  setProgram(initialProgram && getProgram(initialProgram) ? initialProgram : '');
-
-  const SORTERS = {
-    urgent: (a, b) => Number(b.urgent) - Number(a.urgent) || a.funded - b.funded,
-    'funded-asc': (a, b) => a.funded - b.funded,
-    'price-asc': (a, b) => a.monthly - b.monthly,
-    'price-desc': (a, b) => b.monthly - a.monthly,
-    'age-asc': (a, b) => a.age - b.age,
-  };
-
-  const apply = () => {
-    const query = (search?.value || '').trim().toLowerCase();
-    const country = countrySelect?.value || '';
-    const sort = sortSelect?.value || 'urgent';
-
-    const results = ORPHANS
-      .filter((o) => {
-        if (program && o.program !== program) return false;
-        if (country && o.country !== country) return false;
-        if (!query) return true;
-        return `${o.name} ${o.country} ${o.city} ${o.dream}`.toLowerCase().includes(query);
-      })
-      .sort(SORTERS[sort] || SORTERS.urgent);
-
-    if (countEl) countEl.textContent = formatNumber(results.length);
-    const label = $('#orphanCountLabel');
-    if (label) label.textContent = results.length === 1 ? 'طفل ينتظر كافلاً' : 'طفلاً ينتظرون كافلاً';
-    if (resetBtn) resetBtn.hidden = !(query || program || country || sort !== 'urgent');
-
-    grid.innerHTML = results.length
-      ? results.map((o, i) => orphanCard(o, { delay: i * 60 })).join('')
-      : `<div class="empty-state full-bleed">
-           <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-           <h3>لا توجد نتائج مطابقة</h3>
-           <p>جرّب توسيع البحث أو إزالة بعض الفلاتر.</p>
-         </div>`;
-
-    // البطاقات جديدة في الصفحة، فنعيد تشغيل حركاتها
-    initReveal();
-  };
-
-  search?.addEventListener('input', debounce(apply, 220));
-  [countrySelect, sortSelect].forEach((el) => el?.addEventListener('change', apply));
-
-  chips.forEach((chip, i) => {
-    chip.addEventListener('click', () => { setProgram(chip.dataset.value); apply(); });
-    // الأسهم تنقل بين الأزرار كمجموعة اختيار واحد
-    chip.addEventListener('keydown', (e) => {
-      const step = { ArrowLeft: 1, ArrowRight: -1 }[e.key];
-      if (step === undefined) return;
-      e.preventDefault();
-      const next = chips[(i + step + chips.length) % chips.length];
-      setProgram(next.dataset.value);
-      next.focus();
-      apply();
-    });
-  });
-
-  resetBtn?.addEventListener('click', () => {
-    if (search) search.value = '';
-    setProgram('');
-    if (countrySelect) countrySelect.value = '';
-    if (sortSelect) sortSelect.value = 'urgent';
-    apply();
-  });
-
-  apply();
-}
 
 /* =========================================================================
    3. صفحة تفاصيل اليتيم
-   تقرأ المعرّف من الرابط وتملأ الصفحة، وتعود لأول حالة إن كان الرابط خاطئاً.
+   تقرأ المعرّف من الرابط وتملأ الصفحة.
+
+   كانت تبحث في الأطفال المحمَّلين مع الصفحة (أول مئة)، وإن لم تجد عرضت
+   **أول طفل** بصمت: رابطُ «سارة» يفتح ملف «كرم» ويُكفل كرم. الآن يُطلب من
+   الخادم برمزه قبل البناء إن لم يكن محمَّلاً، ورابطٌ لا طفل له يقول ذلك.
    ========================================================================= */
 export function initOrphanDetail() {
   const root = $('#orphanDetail');
   if (!root) return;
 
+  // إن لم يكن محمَّلاً طلبه hydrate() برمزه قبل البناء (data.js)
   const id = new URLSearchParams(window.location.search).get('id');
-  const orphan = ORPHANS.find((o) => o.id === id) || ORPHANS[0];
-  const program = getProgram(orphan.program);
+  // بلا رمز في الرابط: أول طفل (صفحة تجريبية تُفتح مباشرة)؛ ورمزٌ لا طفل له: «لم نجد»
+  const orphan = id ? ORPHANS.find((o) => o.id === id) : ORPHANS[0];
+  if (!orphan) {
+    root.innerHTML = `<div class="container section"><div class="empty-state">
+      <i class="fa-solid fa-child" aria-hidden="true"></i>
+      <h1>لم نجد هذا الطفل</h1>
+      <p>ربما كُفل كاملاً أو تغيّر رابطه. الأطفال الذين ينتظرون كافلاً في صفحتهم.</p>
+      <a class="btn btn--primary" href="orphans.html">كل الأطفال</a></div></div>`;
+    document.title = 'لم نجد هذا الطفل | كفالة';
+    return;
+  }
+  const program = getProgram(orphan.program) ?? { name: '' };
 
   /** يملأ كل عنصر يحمل data-field بالقيمة المناسبة — نصاً لا HTML. */
   const age = Number(orphan.age);
