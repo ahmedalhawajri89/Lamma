@@ -257,6 +257,13 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
             Route::get('posts/{post:id}', [Admin\ContentController::class, 'showPost'])->name('posts.show');
             Route::match(['put', 'patch'], 'posts/{post:id}', [Admin\ContentController::class, 'updatePost'])->name('posts.update');
 
+            // وثائق صفحة الشفافية: PDF يُرفع ويُستبدل ويُحذف
+            Route::get('transparency-documents', [Admin\TransparencyDocumentController::class, 'index'])->name('transparency-documents.index');
+            Route::post('transparency-documents', [Admin\TransparencyDocumentController::class, 'store'])
+                ->middleware('throttle:20,1')
+                ->name('transparency-documents.store');
+            Route::delete('transparency-documents/{document}', [Admin\TransparencyDocumentController::class, 'destroy'])->name('transparency-documents.destroy');
+
             // نوع واحد من ثلاثة: faqs أو testimonials أو partners
             Route::whereIn('type', ['faqs', 'testimonials', 'partners'])->group(function (): void {
                 Route::get('content/{type}', [Admin\ContentController::class, 'simple'])->name('content.index');

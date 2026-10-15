@@ -105,25 +105,7 @@ class FinanceDashboardService
                 'no_receipt_month' => (clone $disbMonth)->whereNull('receipt_path')->count(),
             ],
 
-            'overhead' => $this->overhead($now->year),
-        ];
-    }
-
-    /** نسبة التشغيل هذا العام مقابل هدفها: الحساب نفسه في شاشة الإعدادات */
-    private function overhead(int $year): array
-    {
-        $approved = Disbursement::approved()->whereYear('spent_on', $year);
-        $total = (float) (clone $approved)->sum('amount_base');
-        $overhead = (float) (clone $approved)
-            ->join('disbursement_categories as c', 'c.id', '=', 'disbursements.category_id')
-            ->where('c.is_overhead', true)
-            ->sum('disbursements.amount_base');
-
-        return [
-            'year' => $year,
-            'actual' => $total > 0 ? round($overhead * 100 / $total, 1) : null,
-            'target' => (int) (Setting::cached()['finance.overhead_target_percent'] ?? 7),
-            'year_total' => round($total, 2),
+            'overhead' => app(TransparencyService::class)->overhead($now->year),
         ];
     }
 

@@ -10,6 +10,7 @@ use App\Models\FieldVisit;
 use App\Models\Orphan;
 use App\Models\Setting;
 use App\Models\Sponsorship;
+use App\Models\TransparencyDocument;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
@@ -129,5 +130,73 @@ class TransparencyService
             'balance' => round($income - $spent, 2),
             'breakdown' => $this->spendingBreakdown($year),
         ];
+    }
+
+    /**
+     * نسبة التشغيل في سنة مقابل هدفها.
+     *
+     * مصدرٌ واحد للرقم في صفحة الشفافية ولوحة المحاسب والإعدادات: كانت
+     * الصفحة العامة تكتب «٧٪» بيدها والفعلي 6.9.
+     *
+     * @return array{year: int, actual: ?float, target: int, year_total: float}
+     */
+    public function overhead(int $year): array
+    {
+        $approved = Disbursement::approved()->whereYear('spent_on', $year);
+        $total = (float) (clone $approved)->sum('amount_base');
+        $overhead = (float) (clone $approved)
+            ->join('disbursement_categories as c', 'c.id', '=', 'disbursements.category_id')
+            ->where('c.is_overhead', true)
+            ->sum('disbursements.amount_base');
+
+        return [
+            'year' => $year,
+            'actual' => $total > 0 ? round($overhead * 100 / $total, 1) : null,
+            'target' => (int) (Setting::cached()['finance.overhead_target_percent'] ?? 7),
+            'year_total' => round($total, 2),
+        ];
+    }
+
+    /**
+     * الدخل والصرف شهراً بشهر لآخر اثني عشر شهراً، من المؤشرات اليومية نفسها
+     * التي تقرؤها لوحة الإدارة.
+     *
+     * @return array<int, array{month: string, income: float, spent: float}>
+     */
+    public function monthly(): array
+    {
+        return collect(app(MetricsService::class)->monthlySeries(12))
+            ->map(fn ($m) => ['month' => $m['month'], 'income' => (float) $m['revenue'], 'spent' => (float) $m['disbursed']])
+            ->values()
+            ->all();
+    }
+
+    /** السنوات التي فيها مال: من أول دفعة ناجحة حتى هذه السنة @return array<int, int> */
+    public function years(): array
+    {
+        return Cache::remember('transparency.years', self::CACHE_TTL, function (): array {
+            $first = DB::table('payments')->where('status', 'succeeded')->min('paid_at');
+            $from = $first ? (int) substr((string) $first, 0, 4) : (int) now()->year;
+
+            return range((int) now()->year, $from);
+        });
+    }
+
+    /**
+     * الوثائق المنشورة: الأحدث من كل نوع، بروابطها.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function documents(): array
+    {
+        return Cache::remember('transparency.documents', self::CACHE_TTL, fn (): array => TransparencyDocument::query()
+            ->orderBy('kind')
+            ->orderByRaw('year IS NULL')
+            ->orderByDesc('year')
+            ->get()
+            ->unique('kind')
+            ->map(fn (TransparencyDocument $d) => $d->toPublic())
+            ->values()
+            ->all());
     }
 }
