@@ -250,12 +250,14 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
              * معرّفاً رقمياً فيردّ ٤٠٤ — ولا شيء في المسار يشي بالسبب.
              * والمعرّف أصحّ هنا على أي حال: عنوان اللوحة ليس رابطاً يُشارَك.
              */
+            Route::get('posts/{post:id}', [Admin\ContentController::class, 'showPost'])->name('posts.show');
             Route::match(['put', 'patch'], 'posts/{post:id}', [Admin\ContentController::class, 'updatePost'])->name('posts.update');
 
             // نوع واحد من ثلاثة: faqs أو testimonials أو partners
             Route::whereIn('type', ['faqs', 'testimonials', 'partners'])->group(function (): void {
                 Route::get('content/{type}', [Admin\ContentController::class, 'simple'])->name('content.index');
                 Route::post('content/{type}', [Admin\ContentController::class, 'storeSimple'])->name('content.store');
+                Route::post('content/{type}/reorder', [Admin\ContentController::class, 'reorderSimple'])->name('content.reorder');
                 Route::match(['put', 'patch'], 'content/{type}/{id}', [Admin\ContentController::class, 'updateSimple'])->name('content.update');
                 Route::delete('content/{type}/{id}', [Admin\ContentController::class, 'destroySimple'])->name('content.destroy');
             });

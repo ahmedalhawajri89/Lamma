@@ -123,6 +123,13 @@ const routes = [
     meta: { group: 'comms', title: 'محتوى الموقع', icon: 'globe', permission: 'content.manage' },
   },
   {
+    // محرّر المقال صفحةً كاملة: `new` للجديد، والمعرّف للتحرير
+    path: '/content/posts/:id',
+    name: 'post-editor',
+    component: () => import('@/views/PostEditorView.vue'),
+    meta: { title: 'محرّر المقال', permission: 'content.manage', hidden: true },
+  },
+  {
     path: '/settings',
     name: 'settings',
     component: () => import('@/views/SettingsView.vue'),

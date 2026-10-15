@@ -34,17 +34,44 @@ class ContentController extends Controller
     {
         abort_unless($request->user()->can('content.manage'), 403);
 
-        $posts = Post::query()
+        $base = Post::query()
+            ->when($request->filled('category_id'), fn ($q) => $q->where('category_id', $request->integer('category_id')))
+            ->when($request->filled('q'), fn ($q) => $q->where(function ($w) use ($request): void {
+                $term = addcslashes($request->string('q')->toString(), '%_\\');
+                $w->where('title', 'like', "%{$term}%")->orWhere('excerpt', 'like', "%{$term}%");
+            }));
+
+        $posts = (clone $base)
             ->with(['category:id,name_ar', 'author:id,name'])
             ->when($request->filled('status'), fn ($q) => $q->where('status', $request->string('status')))
             ->latest('created_at')
             ->paginate($this->perPage($request, 20));
 
+        $counts = (clone $base)->toBase()->select('status', \Illuminate\Support\Facades\DB::raw('COUNT(*) as n'))
+            ->groupBy('status')->pluck('n', 'status')->map(fn ($n) => (int) $n);
+
         return response()->json([
             'data' => PostResource::collection($posts->items()),
             'meta' => [
                 'total' => $posts->total(), 'current_page' => $posts->currentPage(), 'last_page' => $posts->lastPage(),
-                // للقائمة المنسدلة في نافذة التحرير، والحالات من الـ enum نفسه
+                'status_counts' => $counts,
+                'all_count' => $counts->sum(),
+                // للقائمة المنسدلة في المحرّر، والحالات من الـ enum نفسه
+                'categories' => \App\Models\PostCategory::orderBy('sort_order')->get(['id', 'name_ar'])
+                    ->map(fn ($c) => ['id' => $c->id, 'name' => $c->name_ar]),
+                'statuses' => PostStatus::options(),
+            ],
+        ]);
+    }
+
+    /** مقالٌ واحد بنصّه كاملاً، لصفحة المحرّر */
+    public function showPost(Request $request, Post $post): JsonResponse
+    {
+        abort_unless($request->user()->can('content.manage'), 403);
+
+        return response()->json([
+            'data' => new PostResource($post->load(['category:id,name_ar', 'author:id,name'])),
+            'meta' => [
                 'categories' => \App\Models\PostCategory::orderBy('sort_order')->get(['id', 'name_ar'])
                     ->map(fn ($c) => ['id' => $c->id, 'name' => $c->name_ar]),
                 'statuses' => PostStatus::options(),
@@ -166,6 +193,38 @@ class ContentController extends Controller
         $this->flushPublic();
 
         return response()->json(['message' => 'حُفظت التعديلات.', 'data' => $item->fresh()]);
+    }
+
+    /**
+     * ترتيب العناصر بالسحب أو بالأسهم: تُرسل المعرّفات بترتيبها الجديد.
+     * كان الترتيب رقماً يُكتب في كل عنصر على حدة، فتبديل اثنين يعني
+     * تحرير الاثنين وتخمين رقمين لا يتصادمان مع غيرهما.
+     */
+    public function reorderSimple(Request $request, string $type): JsonResponse
+    {
+        abort_unless($request->user()->can('content.manage'), 403);
+
+        $model = $this->modelFor($type);
+        $validated = $request->validate([
+            'ids' => ['required', 'array', 'min:1', 'max:500'],
+            'ids.*' => ['integer', 'distinct'],
+        ]);
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($model, $validated): void {
+            foreach ($validated['ids'] as $position => $id) {
+                $model::whereKey($id)->update(['sort_order' => $position + 1]);
+            }
+        });
+
+        activity()->causedBy($request->user())->event('reordered')
+            ->withProperties(['type' => $type, 'ids' => $validated['ids']])
+            ->log('أعاد ترتيب عناصر محتوى');
+        $this->flushPublic();
+
+        return response()->json([
+            'message' => 'حُفظ الترتيب.',
+            'data' => $model::query()->orderBy('sort_order')->get(),
+        ]);
     }
 
     public function destroySimple(Request $request, string $type, int $id): JsonResponse

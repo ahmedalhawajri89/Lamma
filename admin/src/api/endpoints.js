@@ -193,6 +193,8 @@ export const admin = {
 
   posts: {
     list: (params) => client.get(`${v1}/admin/posts`, { params }),
+    /** مقالٌ واحد بنصّه، مع التصنيفات والحالات للمحرّر */
+    show: (id) => client.get(`${v1}/admin/posts/${id}`),
 
     /**
      * الغلاف صورة، فالإنشاء `multipart` عند وجودها وJSON بدونها.
@@ -221,6 +223,8 @@ export const admin = {
     create: (type, payload) => client.post(`${v1}/admin/content/${type}`, payload),
     update: (type, id, payload) => client.patch(`${v1}/admin/content/${type}/${id}`, payload),
     remove: (type, id) => client.delete(`${v1}/admin/content/${type}/${id}`),
+    /** الترتيب الجديد كاملاً: المعرّفات بترتيبها */
+    reorder: (type, ids) => client.post(`${v1}/admin/content/${type}/reorder`, { ids }),
   },
   contacts: (params) => client.get(`${v1}/admin/contacts`, { params }),
   updateContact: (id, status) => client.patch(`${v1}/admin/contacts/${id}`, { status }),

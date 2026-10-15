@@ -703,61 +703,48 @@ test.describe('الإعدادات', () => {
  */
 test.describe('محتوى الموقع', () => {
   test('مسوّدة ← نشر ← تظهر على الموقع بنصّها كاملاً', async ({ page }) => {
+    const SITE = process.env.E2E_SITE ?? 'http://127.0.0.1:8000'
     await login(page)
     await page.goto('/content')
-
     await expect(page.locator('[role=tab]')).toHaveCount(4)
-    await tableReady(page)
-    await page.waitForTimeout(1000)
 
+    // المقال يُكتب في صفحة محرّر كاملة لا في نافذة
     const title = `مقال اختباري ${Date.now().toString().slice(-6)}`
     await page.getByRole('button', { name: 'مقال جديد' }).click()
+    await page.waitForURL(/\/content\/posts\/new/)
 
-    await fill(page, 'العنوان', title)
-    await fill(page, 'المقتطف', 'مقتطف قصير.')
-    await fill(page, 'النصّ', ['الفقرة الأولى.', 'الفقرة الثانية.', 'والثالثة.'].join('\n\n'))
-    await page.setInputFiles('#coverFile', sampleImage())
+    await page.locator('#postTitle').fill(title)
+    await page.locator('#postExcerpt').fill('مقتطف قصير.')
+    await page.locator('#postBody').fill(['الفقرة الأولى.', 'الفقرة الثانية.', 'والثالثة.'].join('\n\n'))
+    await page.locator('input[type=file]').setInputFiles(sampleImage())
 
-    // زمن القراءة يُقترح من طول النصّ — رقمٌ يُكتب باليد يكذب أول تحرير
-    await expect.poll(() => field(page, 'زمن القراءة')).not.toBe('')
+    // العدّ والمعاينة بقواعد الموقع: ثلاث فقرات
+    await expect(page.getByText(/3 فقرة/)).toBeVisible()
+    await page.getByRole('tab', { name: /معاينة/ }).click()
+    await expect(page.locator('article p.whitespace-pre-line')).toHaveCount(3)
 
-    await page.getByRole('button', { name: 'حفظ' }).click()
-    await expect(page.locator('[role=dialog]')).toBeHidden({ timeout: 25_000 })
-
-    await expect(page.locator('table tbody tr', { hasText: title }).first())
-      .toBeVisible({ timeout: 20_000 })
+    await page.getByRole('button', { name: /^حفظ/ }).click()
+    await page.waitForURL(/\/content\/posts\/\d+/, { timeout: 25_000 })
+    const editorUrl = page.url()
 
     /**
      * المسوّدة لا تظهر على الموقع.
      *
-     * وهذا نصف الاختبار: النصف الآخر أنها تظهر بعد النشر — ولو غاب أحدهما
+     * وهذا نصف الاختبار: النصف الآخر أنها تظهر بعد النشر، ولو غاب أحدهما
      * لمرّ عيبٌ يجعل كل مقال ظاهراً أو كلّه مخفياً.
      */
-    await page.goto(`${process.env.E2E_SITE ?? 'http://127.0.0.1:8000'}/blog`)
+    await page.goto(`${SITE}/blog`)
     await expect(page.locator('.post-card').first()).toBeVisible({ timeout: 20_000 })
     await expect(page.locator('.post-card', { hasText: title })).toHaveCount(0)
 
-    // ── النشر من نافذة التحرير ──
-    await page.goto('/content')
-    await expect(page.locator('table tbody tr', { hasText: title }).first())
-      .toBeVisible({ timeout: 20_000 })
-    await page.locator('table tbody tr', { hasText: title }).first().locator('td').first().click()
-
-    /**
-     * النصّ يصل نافذة التحرير.
-     *
-     * كان `PostResource` يحجب `body` عن كل ما ليس `*.show`، فتفتح النافذة
-     * بحقلٍ فارغ وتحفظه فارغاً: من فتح مقالاً ليغيّر حالته فقد نصّه كلّه.
-     */
-    await expect.poll(async () => ((await field(page, 'النصّ')) ?? '').length)
-      .toBeGreaterThan(20)
-
-    await selectValue(page, 'الحالة', 'published')
-    await page.getByRole('button', { name: 'حفظ' }).click()
-    await expect(page.locator('[role=dialog]')).toBeHidden({ timeout: 25_000 })
+    // ── النشر من المحرّر، والنصّ محفوظ فيه لا يُمحى ──
+    await page.goto(editorUrl)
+    await expect.poll(async () => (await page.locator('#postBody').inputValue()).length, { timeout: 20_000 }).toBeGreaterThan(20)
+    await page.getByRole('button', { name: /انشر الآن/ }).click()
+    await expect(page.getByRole('link', { name: /على الموقع/ })).toBeVisible({ timeout: 25_000 })
 
     // ── وعلى الموقع العام ──
-    await page.goto(`${process.env.E2E_SITE ?? 'http://127.0.0.1:8000'}/blog`)
+    await page.goto(`${SITE}/blog`)
     const card = page.locator('.post-card', { hasText: title })
     await expect(card).toHaveCount(1, { timeout: 20_000 })
 
@@ -769,51 +756,38 @@ test.describe('محتوى الموقع', () => {
      * ثلاث فقرات لا واحدة.
      *
      * مربّع النصّ يُطبّع أسطره إلى CRLF، فيصير فاصل الفقرات سطرين غير
-     * متجاورين — ولا يطابقهما تعبيرٌ يبحث عن `\n` مرتين متتاليتين، فتنهار
-     * المقالة إلى فقرة واحدة طويلة بلا سبب ظاهر.
+     * متجاورين، ولا يطابقهما تعبيرٌ يبحث عن `\n` مرتين متتاليتين.
      */
     await expect(page.locator('.prose p')).toHaveCount(3)
     expect(await page.locator('.frame__img').evaluate((e) => e.naturalWidth)).toBeGreaterThan(0)
   })
 
-  test('سؤال شائع يُضاف ويُحرَّر ويُحذف', async ({ page }) => {
+  test('سؤال شائع يُضاف، ويُخفى بمفتاح، ويُحذف من نافذته', async ({ page }) => {
     await login(page)
-    await page.goto('/content')
-    await page.locator('[role=tab]', { hasText: 'الأسئلة' }).click()
-
-    /**
-     * ننتظر جدول الأسئلة نفسه لا أي جدول.
-     *
-     * تبديل اللسان يُفرغ الصفوف ثم يجلب، وبين النقرة وإعادة الرسم تبقى
-     * صفوف اللسان السابق معروضة بلا أي مؤشّر تحميل. فالانتظار العام يمرّ
-     * فوق بيانات لسانٍ آخر.
-     */
-    await expect(page.locator('table thead')).toContainText('السؤال', { timeout: 20_000 })
-    await tableReady(page)
+    await page.goto('/content?tab=faqs')
+    await expect(page.getByRole('list', { name: 'الأسئلة الشائعة' })).toBeVisible({ timeout: 20_000 })
 
     const question = `سؤال اختباري ${Date.now().toString().slice(-5)}؟`
-
     await page.getByRole('button', { name: 'إضافة' }).click()
     await fill(page, 'السؤال', question)
     await fill(page, 'الإجابة', 'جواب اختباري.')
     await page.getByRole('button', { name: 'حفظ' }).click()
-
     await expect(page.locator('[role=dialog]')).toBeHidden({ timeout: 25_000 })
 
-    // الصفّ نفسه لا عددُ الصفوف: العدد يتغيّر بين التشغيلات، والصفّ لا
-    const row = page.locator('table tbody tr', { hasText: question })
+    const row = page.locator('ol li', { hasText: question })
     await expect(row).toHaveCount(1, { timeout: 20_000 })
 
-    // التحرير يفتح النافذة مملوءة
-    await row.first().locator('td').first().click()
-    expect(await field(page, 'السؤال')).toBe(question)
-    await page.keyboard.press('Escape')
-    await expect(page.locator('[role=dialog]')).toBeHidden()
+    // الإخفاء والإظهار بمفتاح في الصف، بلا نافذة
+    const toggle = row.getByRole('switch')
+    const was = await toggle.getAttribute('aria-checked')
+    await toggle.click()
+    await expect(toggle).toHaveAttribute('aria-checked', was === 'true' ? 'false' : 'true', { timeout: 20_000 })
 
-    // الحذف يمرّ بنافذة التأكيد المُنسّقة (ConfirmDialog) لا بـ`confirm()` المتصفح
-    await row.first().locator('button[title="حذف"]').click()
+    // التحرير يفتح النافذة مملوءة، والحذف فيها بعد رؤية العنصر
+    await row.locator('button').filter({ hasText: question }).click()
+    expect(await field(page, 'السؤال')).toBe(question)
+    await page.getByRole('button', { name: 'حذف هذا العنصر من الموقع' }).click()
     const confirm = page.locator('[role=dialog]', { hasText: 'حذف العنصر' })
-    await expect(confirm).toBeVisible()
     await confirm.getByRole('button', { name: 'احذف' }).click()
 
     await expect(row).toHaveCount(0, { timeout: 20_000 })

@@ -33,6 +33,12 @@ export default defineConfig(({ mode }) => ({
    */
   base: mode === 'production' ? '/admin-app/' : '/',
 
+  /**
+   * عنوان الموقع العام لروابط «على الموقع» في التطوير: الخادم نفسه الذي
+   * يمرّ إليه الوسيط (كان ثابتاً على 8000). وفي الإنتاج اللوحة على أصل الموقع.
+   */
+  define: { __SITE_URL__: JSON.stringify(mode === 'production' ? '/' : `${API}/`) },
+
   build: {
     outDir: '../api/public/admin-app',
     emptyOutDir: true,
