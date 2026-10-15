@@ -43,135 +43,87 @@
 
   <main id="main">
 
-    <section class="page-hero page-hero--compact">
-      <div class="container">
-        <div class="page-hero__inner">
+    <!-- ══ الصدر: من ينتظر، بأرقام حيّة ووجوه ══ -->
+    <section class="kids-hero" aria-labelledby="kidsHeroTitle">
+      <div class="container kids-hero__inner">
+        <div class="kids-hero__text">
           <nav aria-label="مسار التنقل">
-            <ol class="breadcrumb">
+            <ol class="breadcrumb breadcrumb--on-ink">
               <li><a href="index.html">الرئيسية</a></li>
               <li><span aria-current="page">الأيتام</span></li>
             </ol>
           </nav>
-          <h1 class="page-hero__title">أطفال ينتظرون كافلاً</h1>
-          <p class="page-hero__lede">
-            كل طفل هنا زاره مشرفنا في بيته، وتحقّقت لجنة مستقلة من أوراقه.
-            اختر بالبرنامج أو العمر أو البلد، أو ابدأ بالأشد احتياجاً.
+          <h1 class="kids-hero__title" id="kidsHeroTitle">لكل طفلٍ هنا حلم،<br>وينقصه من يقف معه.</h1>
+          <p class="kids-hero__lede">
+            زار مشرفونا كل طفل في بيته، وتحقّقت لجنة مستقلة من أوراقه. اختر من تكفله،
+            وتصلك أخباره كل ثلاثة أشهر.
           </p>
+          <dl class="kids-hero__stats">
+            <div><dt>ينتظرون كافلاً</dt><dd class="num" data-hero-stat="all">0</dd></div>
+            <div><dt>حالة عاجلة</dt><dd class="num" data-hero-stat="urgent">0</dd></div>
+            <div><dt>دولة</dt><dd class="num" data-hero-stat="countries">0</dd></div>
+          </dl>
         </div>
+        <!-- وجوهٌ ممن لهم صور: تُملأ من الخادم، وتُخفى إن لم تكن صور -->
+        <div class="kids-hero__faces" id="heroFaces" aria-hidden="true"></div>
       </div>
     </section>
 
     <section class="section section--catalog" id="catalogTop">
-      <div class="container catalog">
-        <!-- ══ الفلاتر: عمود ثابت على الشاشة العريضة ══ -->
-        <aside class="filters" aria-label="تصفية الأطفال" data-filters>
-          <div class="filters__head">
-            <h2 class="filters__title">تصفية</h2>
-            <button type="button" class="filters__reset" data-reset>مسح الكل</button>
-          </div>
-            <div class="filters__search field">
-              <label class="sr-only" for="catalogSearch">ابحث بالاسم أو المدينة</label>
-              <div class="field__control">
-                <i class="fa-solid fa-magnifying-glass field__icon" aria-hidden="true"></i>
-                <input class="input" type="search" id="catalogSearch" data-filter-search placeholder="اسم، مدينة، أو رمز KFL" autocomplete="off">
-              </div>
-            </div>
-
-            <button type="button" class="urgent-toggle" role="switch" aria-checked="false" data-filter="urgent" data-value="1">
-              <span class="urgent-toggle__text"><span class="urgent-toggle__dot" aria-hidden="true"></span>الحالات العاجلة فقط</span>
-              <span class="urgent-toggle__count num" data-urgent-count>0</span>
-            </button>
-
-            <fieldset class="filters__group">
-              <legend>البرنامج</legend>
-              <ul data-group="program"></ul>
-            </fieldset>
-            <fieldset class="filters__group">
-              <legend>الجنس</legend>
-              <ul class="filters__row" data-group="gender"></ul>
-            </fieldset>
-            <fieldset class="filters__group">
-              <legend>العمر</legend>
-              <ul data-group="age"></ul>
-            </fieldset>
-            <fieldset class="filters__group">
-              <legend>الدولة</legend>
-              <ul class="filters__scroll" data-group="country"></ul>
-            </fieldset>
-        </aside>
-
-        <!-- ══ النتائج ══ -->
-        <div class="catalog__main">
-          <div class="catalog__bar">
-            <p class="catalog__count" role="status" aria-live="polite">
-              <span id="catalogCount"><strong class="num">0</strong> طفلاً</span>
-              <span class="catalog__range num" id="catalogRange"></span>
-            </p>
-            <div class="catalog__tools">
-              <button type="button" class="btn btn--outline catalog__open-filters" id="openFilters">
-                <i class="fa-solid fa-sliders" aria-hidden="true"></i> الفلاتر
-                <span class="badge-count num" data-active-count hidden></span>
+      <div class="container">
+        <!-- ══ شريط الاختيار: البرامج، ثم الجنس والعمر والدولة، ثم الترتيب ══ -->
+        <div class="fbar" role="search" aria-label="تصفية الأطفال">
+          <div class="fbar__programs" role="group" aria-label="البرنامج" data-group="program"></div>
+          <div class="fbar__row">
+            <div class="fbar__pills">
+              <button type="button" class="pill" data-menu="gender" aria-haspopup="true" aria-expanded="false">
+                <span class="pill__label">الجنس</span><span class="pill__value" data-pill-value="gender"></span>
+                <i class="fa-solid fa-chevron-down pill__caret" aria-hidden="true"></i>
               </button>
-              <label class="catalog__sort">
-                <span>ترتيب</span>
+              <button type="button" class="pill" data-menu="age" aria-haspopup="true" aria-expanded="false">
+                <span class="pill__label">العمر</span><span class="pill__value" data-pill-value="age"></span>
+                <i class="fa-solid fa-chevron-down pill__caret" aria-hidden="true"></i>
+              </button>
+              <button type="button" class="pill" data-menu="country" aria-haspopup="true" aria-expanded="false">
+                <span class="pill__label">الدولة</span><span class="pill__value" data-pill-value="country"></span>
+                <i class="fa-solid fa-chevron-down pill__caret" aria-hidden="true"></i>
+              </button>
+              <button type="button" class="pill pill--urgent" data-filter="urgent" data-value="1" aria-pressed="false">
+                <span class="pill__dot" aria-hidden="true"></span> عاجلة <span class="pill__count num" data-urgent-count></span>
+              </button>
+            </div>
+            <div class="fbar__end">
+              <label class="fbar__search">
+                <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                <span class="sr-only">ابحث بالاسم أو المدينة أو الرمز</span>
+                <input type="search" data-filter-search placeholder="اسم، مدينة، أو KFL" autocomplete="off">
+              </label>
+              <label class="fbar__sort">
+                <span class="sr-only">الترتيب</span>
                 <select class="select" id="catalogSort"></select>
               </label>
             </div>
           </div>
+          <!-- قائمة الخيار المفتوح: تحت زرّه على الشاشة العريضة، ومن الأسفل على الجوال -->
+          <div class="fmenu" id="filterMenu" role="dialog" aria-modal="false" hidden></div>
+        </div>
+
+        <div class="catalog__bar">
+          <p class="catalog__count" role="status" aria-live="polite">
+            <span id="catalogCount"><strong class="num">0</strong> طفلاً</span>
+            <span class="catalog__range num" id="catalogRange"></span>
+          </p>
           <div class="active-filters" id="activeFilters" hidden></div>
-
-          <h2 class="sr-only">الأطفال المتاحون للكفالة</h2>
-          <div class="kids kids--catalog" id="catalogGrid" aria-busy="true">
-            <div class="kid-skeleton"></div><div class="kid-skeleton"></div><div class="kid-skeleton"></div>
-            <div class="kid-skeleton"></div><div class="kid-skeleton"></div><div class="kid-skeleton"></div>
-          </div>
-
-          <nav class="pager" id="catalogPager" aria-label="صفحات النتائج" hidden></nav>
         </div>
+
+        <h2 class="sr-only">الأطفال المتاحون للكفالة</h2>
+        <div class="kids kids--catalog" id="catalogGrid" aria-busy="true">
+          <div class="kid-skeleton"></div><div class="kid-skeleton"></div><div class="kid-skeleton"></div>
+          <div class="kid-skeleton"></div><div class="kid-skeleton"></div><div class="kid-skeleton"></div>
+        </div>
+
+        <nav class="pager" id="catalogPager" aria-label="صفحات النتائج" hidden></nav>
       </div>
-
-      <!-- ══ الفلاتر على الجوال: لوحة من الأسفل ══ -->
-      <dialog class="filter-sheet" id="filterSheet" aria-label="تصفية الأطفال">
-        <div class="filter-sheet__inner" data-filters>
-          <div class="filters__head">
-            <h2 class="filters__title">تصفية</h2>
-            <button type="button" class="filter-sheet__close" data-close-sheet aria-label="إغلاق"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
-          </div>
-            <div class="filters__search field">
-              <label class="sr-only" for="catalogSearchSheet">ابحث بالاسم أو المدينة</label>
-              <div class="field__control">
-                <i class="fa-solid fa-magnifying-glass field__icon" aria-hidden="true"></i>
-                <input class="input" type="search" id="catalogSearchSheet" data-filter-search placeholder="اسم، مدينة، أو رمز KFL" autocomplete="off">
-              </div>
-            </div>
-
-            <button type="button" class="urgent-toggle" role="switch" aria-checked="false" data-filter="urgent" data-value="1">
-              <span class="urgent-toggle__text"><span class="urgent-toggle__dot" aria-hidden="true"></span>الحالات العاجلة فقط</span>
-              <span class="urgent-toggle__count num" data-urgent-count>0</span>
-            </button>
-
-            <fieldset class="filters__group">
-              <legend>البرنامج</legend>
-              <ul data-group="program"></ul>
-            </fieldset>
-            <fieldset class="filters__group">
-              <legend>الجنس</legend>
-              <ul class="filters__row" data-group="gender"></ul>
-            </fieldset>
-            <fieldset class="filters__group">
-              <legend>العمر</legend>
-              <ul data-group="age"></ul>
-            </fieldset>
-            <fieldset class="filters__group">
-              <legend>الدولة</legend>
-              <ul class="filters__scroll" data-group="country"></ul>
-            </fieldset>
-        </div>
-        <div class="filter-sheet__foot">
-          <button type="button" class="btn btn--ghost" data-reset>مسح الكل</button>
-          <button type="button" class="btn btn--primary" data-close-sheet>اعرض <span class="num" data-sheet-total>0</span> طفلاً</button>
-        </div>
-      </dialog>
     </section>
 
     <!-- طمأنة -->

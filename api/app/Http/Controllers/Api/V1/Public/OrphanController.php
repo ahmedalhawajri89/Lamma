@@ -49,6 +49,7 @@ class OrphanController extends Controller
             'sort' => ['nullable', 'string', 'in:'.implode(',', array_keys(self::SORTS))],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:'.config('kafala.pagination.max')],
             'facets' => ['nullable', 'boolean'],
+            'photo' => ['nullable', 'boolean'],
         ]);
 
         $query = $this->filtered($request)
@@ -101,7 +102,9 @@ class OrphanController extends Controller
                 $q->where('date_of_birth', '>', now()->subYears($max + 1)->toDateString())
                     ->where('date_of_birth', '<=', now()->subYears($min)->toDateString());
             })
-            ->when(! in_array('urgent', $except, true) && $request->boolean('urgent'), fn ($q) => $q->where('is_urgent', true));
+            ->when(! in_array('urgent', $except, true) && $request->boolean('urgent'), fn ($q) => $q->where('is_urgent', true))
+            // لصدر الصفحة: من لهم صورة وحدهم
+            ->when($request->boolean('photo'), fn ($q) => $q->whereNotNull('photo_path'));
     }
 
     /** @return array<string, mixed> */

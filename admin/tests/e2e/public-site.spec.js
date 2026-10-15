@@ -40,10 +40,12 @@ test.describe('الموقع العام', () => {
     await expect(page).toHaveURL(new RegExp(`page=${last}`))
     await expect(page.locator('#catalogGrid > .kid')).toHaveCount(total - (last - 1) * 12)
 
-    // فلترٌ بعدده: «بنت (n)» تعرض n، وتعود للصفحة الأولى
-    const girls = page.locator('aside [data-filter="gender"][data-value="female"]')
-    const n = Number(await girls.locator('.facet__count').innerText())
+    // فلترٌ بعدده من قائمة «الجنس»: «بنت (n)» تعرض n، وتعود للصفحة الأولى
+    await page.locator('[data-menu="gender"]').click()
+    const girls = page.locator('#filterMenu [data-filter="gender"][data-value="female"]')
+    const n = Number(await girls.locator('.num').innerText())
     await girls.click()
+    await expect(page.locator('#filterMenu')).toBeHidden()
     await expect(page.locator('#catalogCount strong')).toHaveText(String(n))
     await expect(page).not.toHaveURL(/page=/)
   })

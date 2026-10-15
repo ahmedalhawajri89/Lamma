@@ -8,56 +8,67 @@
 import { escapeHtml, formatMoney, arabicDigits, readingTime } from './utils.js';
 
 /**
- * بطاقة يتيم: من هو، وأين، وكم ينقصه، وزرّ واحد لكفالته.
+ * بطاقة يتيم: قصة قصيرة لا سطر في جدول.
  *
- * الصورة بنسبة 4:3 لا 5:4 طولاً: أغلب الملفات تصل بلا صورة بعد (تُرفع بعد
- * موافقة الوصي)، وكان المربع الفارغ بحرفٍ واحد يأخذ ثلثي البطاقة. ولا نعيد
- * استعمال صورة طفل آخر لسدّ الفراغ: تلك هي السياسة التي يعلنها الموقع.
+ * في قلبها حلم الطفل، وهو مكتوب لكل طفل بينما الصور قليلة (تُرفع بعد موافقة
+ * الوصي، ولا نستعير صورة طفل آخر). فبلا صورة يصير الحلم نفسه صورة البطاقة:
+ * «أن تصبح معلمة» بخطٍّ كبير على لون هادئ، لا دائرةٌ بحرفٍ واحد. ومع الصورة
+ * يُكتب الحلم سطراً تحت الاسم.
  *
- * الاسم رابطٌ ممتد إلى ملفه (البطاقة كلها تُضغط)، وزرّ «اكفل» فوقه إلى الكفالة.
+ * ثم ما ينقصه بالمال وبشريطٍ يمتلئ حين تظهر البطاقة، وزرّ «اكفل» صريح. والاسم
+ * رابطٌ ممتد إلى ملفه (البطاقة كلها تُضغط)، والزرّ فوقه إلى الكفالة.
+ *
+ * `spotlight`: البطاقة الأولى في الفهرس، أعرض، للأشد احتياجاً.
  */
 const TINTS = ['brand', 'cta', 'growth'];
 
-export function orphanCard(orphan, { delay = 0 } = {}) {
+export function orphanCard(orphan, { delay = 0, spotlight = false } = {}) {
   const name = escapeHtml(orphan.name);
   const age = Number(orphan.age);
   const ageLabel = `${age} ${age >= 3 && age <= 10 ? 'سنوات' : 'سنة'}`;
+  const her = ['أنثى', 'female'].includes(orphan.gender);
   const funded = Math.max(0, Math.min(100, Number(orphan.funded) || 0));
-  const remaining = Math.max(0, Math.round((orphan.monthly * (100 - funded)) / 100));
+  const monthly = Number(orphan.monthly) || 0;
+  const remaining = Math.max(0, Math.round((monthly * (100 - funded)) / 100));
   const id = encodeURIComponent(orphan.id);
+  const dream = escapeHtml(orphan.dream ?? '');
+  const place = [orphan.city, orphan.country].filter(Boolean).map(escapeHtml).join('، ');
   // لونٌ ثابت لكل طفل من رمزه: البطاقات بلا صور لا تبدو نسخة واحدة
   const tint = TINTS[[...String(orphan.id)].reduce((n, c) => n + c.charCodeAt(0), 0) % TINTS.length];
 
   const media = orphan.photo
-    ? `<img class="kid__img" src="${escapeHtml(orphan.photo)}" alt="" loading="lazy" width="400" height="300">`
-    : `<span class="kid__img kid__img--empty kid__img--${tint}" aria-hidden="true">
-         <span class="kid__initial">${escapeHtml(orphan.name.charAt(0))}</span>
+    ? `<img class="kid__img" src="${escapeHtml(orphan.photo)}" alt="" loading="lazy" width="480" height="360">`
+    : `<span class="kid__art kid__art--${tint}" aria-hidden="true">
+         <span class="kid__art-label">${her ? 'حلمها' : 'حلمه'}</span>
+         <span class="kid__art-quote">${dream || name}</span>
        </span>`;
 
   return `
-<article class="kid" data-reveal data-reveal-delay="${delay}">
+<article class="kid${spotlight ? ' kid--spotlight' : ''}${orphan.photo ? ' kid--photo' : ''}" data-reveal data-reveal-delay="${delay}">
   <div class="kid__media">
     ${media}
     ${orphan.urgent ? '<span class="kid__flag">حالة عاجلة</span>' : ''}
   </div>
 
   <div class="kid__body">
+    ${spotlight ? `<p class="kid__eyebrow">${orphan.urgent ? 'الأشد احتياجاً الآن' : 'ينتظر كافلاً'}</p>` : ''}
     <h3 class="kid__name">
       <a href="orphan.html?id=${id}">${name}</a><span class="kid__age">${ageLabel}</span>
     </h3>
-    <p class="kid__place"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> ${escapeHtml(orphan.city ?? '')}${orphan.city ? '، ' : ''}${escapeHtml(orphan.country ?? '')}</p>
+    <p class="kid__place"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> ${place}</p>
+    ${orphan.photo && dream ? `<p class="kid__dream"><span>${her ? 'حلمها' : 'حلمه'}:</span> ${dream}</p>` : ''}
 
     <div class="kid__fund">
-      <div class="kid__fund-row">
-        <span>مكفول <b class="num">${funded}%</b></span>
-        <span>${remaining ? `ينقصه <b class="num">$${remaining}</b> شهرياً` : '<b>مكفول بالكامل</b>'}</span>
-      </div>
       <span class="kid__track" style="--v:${funded}%"><span></span></span>
+      <div class="kid__fund-row">
+        <span>${funded ? `مكفول <b class="num">${funded}%</b>` : 'لم يُكفل بعد'}</span>
+        <span>${remaining ? `ينقصه <b class="num">$${remaining}</b> من <span class="num">$${monthly}</span>` : '<b>مكفول بالكامل</b>'}</span>
+      </div>
     </div>
 
     <div class="kid__foot">
-      <span class="kid__price"><strong class="num">${formatMoney(orphan.monthly)}</strong><small>في الشهر</small></span>
       <a class="btn btn--primary kid__cta" href="checkout.html?id=${id}">اكفل ${name}</a>
+      <span class="kid__price"><strong class="num">${formatMoney(monthly)}</strong> شهرياً</span>
     </div>
   </div>
 </article>`;
