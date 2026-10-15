@@ -286,11 +286,11 @@ async function initHero() {
     if (!apiEnabled()) throw new Error('offline');
     [all, photos] = await Promise.all([
       request('/public/orphans?per_page=1&facets=1'),
-      request('/public/orphans?per_page=4&photo=1').then((r) => r.data ?? []).catch(() => []),
+      request('/public/orphans?per_page=8&photo=1').then((r) => r.data ?? []).catch(() => []),
     ]);
   } catch {
     all = localQuery({});
-    photos = ORPHANS.filter((o) => o.photo).slice(0, 4);
+    photos = ORPHANS.filter((o) => o.photo).slice(0, 8);
   }
 
   const f = all.meta?.facets ?? {};
@@ -298,13 +298,76 @@ async function initHero() {
   stats.forEach((el) => countUp(el, values[el.dataset.heroStat] ?? 0));
 
   if (faces && photos.length) {
-    faces.innerHTML = photos.slice(0, 4).map((o, i) => `<figure class="kids-hero__face" style="--i:${i}">
-        <img src="${escapeHtml(o.photo)}" alt="" loading="lazy" width="240" height="300">
-        <figcaption>${escapeHtml(o.name)}، <span class="num">${Number(o.age)}</span></figcaption></figure>`).join('');
-    requestAnimationFrame(() => faces.classList.add('is-in'));
+    mountMosaic(faces, photos);
   } else if (faces) {
     faces.remove();
   }
+}
+
+/**
+ * فسيفساء الصدر: صورةٌ كبيرة تعرض طفلاً واحداً بقصته (الاسم والعمر والمكان
+ * وحلمه)، وتتبدّل بتلاشٍ هادئ كل خمس ثوانٍ بين من لهم صور، وبجانبها صورتان
+ * ثابتتان. كانت أربع بطاقات مائلة متفرّقة لا يجمعها شيء.
+ *
+ * التبديل يتوقف عند المرور وحين يُخفى التبويب، ولا يبدأ أصلاً لمن طلب تقليل
+ * الحركة. ومؤشّرات تحت الكبيرة للتنقّل باليد.
+ */
+function mountMosaic(host, photos) {
+  const tiles = photos.length >= 4 ? photos.slice(0, 2) : photos.length >= 2 ? photos.slice(0, 1) : [];
+  const pool = photos.slice(tiles.length);
+  const her = (o) => ['أنثى', 'female'].includes(o.gender);
+  const age = (o) => `${Number(o.age)} ${o.age >= 3 && o.age <= 10 ? 'سنوات' : 'سنة'}`;
+  const place = (o) => [o.city, o.country].filter(Boolean).map(escapeHtml).join('، ');
+
+  host.className = `mosaic mosaic--${tiles.length + 1}`;
+  host.innerHTML = `
+    <figure class="mosaic__main">
+      ${pool.map((o, i) => `<img src="${escapeHtml(o.photo)}" alt="" width="640" height="800" ${i ? 'loading="lazy"' : ''} class="${i ? '' : 'is-active'}">`).join('')}
+      <figcaption class="mosaic__caption">
+        <span class="mosaic__who"><b data-m="name"></b> <span data-m="age"></span></span>
+        <span class="mosaic__place"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> <span data-m="place"></span></span>
+        <span class="mosaic__dream" data-m="dream"></span>
+      </figcaption>
+      ${pool.length > 1 ? `<div class="mosaic__dots">${pool.map((_, i) => `<button type="button" tabindex="-1" data-i="${i}" class="${i ? '' : 'is-active'}" aria-label="الطفل ${i + 1}"></button>`).join('')}</div>` : ''}
+    </figure>
+    ${tiles.map((o) => `<figure class="mosaic__tile">
+        <img src="${escapeHtml(o.photo)}" alt="" width="320" height="320" loading="lazy">
+        <figcaption>${escapeHtml(o.name)}، <span class="num">${Number(o.age)}</span></figcaption>
+      </figure>`).join('')}
+    <p class="mosaic__badge"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> زارهم مشرفونا في بيوتهم</p>`;
+
+  const imgs = $$('.mosaic__main img', host);
+  const dots = $$('.mosaic__dots button', host);
+  const caption = $('.mosaic__caption', host);
+  let cur = 0;
+
+  const show = (i) => {
+    const o = pool[i];
+    imgs.forEach((img, k) => img.classList.toggle('is-active', k === i));
+    dots.forEach((d, k) => d.classList.toggle('is-active', k === i));
+    caption.classList.remove('is-in');
+    void caption.offsetWidth; // يعيد تشغيل دخول التعليق
+    $('[data-m="name"]', caption).textContent = o.name;
+    $('[data-m="age"]', caption).textContent = age(o);
+    $('[data-m="place"]', caption).innerHTML = place(o);
+    $('[data-m="dream"]', caption).textContent = o.dream ? `${her(o) ? 'حلمها' : 'حلمه'}: ${o.dream}` : '';
+    caption.classList.add('is-in');
+    cur = i;
+  };
+  show(0);
+  requestAnimationFrame(() => host.classList.add('is-in'));
+
+  // التبديل الآلي لمن لم يطلب تقليل الحركة، والضغط على مؤشّر يعيد عدّاده
+  const auto = pool.length > 1 && !prefersReducedMotion();
+  let timer = null;
+  let paused = false;
+  const next = () => { if (!paused && !document.hidden) show((cur + 1) % pool.length); };
+  const restart = () => { if (!auto) return; clearInterval(timer); timer = setInterval(next, 5000); };
+
+  dots.forEach((d) => d.addEventListener('click', () => { show(Number(d.dataset.i)); restart(); }));
+  host.addEventListener('mouseenter', () => { paused = true; });
+  host.addEventListener('mouseleave', () => { paused = false; });
+  restart();
 }
 
 /** عدٌّ صاعد مرة واحدة، أقل من ثانية، وبلا حركة لمن طلب تقليلها */
