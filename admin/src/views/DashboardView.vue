@@ -24,6 +24,7 @@ import Sparkline from '@/components/Sparkline.vue'
 import BaseIcon from '@/components/BaseIcon.vue'
 import SinceLastVisit from '@/components/SinceLastVisit.vue'
 import AccountantDashboard from '@/components/AccountantDashboard.vue'
+import SupervisorDashboard from '@/components/SupervisorDashboard.vue'
 
 const ui = useUiStore()
 const auth = useAuthStore()
@@ -271,6 +272,8 @@ const retention = computed(() => data.value?.retention ?? {})
 
     <!-- المحاسب: لوحة المال وحدها، لا صورة المنصة كلها -->
     <AccountantDashboard v-if="data?.finance" :finance="data.finance" :monthly="monthly" :spending="spending" />
+    <!-- المشرف الميداني: زيارات بلده وتقاريره وملفاته -->
+    <SupervisorDashboard v-else-if="data?.field" :field="data.field" :urgent="urgent" />
 
     <template v-else>
     <!-- ١. المؤشرات: شريط واحد بخلايا مفصولة -->

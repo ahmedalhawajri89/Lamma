@@ -14,6 +14,7 @@ use App\Models\User;
 use App\Services\FinanceDashboardService;
 use App\Services\MetricsService;
 use App\Services\SinceLastVisitService;
+use App\Services\SupervisorDashboardService;
 use App\Services\TransparencyService;
 use App\Services\WorkQueueService;
 use Illuminate\Http\JsonResponse;
@@ -60,6 +61,10 @@ class DashboardController extends Controller
 
                 // لوحة المحاسب: مال الشهر وما يُتابَع منه
                 'finance' => $user->hasRole(UserRole::Accountant->value) ? app(FinanceDashboardService::class)->build() : null,
+
+                // لوحة المشرف الميداني: زيارات بلده وتقاريره وملفاته
+                'field' => $user->hasRole(UserRole::FieldSupervisor->value) && $country !== null
+                    ? app(SupervisorDashboardService::class)->build($user) : null,
                 'tasks' => $this->queue->tasks($user),
                 'kpis' => $this->kpis($user, $country),
 

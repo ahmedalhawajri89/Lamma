@@ -212,3 +212,25 @@ test('المحاسب يرى لوحة المال: التحصيل، وما ينت�
   await page.getByRole('link', { name: /فشل ولم يُستدرك/ }).click()
   await expect(page).toHaveURL(/\/payments\?unrecovered=1/)
 })
+
+test('المشرف يرى عمل بلده: من يزور، وتقارير الربع، و«سجّل زيارة» يفتح النموذج والطفل مختار', async ({ page }) => {
+  await login(page, SUPERVISOR)
+
+  await expect(page.getByRole('heading', { name: 'من تزور' })).toBeVisible({ timeout: 20_000 })
+  await expect(page.getByRole('heading', { name: /^تقارير الربع/ })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'ملفات الأطفال' })).toBeVisible()
+  // لا مال للمشرف
+  await expect(page.getByText(/مقبوضات|تحصيل/)).toHaveCount(0)
+
+  const first = page.locator('section[aria-labelledby="supNext"] li').first()
+  const name = (await first.locator('a').first().innerText()).trim()
+  await first.getByRole('link', { name: /سجّل زيارة/ }).click()
+
+  await expect(page).toHaveURL(/\/visits(\?|$)/)
+  await expect(page).not.toHaveURL(/record=/)
+  const dialog = page.getByRole('dialog')
+  await expect(dialog).toBeVisible({ timeout: 15_000 })
+  // الطفل مختار في حقله، والقائمة لا تنفتح وحدها بـ«لا نتائج»
+  await expect(dialog.getByLabel(/^الطفل/)).toHaveValue(new RegExp(name))
+  await expect(dialog.getByRole('listbox')).toBeHidden()
+})

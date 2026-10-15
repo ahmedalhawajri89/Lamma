@@ -6,8 +6,8 @@
  * زيارته، ومن فات موعده أو لم يُزر قط أولاً. و«السجل» يجيب: ماذا رأينا؟
  * الزيارات السابقة بملاحظاتها، والاحتياجات المرصودة مجمّعة.
  */
-import { computed, ref } from 'vue'
-import { useRoute, RouterLink } from 'vue-router'
+import { computed, onMounted, ref } from 'vue'
+import { useRoute, useRouter, RouterLink } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import BaseIcon from '@/components/BaseIcon.vue'
 import VisitFormModal from '@/components/VisitFormModal.vue'
@@ -15,6 +15,7 @@ import VisitsPlan from '@/components/visits/VisitsPlan.vue'
 import VisitsLog from '@/components/visits/VisitsLog.vue'
 
 const route = useRoute()
+const router = useRouter()
 const auth = useAuthStore()
 
 const isLog = computed(() => route.params.view === 'log')
@@ -29,6 +30,17 @@ function record(orphan = null) {
   preset.value = orphan ? { id: orphan.id, label: `${orphan.name} · ${orphan.reference_code}` } : null
   formOpen.value = true
 }
+
+/**
+ * من النظرة العامة: «سجّل زيارة» لطفل بعينه يفتح النموذج مختاراً فيه
+ * (?record=<id>&name=<الاسم>&ref=<الرمز>)، ثم يُزال من الرابط فلا يُفتح ثانيةً.
+ */
+onMounted(() => {
+  if (!route.query.record) return
+  record({ id: Number(route.query.record), name: route.query.name ?? 'طفل', reference_code: route.query.ref ?? `رقم ${route.query.record}` })
+  const { record: _, name: __, ref: ___, ...rest } = route.query
+  router.replace({ query: rest })
+})
 
 function onSaved() {
   formOpen.value = false

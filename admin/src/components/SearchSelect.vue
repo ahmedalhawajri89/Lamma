@@ -77,10 +77,22 @@ function onInput(event) {
   timer = setTimeout(() => run(text.value.trim()), 250)
 }
 
+const hasValue = () => props.modelValue !== '' && props.modelValue !== null && props.modelValue !== undefined
+
 function onFocus() {
   if (props.disabled) return
+  // حقلٌ مختارةٌ قيمته (طفلٌ مختار سلفاً) لا تُفتح قائمته بتركيز النموذج حين
+  // يُفتح: كان يبحث باسمه الكامل «دعاء · KFL-2012» فيعرض «لا نتائج» فوق النموذج
+  if (hasValue()) return
   open.value = true
   if (!options.value.length) run(text.value.trim())
+}
+
+/** النقر على حقلٍ مختارٍ لتغييره: القائمة كاملة، لا بحثٌ بالاسم المختار */
+function onClick() {
+  if (props.disabled || open.value || !hasValue()) return
+  open.value = true
+  run('')
 }
 
 function pick(option) {
@@ -92,7 +104,7 @@ function pick(option) {
 
 function onKeydown(event) {
   if (!open.value && ['ArrowDown', 'ArrowUp'].includes(event.key)) {
-    onFocus()
+    if (hasValue()) { open.value = true; run('') } else onFocus()
     return
   }
 
@@ -142,7 +154,7 @@ onBeforeUnmount(() => clearTimeout(timer))
         :aria-describedby="message ? `${id}-error` : hint ? `${id}-hint` : undefined"
         :value="text" :placeholder="placeholder" :disabled="disabled" :required="required"
         :data-autofocus="autofocus || undefined"
-        @input="onInput" @focus="onFocus" @keydown="onKeydown" @blur="onBlur"
+        @input="onInput" @focus="onFocus" @click="onClick" @keydown="onKeydown" @blur="onBlur"
       >
       <span class="absolute inset-y-0 end-3 grid place-items-center text-sand-400 pointer-events-none">
         <BaseIcon :name="loading ? 'loader' : 'search'" :size="15" :class="{ 'animate-spin': loading }" />
