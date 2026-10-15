@@ -11,8 +11,8 @@
  * كل المرئيات SVG وCSS خالصان — بلا مكتبة رسم بيانية.
  */
 
-import { $, $$, escapeHtml, arabicDigits } from './utils.js';
-import { ANNUAL, PROOF, COUNTRIES, PARTNERS } from './data.js';
+import { $, $$, escapeHtml } from './utils.js';
+import { PROOF, COUNTRIES, PARTNERS } from './data.js';
 import { observeOnce } from './utils.js';
 
 const RING_RADIUS = 52;
@@ -31,30 +31,6 @@ function dotGrid(total, perDot) {
  * وقالبٌ واحد يُخرج «كل نقطة تمثّل 1 طفلاً» — عربية مكسورة تُفسد أثر
  * الرقم كله. والقاعدة هنا مبسّطة لكنها تغطي كل ما يُنتجه سلّم المقياس.
  */
-/**
- * كم دولاراً تمثّل النقطة الواحدة في شبكة المال.
- *
- * المنطق نفسه المستعمل في شبكة الأطفال، وللسبب نفسه: المقياس يُشتق من
- * المبلغ لا يُفترض. وسلّم الأرقام مألوف لأن التسمية تحت الشبكة تُقرأ.
- */
-function moneyScale(total) {
-  for (const step of [10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000, 25000, 50000]) {
-    if (total / step <= 120) return step;
-  }
-  return 100000;
-}
-
-/** ٥٠٠ → «٥٠٠ دولار» · ١٠٠٠ → «ألف دولار» — أقصر وأوضح في تسمية. */
-function money(n) {
-  if (n >= 1000 && n % 1000 === 0) {
-    const k = n / 1000;
-    if (k === 1) return 'ألف دولار';
-    if (k === 2) return 'ألفي دولار';
-    return `${arabicDigits(k)} آلاف دولار`;
-  }
-  return `${arabicDigits(n)} دولار`;
-}
-
 function children(n) {
   if (n === 1) return 'طفلاً واحداً';
   if (n === 2) return 'طفلين';
@@ -166,63 +142,4 @@ export function initCredentials() {
     <span><i class="fa-solid fa-circle-check" aria-hidden="true"></i> موثّق</span>
   </span>
 </div>`).join('');
-}
-
-/**
- * لوحة الشفافية المالية — نفس نظام البلاطات ببيانات مختلفة،
- * ليثبت أن اللوحة نظامٌ قابل لإعادة الاستخدام لا قالبٌ منسوخ.
- */
-export function initFinanceBoard() {
-  const host = $('#financeBoard');
-  if (!host) return;
-
-  const perDollar = moneyScale(ANNUAL.spent);
-
-  // السنة تظهر خارج هذه اللوحة أيضاً (عنوان القسم وفوق الحلقة)
-  $$('[data-annual-year]').forEach((el) => {
-    el.textContent = arabicDigits(ANNUAL.year);
-  });
-
-  host.innerHTML = `
-<article class="bento__tile bento__tile--hero">
-  <div>
-    <div class="bento__value">
-      <span class="num">$<span data-count="${Math.round(ANNUAL.spent)}">0</span></span>
-    </div>
-    <p class="bento__label">صُرف على المستفيدين في ${arabicDigits(ANNUAL.year)}</p>
-  </div>
-
-  <div class="dot-grid" role="img"
-       aria-label="شبكة تمثّل توزيع المبلغ، كل نقطة ${money(perDollar)}">
-    ${dotGrid(ANNUAL.spent, perDollar)}
-  </div>
-
-  <p class="bento__note">كل نقطة تمثّل ${money(perDollar)} صُرفت ووُثّقت.</p>
-</article>
-
-<article class="bento__tile">
-  ${ring(PROOF.toChild)}
-  <p class="bento__label text-center">يصل للطفل مباشرة</p>
-  <p class="bento__note text-center"><span class="num">${100 - PROOF.toChild}%</span> مصاريف إدارية مغطاة من داعمين مخصصين</p>
-</article>
-
-<article class="bento__tile">
-  <div>
-    <div class="bento__value"><span class="num" data-count="${PROOF.visits}">0</span></div>
-    <p class="bento__label">زيارة ميدانية موثّقة</p>
-  </div>
-  <p class="bento__note">بمعدل زيارة لكل طفل كل تسعين يوماً، بلا استثناء.</p>
-</article>
-
-<article class="bento__tile bento__tile--wide">
-  <div>
-    <div class="bento__value"><span class="num" data-count="0">0</span></div>
-    <p class="bento__label">ملاحظة جوهرية من المدقق الخارجي</p>
-  </div>
-  <p class="bento__note">
-    أربع سنوات متتالية بتقرير تدقيق نظيف. التقارير منشورة كاملة أدناه.
-  </p>
-</article>`;
-
-  observeOnce([...host.children], (el) => el.classList.add('is-visible'), { threshold: 0.25 });
 }

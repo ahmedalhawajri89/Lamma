@@ -43,107 +43,90 @@
 
   <main id="main">
 
-    <section class="page-hero">
-      <div class="container">
-        <div class="page-hero__inner">
+    <!-- ══ الصدر: من كل دولار، كم يصل الطفل ══ -->
+    <section class="tp-hero" aria-labelledby="tpTitle">
+      <div class="container tp-hero__inner">
+        <div class="tp-hero__text">
           <nav aria-label="مسار التنقل">
-            <ol class="breadcrumb">
+            <ol class="breadcrumb breadcrumb--on-ink">
               <li><a href="index.html">الرئيسية</a></li>
               <li><span aria-current="page">الشفافية</span></li>
             </ol>
           </nav>
-          <h1 class="page-hero__title">حساباتنا منشورة للجميع</h1>
-          <p class="page-hero__lede">
-            كل ما في هذه الصفحة متاح للجميع، كفلاء وغير كفلاء.
-            ومن حق أي شخص أن يسأل عن أي بند ويحصل على جواب خلال ٧٢ ساعة.
+          <h1 class="tp-hero__title" id="tpTitle">من كل دولار تتبرّع به، يصل الطفل</h1>
+          <p class="tp-hero__cents"><span class="num" id="tpCents">0</span> <span>سنتاً</span></p>
+          <p class="tp-hero__lede">
+            والباقي تشغيلٌ نعلنه كما هو. كل رقم في هذه الصفحة محسوبٌ من سجلات الصرف المعتمدة
+            لحظة فتحها، لا مكتوبٌ باليد.
           </p>
+          <div class="tp-years" role="group" aria-label="السنة المالية" id="tpYears"></div>
         </div>
+        <!-- مئة خانة: كل خانة سنتٌ من الدولار، ومفتاحها تحتها -->
+        <figure class="tp-cents-wrap">
+          <div class="tp-cents" id="tpCells" role="img" aria-label="من كل مئة سنت"></div>
+          <figcaption class="tp-cents-key">
+            <span><i class="tp-cents-key__sw is-child" aria-hidden="true"></i>يصل الطفل <b class="num" id="tpKeyChild">93</b></span>
+            <span><i class="tp-cents-key__sw is-ops" aria-hidden="true"></i>تشغيل <b class="num" id="tpKeyOps">7</b></span>
+            <span class="tp-cents-key__note">كل مربع سنتٌ واحد من الدولار</span>
+          </figcaption>
+        </figure>
       </div>
     </section>
 
-    <!-- توزيع الإنفاق -->
-    <section class="section">
+    <!-- ══ أرقام السنة ══ -->
+    <section class="section tp-stats-wrap" aria-label="أرقام السنة">
       <div class="container">
-        <div class="split">
+        <dl class="tp-stats" id="tpStats">
+          <div><dt>دخل <span data-tp-year></span></dt><dd class="num" data-tp-stat="income">$0</dd><p>من دفعات الكفلاء الناجحة</p></div>
+          <div><dt>صُرف على الأطفال</dt><dd class="num" data-tp-stat="spent">$0</dd><p>صرفٌ معتمد بإيصال</p></div>
+          <div><dt>أطفال مكفولون الآن</dt><dd class="num" data-tp-stat="sponsored">0</dd><p>في <span class="num" data-tp-stat="countries">0</span> دولة</p></div>
+          <div><dt>زيارات ميدانية</dt><dd class="num" data-tp-stat="visits">0</dd><p>زارها مشرفونا في البيوت</p></div>
+        </dl>
+      </div>
+    </section>
+
+    <!-- ══ شهراً بشهر ══ -->
+    <section class="section tp-section" id="tpMonthlySection" aria-labelledby="tpMonthlyTitle">
+      <div class="container">
+        <div class="tp-head">
           <div>
-            <div id="spendingDonut"></div>
+            <p class="meta-label">آخر اثني عشر شهراً</p>
+            <h2 id="tpMonthlyTitle">ما دخل وما صُرف، شهراً بشهر</h2>
           </div>
-
-          <div class="prose-block">
-            <p class="meta-label">السنة المالية <span data-annual-year>٢٠٢٥</span></p>
-            <h2>أين يذهب كل دولار</h2>
-            <p>
-              هذه أرقام آخر سنة مالية مدقّقة من مكتب محاسبة مستقل.
-              المصاريف الإدارية ٧٪ فقط، ومغطاة أساساً من داعمين مخصصين لهذا الغرض.
-            </p>
-            <ul class="legend" role="list" id="spendingLegend"></ul>
-            <a class="link-arrow" href="#reports">
-              التقارير المدقّقة
-              <i class="fa-solid fa-arrow-down" aria-hidden="true"></i>
-            </a>
-          </div>
+          <ul class="tp-key" aria-hidden="true">
+            <li><span class="tp-key__dot tp-key__dot--in"></span>الدخل</li>
+            <li><span class="tp-key__dot tp-key__dot--out"></span>الصرف على الأطفال</li>
+          </ul>
         </div>
+        <div class="tp-chart" id="tpMonthly"></div>
+        <p class="tp-note" id="tpMonthlyNote"></p>
       </div>
     </section>
 
-    <!-- أرقام السنة -->
-    <section class="section section--surface">
-      <div class="container">
-        <div class="block-head">
-          <div class="block-head__text">
-            <h2>ماذا أنجزنا في <span data-annual-year>٢٠٢٥</span>؟</h2>
-            <p class="block-lede">كل رقم هنا مأخوذ من التقرير المدقّق، ويمكنك مطابقته بنفسك.</p>
-          </div>
+    <!-- ══ أين يذهب المال، والتشغيل ══ -->
+    <section class="section section--surface tp-section" aria-labelledby="tpWhereTitle">
+      <div class="container tp-where">
+        <div class="tp-where__main">
+          <p class="meta-label">السنة المالية <span data-tp-year></span></p>
+          <h2 id="tpWhereTitle">أين يذهب كل دولار</h2>
+          <div class="tp-stack" id="tpStack" role="img" aria-label="توزيع الصرف على البنود"></div>
+          <ul class="tp-legend" id="tpLegend" role="list"></ul>
         </div>
-
-        <div class="bento" id="financeBoard"></div>
+        <aside class="tp-overhead" id="tpOverhead" aria-label="نسبة التشغيل"></aside>
       </div>
     </section>
 
-    <!-- التقارير -->
-    <section class="section" id="reports">
+    <!-- ══ الوثائق ══ -->
+    <section class="section tp-section" id="reports" aria-labelledby="tpDocsTitle">
       <div class="container">
-        <div class="block-head">
-          <div class="block-head__text">
-            <h2>الوثائق المتاحة للجميع</h2>
-            <p class="block-lede">تُحدَّث سنوياً في الربع الأول بعد اعتماد المدقق الخارجي.</p>
+        <div class="tp-head">
+          <div>
+            <p class="meta-label">متاحة للجميع</p>
+            <h2 id="tpDocsTitle">الوثائق</h2>
           </div>
+          <p class="tp-head__aside">تُحدَّث سنوياً بعد اعتماد المدقق الخارجي.</p>
         </div>
-
-        <ul class="doc-list" role="list">
-          <li>
-            <i class="fa-solid fa-file-invoice-dollar doc-list__icon" aria-hidden="true"></i>
-            <div>
-              <h3>الميزانية المدقّقة <span data-annual-year>٢٠٢٥</span></h3>
-              <p>بيان الإيرادات والمصروفات كاملاً، معتمداً من مكتب تدقيق مستقل.</p>
-            </div>
-            <a class="doc-list__link" href="#">تحميل PDF <i class="fa-solid fa-arrow-down" aria-hidden="true"></i></a>
-          </li>
-          <li>
-            <i class="fa-solid fa-chart-line doc-list__icon" aria-hidden="true"></i>
-            <div>
-              <h3>التقرير السنوي <span data-annual-year>٢٠٢٥</span></h3>
-              <p>ما أنجزناه وما أخفقنا فيه، بالأرقام والصور والدروس المستفادة.</p>
-            </div>
-            <a class="doc-list__link" href="#">تحميل PDF <i class="fa-solid fa-arrow-down" aria-hidden="true"></i></a>
-          </li>
-          <li>
-            <i class="fa-solid fa-hand-holding-heart doc-list__icon" aria-hidden="true"></i>
-            <div>
-              <h3>تقرير الزكاة المستقل</h3>
-              <p>سجل منفصل لأموال الزكاة: ما جُمع، ولمن صُرف، بلا أي خصم إداري.</p>
-            </div>
-            <a class="doc-list__link" href="#">تحميل PDF <i class="fa-solid fa-arrow-down" aria-hidden="true"></i></a>
-          </li>
-          <li>
-            <i class="fa-solid fa-certificate doc-list__icon" aria-hidden="true"></i>
-            <div>
-              <h3>التراخيص والاعتمادات</h3>
-              <p>شهادة التسجيل، رخصة العمل الخيري، واعتمادات الجهات الشريكة.</p>
-            </div>
-            <a class="doc-list__link" href="#">عرض الوثائق <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
-          </li>
-        </ul>
+        <ul class="tp-docs" id="tpDocs" role="list"></ul>
       </div>
     </section>
 
@@ -157,8 +140,9 @@
           </div>
         </div>
 
-        <div class="columns" style="--cols:3">
+        <div class="tp-policy">
           <div>
+            <span class="tp-policy__icon" aria-hidden="true"><i class="fa-solid fa-camera"></i></span>
             <h3>في التصوير والنشر</h3>
             <ul class="check-list" role="list">
               <li>لا ننشر صورة طفل دون موافقة خطية من وصيّه القانوني.</li>
@@ -169,6 +153,7 @@
           </div>
 
           <div>
+            <span class="tp-policy__icon" aria-hidden="true"><i class="fa-solid fa-envelope-open-text"></i></span>
             <h3>في التواصل بين الكافل والطفل</h3>
             <ul class="check-list" role="list">
               <li>كل رسالة تمرّ بمشرف ميداني قبل تسليمها.</li>
@@ -179,6 +164,7 @@
           </div>
 
           <div>
+            <span class="tp-policy__icon" aria-hidden="true"><i class="fa-solid fa-shield-halved"></i></span>
             <h3>في حماية بياناتك أنت</h3>
             <ul class="check-list" role="list">
               <li>لا نبيع أو نشارك بياناتك مع أي جهة تسويقية.</li>

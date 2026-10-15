@@ -762,6 +762,25 @@ test.describe('محتوى الموقع', () => {
     expect(await page.locator('.frame__img').evaluate((e) => e.naturalWidth)).toBeGreaterThan(0)
   })
 
+  test('وثيقة شفافية تُرفع من اللوحة فيظهر رابطها على صفحة الشفافية', async ({ page }) => {
+    const SITE = process.env.E2E_SITE ?? 'http://127.0.0.1:8000'
+    await login(page)
+    await page.goto('/content?tab=documents')
+
+    // التراخيص بلا سنة: رفعٌ واحد يُنشر
+    const input = page.locator('input[type=file][data-kind="licenses"]')
+    await expect(input).toBeAttached({ timeout: 20_000 })
+    await input.setInputFiles(samplePdf())
+    await expect(page.getByText('نُشرت الوثيقة على صفحة الشفافية.')).toBeVisible({ timeout: 20_000 })
+    await expect(page.getByText('منشورة على الموقع: التراخيص والاعتمادات')).toBeVisible()
+
+    // على الموقع: زرّ تحميل حقيقي، والبقية «يُنشر بعد اعتماد المدقق»
+    await page.goto(`${SITE}/transparency.html`)
+    const doc = page.locator('#tpDocs .tp-doc', { hasText: 'التراخيص والاعتمادات' })
+    await expect(doc.getByRole('link', { name: /تحميل PDF/ })).toHaveAttribute('href', /\/storage\/transparency\/.+\.pdf$/, { timeout: 20_000 })
+    await expect(page.locator('#tpDocs .tp-doc.is-pending').first()).toContainText('يُنشر بعد اعتماد المدقق')
+  })
+
   test('سؤال شائع يُضاف، ويُخفى بمفتاح، ويُحذف من نافذته', async ({ page }) => {
     await login(page)
     await page.goto('/content?tab=faqs')

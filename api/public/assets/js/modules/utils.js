@@ -130,3 +130,19 @@ export function readingTime(minutes) {
   if (n <= 10) return `${arabicDigits(n)} دقائق`;
   return `${arabicDigits(n)} دقيقة`;
 }
+
+/**
+ * عدٌّ صاعد مرة واحدة، أقل من ثانية، وبلا حركة لمن طلب تقليلها.
+ * `format` يكتب القيمة (الافتراضي عددٌ بفواصل، ويُمرَّر مبلغٌ بعملته).
+ */
+export function countUp(el, target, format = formatNumber) {
+  if (prefersReducedMotion() || !target) { el.textContent = format(target); return; }
+  const start = performance.now();
+  const dur = 900;
+  const tick = (now) => {
+    const t = Math.min(1, (now - start) / dur);
+    el.textContent = format(Math.round(target * (1 - (1 - t) ** 3)));
+    if (t < 1) requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}

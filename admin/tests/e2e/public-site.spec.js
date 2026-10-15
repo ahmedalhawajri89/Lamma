@@ -70,7 +70,7 @@ test.describe('الموقع العام', () => {
   test('حلقة الشفافية تعرض نسباً محسوبة', async ({ page }) => {
     await page.goto(`${WEB}/transparency.html`)
 
-    await expect(page.locator('#spendingLegend')).toContainText('مصاريف إدارية', {
+    await expect(page.locator('#tpLegend')).toContainText('مصاريف إدارية', {
       timeout: 20_000,
     })
   })

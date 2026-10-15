@@ -41,7 +41,8 @@ import {
 } from './modules/features.js';
 import { renderHomeSections } from './modules/home.js';
 import { initCatalog } from './modules/catalog.js';
-import { initProofBoard, initCredentials, initFinanceBoard } from './modules/proof.js';
+import { initTransparency } from './modules/transparency.js';
+import { initProofBoard, initCredentials } from './modules/proof.js';
 import { initPortal } from './modules/portal.js';
 
 function boot() {
@@ -53,7 +54,7 @@ function boot() {
   renderHomeSections();
   initProofBoard();
   initCredentials();
-  initFinanceBoard();
+  initTransparency();
   initCatalog();
   initOrphanDetail();
   initCheckout();

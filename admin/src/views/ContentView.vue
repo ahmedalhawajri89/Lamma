@@ -19,6 +19,7 @@ import BaseIcon from '@/components/BaseIcon.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
 import ContentItemModal from '@/components/ContentItemModal.vue'
 import PaginationBar from '@/components/PaginationBar.vue'
+import TransparencyDocsPanel from '@/components/TransparencyDocsPanel.vue'
 
 /* global __SITE_URL__ */
 const auth = useAuthStore()
@@ -31,6 +32,7 @@ const TABS = [
   { key: 'faqs', label: 'الأسئلة الشائعة' },
   { key: 'testimonials', label: 'شهادات الكفلاء' },
   { key: 'partners', label: 'الشركاء' },
+  { key: 'documents', label: 'وثائق الشفافية' },
 ]
 
 // اللسان في الرابط: يُرسَل ويبقى بعد التحديث وبعد الرجوع من المحرّر
@@ -39,6 +41,8 @@ const tab = computed({
   set: (v) => router.replace({ query: v === 'posts' ? {} : { tab: v } }),
 })
 const isPosts = computed(() => tab.value === 'posts')
+// الوثائق لوحتها مستقلة (TransparencyDocsPanel): رفع ملفات لا قائمة عناصر
+const isDocs = computed(() => tab.value === 'documents')
 const can = computed(() => auth.can('content.manage'))
 
 /* ── المقالات ────────────────────────────────────────────────────────── */
@@ -95,7 +99,7 @@ async function loadItems() {
   }
 }
 
-const load = () => (isPosts.value ? loadPosts() : loadItems())
+const load = () => (isDocs.value ? null : isPosts.value ? loadPosts() : loadItems())
 watch(tab, () => { postsPage.value = 1; load() })
 onMounted(load)
 
@@ -178,7 +182,7 @@ async function remove(row) {
   <div>
     <PageHeader title="محتوى الموقع" subtitle="ما يقرأه الزائر على الموقع العام، ويتغيّر فور الحفظ.">
       <template #actions>
-        <button v-if="can" class="btn btn-primary" type="button" @click="create">
+        <button v-if="can && !isDocs" class="btn btn-primary" type="button" @click="create">
           <BaseIcon name="plus" :size="16" />
           {{ isPosts ? 'مقال جديد' : 'إضافة' }}
         </button>
@@ -194,8 +198,11 @@ async function remove(row) {
       >{{ t.label }}</button>
     </div>
 
+    <!-- ══ وثائق الشفافية ══ -->
+    <TransparencyDocsPanel v-if="isDocs" />
+
     <!-- ══ المقالات ══ -->
-    <template v-if="isPosts">
+    <template v-else-if="isPosts">
       <StatusTabs
         v-model="postFilters.status" :options="STATUSES" :counts="postsMeta.status_counts ?? {}"
         :total="postsMeta.all_count ?? null" label="حالة المقال"

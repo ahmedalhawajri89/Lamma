@@ -11,7 +11,7 @@
  * والترتيب. وكل فلتر وصفحة في الرابط: يُشارَك ويُرجَع إليه بزرّ الرجوع.
  */
 
-import { $, $$, escapeHtml, debounce, formatNumber, prefersReducedMotion } from './utils.js';
+import { $, $$, countUp, escapeHtml, debounce, formatNumber, prefersReducedMotion } from './utils.js';
 import { ORPHANS, PROGRAMS } from './data.js';
 import { orphanCard } from './render.js';
 import { apiEnabled, request } from './api.js';
@@ -368,19 +368,6 @@ function mountMosaic(host, photos) {
   host.addEventListener('mouseenter', () => { paused = true; });
   host.addEventListener('mouseleave', () => { paused = false; });
   restart();
-}
-
-/** عدٌّ صاعد مرة واحدة، أقل من ثانية، وبلا حركة لمن طلب تقليلها */
-function countUp(el, target) {
-  if (prefersReducedMotion() || !target) { el.textContent = formatNumber(target); return; }
-  const start = performance.now();
-  const dur = 900;
-  const tick = (now) => {
-    const t = Math.min(1, (now - start) / dur);
-    el.textContent = formatNumber(Math.round(target * (1 - (1 - t) ** 3)));
-    if (t < 1) requestAnimationFrame(tick);
-  };
-  requestAnimationFrame(tick);
 }
 
 /* ── بلا خادم: الاستعلام نفسه على البيانات المضمَّنة ───────────────────── */

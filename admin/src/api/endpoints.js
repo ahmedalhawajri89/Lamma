@@ -191,6 +191,11 @@ export const admin = {
     roles: () => client.get(`${v1}/admin/roles`),
   },
 
+  transparencyDocs: {
+    list: () => client.get(`${v1}/admin/transparency-documents`),
+    upload: (payload, file) => client.post(`${v1}/admin/transparency-documents`, toFormData(payload, { file })),
+    remove: (id) => client.delete(`${v1}/admin/transparency-documents/${id}`),
+  },
   activity: (params) => client.get(`${v1}/admin/activity`, { params }),
   activityExport: (params) => client.get(`${v1}/admin/activity/export`, { params, responseType: 'blob' }),
 
