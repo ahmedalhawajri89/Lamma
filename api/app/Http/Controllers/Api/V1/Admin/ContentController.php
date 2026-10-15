@@ -5,11 +5,16 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\V1\Admin;
 
 use App\Enums\ContactStatus;
+use App\Enums\MessageStatus;
+use App\Enums\OrphanStatus;
 use App\Enums\PostStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PostResource;
 use App\Models\ContactMessage;
+use App\Models\Disbursement;
 use App\Models\Faq;
+use App\Models\Message;
+use App\Models\Orphan;
 use App\Models\Partner;
 use App\Models\Post;
 use App\Models\Setting;
@@ -21,6 +26,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use Spatie\Activitylog\Models\Activity;
 
 /**
  * إدارة المحتوى التحريري.
@@ -344,7 +350,42 @@ class ContentController extends Controller
     {
         abort_unless($request->user()->can('settings.manage'), 403);
 
-        return response()->json(['data' => Setting::cached()]);
+        return response()->json(['data' => Setting::cached(), 'meta' => $this->settingsContext()]);
+    }
+
+    /**
+     * ما يحتاجه المدير ليقرّر، بجانب كل إعداد.
+     *
+     * نسبة تشغيل مستهدفة بلا الفعلية رقمٌ في فراغ، وإيقاف المراجعة بلا عدد
+     * ما ينتظرها قرارٌ أعمى. ومن غيّر كل إعداد ومتى: لكي لا يُسأل أحد
+     * «من غيّر رقم الهاتف على الموقع؟» فلا يجد جواباً.
+     */
+    private function settingsContext(): array
+    {
+        $year = now()->year;
+        $approved = Disbursement::approved()->whereYear('spent_on', $year);
+        $total = (float) (clone $approved)->sum('amount_base');
+        $overhead = (float) (clone $approved)
+            ->join('disbursement_categories as c', 'c.id', '=', 'disbursements.category_id')
+            ->where('c.is_overhead', true)
+            ->sum('disbursements.amount_base');
+
+        // آخر تغيير لكل مفتاح: يكفي ما في آخر خمسين تعديلاً
+        $last = [];
+        Activity::query()->with('causer:id,name')->where('event', 'settings_updated')->latest('id')->limit(50)->get()
+            ->each(function (Activity $a) use (&$last): void {
+                foreach (array_keys($a->properties['attributes'] ?? []) as $key) {
+                    $last[$key] ??= ['by' => $a->causer?->name ?? 'النظام', 'at' => $a->created_at?->toIso8601String()];
+                }
+            });
+
+        return [
+            'overhead_actual' => $total > 0 ? round($overhead * 100 / $total, 1) : null,
+            'overhead_year' => $year,
+            'messages_pending' => Message::where('status', MessageStatus::PendingReview)->count(),
+            'active_orphans' => Orphan::whereIn('status', [OrphanStatus::Active, OrphanStatus::FullyFunded])->count(),
+            'last_changed' => (object) $last,
+        ];
     }
 
     /**
