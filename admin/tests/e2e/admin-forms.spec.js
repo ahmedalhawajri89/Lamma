@@ -650,50 +650,43 @@ test.describe('المستخدمون', () => {
 })
 
 test.describe('الإعدادات', () => {
-  test('تُحمَّل من الخادم بسياقها، وشريط الحفظ يظهر بالتغيير الفعلي وحده، والتغيير يُسجَّل', async ({ page }) => {
+  test('لوحة تُقرأ بسياقها، والتعديل في درج يُحفظ وحده ويُسجَّل', async ({ page }) => {
     await login(page)
     await page.goto('/settings')
 
-    const name = page.getByLabel(/^اسم المنصة/)
-    const tagline = page.getByLabel(/^الوصف المختصر/)
-
-    // القيم من قاعدة البيانات لا فارغة، والسياق بجانبها
-    await expect(name).not.toHaveValue('', { timeout: 20_000 })
+    // تُقرأ: الهوية وحالة كل سياسة بأثرها الآن
+    await expect(page.locator('#idName')).not.toHaveText('', { timeout: 20_000 })
     await expect(page.getByText(/الفعلي في \d{4}/)).toBeVisible()
-    await expect(page.getByRole('switch', { name: /مراجعة رسائل الكفلاء/ })).toBeVisible()
+    await expect(page.getByText(/رسالة تنتظر المراجعة الآن/)).toBeVisible()
+
+    // التعديل في درج: بلا تغيير لا زرّ حفظ
+    await page.getByRole('button', { name: /تعديل الهوية/ }).click()
+    const drawer = page.getByRole('dialog', { name: 'هوية المنصة والتواصل' })
+    const tagline = drawer.getByLabel('الوصف المختصر')
+    const original = await tagline.inputValue()
+    await expect(drawer.getByRole('button', { name: 'إغلاق' }).last()).toBeVisible()
+    await expect(drawer.getByRole('button', { name: /حفظ التغييرات/ })).toHaveCount(0)
 
     /**
-     * لا حفظ حتى يتغيّر شيء.
-     *
-     * حفظٌ بلا تعديل يكتب الصفوف كلها ويمسح ذاكرة الموقع العام بلا سبب،
-     * ويملأ سجل النشاط بتغييرات لم تقع.
+     * كتابة القيمة نفسها ليست تغييراً: حفظٌ بلا تعديل يكتب الصفوف ويمسح
+     * ذاكرة الموقع العام بلا سبب، ويملأ السجل بتغييرات لم تقع.
      */
-    const bar = page.getByRole('status').filter({ hasText: /لم يُحفظ/ })
-    await expect(bar).toHaveCount(0)
-
-    // كتابة القيمة نفسها ليست تغييراً
-    const original = await tagline.inputValue()
     await tagline.fill(original)
-    await expect(bar).toHaveCount(0)
+    await expect(drawer.getByRole('button', { name: /حفظ التغييرات/ })).toHaveCount(0)
 
-    // التراجع يعيد القيمة ويُخفي الشريط
+    // تغيير فعلي يُحفظ، ويظهر في اللوحة وفي السجل
     await tagline.fill(`${original} (اختبار)`)
-    await expect(bar).toContainText('تغيير لم يُحفظ')
-    await bar.getByRole('button', { name: 'تراجع' }).click()
-    await expect(tagline).toHaveValue(original)
-    await expect(bar).toHaveCount(0)
+    await drawer.getByRole('button', { name: /حفظ التغييرات/ }).click()
+    await expect(page.getByText(/حُفظت هوية المنصة/)).toBeVisible({ timeout: 20_000 })
+    await expect(drawer).toHaveCount(0)
+    await expect(page.locator('#idName ~ p')).toHaveText(`${original} (اختبار)`)
+    await expect(page.locator('section[aria-labelledby=hTitle]')).toContainText('الوصف المختصر', { timeout: 15_000 })
 
-    // تغيير فعلي يُحفظ ويظهر في «آخر التغييرات» وتحت الحقل، ثم تُعاد القيمة
-    await tagline.fill(`${original} (اختبار)`)
-    await bar.getByRole('button', { name: /حفظ/ }).click()
-    await expect(page.getByText('حُفظت الإعدادات.')).toBeVisible({ timeout: 20_000 })
-    await expect(bar).toHaveCount(0)
-    await expect(page.locator('section[aria-labelledby=sHistory]')).toContainText('الوصف المختصر', { timeout: 15_000 })
-    await expect(page.getByText(/عدّله .+ (الآن|قبل)/).first()).toBeVisible()
-
-    await tagline.fill(original)
-    await bar.getByRole('button', { name: /حفظ/ }).click()
-    await expect(page.getByText('حُفظت الإعدادات.').last()).toBeVisible({ timeout: 20_000 })
+    // وتُعاد القيمة
+    await page.getByRole('button', { name: /تعديل الهوية/ }).click()
+    await drawer.getByLabel('الوصف المختصر').fill(original)
+    await drawer.getByRole('button', { name: /حفظ التغييرات/ }).click()
+    await expect(drawer).toHaveCount(0, { timeout: 20_000 })
   })
 })
 
