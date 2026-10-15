@@ -201,7 +201,8 @@ class ContentSeeder extends Seeder
             Post::updateOrCreate(['slug' => $row['slug']], [
                 'title' => $row['title'],
                 'excerpt' => $row['excerpt'],
-                'body' => $row['body'],
+                // بصيغة المحرّر المنسّق (HTML مهرَّب الفقرات)، كما تحوّلها الهجرة
+                'body' => app(\App\Services\RichText::class)->fromPlain($row['body']),
                 'category_id' => $categoryIds[$row['category']],
                 'cover_path' => "posts/{$row['image']}",
                 // زمن القراءة يُحسب من النصّ لا يُكتب باليد: رقم مكتوب يكذب

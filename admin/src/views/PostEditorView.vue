@@ -4,8 +4,8 @@
  *
  * كان المقال يُكتب في مربّع نصّ من عشرة أسطر داخل نافذة منبثقة، بلا معرفة
  * بشكله على الموقع حتى يُنشر. هنا العنوان بخطٍّ كبير، والنصّ في مساحة
- * كتابة تتّسع معه، ومعاينةٌ بالقواعد نفسها التي يعرض بها الموقع المقال
- * (فقرات تفصلها أسطر فارغة)، والإعدادات في عمود جانبي.
+ * محرّر منسّق (عناوين، قوائم، روابط، صور)، ومعاينةٌ بالشكل الذي يعرض به
+ * الموقع المقال، والإعدادات في عمود جانبي.
  */
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { onBeforeRouteLeave, useRoute, useRouter, RouterLink } from 'vue-router'
@@ -15,6 +15,7 @@ import { useUiStore } from '@/stores/ui'
 import { date, num } from '@/utils/format'
 import BaseIcon from '@/components/BaseIcon.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
+import RichTextEditor from '@/components/RichTextEditor.vue'
 
 /* global __SITE_URL__ */
 const route = useRoute()
@@ -72,12 +73,14 @@ watch(() => route.params.id, (id, prev) => { if (id !== prev) load() })
 
 /* ── ما يُحسب من النصّ ───────────────────────────────────────────────── */
 
-const words = computed(() => form.value.body.trim().split(/\s+/).filter(Boolean).length)
+/** HTML المحرّر مُحلَّلاً: للعدّ لا للعرض */
+const doc = computed(() => new DOMParser().parseFromString(form.value.body || '', 'text/html').body)
+const words = computed(() => (doc.value.textContent ?? '').trim().split(/\s+/).filter(Boolean).length)
 // قرابة مئتي كلمة في الدقيقة للقارئ العربي، ودقيقة على الأقل
 const readMinutes = computed(() => Math.max(1, Math.round(words.value / 200)))
 
-/** الفقرات كما يقسمها الموقع (features.js): أسطر فارغة بينها، ولو بـ CRLF */
-const paragraphs = computed(() => form.value.body.split(/(?:\r?\n[ \t]*){2,}/).map((p) => p.trim()).filter(Boolean))
+/** الفقرات: ما في المستوى الأول من <p> فيه نصّ (لا بنود القوائم ولا الاقتباس) */
+const paragraphs = computed(() => [...doc.value.children].filter((el) => el.tagName === 'P' && el.textContent.trim()).length)
 
 const tab = ref('write')
 
@@ -203,7 +206,8 @@ function grow(e) {
           >{{ t.l }}</button>
         </div>
 
-        <template v-if="tab === 'write'">
+        <!-- v-show لا v-if: المحرّر يبقى بسجلّ تراجعه حين تُفتح المعاينة -->
+        <div v-show="tab === 'write'">
           <label class="sr-only" for="postTitle">العنوان</label>
           <textarea
             id="postTitle" v-model="form.title" rows="1" maxlength="200"
@@ -221,29 +225,23 @@ function grow(e) {
 
           <hr class="my-5 border-sand-100" />
 
-          <label class="sr-only" for="postBody">النصّ</label>
-          <textarea
-            id="postBody" v-model="form.body" rows="16"
-            class="w-full resize-none bg-transparent text-base leading-loose text-sand-800 placeholder:text-sand-300 focus:outline-none min-h-[24rem]"
-            placeholder="اكتب هنا. سطرٌ فارغ بين فقرتين يصنع فقرة جديدة على الموقع." @input="grow"
-          />
+          <RichTextEditor id="postBody" v-model="form.body" placeholder="اكتب هنا. اختر نصّاً لتجعله عريضاً أو رابطاً، أو ابدأ سطراً بعنوان من الشريط." />
           <p class="text-xs text-sand-400 mt-4 border-t border-sand-100 pt-3">
-            <span class="num">{{ num(words) }}</span> كلمة · <span class="num">{{ num(paragraphs.length) }}</span> فقرة ·
+            <span class="num">{{ num(words) }}</span> كلمة · <span class="num">{{ num(paragraphs) }}</span> فقرة ·
             قرابة <span class="num">{{ readMinutes }}</span> {{ readMinutes === 1 ? 'دقيقة' : 'دقائق' }} قراءة
           </p>
-        </template>
+        </div>
 
         <!-- المعاينة بقواعد الموقع: فقرات، والغلاف فوقها -->
-        <article v-else class="max-w-2xl mx-auto">
+        <article v-if="tab === 'preview'" class="max-w-2xl mx-auto">
           <p class="text-xs font-medium text-clay-700 mb-2">{{ categories.find((c) => c.id === Number(form.category_id))?.name ?? 'مقال' }}</p>
           <h1 class="text-3xl font-bold text-sand-900 leading-snug">{{ form.title || 'بلا عنوان' }}</h1>
           <p v-if="form.excerpt" class="text-lg text-sand-600 mt-3">{{ form.excerpt }}</p>
           <p class="text-xs text-sand-400 mt-3">{{ form.published_at ? date(form.published_at) : 'تاريخ النشر عند النشر' }} · {{ readMinutes }} {{ readMinutes === 1 ? 'دقيقة' : 'دقائق' }} قراءة</p>
           <img v-if="coverShown" :src="coverShown" alt="" class="w-full aspect-video object-cover rounded-xl my-6" />
-          <div class="mt-6 space-y-5 text-[1.05rem] leading-loose text-sand-800">
-            <p v-for="(p, i) in paragraphs" :key="i" class="whitespace-pre-line">{{ p }}</p>
-            <p v-if="!paragraphs.length" class="text-sand-400">لا نصّ بعد.</p>
-          </div>
+          <!-- ناتج المحرّر نفسه (مخطّطه لا يقبل إلا وسوم المقال)، والخادم ينظّفه عند الحفظ -->
+          <div v-if="form.body" class="prose-admin mt-6" v-html="form.body" />
+          <p v-else class="mt-6 text-sand-400">لا نصّ بعد.</p>
         </article>
       </section>
 
@@ -282,7 +280,7 @@ function grow(e) {
           </div>
           <label class="btn btn-outline w-full justify-center cursor-pointer text-sm">
             <BaseIcon name="upload" :size="14" /> {{ coverShown ? 'استبدال الصورة' : 'اختر صورة' }}
-            <input type="file" accept="image/jpeg,image/png,image/webp" class="sr-only" @change="pickCover" />
+            <input id="postCover" type="file" accept="image/jpeg,image/png,image/webp" class="sr-only" @change="pickCover" />
           </label>
           <p class="text-[0.7rem] text-sand-400 mt-2">JPG أو PNG أو WebP. بلا وجوه أطفال واضحة.</p>
         </section>

@@ -16,6 +16,7 @@ use App\Models\Setting;
 use App\Models\Testimonial;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use App\Services\RichText;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -95,6 +96,11 @@ class ContentController extends Controller
             'cover' => ['nullable', 'image', 'mimes:jpeg,png,webp', 'max:'.config('kafala.uploads.max_size_kb')],
         ]);
 
+        // النصّ المنسّق يمرّ بالتنظيف قبل الحفظ: يُعرض على الموقع كما هو
+        if (array_key_exists('body', $validated)) {
+            $validated['body'] = app(RichText::class)->sanitize($validated['body']);
+        }
+
         $post = Post::create([
             ...$this->withPublishDate(collect($validated)->except('cover')->all()),
             'slug' => $this->uniqueSlug($validated['title']),
@@ -139,6 +145,10 @@ class ContentController extends Controller
         }
         unset($validated['cover']);
 
+        if (array_key_exists('body', $validated)) {
+            $validated['body'] = app(RichText::class)->sanitize($validated['body']);
+        }
+
         // النشر لاحقاً من مسوّدة يمرّ من هنا لا من الإنشاء
         $post->update($this->withPublishDate([
             ...$validated,
@@ -153,6 +163,26 @@ class ContentController extends Controller
             'message' => 'حُفظت التعديلات.',
             'data' => new PostResource($post->fresh()->load('category')),
         ]);
+    }
+
+    /**
+     * صورة داخل نصّ المقال (لا غلافه): تُرفع وتُرجع رابطها ليضعه المحرّر.
+     * صورة لا ملف: يُفحص نوعها الحقيقي، ولا تُقبل SVG (قد تحمل سكربتاً).
+     */
+    public function postImage(Request $request): JsonResponse
+    {
+        abort_unless($request->user()->can('content.manage'), 403);
+
+        $request->validate([
+            'image' => ['required', 'image', 'mimes:jpeg,png,webp', 'max:'.config('kafala.uploads.max_size_kb')],
+        ], [
+            'image.mimes' => 'الصورة JPG أو PNG أو WebP.',
+        ]);
+
+        $path = $request->file('image')->store('posts/inline', 'public');
+        activity()->causedBy($request->user())->withProperties(['path' => $path])->log('رفع صورة داخل مقال');
+
+        return response()->json(['data' => ['url' => asset('storage/'.$path)]], 201);
     }
 
     /** الأسئلة والشهادات والشركاء — ثلاثة جداول بواجهة واحدة. */

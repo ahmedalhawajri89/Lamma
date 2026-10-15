@@ -242,6 +242,9 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
             /* --- المحتوى --- */
             Route::get('posts', [Admin\ContentController::class, 'posts'])->name('posts.index');
             Route::post('posts', [Admin\ContentController::class, 'storePost'])->name('posts.store');
+            Route::post('posts/images', [Admin\ContentController::class, 'postImage'])
+                ->middleware('throttle:30,1')
+                ->name('posts.images');
             /**
              * الربط بالمعرّف صراحةً.
              *

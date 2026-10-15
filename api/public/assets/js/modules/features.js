@@ -314,8 +314,16 @@ export async function initPostDetail() {
        </div>`
     : '';
 
-  // النصّ يصل فقرات مفصولة بأسطر فارغة؛ نحوّلها إلى <p> بعد التهريب
-  const body = String(post.body ?? post.excerpt ?? '')
+  /*
+    النصّ المنسّق (HTML) يصل من المحرّر وقد نظّفه الخادم عند الحفظ
+    (App\Services\RichText: الوسوم المسموحة وحدها، بلا سكربت ولا سمات أحداث)،
+    فيُعرض كما هو. والنصّ القديم العادي يبقى بفقراته المهرَّبة.
+  */
+  const raw = String(post.body ?? '');
+  const isHtml = /^\s*<(p|h2|h3|ul|ol|blockquote|hr)\b/i.test(raw);
+
+  // النصّ العادي يصل فقرات مفصولة بأسطر فارغة؛ نحوّلها إلى <p> بعد التهريب
+  const body = isHtml ? raw : String(post.body ?? post.excerpt ?? '')
     /*
       الفاصل يحتمل CRLF: مربّع النصّ في المتصفح يُطبّع أسطره إلى \r\n،
       فيصير فاصل الفقرات \r\n\r\n — ولا يطابقه /\n{2,}/ لأن السطرين فيه

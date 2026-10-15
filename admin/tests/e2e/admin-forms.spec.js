@@ -715,13 +715,21 @@ test.describe('محتوى الموقع', () => {
 
     await page.locator('#postTitle').fill(title)
     await page.locator('#postExcerpt').fill('مقتطف قصير.')
-    await page.locator('#postBody').fill(['الفقرة الأولى.', 'الفقرة الثانية.', 'والثالثة.'].join('\n\n'))
-    await page.locator('input[type=file]').setInputFiles(sampleImage())
+    // المحرّر المنسّق: Enter يصنع فقرة، وعنوان من الشريط
+    await page.locator('#postBody .ProseMirror').click()
+    await page.getByRole('button', { name: 'عنوان فرعي' }).click()
+    await page.keyboard.type('عنوان داخل المقال')
+    for (const p of ['الفقرة الأولى.', 'الفقرة الثانية.', 'والثالثة.']) {
+      await page.keyboard.press('Enter')
+      await page.keyboard.type(p)
+    }
+    await page.locator('#postCover').setInputFiles(sampleImage())
 
     // العدّ والمعاينة بقواعد الموقع: ثلاث فقرات
     await expect(page.getByText(/3 فقرة/)).toBeVisible()
     await page.getByRole('tab', { name: /معاينة/ }).click()
-    await expect(page.locator('article p.whitespace-pre-line')).toHaveCount(3)
+    await expect(page.locator('article .prose-admin > p')).toHaveCount(3)
+    await expect(page.locator('article .prose-admin > h2')).toHaveText('عنوان داخل المقال')
 
     await page.getByRole('button', { name: /^حفظ/ }).click()
     await page.waitForURL(/\/content\/posts\/\d+/, { timeout: 25_000 })
@@ -739,7 +747,7 @@ test.describe('محتوى الموقع', () => {
 
     // ── النشر من المحرّر، والنصّ محفوظ فيه لا يُمحى ──
     await page.goto(editorUrl)
-    await expect.poll(async () => (await page.locator('#postBody').inputValue()).length, { timeout: 20_000 }).toBeGreaterThan(20)
+    await expect.poll(async () => (await page.locator('#postBody .ProseMirror').innerText()).length, { timeout: 20_000 }).toBeGreaterThan(20)
     await page.getByRole('button', { name: /انشر الآن/ }).click()
     await expect(page.getByRole('link', { name: /على الموقع/ })).toBeVisible({ timeout: 25_000 })
 
@@ -752,12 +760,8 @@ test.describe('محتوى الموقع', () => {
     await page.waitForSelector('#postDetail:not([aria-busy])', { timeout: 20_000 })
     await expect(page.locator('h1')).toHaveText(title)
 
-    /**
-     * ثلاث فقرات لا واحدة.
-     *
-     * مربّع النصّ يُطبّع أسطره إلى CRLF، فيصير فاصل الفقرات سطرين غير
-     * متجاورين، ولا يطابقهما تعبيرٌ يبحث عن `\n` مرتين متتاليتين.
-     */
+    // التنسيق يصل الموقع كما كُتب: العنوان عنوان، والفقرات ثلاث
+    await expect(page.locator('.prose h2')).toHaveText('عنوان داخل المقال')
     await expect(page.locator('.prose p')).toHaveCount(3)
     expect(await page.locator('.frame__img').evaluate((e) => e.naturalWidth)).toBeGreaterThan(0)
   })

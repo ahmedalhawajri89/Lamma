@@ -193,6 +193,8 @@ export const admin = {
 
   posts: {
     list: (params) => client.get(`${v1}/admin/posts`, { params }),
+    /** صورة داخل نصّ المقال: تُرفع ويُرجع رابطها */
+    uploadImage: (file) => client.post(`${v1}/admin/posts/images`, toFormData({}, { image: file })),
     /** مقالٌ واحد بنصّه، مع التصنيفات والحالات للمحرّر */
     show: (id) => client.get(`${v1}/admin/posts/${id}`),
 
