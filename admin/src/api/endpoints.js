@@ -182,6 +182,7 @@ export const admin = {
 
   users: {
     list: (params) => client.get(`${v1}/admin/users`, { params }),
+    show: (id) => client.get(`${v1}/admin/users/${id}`),
     create: (payload) => client.post(`${v1}/admin/users`, payload),
     update: (id, payload) => client.patch(`${v1}/admin/users/${id}`, payload),
     /** إعادة إرسال رابط تعيين كلمة المرور لموظف لم يفعّل حسابه */

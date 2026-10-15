@@ -4,13 +4,22 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1\Admin;
 
+use App\Enums\OrphanStatus;
+use App\Enums\ReportStatus;
 use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
+use App\Models\FieldVisit;
+use App\Models\Orphan;
+use App\Models\Report;
 use App\Models\StaffProfile;
 use App\Models\User;
+use App\Support\Permissions;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Carbon;
+use Spatie\Activitylog\Models\Activity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -21,30 +30,124 @@ use Illuminate\Validation\ValidationException;
 
 class UserController extends Controller
 {
+    /**
+     * فريق العمل.
+     *
+     * الكفلاء لا يظهرون هنا: لهم تبويبهم، وحساباتهم تُدار من بوابتهم. وكان
+     * خلطهم بالموظفين يُغرق خمسة موظفين بين مئات الكفلاء خلف مربّع «الموظفون فقط».
+     */
     public function index(Request $request): JsonResponse
     {
         abort_unless($request->user()->can('users.manage'), 403);
 
-        // دور مجهول يرمي استثناءً من Spatie (500)؛ يُرفض هنا بـ 422
-        $request->validate(['role' => ['nullable', Rule::in(UserRole::values())]]);
+        $staffRoles = array_column(UserRole::staff(), 'value');
 
-        $users = User::query()
+        // دور مجهول يرمي استثناءً من Spatie (500)؛ يُرفض هنا بـ 422
+        $request->validate([
+            'role' => ['nullable', Rule::in($staffRoles)],
+            'status' => ['nullable', Rule::in(UserStatus::values())],
+        ]);
+
+        $users = $this->filtered($request)
             // getAllPermissions() في UserResource يقرأ الصلاحيات المباشرة وصلاحيات
             // الأدوار معاً، فتُحمَّل العلاقتان هنا وإلا وقع lazy load لكل صف
             ->with(['roles.permissions', 'permissions', 'staffProfile.assignedCountry'])
             ->when($request->filled('role'), fn ($q) => $q->role($request->string('role')->toString()))
-            ->when($request->boolean('staff_only'), fn ($q) => $q->staff())
-            ->when($request->filled('q'), fn ($q) => $q->where(function ($w) use ($request): void {
-                $term = addcslashes($request->string('q')->toString(), '%_\\');
-                $w->where('name', 'like', "%{$term}%")->orWhere('email', 'like', "%{$term}%");
-            }))
+            ->when($request->filled('status'), fn ($q) => $q->where('status', $request->string('status')->toString()))
+            // من ينتظر التفعيل أولاً (عليه إجراء)، ثم الأحدث دخولاً
+            ->orderByRaw("status = 'pending' desc")
+            ->orderByDesc('last_login_at')
             ->latest('id')
             ->paginate($this->perPage($request, 20));
 
+        // أعداد التبويبات: كلٌّ تحت الفلاتر الأخرى لا تحت نفسه
+        $roleCounts = $this->filtered($request)
+            ->when($request->filled('status'), fn ($q) => $q->where('status', $request->string('status')->toString()))
+            ->join('model_has_roles as mr', fn ($j) => $j->on('mr.model_id', '=', 'users.id')->where('mr.model_type', User::class))
+            ->join('roles', 'roles.id', '=', 'mr.role_id')
+            ->whereIn('roles.name', $staffRoles)
+            ->selectRaw('roles.name as role, count(distinct users.id) as n')
+            ->groupBy('roles.name')
+            ->pluck('n', 'role');
+
+        $statusCounts = $this->filtered($request)
+            ->when($request->filled('role'), fn ($q) => $q->role($request->string('role')->toString()))
+            ->selectRaw('status, count(*) as n')
+            ->groupBy('status')
+            ->pluck('n', 'status');
+
         return response()->json([
             'data' => UserResource::collection($users->items()),
-            'meta' => ['total' => $users->total(), 'current_page' => $users->currentPage(), 'last_page' => $users->lastPage()],
+            'meta' => [
+                'total' => $users->total(), 'current_page' => $users->currentPage(), 'last_page' => $users->lastPage(),
+                'role_counts' => $roleCounts,
+                'status_counts' => $statusCounts,
+                'all_count' => $roleCounts->sum(),
+            ],
         ]);
+    }
+
+    /**
+     * الموظف كاملاً: ما يقدر عليه، وحمل عمله، ودعوته، وآخر ما فعل.
+     */
+    public function show(Request $request, User $user): JsonResponse
+    {
+        abort_unless($request->user()->can('users.manage'), 403);
+        abort_unless($user->isStaff(), 404);
+
+        $user->load(['roles.permissions', 'permissions', 'staffProfile.assignedCountry']);
+        $role = $user->roles->first()?->name;
+        $country = $user->staffProfile?->assigned_country_id;
+
+        $actions = Activity::query()->where('causer_type', User::class)->where('causer_id', $user->id);
+
+        $stats = [
+            'actions_30d' => (clone $actions)->where('created_at', '>=', now()->subDays(30))->count(),
+            'last_action_at' => (clone $actions)->max('created_at'),
+        ];
+
+        // المشرف: بلده وما عليه فيه
+        if ($role === UserRole::FieldSupervisor->value) {
+            $stats += [
+                'orphans_in_country' => $country
+                    ? Orphan::whereIn('status', [OrphanStatus::Active, OrphanStatus::FullyFunded, OrphanStatus::PendingVerification])
+                        ->whereHas('family', fn ($q) => $q->where('country_id', $country))->count()
+                    : 0,
+                'visits_90d' => FieldVisit::where('supervisor_id', $user->id)->where('visited_at', '>=', now()->subDays(90))->count(),
+                'reports_open' => Report::where('supervisor_id', $user->id)->where('status', ReportStatus::Draft)->count(),
+            ];
+        }
+
+        $invite = $user->status === UserStatus::Pending
+            ? Activity::query()->where('subject_type', User::class)->where('subject_id', $user->id)
+                ->whereIn('event', ['created', 'invited'])->latest('id')->value('created_at')
+            : null;
+
+        return response()->json([
+            'data' => [
+                ...(new UserResource($user))->resolve($request),
+                'hired_at' => $user->staffProfile?->hired_at?->toDateString(),
+                'created_at' => $user->created_at?->toIso8601String(),
+                'invited_at' => $invite ? Carbon::parse($invite)->toIso8601String() : null,
+                'is_self' => $user->id === $request->user()->id,
+                'abilities' => Permissions::describe($user->getAllPermissions()->pluck('name')->all()),
+                'stats' => [
+                    ...$stats,
+                    'last_action_at' => $stats['last_action_at'] ? Carbon::parse($stats['last_action_at'])->toIso8601String() : null,
+                ],
+            ],
+        ]);
+    }
+
+    /** الموظفون، بالبحث: أساس القائمة وأعدادها */
+    private function filtered(Request $request): Builder
+    {
+        return User::query()
+            ->staff()
+            ->when($request->filled('q'), fn ($q) => $q->where(function ($w) use ($request): void {
+                $term = addcslashes($request->string('q')->toString(), '%_\\');
+                $w->where('users.name', 'like', "%{$term}%")->orWhere('users.email', 'like', "%{$term}%");
+            }));
     }
 
     public function store(Request $request): JsonResponse
@@ -198,6 +301,9 @@ class UserController extends Controller
         abort_unless($user->isStaff() && $user->status === UserStatus::Pending, 422, 'الدعوة لحساب موظف لم يُفعَّل بعد.');
 
         Password::sendResetLink(['email' => $user->email]);
+
+        // يُسجَّل: الدرج يعرض «أُرسلت قبل ساعتين» فلا تُرسل مرة ثالثة بلا داعٍ
+        activity()->performedOn($user)->causedBy($request->user())->event('invited')->log('أعاد إرسال دعوة موظف');
 
         return response()->json(['message' => 'أُعيد إرسال رابط الدعوة.']);
     }

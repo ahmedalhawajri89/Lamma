@@ -277,8 +277,11 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
             /* --- المستخدمون والسجل --- */
             Route::get('users', [Admin\UserController::class, 'index'])->name('users.index');
             Route::post('users', [Admin\UserController::class, 'store'])->name('users.store');
+            Route::get('users/{user}', [Admin\UserController::class, 'show'])->name('users.show');
             Route::match(['put', 'patch'], 'users/{user}', [Admin\UserController::class, 'update'])->name('users.update');
-            Route::post('users/{user}/invite', [Admin\UserController::class, 'invite'])->name('users.invite');
+            Route::post('users/{user}/invite', [Admin\UserController::class, 'invite'])
+                ->middleware('throttle:6,1')
+                ->name('users.invite');
             Route::get('roles', [Admin\UserController::class, 'roles'])->name('roles');
 
             Route::get('activity', [Admin\ActivityController::class, 'index'])->name('activity.index');

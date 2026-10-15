@@ -638,8 +638,14 @@ test.describe('المستخدمون', () => {
     await fill(page, 'البريد', `staff${Date.now().toString().slice(-7)}@kafala.org`)
     await page.getByRole('button', { name: 'حفظ' }).click()
 
-    await expect(page.locator('[role=dialog]')).toBeHidden({ timeout: 25_000 })
-    await expect(page.getByText(/رابط تعيين كلمة المرور/)).toBeVisible()
+    await expect(page.getByRole('dialog', { name: 'موظف جديد' })).toBeHidden({ timeout: 25_000 })
+    await expect(page.getByText(/رابط تعيين كلمة المرور/).first()).toBeVisible()
+
+    // يُفتح درج الموظف الجديد: ينتظر التفعيل، وما يقدر عليه دوره ظاهر
+    const drawer = page.getByRole('dialog', { name: 'موظف اختباري' })
+    await expect(drawer).toContainText('لم يفعّل حسابه بعد', { timeout: 15_000 })
+    await expect(drawer.getByText('تسجيل دفعة يدوية')).toBeVisible()
+    await expect(drawer.getByText('تعديل ملف يتيم')).toHaveCount(0)
   })
 })
 

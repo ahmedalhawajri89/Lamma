@@ -39,12 +39,12 @@ const BLANK = {
   status: 'active',
 }
 
-const form = useForm(BLANK, ({ email, title, status, ...rest }) =>
+const form = useForm(BLANK, ({ email, status: _, ...rest }) =>
   editing.value
-    // البريد والمسمّى لا يُعدَّلان من هنا: البريد هوية الحساب، وتغييره
-    // يقطع رابط الاستعادة المُرسَل؛ والمسمّى في ملف الموظف لا في الحساب
-    ? admin.users.update(props.user.id, { ...rest, status })
-    : admin.users.create({ ...rest, email, title }),
+    // البريد لا يُعدَّل: هو هوية الحساب، وتغييره يقطع رابط الاستعادة المُرسَل.
+    // والحالة لا تُرسَل من هنا: الإيقاف وإعادة التفعيل في درج الموظف بتأكيد
+    ? admin.users.update(props.user.id, rest)
+    : admin.users.create({ ...rest, email }),
 )
 
 const ROLES = [
@@ -52,18 +52,6 @@ const ROLES = [
   { value: 'accountant', label: 'محاسب: المال والتقارير، بلا ملفات' },
   { value: 'field_supervisor', label: 'مشرف ميداني: الملفات والزيارات، بلا مال' },
 ]
-
-const STATUSES = [
-  { value: 'active', label: 'نشط' },
-  { value: 'suspended', label: 'موقوف' },
-]
-
-/** «بانتظار التفعيل» حالة يصلها الحساب وحده، فتُعرض لمن هو فيها ولا تُختار */
-const statusOptions = computed(() =>
-  props.user?.status === 'pending'
-    ? [{ value: 'pending', label: 'بانتظار التفعيل' }, ...STATUSES]
-    : STATUSES,
-)
 
 const countryOptions = computed(() =>
   props.countries.map((c) => ({ value: c.id, label: c.name })),
@@ -143,7 +131,6 @@ async function save() {
         :error="form.errors.value.phone" @update:model-value="form.touch('phone')"
       />
       <FormField
-        v-if="!editing"
         v-model="form.values.title" label="المسمّى الوظيفي"
         placeholder="مشرف ميداني في غزة"
         :error="form.errors.value.title" @update:model-value="form.touch('title')"
@@ -165,14 +152,5 @@ async function save() {
       :error="form.errors.value.assigned_country_id"
       @update:model-value="form.touch('assigned_country_id')"
     />
-
-    <template v-if="editing">
-      <FormField
-        v-model="form.values.status" label="الحالة" required
-        :options="statusOptions" :disabled="isSelf"
-        :hint="isSelf ? 'لا يمكنك إيقاف حسابك أنت.' : ''"
-        :error="form.errors.value.status" @update:model-value="form.touch('status')"
-      />
-    </template>
   </FormModal>
 </template>
