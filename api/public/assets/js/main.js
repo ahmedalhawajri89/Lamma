@@ -36,12 +36,12 @@ import {
   initImpactCalculator,
   initOrphanDetail,
   initPostDetail,
-  initPostsPager,
   initResetPassword,
 } from './modules/features.js';
 import { renderHomeSections } from './modules/home.js';
 import { initCatalog } from './modules/catalog.js';
 import { initTransparency } from './modules/transparency.js';
+import { initBlog } from './modules/blog.js';
 import { initProofBoard, initCredentials } from './modules/proof.js';
 import { initPortal } from './modules/portal.js';
 
@@ -59,7 +59,7 @@ function boot() {
   initOrphanDetail();
   initCheckout();
   initPostDetail();
-  initPostsPager();
+  initBlog();
   initResetPassword();
   initThankYou();
   initPortal();

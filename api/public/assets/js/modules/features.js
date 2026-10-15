@@ -5,8 +5,8 @@
 
 import { $, $$, formatNumber, escapeHtml, arabicDigits, readingTime } from './utils.js';
 import { ORPHANS, IMPACT_TIERS, PROGRAMS, getProgram } from './data.js';
-import { orphanCard, postCard } from './render.js';
-import { fetchPost, fetchPostsPage } from './api.js';
+import { orphanCard } from './render.js';
+import { fetchPost } from './api.js';
 import { initReveal } from './motion.js';
 
 /* =========================================================================
@@ -286,59 +286,8 @@ export async function initPostDetail() {
 }
 
 /* =========================================================================
-   7. «تحميل مقالات أقدم»
+   7. صفحات المدونة: انتقلت إلى blog.js (مجلة بتصنيفات وبحث وصفحات)
    ========================================================================= */
-
-/**
- * يجلب الصفحة التالية ويُلحقها بالشبكة.
- *
- * كان الزرّ موجوداً بلا معالج إطلاقاً: يضغطه الزائر فلا يحدث شيء. وهذا أسوأ
- * من غيابه — الزرّ الميت يوحي بأن الموقع معطّل.
- *
- * ويختفي حين لا يبقى شيء، فلا يعِد بما لا يملك.
- */
-export function initPostsPager() {
-  const button = $('#loadMorePosts');
-  const grid = $('#postsGrid');
-  if (!button || !grid) return;
-
-  let page = 1;
-  let lastPage = 1;
-  const original = button.innerHTML;
-
-  // البذرة قد تكون كل ما لدينا (وضع بلا خادم) — عندها لا صفحات أخرى
-  fetchPostsPage(1).then((res) => {
-    lastPage = res?.meta?.last_page ?? 1;
-    button.hidden = lastPage <= 1;
-  });
-
-  button.addEventListener('click', async () => {
-    button.disabled = true;
-    button.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> جارٍ التحميل…';
-
-    const res = await fetchPostsPage(page + 1);
-
-    button.disabled = false;
-    button.innerHTML = original;
-
-    if (!res || !res.posts.length) {
-      button.hidden = true;
-      return;
-    }
-
-    page += 1;
-    lastPage = res.meta.last_page ?? page;
-
-    grid.insertAdjacentHTML(
-      'beforeend',
-      res.posts.map((post, i) => postCard(post, { delay: i * 60 })).join(''),
-    );
-
-    initReveal();
-    button.hidden = page >= lastPage;
-  });
-}
-
 
 /* =========================================================================
    8. صفحة تعيين كلمة المرور

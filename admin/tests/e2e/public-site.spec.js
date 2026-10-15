@@ -213,7 +213,7 @@ test.describe('المدونة وصفحة المقال', () => {
   test('من البطاقة إلى نصّ المقال', async ({ page }) => {
     await page.goto(`${WEB}/blog`)
 
-    const first = page.locator('.post-card__title a').first()
+    const first = page.locator('#blogGrid .mag-card__title a').first()
     await expect(first).toBeVisible({ timeout: 15_000 })
 
     // الرابط حقيقي لا مرساة فارغة
@@ -243,33 +243,36 @@ test.describe('المدونة وصفحة المقال', () => {
     await expect(page.locator('#postDetail h1')).toHaveText('لم نجد هذا المقال', { timeout: 20_000 })
   })
 
-  test('زرّ «تحميل أقدم» يجلب المزيد ثم يختفي', async ({ page }) => {
+  test('التصنيف والبحث في الرابط، والمميّز لا يتكرر، والصفحات تنتقل', async ({ page }) => {
     await page.goto(`${WEB}/blog`)
-    await expect(page.locator('.post-card').first()).toBeVisible({ timeout: 15_000 })
+    await expect(page.locator('#blogGrid .mag-card').first()).toBeVisible({ timeout: 15_000 })
 
-    const button = page.locator('#loadMorePosts')
-    const cards = () => page.locator('.post-card').count()
+    // المميّز فوق الشبكة لا يتكرر فيها
+    const featured = (await page.locator('#blogFeatured .feature__title').innerText()).trim()
+    await expect(page.locator('#blogGrid .mag-card__title', { hasText: featured })).toHaveCount(0)
 
-    /**
-     * نختبر السلوك لا حالةً بعينها.
-     *
-     * عدد المقالات يتغيّر: بذرةٌ من ستة، ثم تضيف اختبارات اللوحة إليها.
-     * فتأكيدٌ على «الزرّ مخفي» يمرّ اليوم ويسقط غداً بلا أن ينكسر شيء —
-     * والعقد الحقيقي أنه يظهر ما بقي شيء، ويجلبه، ثم يختفي.
-     *
-     * و`[hidden]` وحده لا يكفي هنا: `.btn` تضبط `display` فتهزم قاعدة
-     * المتصفح ذات الأولوية الصفرية — والقاعدة الصريحة في base.css هي ما
-     * يجعل الاختفاء اختفاءً.
-     */
-    await page.waitForTimeout(1500)
+    // تصنيف: في الرابط، والمميّز يختفي، وعدد البطاقات = عدد التصنيف
+    const cat = page.locator('#blogCats [data-cat]:not([data-cat=""])').first()
+    const n = Number(await cat.locator('.seg__count').innerText())
+    await cat.click()
+    await expect(page).toHaveURL(/cat=/)
+    await expect(page.locator('#blogFeatured .feature')).toHaveCount(0)
+    await expect(page.locator('#blogGrid .mag-card')).toHaveCount(Math.min(n, 9))
 
-    while (await button.isVisible()) {
-      const before = await cards()
-      await button.click()
-      await expect.poll(cards, { timeout: 20_000 }).toBeGreaterThan(before)
+    // بحثٌ لا يطابق: حالة فارغة بزرّ يعيد الكل
+    await page.fill('#blogSearch', 'لا-شيء-يطابق-هذا')
+    await expect(page.locator('.blog-empty')).toBeVisible({ timeout: 10_000 })
+    await page.locator('.blog-empty [data-blog-reset]').click()
+    await expect(page).not.toHaveURL(/cat=|q=/)
+
+    // الصفحات إن وُجدت: الثانية في الرابط، وزرّ الرجوع يعيد الأولى
+    const pager = page.locator('#blogPager')
+    if (await pager.isVisible()) {
+      await pager.locator('[data-page="2"]').click()
+      await expect(page).toHaveURL(/page=2/)
+      await page.goBack()
+      await expect(page).not.toHaveURL(/page=2/)
     }
-
-    await expect(button).toBeHidden()
   })
 })
 

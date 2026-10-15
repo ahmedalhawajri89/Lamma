@@ -198,18 +198,6 @@ export const POSTS_PER_PAGE = 9;
 
 export const fetchPosts = () => tryGet('posts', { per_page: POSTS_PER_PAGE });
 
-/**
- * صفحة مقالات بمعلومات التصفيح.
- *
- * `tryGet` تُرجع `data` وحدها وتُسقط `meta`، وهو الصواب لبقية النقاط.
- * أما زرّ «تحميل مقالات أقدم» فيحتاج أن يعرف: هل بقي شيء؟ بلا ذلك يبقى
- * الزرّ ظاهراً بعد آخر مقال فيضغطه الزائر ولا يحدث شيء.
- */
-export async function fetchPostsPage(page) {
-  const payload = await tryGetRaw('posts', { per_page: POSTS_PER_PAGE, page });
-  return payload ? { posts: payload.data ?? [], meta: payload.meta ?? {} } : null;
-}
-
 /** مقال واحد بنصّه الكامل — نقطة القائمة لا تُرجع `body`. */
 export const fetchPost = (slug) => tryGet(`posts/${encodeURIComponent(slug)}`);
 

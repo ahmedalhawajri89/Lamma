@@ -702,7 +702,8 @@ test.describe('محتوى الموقع', () => {
     const SITE = process.env.E2E_SITE ?? 'http://127.0.0.1:8000'
     await login(page)
     await page.goto('/content')
-    await expect(page.locator('[role=tab]')).toHaveCount(4)
+    // المقالات والأسئلة والشهادات والشركاء ووثائق الشفافية
+    await expect(page.locator('[role=tab]')).toHaveCount(5)
 
     // المقال يُكتب في صفحة محرّر كاملة لا في نافذة
     const title = `مقال اختباري ${Date.now().toString().slice(-6)}`
@@ -738,8 +739,8 @@ test.describe('محتوى الموقع', () => {
      * لمرّ عيبٌ يجعل كل مقال ظاهراً أو كلّه مخفياً.
      */
     await page.goto(`${SITE}/blog`)
-    await expect(page.locator('.post-card').first()).toBeVisible({ timeout: 20_000 })
-    await expect(page.locator('.post-card', { hasText: title })).toHaveCount(0)
+    await expect(page.locator('#blogGrid .mag-card').first()).toBeVisible({ timeout: 20_000 })
+    await expect(page.locator('.mag-card, .feature', { hasText: title })).toHaveCount(0)
 
     // ── النشر من المحرّر، والنصّ محفوظ فيه لا يُمحى ──
     await page.goto(editorUrl)
@@ -749,7 +750,8 @@ test.describe('محتوى الموقع', () => {
 
     // ── وعلى الموقع العام ──
     await page.goto(`${SITE}/blog`)
-    const card = page.locator('.post-card', { hasText: title })
+    // في الشبكة، أو المقال المميّز فوقها إن صار الأحدث بلا مميّز غيره
+    const card = page.locator('.mag-card, .feature', { hasText: title })
     await expect(card).toHaveCount(1, { timeout: 20_000 })
 
     await card.locator('a').first().click()
