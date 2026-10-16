@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" data-ui="bs">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -19,6 +19,7 @@
                  form-action 'self';
                  base-uri 'self';
                  object-src 'none'">
+  <meta name="api-base" content="">
   <meta name="referrer" content="strict-origin-when-cross-origin">
 
   <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
@@ -45,46 +46,10 @@
     .sg-swatch__meta code { color: var(--color-text-muted); direction: ltr; unicode-bidi: isolate; }
     .sg-type > * { margin-block-end: .6rem; }
     .sg-kid img { aspect-ratio: 4 / 3; object-fit: cover; }
-    #themeToggle { inline-size: 2.75rem; block-size: 2.75rem; padding: 0; border-radius: 50%; }
-    #themeToggle[aria-pressed="true"] .fa-moon,
-    #themeToggle[aria-pressed="false"] .fa-sun { display: none; }
   </style>
 </head>
 <body>
-  <a class="visually-hidden-focusable btn btn-primary position-absolute m-2" href="#main">تخطَّ إلى المحتوى</a>
-
-  <!-- ══ شريط التنقل (عيّنة) ══ -->
-  <nav class="navbar navbar-expand-lg bg-body-tertiary border-bottom sticky-top" aria-label="التنقل الرئيسي">
-    <div class="container">
-      <a class="navbar-brand d-flex align-items-center gap-2 fw-bold" href="index.html">
-        <img src="assets/img/logo.svg" alt="" width="34" height="34"> كفالة
-      </a>
-      <div class="d-flex align-items-center gap-2 order-lg-last">
-        <button class="btn btn-outline-primary" id="themeToggle" type="button" aria-pressed="false" aria-label="الوضع الليلي">
-          <i class="fa-solid fa-moon" aria-hidden="true"></i><i class="fa-solid fa-sun" aria-hidden="true"></i>
-        </button>
-        <a class="btn btn-cta d-none d-sm-inline-flex" href="orphans.html">اكفل يتيماً</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#sgNav" aria-controls="sgNav" aria-label="فتح القائمة">
-          <span class="navbar-toggler-icon"></span>
-        </button>
-      </div>
-      <div class="offcanvas offcanvas-end" tabindex="-1" id="sgNav" aria-labelledby="sgNavTitle">
-        <div class="offcanvas-header">
-          <h2 class="offcanvas-title h5" id="sgNavTitle">القائمة</h2>
-          <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="إغلاق"></button>
-        </div>
-        <div class="offcanvas-body">
-          <ul class="navbar-nav mx-lg-auto">
-            <li class="nav-item"><a class="nav-link active" aria-current="page" href="#">الأيتام</a></li>
-            <li class="nav-item"><a class="nav-link" href="#">برامج الكفالة</a></li>
-            <li class="nav-item"><a class="nav-link" href="#">الشفافية</a></li>
-            <li class="nav-item"><a class="nav-link" href="#">المدونة</a></li>
-            <li class="nav-item"><a class="nav-link" href="#">من نحن</a></li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </nav>
+  <div data-layout="header"></div>
 
   <main id="main" class="container">
 
@@ -352,11 +317,13 @@
       <h2 id="sgOverlay" class="h3 mb-4">النوافذ والقائمة الجانبية</h2>
       <div class="d-flex flex-wrap gap-3" data-reveal>
         <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#sgModal">افتح نافذة تأكيد</button>
-        <button class="btn btn-outline-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#sgNav" aria-controls="sgNav">افتح القائمة الجانبية</button>
+        <button class="btn btn-outline-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#siteNav" aria-controls="siteNav">افتح القائمة الجانبية (على الجوال)</button>
       </div>
-      <p class="form-text mt-3 mb-0">تُغلق بزر Escape، والتركيز يبقى داخلها ويعود للزر بعد الإغلاق.</p>
+      <p class="form-text mt-3 mb-0">القائمة الجانبية هي قائمة الموقع نفسها، وتظهر درجاً على الشاشات الصغيرة فقط. تُغلق بزر Escape، والتركيز يبقى داخلها ويعود للزر بعد الإغلاق.</p>
     </section>
   </main>
+
+  <div data-layout="footer"></div>
 
   <div class="modal fade" id="sgModal" tabindex="-1" aria-labelledby="sgModalTitle" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -377,6 +344,6 @@
   </div>
 
   <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-  <script type="module" src="assets/js/styleguide.js"></script>
+  <script type="module" src="assets/js/main.js"></script>
 </body>
 </html>

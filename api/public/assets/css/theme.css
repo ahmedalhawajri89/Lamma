@@ -390,7 +390,127 @@ button:focus-visible,
 .accordion-button:focus-visible,
 .page-link:focus-visible { outline: none; }
 
-/* ── 11. الحركة: ظهور هادئ مرة واحدة عند التمرير ── */
+/* ── 11. الهيدر ── */
+.kf-skip { position: fixed; inset-block-start: 0.5rem; inset-inline-start: 0.5rem; z-index: 1080; }
+
+.kf-header {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 1030;
+  /* لا backdrop-filter ولا transform هنا: كلاهما يجعل الهيدر مرجعاً لما
+     بداخله من position: fixed، فينحصر درج الجوال في ارتفاع الهيدر ويُحدث
+     تمريراً أفقياً بعرضه وهو مغلق */
+  background: var(--color-surface);
+  border-block-end: 1px solid var(--color-border);
+  transition: inset-block-start var(--dur-normal) var(--ease-out);
+}
+/* يختفي عند النزول ويعود عند أول صعود (initStickyHeader في layout.js) */
+.kf-header.is-hidden { inset-block-start: -6rem; }
+.kf-header .navbar { --bs-navbar-padding-y: 0.75rem; }
+
+.kf-brand { display: inline-flex; align-items: center; gap: 0.6rem; color: var(--color-text); text-decoration: none; }
+.kf-brand:hover { color: var(--color-text); }
+.kf-brand__name { display: flex; flex-direction: column; line-height: 1.15; font-family: var(--font-display); font-weight: 700; font-size: 1.15rem; }
+.kf-brand__tag { font-family: var(--font-body); font-weight: 400; font-size: 0.75rem; color: var(--color-text-muted); }
+.kf-brand--on-ink { color: #fff; }
+.kf-brand--on-ink:hover { color: #fff; }
+.kf-brand--on-ink .kf-brand__tag { color: var(--color-on-ink-muted); }
+
+.kf-header__actions { display: flex; align-items: center; gap: 0.5rem; margin-inline-start: auto; }
+@media (min-width: 992px) { .kf-header__actions { margin-inline-start: 0; } }
+
+/* زر أيقونة دائري بهدف لمس 44px */
+.btn-icon {
+  --bs-btn-color: var(--color-text);
+  --bs-btn-border-color: var(--color-border);
+  --bs-btn-hover-color: var(--color-brand);
+  --bs-btn-hover-bg: var(--color-brand-soft);
+  --bs-btn-hover-border-color: var(--color-brand-border);
+  --bs-btn-active-color: var(--color-brand);
+  --bs-btn-active-bg: var(--color-brand-soft);
+  --bs-btn-padding-x: 0;
+  inline-size: 2.75rem;
+  border-radius: 50%;
+}
+#themeToggle[aria-pressed="true"] .fa-moon,
+#themeToggle[aria-pressed="false"] .fa-sun { display: none; }
+
+.kf-header .navbar-toggler {
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
+  padding: 0;
+  border-radius: 50%;
+  color: var(--color-text);
+}
+.kf-header .navbar-toggler:focus { box-shadow: 0 0 0 3px var(--bs-focus-ring-color); }
+
+/* الدرج الجانبي على الجوال: بعرض مريح، والروابط أهداف لمس كاملة */
+@media (max-width: 991.98px) {
+  .kf-header .offcanvas-lg { --bs-offcanvas-width: min(20rem, 86vw); }
+  .kf-header .navbar-nav .nav-link {
+    padding-block: 0.8rem;
+    font-size: 1.05rem;
+    border-block-end: 1px solid var(--color-border);
+  }
+  .kf-header .navbar .nav-link.active { box-shadow: inset -3px 0 0 var(--color-cta); padding-inline-start: 0.75rem; }
+}
+@media (min-width: 992px) {
+  .kf-header .offcanvas-header { display: none; }
+}
+
+/* ── 12. الفوتر: القسم الداكن الختامي بلون الحبر في الوضعين ── */
+.kf-footer {
+  --kf-footer-muted: var(--color-on-ink-muted, rgb(255 255 255 / 0.72));
+  background: var(--color-ink);
+  color: #fff;
+  padding-block: clamp(3rem, 6vw, 4.5rem) 1.5rem;
+  margin-block-start: clamp(3rem, 6vw, 5rem);
+}
+.kf-footer a { color: var(--kf-footer-muted); text-decoration: none; }
+.kf-footer a:hover { color: #fff; text-decoration: underline; text-underline-offset: 0.3em; }
+.kf-footer a:focus-visible { outline-color: var(--color-cta); }
+/* الفاصل عنصرٌ مستقل لا حدٌّ على .row: للصف هوامش سالبة فيمتد حدّه خارج الحاوية */
+.kf-footer__top { padding-block-end: 2.5rem; }
+.kf-footer__rule { margin: 0; border: 0; border-block-start: 1px solid rgb(255 255 255 / 0.12); opacity: 1; }
+.kf-footer__about { max-inline-size: 30rem; margin: 1rem 0 0; color: var(--kf-footer-muted); line-height: 1.8; }
+.kf-footer__claim { font-family: var(--font-display); font-weight: 600; font-size: 1.15rem; margin-block-end: 0.75rem; }
+.kf-footer__hint { margin: 0.75rem 0 0; font-size: 0.875rem; color: var(--kf-footer-muted); }
+
+.kf-news { display: flex; gap: 0.5rem; align-items: flex-start; }
+.kf-news .form-control { background: rgb(255 255 255 / 0.08); border-color: rgb(255 255 255 / 0.35); color: #fff; }
+.kf-news .form-control::placeholder { color: rgb(255 255 255 / 0.65); }
+.kf-news .form-control:focus { background: rgb(255 255 255 / 0.12); border-color: var(--color-cta); box-shadow: 0 0 0 3px rgb(224 166 59 / 0.35); color: #fff; }
+.kf-news .field__error { color: var(--color-cta); }
+@media (max-width: 30rem) { .kf-news { flex-direction: column; align-items: stretch; } }
+
+.kf-footer__grid { padding-block: 2.5rem; }
+.kf-footer__heading { font-size: 0.95rem; font-weight: 700; color: #fff; margin-block-end: 1rem; }
+.kf-footer__links,
+.kf-footer__contact { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.65rem; }
+.kf-footer__contact li { display: flex; align-items: center; gap: 0.6rem; color: var(--kf-footer-muted); }
+.kf-footer__contact i { inline-size: 1rem; color: var(--color-cta); }
+.kf-footer__social {
+  display: inline-grid; place-items: center;
+  inline-size: 2.75rem; block-size: 2.75rem;
+  border: 1px solid rgb(255 255 255 / 0.2); border-radius: 50%;
+}
+.kf-footer__social:hover { background: rgb(255 255 255 / 0.08); text-decoration: none !important; }
+
+.kf-footer__bottom {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem;
+  padding-block-start: 1.5rem;
+  border-block-start: 1px solid rgb(255 255 255 / 0.12);
+  font-size: 0.875rem; color: var(--kf-footer-muted);
+}
+.kf-footer__pay { display: flex; gap: 0.75rem; font-size: 1.5rem; color: var(--kf-footer-muted); }
+
+/* ── 13. أخطاء الحقول التي يكتبها forms.js (.field و.field__error) ── */
+.field__error { margin: 0.35rem 0 0; font-size: 0.875rem; color: var(--color-urgent); }
+.field__error:empty { display: none; }
+.field.is-invalid .form-control,
+.field.is-invalid .form-select { border-color: var(--color-urgent); }
+
+/* ── 14. الحركة: ظهور هادئ مرة واحدة عند التمرير ── */
 .js [data-reveal] {
   opacity: 0;
   transform: translateY(12px);
@@ -401,5 +521,5 @@ button:focus-visible,
 
 @media (prefers-reduced-motion: reduce) {
   .js [data-reveal] { opacity: 1; transform: none; transition: none; }
-  .btn { transition: none; }
+  .btn, .kf-header { transition: none; }
 }

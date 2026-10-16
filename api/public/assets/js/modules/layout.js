@@ -179,6 +179,141 @@ function footerMarkup() {
 </footer>`;
 }
 
+/* =========================================================================
+   نسخة Bootstrap: للصفحات التي انتقلت إليه (<html data-ui="bs">)
+   -------------------------------------------------------------------------
+   الصفحات تنتقل واحدةً واحدة، لأن Bootstrap والأنماط القديمة يتشاركان
+   أسماء أصناف (.btn و.container و.nav)، فتحميله على صفحة لم تُنقل يكسرها.
+   القائمة الجوالة offcanvas-lg: درجٌ جانبي على الجوال، وشريطٌ عادي من lg
+   فما فوق. وBootstrap يتولى فيها حبس التركيز وEscape وقفل التمرير.
+   ========================================================================= */
+const usesBootstrap = () => document.documentElement.dataset.ui === 'bs';
+
+function bsNavMarkup(page) {
+  return NAV_LINKS.map(({ label, href }) => {
+    const current = href === page ? 'page' : href === SECTION_OF[page] ? 'true' : '';
+    return `<li class="nav-item"><a class="nav-link${current ? ' active' : ''}" href="${href}"${current ? ` aria-current="${current}"` : ''}>${label}</a></li>`;
+  }).join('');
+}
+
+function bsHeaderMarkup({ page }) {
+  const brand = (size) => `
+      <img src="assets/img/logo.svg" alt="" width="${size}" height="${size}">
+      <span class="kf-brand__name"><span data-site="name">${escapeHtml(SITE.name)}</span><span class="kf-brand__tag" data-site="tagline">${escapeHtml(SITE.tagline)}</span></span>`;
+
+  return `
+<a class="visually-hidden-focusable kf-skip btn btn-primary" href="${escapeHtml(window.location.pathname + window.location.search)}#main">تخطَّ إلى المحتوى الرئيسي</a>
+<header class="kf-header" id="siteHeader">
+  <nav class="navbar navbar-expand-lg" aria-label="التنقل الرئيسي">
+    <div class="container">
+      <a class="navbar-brand kf-brand" href="index.html">${brand(36)}</a>
+
+      <div class="offcanvas-lg offcanvas-end flex-lg-grow-1" tabindex="-1" id="siteNav" aria-labelledby="siteNavTitle">
+        <div class="offcanvas-header">
+          <p class="offcanvas-title h5 mb-0" id="siteNavTitle">القائمة</p>
+          <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#siteNav" aria-label="إغلاق القائمة"></button>
+        </div>
+        <div class="offcanvas-body">
+          <ul class="navbar-nav mx-lg-auto">${bsNavMarkup(page)}</ul>
+          <div class="d-grid gap-2 mt-4 d-lg-none">
+            <a class="btn btn-outline-primary btn-lg" href="login.html" data-account-link>تسجيل الدخول</a>
+            <a class="btn btn-cta btn-lg" href="orphans.html">اكفل يتيماً</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="kf-header__actions">
+        <button class="btn btn-icon" type="button" id="themeToggle" aria-pressed="false" aria-label="الوضع الليلي">
+          <i class="fa-solid fa-moon" aria-hidden="true"></i>
+          <i class="fa-solid fa-sun" aria-hidden="true"></i>
+        </button>
+        <a class="btn btn-link d-none d-lg-inline-flex" href="login.html" data-account-link>تسجيل الدخول</a>
+        <a class="btn btn-cta d-none d-sm-inline-flex" href="orphans.html">اكفل يتيماً</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#siteNav"
+                aria-controls="siteNav" aria-label="فتح قائمة التنقل">
+          <i class="fa-solid fa-bars" aria-hidden="true"></i>
+        </button>
+      </div>
+    </div>
+  </nav>
+</header>`;
+}
+
+function bsFooterMarkup() {
+  const links = (items) => items.map(({ label, href }) => `<li><a href="${href}">${label}</a></li>`).join('');
+  const social = SITE.social
+    .map(({ label, icon, url }) =>
+      `<a class="kf-footer__social" href="${escapeHtml(url)}" aria-label="${escapeHtml(label)} (تفتح في نافذة جديدة)" rel="noopener noreferrer" target="_blank"><i class="fa-brands ${icon}" aria-hidden="true"></i></a>`)
+    .join('');
+
+  return `
+<footer class="kf-footer">
+  <div class="container">
+    <div class="row g-4 g-lg-5 align-items-center kf-footer__top">
+      <div class="col-lg-6">
+        <a class="kf-brand kf-brand--on-ink" href="index.html">
+          <img src="assets/img/logo.svg" alt="" width="40" height="40">
+          <span class="kf-brand__name"><span data-site="name">${escapeHtml(SITE.name)}</span><span class="kf-brand__tag" data-site="tagline">${escapeHtml(SITE.tagline)}</span></span>
+        </a>
+        <p class="kf-footer__about">منصة تربط بين من يريد أن يعطي ومن يستحق أن يُعطى، بشفافية موثّقة وتقارير دورية.</p>
+      </div>
+      <div class="col-lg-6">
+        <p class="kf-footer__claim">تابِع أثر الكفالة كل شهر، ولو لم تكفل بعد.</p>
+        <form class="kf-news" data-validate-form data-action="newsletter" data-source="footer"
+              data-success-message="تم اشتراكك، ستصلك أول رسالة مطلع الشهر" novalidate>
+          <div class="field flex-grow-1">
+            <label class="visually-hidden" for="footerNewsEmail">البريد الإلكتروني</label>
+            <input class="form-control" type="email" id="footerNewsEmail" name="email"
+                   placeholder="بريدك الإلكتروني" autocomplete="email"
+                   data-validate="required|email" aria-describedby="err-footerNews">
+            <p class="field__error" id="err-footerNews" aria-live="polite"></p>
+          </div>
+          <button class="btn btn-cta" type="submit">اشترك</button>
+        </form>
+        <p class="kf-footer__hint">رسالة واحدة كل شهر: ما أنجزناه، وما صرفناه، وقصة طفل واحد.</p>
+      </div>
+    </div>
+
+    <hr class="kf-footer__rule">
+
+    <div class="row g-4 kf-footer__grid">
+      <nav class="col-6 col-lg-3" aria-labelledby="footerNavHeading">
+        <h2 class="kf-footer__heading" id="footerNavHeading">تصفّح</h2>
+        <ul class="kf-footer__links">${links([{ label: 'الرئيسية', href: 'index.html' }, ...NAV_LINKS])}</ul>
+      </nav>
+      <nav class="col-6 col-lg-3" aria-labelledby="footerHelpHeading">
+        <h2 class="kf-footer__heading" id="footerHelpHeading">مساعدة</h2>
+        <ul class="kf-footer__links">${links(FOOTER_HELP)}</ul>
+      </nav>
+      <div class="col-lg-6">
+        <h2 class="kf-footer__heading">تواصل معنا</h2>
+        <ul class="kf-footer__contact">
+          <li><i class="fa-solid fa-phone" aria-hidden="true"></i><a href="tel:${escapeHtml(SITE.phoneHref)}" dir="ltr" data-site="phone">${escapeHtml(SITE.phone)}</a></li>
+          <li><i class="fa-solid fa-envelope" aria-hidden="true"></i><a href="mailto:${escapeHtml(SITE.email)}" data-site="email">${escapeHtml(SITE.email)}</a></li>
+          <li><i class="fa-solid fa-location-dot" aria-hidden="true"></i><span data-site="address">${escapeHtml(SITE.address)}</span></li>
+        </ul>
+        <div class="d-flex gap-2 mt-3">${social}</div>
+      </div>
+    </div>
+
+    <div class="kf-footer__bottom">
+      <p class="mb-0">© ${YEAR} منصة <span data-site="name">${escapeHtml(SITE.name)}</span>. جميع الحقوق محفوظة.</p>
+      <nav class="d-flex flex-wrap gap-3" aria-label="روابط قانونية">
+        <a href="transparency.html#child-policy">سياسة حماية الطفل</a>
+        <a href="transparency.html">الخصوصية</a>
+        <a href="faq.html">شروط الاستخدام</a>
+      </nav>
+      <div class="kf-footer__pay" role="img" aria-label="وسائل الدفع المقبولة: فيزا، ماستركارد، Apple Pay، والتحويل البنكي">
+        <i class="fa-brands fa-cc-visa" aria-hidden="true"></i>
+        <i class="fa-brands fa-cc-mastercard" aria-hidden="true"></i>
+        <i class="fa-brands fa-apple-pay" aria-hidden="true"></i>
+        <i class="fa-solid fa-building-columns" aria-hidden="true"></i>
+      </div>
+    </div>
+  </div>
+</footer>`;
+}
+
 /** فتح/غلق القائمة الجوالة مع إدارة صحيحة لحالة ARIA. */
 function initNavToggle() {
   const toggle = $('#navToggle');
@@ -257,7 +392,9 @@ function initStickyHeader() {
   const update = rafThrottle(() => {
     const y = window.scrollY;
 
-    const locked = nav?.classList.contains('is-open') || header.contains(document.activeElement);
+    // is-open للقائمة القديمة، وshow لدرج Bootstrap
+    const locked = nav?.classList.contains('is-open') || nav?.classList.contains('show')
+      || header.contains(document.activeElement);
     if (locked || y < 120) header.classList.remove('is-hidden');
     else if (y > lastY + 6) header.classList.add('is-hidden');
     else if (y < lastY - 6) header.classList.remove('is-hidden');
@@ -311,10 +448,12 @@ export function mountLayout() {
   const footerSlot = $('[data-layout="footer"]');
   const page = currentPage();
 
-  if (headerSlot) headerSlot.outerHTML = headerMarkup({ page });
-  if (footerSlot) footerSlot.outerHTML = footerMarkup();
+  const bs = usesBootstrap();
+  if (headerSlot) headerSlot.outerHTML = bs ? bsHeaderMarkup({ page }) : headerMarkup({ page });
+  if (footerSlot) footerSlot.outerHTML = bs ? bsFooterMarkup() : footerMarkup();
 
-  initNavToggle();
+  // درج Bootstrap يدير نفسه؛ القائمة القديمة تحتاج سلوكها
+  if (!bs) initNavToggle();
   initStickyHeader();
   initAccountLink();
 }

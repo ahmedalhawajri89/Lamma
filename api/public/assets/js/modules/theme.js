@@ -47,6 +47,10 @@ function syncUi(button) {
 
   const meta = document.querySelector('meta[name="theme-color"]');
   if (meta) meta.content = META_COLOR[dark ? 'dark' : 'light'];
+
+  // مكوّنات Bootstrap (سهم القائمة المنسدلة، وزر الإغلاق) تقرأ الوضع من
+  // data-bs-theme لا من data-theme؛ ولا أثر له في الصفحات التي لم تنتقل إليه
+  document.documentElement.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
 }
 
 /**
