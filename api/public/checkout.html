@@ -21,11 +21,13 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300;400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Aref+Ruqaa:wght@400;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Aref+Ruqaa:wght@400;700&display=swap">
 
   <!-- السمة قبل أي رسم — يمنع وميض الوضع الفاتح لمن اختار الليلي -->
   <script src="assets/js/theme-init.js"></script>
 
+  <!-- خط الأيقونات المصمتة في كل صفحة: يُطلب مع الأنماط لا بعدها، فلا تبقى الأيقونات فارغة -->
+  <link rel="preload" href="assets/vendor/fontawesome/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="assets/vendor/fontawesome/css/all.min.css">
   <link rel="stylesheet" href="assets/css/tokens.css">
   <link rel="stylesheet" href="assets/css/base.css">
@@ -40,6 +42,14 @@
 
 <body data-header="solid" class="page-body">
   <div data-layout="header"></div>
+  <noscript>
+    <nav class="container" style="padding-block:1rem" aria-label="تنقل بديل">
+      <a href="index.html">الرئيسية</a> · <a href="about.html">من نحن</a> ·
+      <a href="programs.html">برامج الكفالة</a> · <a href="orphans.html">الأيتام</a> ·
+      <a href="transparency.html">الشفافية</a> · <a href="blog.html">المدونة</a> ·
+      <a href="contact.html">تواصل معنا</a>
+    </nav>
+  </noscript>
 
   <main id="main">
     <section class="section">
@@ -70,7 +80,7 @@
               <h1 style="font-size:var(--text-xl)">بيانات الكفالة</h1>
 
               <!-- البوابة تجريبية: لا يظن أحد أنه دفع مالاً حقيقياً -->
-              <div class="secure-note" data-checkout="demo" hidden style="margin-block:var(--space-4);border-color:var(--color-gold, #E0A63B)">
+              <div class="secure-note secure-note--demo" data-checkout="demo" hidden>
                 <i class="fa-solid fa-flask" aria-hidden="true"></i>
                 <span>
                   <strong>وضع تجريبي:</strong> لا يُخصم أي مال. للقبول استعمل البطاقة
@@ -100,7 +110,7 @@
 
                 <!-- المبلغ: لا يتجاوز المتبقي من حاجة الطفل -->
                 <div class="field" style="margin-block-end:var(--space-6)">
-                  <label class="field__label" for="monthlyAmount">مبلغ الكفالة الشهري <span class="req">*</span></label>
+                  <label class="field__label" for="monthlyAmount">مبلغ الكفالة الشهري <span class="req" aria-hidden="true">*</span></label>
                   <div class="field__control">
                     <i class="fa-solid fa-hand-holding-heart field__icon" aria-hidden="true"></i>
                     <input class="input num" type="text" id="monthlyAmount" inputmode="decimal" dir="ltr" lang="en"
@@ -138,7 +148,7 @@
 
                 <div class="grid grid--2" style="gap:var(--space-4);margin-block-end:var(--space-4)">
                   <div class="field">
-                    <label class="field__label" for="donorName">الاسم الكامل <span class="req">*</span></label>
+                    <label class="field__label" for="donorName">الاسم الكامل <span class="req" aria-hidden="true">*</span></label>
                     <div class="field__control">
                       <i class="fa-regular fa-user field__icon" aria-hidden="true"></i>
                       <input class="input" type="text" id="donorName" name="name"
@@ -149,7 +159,7 @@
                   </div>
 
                   <div class="field">
-                    <label class="field__label" for="donorEmail">البريد الإلكتروني <span class="req">*</span></label>
+                    <label class="field__label" for="donorEmail">البريد الإلكتروني <span class="req" aria-hidden="true">*</span></label>
                     <div class="field__control">
                       <i class="fa-regular fa-envelope field__icon" aria-hidden="true"></i>
                       <input class="input" type="email" id="donorEmail" name="email"
@@ -221,7 +231,7 @@
 
                 <!-- بيانات البطاقة -->
                 <div class="field" style="margin-block-end:var(--space-4)">
-                  <label class="field__label" for="cardHolder">الاسم على البطاقة <span class="req">*</span></label>
+                  <label class="field__label" for="cardHolder">الاسم على البطاقة <span class="req" aria-hidden="true">*</span></label>
                   <div class="field__control">
                     <input class="input" type="text" id="cardHolder"
                            autocomplete="cc-name" data-validate="required|minlength:3"
@@ -231,7 +241,7 @@
                 </div>
 
                 <div class="field" style="margin-block-end:var(--space-4)">
-                  <label class="field__label" for="cardNumber">رقم البطاقة <span class="req">*</span></label>
+                  <label class="field__label" for="cardNumber">رقم البطاقة <span class="req" aria-hidden="true">*</span></label>
                   <div class="field__control">
                     <i class="fa-regular fa-credit-card field__icon" aria-hidden="true"></i>
                     <input class="input" type="text" id="cardNumber"
@@ -244,7 +254,7 @@
 
                 <div class="grid grid--2" style="gap:var(--space-4);margin-block-end:var(--space-6)">
                   <div class="field">
-                    <label class="field__label" for="cardExpiry">تاريخ الانتهاء <span class="req">*</span></label>
+                    <label class="field__label" for="cardExpiry">تاريخ الانتهاء <span class="req" aria-hidden="true">*</span></label>
                     <div class="field__control">
                       <input class="input" type="text" id="cardExpiry"
                              autocomplete="cc-exp" inputmode="numeric" dir="ltr" placeholder="MM/YY"
@@ -254,7 +264,7 @@
                   </div>
 
                   <div class="field">
-                    <label class="field__label" for="cardCvc">رمز الأمان <span class="req">*</span></label>
+                    <label class="field__label" for="cardCvc">رمز الأمان <span class="req" aria-hidden="true">*</span></label>
                     <div class="field__control">
                       <i class="fa-solid fa-lock field__icon" aria-hidden="true"></i>
                       <input class="input" type="password" id="cardCvc"
@@ -278,8 +288,7 @@
                 <p class="checkout__plan" data-checkout="plan" aria-live="polite"
                    style="margin-block-end:var(--space-4);font-weight:600"></p>
 
-                <p class="field__error" data-checkout="error" role="alert" hidden
-                   style="display:block;margin-block-end:var(--space-4)"></p>
+                <p class="field__error checkout-error" data-checkout="error" role="alert" hidden></p>
 
                 <button class="btn btn--cta btn--lg btn--block" type="submit" id="checkoutSubmit">
                   <i class="fa-solid fa-lock" aria-hidden="true"></i> تفعيل الكفالة</button>
@@ -299,9 +308,8 @@
             <h2 style="font-size:var(--text-md)">ملخص الكفالة</h2>
 
             <div class="summary__child">
-              <img data-checkout="photo" src="" alt="" width="56" height="56" hidden>
-              <span data-checkout="initial" class="summary__initial" aria-hidden="true"
-                    style="width:56px;height:56px;border-radius:12px;display:grid;place-items:center;background:var(--color-brand-50, #eef7f6);color:#0f5c5c;font-weight:700;font-size:1.4rem"></span>
+              <img data-checkout="photo" alt="" width="56" height="56" hidden>
+              <span data-checkout="initial" class="summary__initial" aria-hidden="true"></span>
               <div>
                 <strong data-checkout="name">…</strong>
                 <span class="badge badge--brand" data-checkout="program">…</span>

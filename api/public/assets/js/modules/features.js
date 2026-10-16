@@ -4,9 +4,9 @@
  */
 
 import { $, $$, formatNumber, escapeHtml, arabicDigits, readingTime } from './utils.js';
-import { ORPHANS, IMPACT_TIERS, PROGRAMS, getProgram } from './data.js';
+import { ORPHANS, IMPACT_TIERS, PROGRAMS, getProgram, DETAIL_FAILED } from './data.js';
 import { orphanCard } from './render.js';
-import { fetchPost } from './api.js';
+import { fetchPost, lastReadFailure } from './api.js';
 import { initReveal } from './motion.js';
 
 /* =========================================================================
@@ -78,14 +78,23 @@ export function initOrphanDetail() {
   // بلا رمز في الرابط: أول طفل (صفحة تجريبية تُفتح مباشرة)؛ ورمزٌ لا طفل له: «لم نجد»
   const orphan = id ? ORPHANS.find((o) => o.id === id) : ORPHANS[0];
   if (!orphan) {
-    root.innerHTML = `<div class="container section"><div class="empty-state">
+    root.innerHTML = DETAIL_FAILED
+      ? `<div class="container section"><div class="empty-state">
+      <i class="fa-solid fa-wifi" aria-hidden="true"></i>
+      <h1>تعذّر تحميل ملف الطفل</h1>
+      <p>المشكلة في الاتصال لا في الرابط. تحقّق من اتصالك ثم أعد المحاولة.</p>
+      <button class="btn btn--primary" type="button" data-reload>أعد المحاولة</button></div></div>`
+      : `<div class="container section"><div class="empty-state">
       <i class="fa-solid fa-child" aria-hidden="true"></i>
       <h1>لم نجد هذا الطفل</h1>
       <p>ربما كُفل كاملاً أو تغيّر رابطه. الأطفال الذين ينتظرون كافلاً في صفحتهم.</p>
       <a class="btn btn--primary" href="orphans.html">كل الأطفال</a></div></div>`;
-    document.title = 'لم نجد هذا الطفل | كفالة';
+    $('[data-reload]', root)?.addEventListener('click', () => window.location.reload());
+    root.removeAttribute('aria-busy');
+    document.title = `${DETAIL_FAILED ? 'تعذّر التحميل' : 'لم نجد هذا الطفل'} | كفالة`;
     return;
   }
+  root.removeAttribute('aria-busy');
   const program = getProgram(orphan.program) ?? { name: '' };
 
   /** يملأ كل عنصر يحمل data-field بالقيمة المناسبة — نصاً لا HTML. */
@@ -116,7 +125,8 @@ export function initOrphanDetail() {
 
   const photo = $('[data-field="photo"]');
   if (photo) {
-    photo.src = orphan.photo;
+    // بلا صورة تبقى الصورة الافتراضية في الصفحة؛ كان يُكتب src="null" فتنكسر
+    if (orphan.photo) photo.src = orphan.photo;
     // الصور توضيحية بلا وجوه، فلا نصفها بأنها صورة الطفل نفسه
     photo.alt = '';
   }
@@ -197,16 +207,19 @@ export async function initPostDetail() {
   const post = await fetchPost(slug);
 
   if (!post) {
+    const failed = lastReadFailure() === 'error';
     host.innerHTML = `
 <section class="section section--tight">
-  <div class="container container--narrow" style="text-align:center">
-    <h1>لم نجد هذا المقال</h1>
-    <p class="muted" style="margin-block:var(--space-4)">
-      ربما حُذف أو تغيّر رابطه.
-    </p>
-    <a class="btn btn--primary" href="blog.html">العودة إلى المدونة</a>
+  <div class="container container--narrow empty-state">
+    ${failed ? `<h1>تعذّر تحميل المقال</h1>
+    <p class="muted">المشكلة في الاتصال لا في الرابط. تحقّق من اتصالك ثم أعد المحاولة.</p>
+    <button class="btn btn--primary" type="button" data-reload>أعد المحاولة</button>` : `<h1>لم نجد هذا المقال</h1>
+    <p class="muted">ربما حُذف أو تغيّر رابطه.</p>
+    <a class="btn btn--primary" href="blog.html">العودة إلى المدونة</a>`}
   </div>
 </section>`;
+    $('[data-reload]', host)?.addEventListener('click', () => window.location.reload());
+    document.title = `${failed ? 'تعذّر التحميل' : 'لم نجد هذا المقال'} | كفالة`;
     host.removeAttribute('aria-busy');
     return;
   }
@@ -248,7 +261,8 @@ export async function initPostDetail() {
         <ol class="breadcrumb">
           <li><a href="index.html">الرئيسية</a></li>
           <li><a href="blog.html">المدونة</a></li>
-          <li><span aria-current="page">${escapeHtml(post.category ?? 'مقال')}</span></li>
+          ${post.category ? `<li><span>${escapeHtml(post.category)}</span></li>` : ''}
+          <li><span aria-current="page">${escapeHtml(post.title)}</span></li>
         </ol>
       </nav>
       <p class="meta-label">${escapeHtml(post.category ?? 'مقال')}</p>

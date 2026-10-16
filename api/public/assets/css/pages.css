@@ -54,7 +54,7 @@
 
 .auth__tools { display: flex; align-items: center; gap: var(--space-4); }
 
-.auth__head h1 { margin: 0; font-size: var(--text-4xl); line-height: 1.15; }
+.auth__head h1 { margin: 0; font-size: var(--text-4xl); line-height: 1.25; }
 .auth__head p { margin: var(--space-2) 0 0; font-size: var(--text-md); color: var(--color-text-muted); }
 
 .auth__pair { gap: var(--space-4); }
@@ -385,7 +385,8 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  padding-inline-start: var(--space-3);
+  min-block-size: 2.75rem;
+  padding-inline: var(--space-3) var(--space-2);
   border-inline-start: 1px solid var(--color-border);
   color: var(--color-text-muted);
   text-decoration: none;
@@ -396,7 +397,16 @@
 @media (max-width: 62rem) {
   .portal-bar__inner { flex-wrap: wrap; gap: 0 var(--space-4); padding-block-start: var(--space-3); }
   .portal-bar__user { margin-inline-start: auto; }
-  .portal-bar__name, .portal-bar__logout span { display: none; }
+  .portal-bar__name { display: none; }
+  /* الأيقونة وحدها ظاهرة، والنص يبقى لقارئ الشاشة اسماً للرابط */
+  .portal-bar__logout span {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
   .portal-tabs { order: 3; flex-basis: 100%; min-block-size: 3rem; margin: 0; }
 }
 
@@ -430,7 +440,7 @@
   margin-block-end: var(--space-10);
 }
 
-.portal-hello h1 { margin: var(--space-2) 0; font-size: var(--text-5xl); line-height: 1.1; }
+.portal-hello h1 { margin: var(--space-2) 0; font-size: var(--text-5xl); line-height: 1.25; }
 .portal-hello__status { margin: 0; font-size: var(--text-lg); color: var(--color-text-muted); }
 .portal-hello .btn--cta { box-shadow: none; }
 
@@ -613,7 +623,7 @@
 
 .btn--danger {
   --btn-bg: var(--color-urgent);
-  --btn-fg: #fff;
+  --btn-fg: var(--color-urgent-contrast);
   --btn-border: var(--color-urgent);
 }
 
@@ -649,6 +659,18 @@
 }
 
 /* ------- الجداول (تستعملها اللوحة وصفحة البرامج) ------- */
+/* جدول أرقام المخطط الشهري: مطويّ تحته، لمن لا يقرأ المخطط بالمرور */
+.tp-chart__data { margin-block-start: var(--space-4); }
+.tp-chart__data summary {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 2.75rem;
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--color-brand);
+}
+.tp-chart__data .table-wrap { margin-block-start: var(--space-3); }
+
 .table-wrap { overflow-x: auto; border-radius: 4px; border: 1px solid var(--color-border); }
 
 .table {
@@ -869,6 +891,20 @@
   background: var(--color-canvas);
 }
 
+/* حرف الاسم مكان الصورة: توكنات الهوية لا ألوانٌ ثابتة، فيصحّ في الوضع الليلي */
+.summary__initial {
+  display: grid;
+  place-items: center;
+  inline-size: 56px;
+  block-size: 56px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  background: var(--color-brand-soft);
+  color: var(--color-brand-strong);
+  font-weight: 700;
+  font-size: 1.4rem;
+}
+
 .summary__child img {
   inline-size: 3.5rem;
   block-size: 3.5rem;
@@ -907,6 +943,11 @@
   color: var(--color-brand);
 }
 
+/* خطأ الدفع العام فوق الزر: يظهر بإزالة hidden وحدها، لا بصنف is-invalid */
+.secure-note--demo { margin-block: var(--space-4); }
+
+.checkout-error:not([hidden]) { display: flex; margin-block-end: var(--space-4); }
+
 .secure-note {
   display: flex;
   align-items: flex-start;
@@ -916,7 +957,7 @@
   background: var(--color-growth-soft);
   color: var(--color-growth-strong);
   font-size: var(--text-xs);
-  line-height: var(--leading-snug);
+  line-height: var(--leading-normal);
 }
 
 .secure-note i { color: var(--color-growth); font-size: var(--text-md); margin-block-start: 0.1rem; }
@@ -946,8 +987,8 @@
 .profile__name {
   margin: 0;
   font-size: var(--text-5xl);
-  line-height: 1.1;
-  letter-spacing: -0.02em;
+  line-height: 1.25; /* العربية تحتاج متّسعاً للتشكيل والحروف النازلة */
+  letter-spacing: var(--tracking-tight);
 }
 
 .profile__age { font-size: 0.5em; font-weight: 500; letter-spacing: 0; color: var(--color-text-muted); }
@@ -1441,7 +1482,7 @@
   color: var(--color-brand);
 }
 
-.columns h3 { margin: 0; font-size: var(--text-xl); }
+.columns :is(h3, h4) { margin: 0; font-size: var(--text-xl); }
 
 .columns p {
   margin: 0;
@@ -1589,7 +1630,7 @@
 
 .zakat-flow .columns { gap: 0; }
 .zakat-flow .columns > li { padding-block: var(--space-5); }
-.zakat-flow .columns h3 { font-size: var(--text-lg); }
+.zakat-flow .columns :is(h3, h4) { font-size: var(--text-lg); }
 
 
 /* بيانات التحويل في صفحة الشكر: جدول هادئ يُنسخ منه */
@@ -1625,7 +1666,8 @@
   font-size: var(--text-sm);
 }
 .pkid__state span { color: var(--color-text); }
-.pkid__state--wait { color: #b07a1c; background: color-mix(in srgb, #E0A63B 12%, transparent); }
+/* توكنات الذهبي لا لونٌ ثابت: #b07a1c كان 3.2:1 على خلفيته وبلا نسخة ليلية */
+.pkid__state--wait { color: var(--color-cta-strong); background: var(--color-cta-soft); }
 .pkid__state--paused { color: var(--color-text-muted); background: var(--color-surface-alt); }
 
 .ppast-wrap { margin-block-start: var(--space-8); border-block-start: 1px solid var(--color-border); padding-block-start: var(--space-4); }
@@ -1646,7 +1688,7 @@
   .ppast { grid-template-columns: minmax(0, 1fr); gap: var(--space-1); }
 }
 
-.pstatus--wait { color: #b07a1c; }
+.pstatus--wait { color: var(--color-cta-strong); }
 .pstatus--muted { color: var(--color-text-subtle); }
 .pstatus__why { display: block; margin-block-start: 0.15rem; font-size: var(--text-xs); color: var(--color-text-subtle); }
 .ptable__more { margin-block-start: var(--space-4); }
@@ -1706,6 +1748,7 @@
 .tp-years { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-block-start: var(--space-6); }
 .tp-years[hidden] { display: none; }
 .tp-year {
+  min-block-size: 2.75rem;
   padding: 0.4rem 0.95rem;
   border: 1px solid rgba(255, 255, 255, 0.22); border-radius: var(--radius-pill);
   background: none; color: var(--color-on-ink-muted);
@@ -1761,7 +1804,7 @@
 .tp-stats > div { padding: var(--space-6); border-block-end: 1px solid var(--color-border); border-inline-end: 1px solid var(--color-border); }
 .tp-stats dt { font-size: var(--text-sm); color: var(--color-text-muted); }
 .tp-stats dd { margin: var(--space-2) 0 var(--space-1); font-family: var(--font-display); font-size: clamp(1.6rem, 2.6vw, 2.1rem); font-weight: 700; color: var(--color-text); }
-.tp-stats p { margin: 0; font-size: var(--text-xs); color: var(--color-text-subtle); }
+.tp-stats .tp-stats__note { margin: 0; font-family: inherit; font-size: var(--text-xs); font-weight: 400; color: var(--color-text-subtle); }
 
 /* ── رؤوس الأقسام ── */
 .tp-section { padding-block: clamp(var(--space-12), 6vw, var(--space-20)); }
@@ -1910,7 +1953,7 @@
    ========================================================================== */
 .blog-hero { padding-block: clamp(var(--space-8), 4vw, var(--space-12)) 0; }
 .blog-hero__row { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--space-4); margin-block: var(--space-3) var(--space-8); }
-.blog-hero__title { margin: 0; font-size: clamp(2rem, 4vw, 3rem); letter-spacing: -0.02em; }
+.blog-hero__title { margin: 0; font-size: clamp(2rem, 4vw, 3rem); letter-spacing: var(--tracking-tight); }
 .blog-hero__lede { max-inline-size: 38rem; margin: var(--space-3) 0 0; color: var(--color-text-muted); font-size: var(--text-lg); line-height: var(--leading-relaxed); }
 .blog-hero__count { margin: 0; color: var(--color-text-muted); }
 .blog-hero__count b { font-family: var(--font-display); font-size: var(--text-2xl); color: var(--color-text); }
@@ -1934,7 +1977,7 @@
 .feature__body { display: flex; flex-direction: column; justify-content: center; gap: var(--space-4); padding: clamp(var(--space-6), 3.5vw, var(--space-12)); }
 .feature__eyebrow { margin: 0; font-size: var(--text-sm); color: var(--color-text-muted); }
 .feature__tag { display: inline-block; padding: 0.2rem 0.65rem; border-radius: var(--radius-sm); background: var(--color-cta-soft); color: var(--color-cta-strong); font-weight: 600; }
-.feature__title { margin: 0; font-size: clamp(1.6rem, 2.8vw, 2.4rem); line-height: 1.3; letter-spacing: -0.01em; }
+.feature__title { margin: 0; font-size: clamp(1.6rem, 2.8vw, 2.4rem); line-height: 1.3; letter-spacing: var(--tracking-tight); }
 .feature__title a { color: var(--color-text); text-decoration: none; }
 .feature__title a::after { content: ""; position: absolute; inset: 0; }
 .feature:hover .feature__title a { color: var(--color-brand); }
@@ -1956,15 +1999,16 @@
   inline-size: 100%;
   padding: 0.6rem 0.9rem;
   padding-inline-start: 2.4rem;
-  border: 1px solid var(--color-border); border-radius: var(--radius-pill);
-  background: var(--color-surface); color: var(--color-text); font: inherit; font-size: var(--text-sm);
+  border: 1px solid var(--color-border-field); border-radius: var(--radius-pill);
+  background: var(--color-surface); color: var(--color-text); font: inherit; font-size: max(1rem, var(--text-sm));
 }
-.blog-bar__search input:focus { outline: none; border-color: var(--color-brand); box-shadow: 0 0 0 3px var(--color-focus-halo); }
+/* الهالة الفاتحة وحدها كانت بيضاء على أبيض، فلا يبقى للتركيز إلا تغيّر لون الحدّ */
+.blog-bar__search input:focus { outline: none; border-color: var(--color-brand); box-shadow: 0 0 0 2px var(--color-focus); }
 
 .blog-status { margin: var(--space-5) 0 0; color: var(--color-text-muted); }
 .blog-status:empty { display: none; }
 .blog-status b { color: var(--color-text); font-family: var(--font-display); }
-.blog-status__clear { margin-inline-start: var(--space-2); padding: 0; border: 0; background: none; color: var(--color-brand); font: inherit; font-weight: 600; text-decoration: underline; text-underline-offset: 0.3em; cursor: pointer; }
+.blog-status__clear { margin-inline-start: var(--space-2); padding: 0.75rem 0.25rem; margin-block: -0.75rem; border: 0; background: none; color: var(--color-brand); font: inherit; font-weight: 600; text-decoration: underline; text-underline-offset: 0.3em; cursor: pointer; }
 
 /* ── الشبكة ── */
 .mag-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr)); gap: clamp(var(--space-6), 2.5vw, var(--space-10)) clamp(var(--space-5), 2vw, var(--space-8)); margin-block-start: var(--space-8); }
@@ -2023,7 +2067,7 @@
   padding-block: clamp(var(--space-8), 5vw, var(--space-12)) clamp(var(--space-20), 9vw, 7rem);
 }
 @media (min-width: 60rem) { .ab-hero__inner { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); } }
-.ab-hero__title { margin: var(--space-5) 0 0; font-size: clamp(2rem, 4.4vw, 3.4rem); line-height: 1.25; letter-spacing: -0.02em; color: var(--color-on-ink); }
+.ab-hero__title { margin: var(--space-5) 0 0; font-size: clamp(2rem, 4.4vw, 3.4rem); line-height: 1.25; letter-spacing: var(--tracking-tight); color: var(--color-on-ink); }
 .ab-hero__lede { max-inline-size: 36rem; margin: var(--space-5) 0 0; font-size: var(--text-lg); line-height: var(--leading-relaxed); color: var(--color-on-ink-muted); }
 .ab-hero__lede .num { color: var(--color-on-ink); font-weight: 700; }
 .ab-hero__actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-5); margin-block-start: var(--space-8); }
@@ -2127,7 +2171,7 @@
   display: grid; place-items: center;
   inline-size: 3rem; block-size: 3rem;
   border-radius: 50%;
-  background: var(--color-brand); color: #fff;
+  background: var(--color-brand); color: var(--color-brand-contrast);
   box-shadow: 0 0 0 6px var(--color-canvas);
 }
 .ab-steps li:last-child .ab-steps__dot { background: var(--color-cta); color: #1F2A2E; }

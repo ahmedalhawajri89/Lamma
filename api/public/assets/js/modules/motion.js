@@ -6,7 +6,7 @@
  * بدل الاستماع المستمر لحدث scroll حفاظاً على الأداء.
  */
 
-import { $, $$, observeOnce, prefersReducedMotion, rafThrottle, clamp, formatNumber } from './utils.js';
+import { $, $$, observeOnce, prefersReducedMotion, rafThrottle, clamp, formatNumber, presetCount } from './utils.js';
 
 /* -------------------------------------------------------------------------
    1. الكشف عند التمرير
@@ -33,13 +33,16 @@ export function initReveal() {
 /* -------------------------------------------------------------------------
    2. العدّادات الرقمية
    ------------------------------------------------------------------------- */
+const counterText = (el) => formatNumber(Number(el.dataset.count) || 0) + (el.dataset.suffix || '');
+
 function runCounter(el) {
   const target = Number(el.dataset.count) || 0;
   const suffix = el.dataset.suffix || '';
   const duration = Number(el.dataset.duration) || 1600;
+  const vis = presetCount(el, counterText(el));
 
   if (prefersReducedMotion()) {
-    el.textContent = formatNumber(target) + suffix;
+    vis.textContent = formatNumber(target) + suffix;
     return;
   }
 
@@ -49,7 +52,7 @@ function runCounter(el) {
     const progress = clamp((now - start) / duration, 0, 1);
     // تباطؤ في النهاية يجعل الرقم يستقر بدل أن يتوقف فجأة
     const eased = 1 - Math.pow(1 - progress, 4);
-    el.textContent = formatNumber(Math.round(target * eased)) + suffix;
+    vis.textContent = formatNumber(Math.round(target * eased)) + suffix;
     if (progress < 1) requestAnimationFrame(tick);
   };
 
@@ -57,7 +60,10 @@ function runCounter(el) {
 }
 
 export function initCounters() {
-  observeOnce($$('[data-count]'), runCounter, { threshold: 0.4 });
+  const counters = $$('[data-count]');
+  // الرقم النهائي للقارئ الصوتي قبل أن يظهر العدّاد على الشاشة
+  counters.forEach((el) => presetCount(el, counterText(el)));
+  observeOnce(counters, runCounter, { threshold: 0.4 });
 }
 
 /* -------------------------------------------------------------------------
@@ -154,12 +160,14 @@ export function initWordReveal() {
 export function initToTop() {
   const btn = $('#toTop');
   const root = document.documentElement;
+  const header = $('#siteHeader');
 
   const update = rafThrottle(() => {
     const scrollable = root.scrollHeight - window.innerHeight;
     const progress = scrollable > 0 ? window.scrollY / scrollable : 0;
-    // يُكتب على الجذر فيستفيد منه خط تقدّم القراءة في الهيدر أيضاً
-    root.style.setProperty('--scroll-progress', progress.toFixed(3));
+    // على الهيدر لا الجذر: متغيّرٌ موروث يتبدّل على الجذر مع كل إطار يعيد
+    // حساب أنماط الصفحة كلها، وخط التقدّم وحده من يقرؤه
+    header?.style.setProperty('--scroll-progress', progress.toFixed(3));
     btn?.classList.toggle('is-visible', window.scrollY > 600);
   });
 

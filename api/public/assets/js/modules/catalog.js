@@ -11,7 +11,7 @@
  * والترتيب. وكل فلتر وصفحة في الرابط: يُشارَك ويُرجَع إليه بزرّ الرجوع.
  */
 
-import { $, $$, countUp, escapeHtml, debounce, formatNumber, prefersReducedMotion } from './utils.js';
+import { $, $$, countUp, escapeHtml, debounce, formatNumber, keepFocus, prefersReducedMotion } from './utils.js';
 import { ORPHANS, PROGRAMS } from './data.js';
 import { orphanCard } from './render.js';
 import { apiEnabled, request } from './api.js';
@@ -87,6 +87,11 @@ export function initCatalog() {
     if (e.key === 'Escape' && openMenu) { const p = openMenu; closeMenu(); p.focus(); }
   });
 
+  // الخروج من القائمة بـ Tab يغلقها، فلا تبقى مفتوحةً فوق ما انتقل إليه التركيز
+  menu.addEventListener('focusout', (e) => {
+    if (openMenu && e.relatedTarget && !menu.contains(e.relatedTarget) && e.relatedTarget !== openMenu) closeMenu();
+  });
+
   window.addEventListener('popstate', () => {
     Object.assign(state, readUrl());
     if (search) search.value = state.q || '';
@@ -141,6 +146,7 @@ export function initCatalog() {
   /* ── الجلب والعرض ───────────────────────────────────────────────────── */
   async function load({ scroll = false } = {}) {
     const mine = ++sequence;
+    const restoreFocus = keepFocus();
     grid.setAttribute('aria-busy', 'true');
 
     const params = new URLSearchParams({ per_page: PER_PAGE, facets: 1, sort: state.sort || 'urgent' });
@@ -193,6 +199,7 @@ export function initCatalog() {
     initReveal();
 
     if (scroll) $('#catalogTop')?.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'start' });
+    restoreFocus($('#catalogTop'), scroll);
   }
 
   function renderSummary(meta) {
@@ -309,8 +316,10 @@ async function initHero() {
  * وحلمه)، وتتبدّل بتلاشٍ هادئ كل خمس ثوانٍ بين من لهم صور، وبجانبها صورتان
  * ثابتتان. كانت أربع بطاقات مائلة متفرّقة لا يجمعها شيء.
  *
- * التبديل يتوقف عند المرور وحين يُخفى التبويب، ولا يبدأ أصلاً لمن طلب تقليل
- * الحركة. ومؤشّرات تحت الكبيرة للتنقّل باليد.
+ * التبديل يتوقف عند المرور أو التركيز بداخلها وحين يُخفى التبويب، ولا يبدأ
+ * أصلاً لمن طلب تقليل الحركة. وله زرّ إيقاف ظاهر (WCAG 2.2.2): ما يتحرك وحده
+ * أكثر من خمس ثوانٍ يجب أن يُوقَف بيد الزائر، لا بالمرور فوقه فقط. والمؤشّرات
+ * أزرار تصلها لوحة المفاتيح للتنقّل باليد.
  */
 function mountMosaic(host, photos) {
   const tiles = photos.length >= 4 ? photos.slice(0, 2) : photos.length >= 2 ? photos.slice(0, 1) : [];
@@ -328,7 +337,10 @@ function mountMosaic(host, photos) {
         <span class="mosaic__place"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> <span data-m="place"></span></span>
         <span class="mosaic__dream" data-m="dream"></span>
       </figcaption>
-      ${pool.length > 1 ? `<div class="mosaic__dots">${pool.map((_, i) => `<button type="button" tabindex="-1" data-i="${i}" class="${i ? '' : 'is-active'}" aria-label="الطفل ${i + 1}"></button>`).join('')}</div>` : ''}
+      ${pool.length > 1 ? `<div class="mosaic__dots">${pool.map((_, i) => `<button type="button" data-i="${i}" class="${i ? '' : 'is-active'}" aria-label="عرض الطفل ${i + 1} من ${pool.length}"${i ? '' : ' aria-current="true"'}></button>`).join('')}</div>` : ''}
+      ${pool.length > 1 && !prefersReducedMotion() ? `<button class="mosaic__toggle" type="button" aria-pressed="false" aria-label="إيقاف التبديل التلقائي">
+        <i class="fa-solid fa-pause" aria-hidden="true"></i>
+      </button>` : ''}
     </figure>
     ${tiles.map((o) => `<figure class="mosaic__tile">
         <img src="${escapeHtml(o.photo)}" alt="" width="320" height="320" loading="lazy">
@@ -344,7 +356,11 @@ function mountMosaic(host, photos) {
   const show = (i) => {
     const o = pool[i];
     imgs.forEach((img, k) => img.classList.toggle('is-active', k === i));
-    dots.forEach((d, k) => d.classList.toggle('is-active', k === i));
+    dots.forEach((d, k) => {
+      d.classList.toggle('is-active', k === i);
+      if (k === i) d.setAttribute('aria-current', 'true');
+      else d.removeAttribute('aria-current');
+    });
     caption.classList.remove('is-in');
     void caption.offsetWidth; // يعيد تشغيل دخول التعليق
     $('[data-m="name"]', caption).textContent = o.name;
@@ -360,13 +376,28 @@ function mountMosaic(host, photos) {
   // التبديل الآلي لمن لم يطلب تقليل الحركة، والضغط على مؤشّر يعيد عدّاده
   const auto = pool.length > 1 && !prefersReducedMotion();
   let timer = null;
-  let paused = false;
-  const next = () => { if (!paused && !document.hidden) show((cur + 1) % pool.length); };
-  const restart = () => { if (!auto) return; clearInterval(timer); timer = setInterval(next, 5000); };
+  let hovered = false;
+  let focused = false;
+  let stopped = false; // إيقاف الزائر بالزر، يبقى حتى يعيد تشغيله
+  const next = () => { if (!stopped && !hovered && !focused && !document.hidden) show((cur + 1) % pool.length); };
+  const restart = () => { if (!auto || stopped) return; clearInterval(timer); timer = setInterval(next, 5000); };
 
   dots.forEach((d) => d.addEventListener('click', () => { show(Number(d.dataset.i)); restart(); }));
-  host.addEventListener('mouseenter', () => { paused = true; });
-  host.addEventListener('mouseleave', () => { paused = false; });
+  host.addEventListener('mouseenter', () => { hovered = true; });
+  host.addEventListener('mouseleave', () => { hovered = false; });
+  host.addEventListener('focusin', () => { focused = true; });
+  host.addEventListener('focusout', (e) => { if (!host.contains(e.relatedTarget)) focused = false; });
+
+  const toggle = $('.mosaic__toggle', host);
+  toggle?.addEventListener('click', () => {
+    stopped = !stopped;
+    toggle.setAttribute('aria-pressed', String(stopped));
+    toggle.setAttribute('aria-label', stopped ? 'تشغيل التبديل التلقائي' : 'إيقاف التبديل التلقائي');
+    $('i', toggle).className = `fa-solid ${stopped ? 'fa-play' : 'fa-pause'}`;
+    if (stopped) clearInterval(timer);
+    else restart();
+  });
+
   restart();
 }
 

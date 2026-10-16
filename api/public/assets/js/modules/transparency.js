@@ -14,7 +14,7 @@
  * بلا خادم: البيانات المبدئية في data.js، والوثائق «تُنشر قريباً».
  */
 
-import { $, $$, countUp, escapeHtml, formatNumber, observeOnce, prefersReducedMotion } from './utils.js';
+import { $, $$, countUp, escapeHtml, formatNumber, keepFocus, observeOnce, prefersReducedMotion, presetCount, safeColor, safeNumber } from './utils.js';
 import { ANNUAL, PROOF, SPENDING } from './data.js';
 import { apiEnabled, request } from './api.js';
 
@@ -38,6 +38,12 @@ export function initTransparency() {
   let animated = false;
 
   load();
+
+  // «رجوع» يعيد السنة السابقة: كل اختيار سنةٍ خطوةٌ في السجل
+  window.addEventListener('popstate', () => {
+    year = Number(new URLSearchParams(window.location.search).get('year')) || null;
+    load();
+  });
 
   async function load() {
     let data = null;
@@ -78,15 +84,17 @@ export function initTransparency() {
     const host = $('#tpYears');
     if (years.length < 2) { host.hidden = true; return; }
     host.hidden = false;
+    const restoreFocus = keepFocus();
     host.innerHTML = years.map((y) => `<button type="button" class="tp-year" aria-pressed="${y === year}" data-year="${y}"><span class="num">${y}</span></button>`).join('');
     $$('[data-year]', host).forEach((b) => b.addEventListener('click', () => {
       if (Number(b.dataset.year) === year) return;
       year = Number(b.dataset.year);
       const url = new URL(window.location.href);
       url.searchParams.set('year', String(year));
-      history.replaceState(null, '', url);
+      history.pushState(null, '', url);
       load();
     }));
+    restoreFocus();
   }
 
   /* ── من كل دولار: رقمٌ يعدّ ومئة خانة ── */
@@ -107,6 +115,12 @@ export function initTransparency() {
       const k = el.dataset.tpStat;
       countUp(el, v[k], ['income', 'spent'].includes(k) ? usd : formatNumber);
     });
+    if (!animated) {
+      $$('[data-tp-stat]', host).forEach((el) => {
+        const k = el.dataset.tpStat;
+        presetCount(el, (['income', 'spent'].includes(k) ? usd : formatNumber)(v[k]));
+      });
+    }
     if (animated) run(); else observeOnce([host], run, { threshold: 0.3 });
   }
 
@@ -144,15 +158,38 @@ export function initTransparency() {
       </g>`;
     }).join('');
 
+    /*
+     * أرقام كل شهر كانت في تلميحٍ يظهر بمرور الفأرة وحده، فلا يصلها من يلمس
+     * الشاشة أو يتنقّل بلوحة المفاتيح أو يسمع الصفحة. الجدول تحت المخطط يحمل
+     * الأرقام نفسها لهم جميعاً، مطويّاً كي لا يزاحم المخطط بصرياً.
+     */
+    const rows = months.map((m) => {
+      const [yy, mm] = m.month.split('-').map(Number);
+      return `<tr><th scope="row">${monthLong.format(new Date(yy, mm - 1, 1))}</th>
+        <td class="num">${usd(m.income)}</td><td class="num">${usd(m.spent)}</td></tr>`;
+    }).join('');
+
     const host = $('#tpMonthly');
-    host.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="الدخل والصرف في آخر ${months.length} شهراً">${grid}${bars}</svg>
-      <div class="tp-chart__tip" hidden></div>`;
+    host.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="الدخل والصرف في آخر ${months.length} شهراً، والأرقام في الجدول بعده">${grid}${bars}</svg>
+      <div class="tp-chart__tip" hidden></div>
+      <details class="tp-chart__data">
+        <summary>عرض الأرقام شهراً بشهر</summary>
+        <div class="table-wrap">
+          <table class="table">
+            <caption class="sr-only">الدخل والصرف في آخر ${months.length} شهراً</caption>
+            <thead><tr><th scope="col">الشهر</th><th scope="col">الدخل</th><th scope="col">الصرف على الأطفال</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      </details>`;
 
     const tip = $('.tp-chart__tip', host);
     $$('.tp-chart__col', host).forEach((g) => {
       const m = months[Number(g.dataset.i)];
       const [yy, mm] = m.month.split('-').map(Number);
-      g.addEventListener('mouseenter', () => {
+      // pointerenter لا mouseenter: يطلق مع لمسة الإصبع أيضاً، فيظهر التلميح عند النقر على العمود
+      g.addEventListener('pointerenter', () => {
+        $$('.tp-chart__col.is-hover', host).forEach((o) => o.classList.remove('is-hover'));
         g.classList.add('is-hover');
         tip.innerHTML = `<b>${monthLong.format(new Date(yy, mm - 1, 1))}</b>
           <span><i class="tp-key__dot tp-key__dot--in"></i>الدخل <b class="num">${usd(m.income)}</b></span>
@@ -162,7 +199,12 @@ export function initTransparency() {
         tip.style.setProperty('--x', `${r.left + r.width / 2 - box.left}px`);
         tip.hidden = false;
       });
-      g.addEventListener('mouseleave', () => { g.classList.remove('is-hover'); tip.hidden = true; });
+      g.addEventListener('pointerleave', (e) => {
+        // مع اللمس يبقى التلميح حتى يُلمس عمود آخر، وإلا اختفى فور ظهوره
+        if (e.pointerType === 'touch') return;
+        g.classList.remove('is-hover');
+        tip.hidden = true;
+      });
     });
     observeOnce([host], () => host.classList.add('is-in'), { threshold: 0.25 });
 
@@ -181,12 +223,12 @@ export function initTransparency() {
       legend.innerHTML = '<li class="tp-legend__empty">لا صرف معتمد في هذه السنة بعد.</li>';
       return;
     }
-    stack.innerHTML = items.map((s, i) => `<span data-k="${i}" style="--w:${s.value}%; --c:${s.color ?? 'var(--color-brand)'}; --i:${i}" title="${escapeHtml(s.label)}: ${s.value}%"></span>`).join('');
+    stack.innerHTML = items.map((s, i) => `<span data-k="${i}" style="--w:${safeNumber(s.value)}%; --c:${safeColor(s.color)}; --i:${i}" title="${escapeHtml(s.label)}: ${safeNumber(s.value)}%"></span>`).join('');
     legend.innerHTML = items.map((s, i) => `<li data-k="${i}">
-        <span class="tp-legend__dot" style="background:${s.color ?? 'var(--color-brand)'}"></span>
+        <span class="tp-legend__dot" style="background:${safeColor(s.color)}"></span>
         <span class="tp-legend__label">${escapeHtml(s.label)}</span>
         <span class="tp-legend__amount num">${spent ? usd((s.value / 100) * spent) : ''}</span>
-        <span class="tp-legend__pct num">${s.value}%</span>
+        <span class="tp-legend__pct num">${safeNumber(s.value)}%</span>
       </li>`).join('');
 
     const focus = (k) => {

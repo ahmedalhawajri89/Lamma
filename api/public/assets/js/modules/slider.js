@@ -161,7 +161,11 @@ function createSlider(root) {
   viewport.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowRight') { e.preventDefault(); scrollBySteps(isRtl() ? -1 : 1); }
     if (e.key === 'ArrowLeft')  { e.preventDefault(); scrollBySteps(isRtl() ? 1 : -1); }
-    if (e.key === 'Home')       { e.preventDefault(); viewport.scrollTo({ left: 0, behavior: 'smooth' }); }
+    // البداية صفرٌ في الاتجاهين، والنهاية سالبة في RTL (كما يعدّها المتصفح)
+    const behavior = prefersReducedMotion() ? 'auto' : 'smooth';
+    const end = viewport.scrollWidth - viewport.clientWidth;
+    if (e.key === 'Home') { e.preventDefault(); viewport.scrollTo({ left: 0, behavior }); }
+    if (e.key === 'End')  { e.preventDefault(); viewport.scrollTo({ left: isRtl() ? -end : end, behavior }); }
   });
 }
 

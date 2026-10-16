@@ -83,11 +83,11 @@
 }
 
 @keyframes auth-form-out {
-  to { opacity: 0; transform: translateX(calc(24px * var(--auth-dir, 1))); }
+  to { opacity: 0; transform: translateX(calc(24px * var(--dir-x, 1))); }
 }
 
 @keyframes auth-form-in {
-  from { opacity: 0; transform: translateX(calc(-24px * var(--auth-dir, 1))); }
+  from { opacity: 0; transform: translateX(calc(-24px * var(--dir-x, 1))); }
 }
 
 @media (prefers-reduced-motion: reduce) {

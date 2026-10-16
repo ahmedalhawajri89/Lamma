@@ -21,7 +21,7 @@ import {
   spendingLegend,
 } from './render.js';
 
-import { $, $$, escapeHtml, formatNumber, formatMoney } from './utils.js';
+import { $, $$, escapeHtml, formatNumber, formatMoney, safeNumber } from './utils.js';
 
 /** عدد الأطفال الذين يُعرَّف بهم في الرئيسية: الأول مفتوحاً والباقون وجوهاً. */
 const MEET_COUNT = 6;
@@ -83,9 +83,9 @@ function meetPanel(o, i) {
     <div class="meet__fund">
       <div class="meet__fund-head">
         <span>${her ? 'تحتاج' : 'يحتاج'} <b class="num">${formatMoney(o.monthly)}</b> في الشهر</span>
-        <span>مكفول <b class="num">${o.funded}٪</b> · يتبقى <b class="num">$${remainingOf(o)}</b></span>
+        <span>مكفول <b class="num">${safeNumber(o.funded)}٪</b> · يتبقى <b class="num">$${remainingOf(o)}</b></span>
       </div>
-      <span class="meet__track" style="--v:${o.funded}%"><span></span></span>
+      <span class="meet__track" style="--v:${safeNumber(o.funded)}%"><span></span></span>
     </div>
 
     <div class="meet__actions">
@@ -114,7 +114,9 @@ function meetFace(o, i) {
  */
 function renderHomeOrphans() {
   const host = $('#homeOrphans');
-  if (!host || !ORPHANS.length) return;
+  if (!host) return;
+  host.removeAttribute('aria-busy');
+  if (!ORPHANS.length) return;
 
   const kids = [...ORPHANS]
     .sort((a, b) => Boolean(b.photo) - Boolean(a.photo)
@@ -161,6 +163,11 @@ function renderHomeOrphans() {
   tabs.forEach((tab, i) => {
     tab.addEventListener('click', () => select(i));
     tab.addEventListener('keydown', (e) => {
+      if (e.key === 'Home' || e.key === 'End') {
+        e.preventDefault();
+        select(e.key === 'Home' ? 0 : tabs.length - 1, true);
+        return;
+      }
       const step = { ArrowLeft: 1, ArrowRight: -1 }[e.key];
       if (step === undefined) return;
       e.preventDefault();

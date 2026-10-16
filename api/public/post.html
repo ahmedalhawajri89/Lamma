@@ -20,11 +20,13 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300;400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Aref+Ruqaa:wght@400;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Aref+Ruqaa:wght@400;700&display=swap">
 
   <!-- السمة قبل أي رسم — يمنع وميض الوضع الفاتح لمن اختار الليلي -->
   <script src="assets/js/theme-init.js"></script>
 
+  <!-- خط الأيقونات المصمتة في كل صفحة: يُطلب مع الأنماط لا بعدها، فلا تبقى الأيقونات فارغة -->
+  <link rel="preload" href="assets/vendor/fontawesome/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="assets/vendor/fontawesome/css/all.min.css">
   <link rel="stylesheet" href="assets/css/tokens.css">
   <link rel="stylesheet" href="assets/css/base.css">
@@ -38,9 +40,16 @@
 </head>
 
 <body data-header="solid" class="page-body">
-  <a class="skip-link" href="#main">تخطَّ إلى المحتوى الرئيسي</a>
 
   <div data-layout="header"></div>
+  <noscript>
+    <nav class="container" style="padding-block:1rem" aria-label="تنقل بديل">
+      <a href="index.html">الرئيسية</a> · <a href="about.html">من نحن</a> ·
+      <a href="programs.html">برامج الكفالة</a> · <a href="orphans.html">الأيتام</a> ·
+      <a href="transparency.html">الشفافية</a> · <a href="blog.html">المدونة</a> ·
+      <a href="contact.html">تواصل معنا</a>
+    </nav>
+  </noscript>
 
   <main id="main">
     <!--

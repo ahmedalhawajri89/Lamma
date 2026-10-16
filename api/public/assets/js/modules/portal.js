@@ -508,12 +508,26 @@ async function renderMessages(id) {
 
 /* ------------------------------------------------- الإيقاف المؤقت والاستئناف */
 
+/**
+ * بعد إعادة رسم القائمة: الزر الذي ضُغط (أو فُتحت منه النافذة) لم يعد موجوداً،
+ * فكان التركيز يسقط إلى أول الصفحة. يعود إلى بطاقة الطفل نفسها، أو إلى
+ * عنوان القائمة إن اختفت البطاقة (كفالة أُنهيت).
+ */
+function refocusSponsorship(id) {
+  const target = $(`[data-sponsorship="${id}"] h3`)
+    ?? $('[data-portal-sponsorships]')?.closest('section')?.querySelector('h2');
+  if (!target) return;
+  target.tabIndex = -1;
+  target.focus();
+}
+
 async function changeStatus(id, status, button) {
-  if (button) button.disabled = true;
+  if (button) busy(button, true);
   try {
     const res = await setSponsorshipStatus(id, status);
     toast(res.message ?? 'حُفظ.');
     await loadOverview();
+    refocusSponsorship(id);
     return true;
   } catch (error) {
     failed(error, 'تعذّر تغيير حالة الكفالة.');
@@ -521,7 +535,7 @@ async function changeStatus(id, status, button) {
     if (error?.status === 409) await loadOverview();
     return false;
   } finally {
-    if (button) button.disabled = false;
+    if (button?.isConnected) busy(button, false);
   }
 }
 
@@ -560,26 +574,32 @@ function initCancel() {
   });
 
   $('[data-cancel-pause]')?.addEventListener('click', async (e) => {
-    const ok = await changeStatus(cancelFor, 'paused', e.currentTarget);
-    if (ok) closeModal($('#cancelModal'));
+    const id = cancelFor;
+    const ok = await changeStatus(id, 'paused', e.currentTarget);
+    if (ok) {
+      closeModal($('#cancelModal'));
+      refocusSponsorship(id);
+    }
   });
 
   const form = $('[data-cancel-form]');
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const button = form.querySelector('[type="submit"]');
-    button.disabled = true;
+    busy(button, true, 'جارٍ التنفيذ…');
 
     try {
-      const res = await cancelSponsorship(cancelFor, form.elements.reason.value.trim());
+      const id = cancelFor;
+      const res = await cancelSponsorship(id, form.elements.reason.value.trim());
       closeModal($('#cancelModal'));
       form.reset();
       toast(res.message ?? 'أُنهيت الكفالة.');
       await loadOverview();
+      refocusSponsorship(id);
     } catch (error) {
       failed(error, 'تعذّر إنهاء الكفالة.');
     } finally {
-      button.disabled = false;
+      busy(button, false);
     }
   });
 }
@@ -632,6 +652,61 @@ function fillProfile(user) {
 const firstError = (error, fallback) =>
   Object.values(error?.errors ?? {})[0]?.[0] ?? error?.message ?? fallback;
 
+/**
+ * أخطاء الحقول تحت حقولها، لا في إشعار يختفي بعد ثوانٍ.
+ *
+ * «كلمة المرور الحالية غير صحيحة» في إشعار عائم كانت تترك الزائر يخمّن أي
+ * الحقلين أخطأ، والتركيز باقٍ على زر الحفظ. هنا تُكتب الرسالة تحت حقلها،
+ * ويُربط بها الحقل (aria-describedby و aria-invalid) وينتقل التركيز إلى
+ * أول حقل خاطئ. ما لا حقل له يبقى إشعاراً.
+ */
+function clearFieldErrors(form) {
+  $$('[aria-invalid="true"]', form).forEach((input) => input.setAttribute('aria-invalid', 'false'));
+  $$('.field.is-invalid', form).forEach((field) => field.classList.remove('is-invalid'));
+}
+
+function showFieldError(input, message) {
+  const field = input.closest('.field');
+  if (!field) return false;
+
+  let box = $('.field__error', field);
+  if (!box) {
+    box = document.createElement('p');
+    box.className = 'field__error';
+    box.id = `err-${input.id || input.name}`;
+    field.append(box);
+    input.setAttribute('aria-describedby', [input.getAttribute('aria-describedby'), box.id].filter(Boolean).join(' '));
+  }
+
+  box.textContent = message;
+  field.classList.add('is-invalid');
+  input.setAttribute('aria-invalid', 'true');
+  return true;
+}
+
+function showFormErrors(form, error, fallback) {
+  let first = null;
+  Object.entries(error?.errors ?? {}).forEach(([name, messages]) => {
+    const input = form.elements[name];
+    if (input instanceof HTMLElement && !input.closest('[hidden]') && showFieldError(input, messages[0])) first ??= input;
+  });
+
+  if (first) first.focus();
+  else toast(firstError(error, fallback), 'error');
+}
+
+/** زرّ ينتظر الخادم: معطّل، ويقول ذلك نصّاً لا بالتعطيل وحده. */
+function busy(button, on, label = 'جارٍ الحفظ…') {
+  if (on) {
+    button.dataset.label = button.innerHTML;
+    button.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i> ${label}`;
+  } else if (button.dataset.label) {
+    button.innerHTML = button.dataset.label;
+  }
+  button.disabled = on;
+  button.setAttribute('aria-busy', String(on));
+}
+
 function initAccount() {
   const profile = $('[data-portal-profile]');
 
@@ -645,7 +720,8 @@ function initAccount() {
   profile?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const button = profile.querySelector('[type="submit"]');
-    button.disabled = true;
+    clearFieldErrors(profile);
+    busy(button, true);
 
     const payload = {
       name: profile.elements.name.value.trim(),
@@ -667,10 +743,10 @@ function initAccount() {
       if (confirmBox) confirmBox.hidden = true;
       toast(res.message ?? 'حُفظت التعديلات.');
     } catch (error) {
-      if (!isAuthLoss(error)) toast(firstError(error, 'تعذّر حفظ التعديلات.'), 'error');
+      if (!isAuthLoss(error)) showFormErrors(profile, error, 'تعذّر حفظ التعديلات.');
       else toLogin();
     } finally {
-      button.disabled = false;
+      busy(button, false);
     }
   });
 
@@ -692,14 +768,15 @@ function initAccount() {
   password?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const { current_password: current, password: next, password_confirmation: again } = password.elements;
+    clearFieldErrors(password);
     if (next.value !== again.value) {
-      toast('كلمتا المرور غير متطابقتين.', 'error');
+      showFieldError(again, 'كلمتا المرور غير متطابقتين.');
       again.focus();
       return;
     }
 
     const button = password.querySelector('[type="submit"]');
-    button.disabled = true;
+    busy(button, true);
     try {
       const res = await updatePassword({
         current_password: current.value,
@@ -709,10 +786,10 @@ function initAccount() {
       password.reset();
       toast(res.message ?? 'تم تغيير كلمة المرور. خرجت أجهزتك الأخرى من حسابك.');
     } catch (error) {
-      if (!isAuthLoss(error)) toast(firstError(error, 'تعذّر تغيير كلمة المرور.'), 'error');
+      if (!isAuthLoss(error)) showFormErrors(password, error, 'تعذّر تغيير كلمة المرور.');
       else toLogin();
     } finally {
-      button.disabled = false;
+      busy(button, false);
     }
   });
 }

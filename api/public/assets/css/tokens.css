@@ -79,6 +79,7 @@
   --sand-200: #e4e0d6;
   --sand-300: #cfcabe;
   --sand-400: #9ea3a1;
+  --sand-500: #858a84;   /* 3.5 على الأبيض: أدنى ما يُرى به حدّ حقل */
   --ink-500:  #5f6b6f;   /* 4.7 على السطح البديل */
   --ink-600:  #4e5b5f;
   --ink-700:  #3a474b;
@@ -125,6 +126,9 @@
 
   --color-border:           var(--sand-200);
   --color-border-strong:    var(--sand-300);
+  /* حدّ الحقول وخانات الاختيار: مكوّن تفاعلي يلزمه 3:1 (WCAG 1.4.11)،
+     والحدّ الزخرفي أعلاه 1.3:1 فيضيع الحقل على الأرضية */
+  --color-border-field:     var(--sand-500);
 
   --color-success:          var(--leaf-600);
   --color-success-soft:     var(--leaf-50);
@@ -132,6 +136,7 @@
   --color-info-soft:        var(--sky-100);
   --color-urgent:           var(--rose-700);
   --color-urgent-soft:      var(--rose-100);
+  --color-urgent-contrast:  var(--sand-0);
 
   /* الأقسام الداكنة — تركوازي عميق في الوضعين، فهي توقيع الهوية */
   --color-ink:              var(--teal-900);
@@ -207,7 +212,7 @@
   --font-num:     "IBM Plex Sans Arabic", ui-monospace, monospace;
 
   /* مقياس طباعي سلس (fluid) — يتمدد مع عرض الشاشة بلا قفزات */
-  --text-2xs: clamp(0.69rem, 0.67rem + 0.10vw, 0.75rem);
+  --text-2xs: clamp(0.75rem, 0.73rem + 0.10vw, 0.8125rem);   /* ١٢px حدٌّ أدنى للقراءة، والعربية أحوج */
   --text-xs:  clamp(0.78rem, 0.75rem + 0.14vw, 0.86rem);
   --text-sm:  clamp(0.88rem, 0.85rem + 0.16vw, 0.97rem);
   --text-md:  clamp(1.00rem, 0.96rem + 0.20vw, 1.10rem);
@@ -345,6 +350,7 @@
 
     --color-border:         #263a3c;
     --color-border-strong:  #34494b;
+    --color-border-field:   #667b7d;   /* 3.7 على السطح */
 
     --color-success:        var(--leaf-400);
     --color-success-soft:   rgb(76 196 124 / 0.14);
@@ -352,6 +358,7 @@
     --color-info-soft:      rgb(125 211 252 / 0.12);
     --color-urgent:         var(--rose-400);
     --color-urgent-soft:    rgb(251 113 133 / 0.14);
+    --color-urgent-contrast: var(--teal-950);   /* الأبيض على الوردي الفاتح 2.8 */
 
     --color-ink:            #0d3030;
     --color-scrim:          rgb(0 0 0 / 0.62);
@@ -420,6 +427,7 @@
 
   --color-border:         #263a3c;
   --color-border-strong:  #34494b;
+  --color-border-field:   #667b7d;   /* 3.7 على السطح */
 
   --color-success:        var(--leaf-400);
   --color-success-soft:   rgb(76 196 124 / 0.14);
@@ -427,6 +435,7 @@
   --color-info-soft:      rgb(125 211 252 / 0.12);
   --color-urgent:         var(--rose-400);
   --color-urgent-soft:    rgb(251 113 133 / 0.14);
+  --color-urgent-contrast: var(--teal-950);   /* الأبيض على الوردي الفاتح 2.8 */
 
   --color-ink:            #0d3030;
   --color-scrim:          rgb(0 0 0 / 0.62);
@@ -455,4 +464,20 @@
   --glass-bg:     rgb(20 32 34 / 0.72);
   --glass-strong: rgb(20 32 34 / 0.92);
   --glass-border: rgb(255 255 255 / 0.08);
+}
+
+/* --------------------------------------------------------------------
+   التتبّع والعربية
+   الحروف العربية متصلة، وأي تباعدٍ بينها (موجباً أو سالباً) يقطع وصلها
+   أو يُركِب بعضها على بعض. فالتتبّع صفرٌ للنص العربي، ويعود لما يُكتب
+   بلغة لاتينية داخله (`lang="en"`)، والأرقام لها قيمها الخاصة في مواضعها.
+   -------------------------------------------------------------------- */
+:lang(ar) {
+  --tracking-tight: 0;
+  --tracking-wide:  0;
+}
+
+:lang(en) {
+  --tracking-tight: -0.025em;
+  --tracking-wide:  0.04em;
 }

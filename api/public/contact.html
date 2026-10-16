@@ -21,11 +21,13 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300;400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Aref+Ruqaa:wght@400;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Aref+Ruqaa:wght@400;700&display=swap">
 
   <!-- السمة قبل أي رسم — يمنع وميض الوضع الفاتح لمن اختار الليلي -->
   <script src="assets/js/theme-init.js"></script>
 
+  <!-- خط الأيقونات المصمتة في كل صفحة: يُطلب مع الأنماط لا بعدها، فلا تبقى الأيقونات فارغة -->
+  <link rel="preload" href="assets/vendor/fontawesome/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="assets/vendor/fontawesome/css/all.min.css">
   <link rel="stylesheet" href="assets/css/tokens.css">
   <link rel="stylesheet" href="assets/css/base.css">
@@ -40,6 +42,14 @@
 
 <body data-header="solid" class="page-body">
   <div data-layout="header"></div>
+  <noscript>
+    <nav class="container" style="padding-block:1rem" aria-label="تنقل بديل">
+      <a href="index.html">الرئيسية</a> · <a href="about.html">من نحن</a> ·
+      <a href="programs.html">برامج الكفالة</a> · <a href="orphans.html">الأيتام</a> ·
+      <a href="transparency.html">الشفافية</a> · <a href="blog.html">المدونة</a> ·
+      <a href="contact.html">تواصل معنا</a>
+    </nav>
+  </noscript>
 
   <main id="main">
 
@@ -110,25 +120,25 @@
                   style="margin-block-start:var(--space-6)">
 
               <div class="field" style="margin-block-end:var(--space-4)">
-                <label class="field__label" for="contactName">الاسم <span class="req">*</span></label>
+                <label class="field__label" for="contactName">الاسم <span class="req" aria-hidden="true">*</span></label>
                 <div class="field__control">
                   <i class="fa-regular fa-user field__icon" aria-hidden="true"></i>
                   <input class="input" type="text" id="contactName" name="name"
                          autocomplete="name" data-validate="required|minlength:3"
                          aria-describedby="err-contactName">
                 </div>
-                <p class="field__error" id="err-contactName" role="alert"></p>
+                <p class="field__error" id="err-contactName" aria-live="polite"></p>
               </div>
 
               <div class="field" style="margin-block-end:var(--space-4)">
-                <label class="field__label" for="contactEmail">البريد الإلكتروني <span class="req">*</span></label>
+                <label class="field__label" for="contactEmail">البريد الإلكتروني <span class="req" aria-hidden="true">*</span></label>
                 <div class="field__control">
                   <i class="fa-regular fa-envelope field__icon" aria-hidden="true"></i>
                   <input class="input" type="email" id="contactEmail" name="email"
                          autocomplete="email" inputmode="email" data-validate="required|email"
                          aria-describedby="err-contactEmail">
                 </div>
-                <p class="field__error" id="err-contactEmail" role="alert"></p>
+                <p class="field__error" id="err-contactEmail" aria-live="polite"></p>
               </div>
 
               <div class="field" style="margin-block-end:var(--space-4)">
@@ -144,12 +154,12 @@
               </div>
 
               <div class="field" style="margin-block-end:var(--space-6)">
-                <label class="field__label" for="contactMessage">الرسالة <span class="req">*</span></label>
+                <label class="field__label" for="contactMessage">الرسالة <span class="req" aria-hidden="true">*</span></label>
                 <textarea class="textarea" id="contactMessage" name="message" rows="6"
                           placeholder="اكتب سؤالك بالتفصيل…"
                           data-validate="required|minlength:15"
                           aria-describedby="err-contactMessage"></textarea>
-                <p class="field__error" id="err-contactMessage" role="alert"></p>
+                <p class="field__error" id="err-contactMessage" aria-live="polite"></p>
               </div>
 
               <!-- مصيدة: مخفية عن البشر وعن قارئات الشاشة، والروبوت يملؤها. -->
@@ -161,9 +171,12 @@
 
               <div class="field" style="margin-block-end:var(--space-6)">
                 <label class="checkbox">
-                  <input type="checkbox" name="consent" required>
+                  <input type="checkbox" name="consent" required
+                         data-validate="required" data-required-message="يلزم الموافقة لنتمكّن من الرد عليك"
+                         aria-describedby="err-consent">
                   <span>أوافق على استخدام بياناتي للرد على استفساري فقط، ولن تُشارك مع أي جهة أخرى.</span>
                 </label>
+                <p class="field__error" id="err-consent" aria-live="polite"></p>
               </div>
 
               <button class="btn btn--primary btn--lg btn--block" type="submit">

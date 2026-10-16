@@ -65,6 +65,15 @@ export function rafThrottle(fn) {
 }
 
 /**
+ * الأرقام العربية المشرقية (٠-٩) والفارسية (۰-۹) إلى أرقام لاتينية.
+ * لوحة المفاتيح العربية تكتبها، والتحقق والخادم يفهمان اللاتينية وحدها.
+ */
+export const toLatinDigits = (value) =>
+  String(value ?? '')
+    .replace(/[٠-٩]/g, (d) => String(d.charCodeAt(0) - 0x0660))
+    .replace(/[۰-۹]/g, (d) => String(d.charCodeAt(0) - 0x06f0));
+
+/**
  * تهريب أي نص قبل وضعه داخل قالب HTML.
  * خط الدفاع الأخير ضد XSS إذا جاءت البيانات لاحقاً من واجهة برمجية.
  * والقيمة الغائبة (null أو undefined) نصٌّ فارغ، لا كلمة «null» على الصفحة.
@@ -82,6 +91,72 @@ export const escapeHtml = (value) =>
 export function currentPage() {
   const file = window.location.pathname.split('/').pop();
   return !file || file === '' ? 'index.html' : file;
+}
+
+/**
+ * قفل تمرير الصفحة لأكثر من طالب.
+ *
+ * النافذة المنبثقة والقائمة الجوالة كانتا تكتبان `body.style.overflow`
+ * مباشرةً، فإغلاق إحداهما يفكّ القفل والأخرى ما زالت مفتوحة. كل طالب يقفل
+ * باسمه، والتمرير يعود حين لا يبقى أحد.
+ */
+const scrollLocks = new Set();
+
+export function lockScroll(owner, on) {
+  if (on) scrollLocks.add(owner);
+  else scrollLocks.delete(owner);
+  document.body.style.overflow = scrollLocks.size ? 'hidden' : '';
+}
+
+/**
+ * لون من الـ API قبل أن يُكتب في style أو سمة SVG.
+ *
+ * `escapeHtml` لا يكفي داخل CSS: «red; background:url(…)» نصٌّ بريء في HTML
+ * لكنه يحقن خصائص. المقبول صيغ الألوان المعروفة ومتغيّرات التصميم وحدها.
+ */
+export const safeColor = (value, fallback = 'var(--color-brand)') =>
+  /^(#[0-9a-f]{3,8}|(rgb|rgba|hsl|hsla|oklch)\([\d\s.,%/-]+\)|var\(--[\w-]+\))$/i.test(String(value ?? '').trim())
+    ? String(value).trim()
+    : fallback;
+
+/** رقمٌ من الـ API قبل أن يُكتب في قالب: ما ليس رقماً صفر. */
+export const safeNumber = (value) => (Number.isFinite(Number(value)) ? Number(value) : 0);
+
+/**
+ * التركيز عبر إعادة الرسم.
+ *
+ * النتائج والفلاتر والتصفيح تُبنى من جديد بـ innerHTML، فيُهدم الزر الذي
+ * ضغطه الزائر بلوحة المفاتيح ويسقط التركيز إلى <body>: يضغط Tab فيبدأ من
+ * أول الصفحة. يُلتقط الزر قبل الرسم بسماته، ويُعاد إلى نظيره بعده.
+ *
+ * @returns {(fallback?: Element|null, force?: boolean) => void}
+ *   `force` ينقل التركيز إلى `fallback` في كل حال (الانتقال إلى صفحة نتائج
+ *   أخرى: يبدأ القارئ من أولها لا من زرّ التصفيح).
+ */
+export function keepFocus() {
+  const el = document.activeElement;
+  const keys = ['data-page', 'data-value', 'data-filter', 'data-remove', 'data-reset', 'data-cat', 'data-blog-reset', 'data-menu', 'data-year'];
+  const selector = el && el !== document.body
+    ? el.tagName.toLowerCase() + keys
+      .filter((k) => el.hasAttribute(k))
+      .map((k) => `[${k}="${CSS.escape(el.getAttribute(k))}"]`)
+      .join('')
+    : null;
+
+  return (fallback = null, force = false) => {
+    const now = document.activeElement;
+    if (!force && now && now !== document.body && now.isConnected) return;
+    if (!force && !selector) return;
+
+    const again = !force && selector !== el?.tagName.toLowerCase()
+      ? document.querySelector(`${selector}:not([disabled])`)
+      : null;
+    const target = again ?? fallback;
+    if (!target) return;
+
+    if (!target.matches('a[href], button, input, select, textarea, [tabindex]')) target.tabIndex = -1;
+    target.focus({ preventScroll: true });
+  };
 }
 
 /**
@@ -135,13 +210,41 @@ export function readingTime(minutes) {
  * عدٌّ صاعد مرة واحدة، أقل من ثانية، وبلا حركة لمن طلب تقليلها.
  * `format` يكتب القيمة (الافتراضي عددٌ بفواصل، ويُمرَّر مبلغٌ بعملته).
  */
+/**
+ * الرقم النهائي لقارئ الشاشة من البداية، والعدّاد المتحرك للعين وحدها.
+ *
+ * العدّ يبدأ حين يظهر الرقم على الشاشة، وقبلها (أو في منتصفه) كان القارئ
+ * الصوتي يقرأ «0» أو رقماً عابراً: «0 طفل مكفول» على موقع خيري. يُقسم العنصر
+ * إلى جزء مرئي مخفيٍّ عن القارئ، وجزء مخفيٍّ عن العين بالرقم النهائي.
+ *
+ * @returns {Element} الجزء المرئي الذي يُكتب فيه العدّ
+ */
+export function presetCount(el, finalText) {
+  let vis = el.querySelector(':scope > .count__vis');
+  let sr = el.querySelector(':scope > .count__sr');
+  if (!vis) {
+    const current = el.textContent;
+    el.textContent = '';
+    vis = document.createElement('span');
+    vis.className = 'count__vis';
+    vis.setAttribute('aria-hidden', 'true');
+    vis.textContent = current;
+    sr = document.createElement('span');
+    sr.className = 'sr-only count__sr';
+    el.append(vis, sr);
+  }
+  sr.textContent = finalText;
+  return vis;
+}
+
 export function countUp(el, target, format = formatNumber) {
-  if (prefersReducedMotion() || !target) { el.textContent = format(target); return; }
+  const vis = presetCount(el, format(target));
+  if (prefersReducedMotion() || !target) { vis.textContent = format(target); return; }
   const start = performance.now();
   const dur = 900;
   const tick = (now) => {
     const t = Math.min(1, (now - start) / dur);
-    el.textContent = format(Math.round(target * (1 - (1 - t) ** 3)));
+    vis.textContent = format(Math.round(target * (1 - (1 - t) ** 3)));
     if (t < 1) requestAnimationFrame(tick);
   };
   requestAnimationFrame(tick);

@@ -42,6 +42,17 @@ export async function initCheckout() {
   const reference = new URLSearchParams(window.location.search).get('id');
   const form = $('#checkoutForm');
 
+  /*
+   * زر الدفع معطّل حتى تكتمل البيانات: الضغط قبلها كان يومض بالمؤشر ثم يعود
+   * بلا كلمة، فيظن الزائر أن الدفع فشل أو أنه لم يُسجَّل.
+   */
+  const submit = $('#checkoutSubmit');
+  const submitLabel = submit?.innerHTML;
+  if (submit) {
+    submit.disabled = true;
+    submit.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i> جارٍ تحميل بيانات الكفالة…';
+  }
+
   try {
     [state.orphan, state.config, state.user] = await Promise.all([
       reference ? fetchOrphan(reference) : Promise.reject({ status: 404 }),
@@ -78,6 +89,11 @@ export async function initCheckout() {
   if (login) login.href = `login.html?redirect=${encodeURIComponent(`checkout.html?id=${o.id}`)}`;
 
   form.dataset.action = 'checkout';
+
+  if (submit) {
+    submit.disabled = false;
+    submit.innerHTML = submitLabel;
+  }
 }
 
 function showBlocked(message) {
@@ -275,6 +291,10 @@ export async function submitCheckoutForm(form) {
   const values = Object.fromEntries(new FormData(form).entries());
   const method = values.method ?? 'card';
 
+  // خطأ المحاولة السابقة لا يبقى معلّقاً فوق الزر أثناء المحاولة الجديدة
+  const box = $('[data-checkout="error"]');
+  if (box) { box.hidden = true; box.textContent = ''; }
+
   const payload = {
     orphan_reference: state.orphan.id,
     monthly_amount: Number($('#monthlyAmount').value),
@@ -309,11 +329,12 @@ export async function submitCheckoutForm(form) {
       error.redirect = `login.html?redirect=${encodeURIComponent(back)}`;
     }
 
-    // أخطاء لا حقل لها في النموذج (الطفل اكتمل تمويله، رفض البنك) تظهر فوق الزر
-    const box = $('[data-checkout="error"]');
-    if (box && (error.code || error.errors?.orphan_reference || error.status === 402)) {
+    // أخطاء لا حقل لها في النموذج (الطفل اكتمل تمويله، رفض البنك) تظهر فوق الزر،
+    // ولا تتكرّر في إشعار عائم: موضعٌ واحد قرب الزر أوضح من رسالتين
+    if (box && !error.redirect && (error.code || error.errors?.orphan_reference || error.status === 402)) {
       box.hidden = false;
       box.textContent = error.errors?.orphan_reference?.[0] ?? error.message;
+      error.shown = true;
     }
 
     throw error;

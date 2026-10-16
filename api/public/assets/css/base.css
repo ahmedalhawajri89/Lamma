@@ -39,7 +39,6 @@ body {
   text-rendering: optimizeLegibility;
   /* هالات لونية خفيفة (mesh) تكسر السطح الرقمي المسطح بلا ضجيج */
   background-image: var(--gradient-mesh);
-  background-attachment: fixed;
   transition: background-color var(--dur-normal) var(--ease-out),
               color var(--dur-normal) var(--ease-out);
 }
@@ -195,6 +194,9 @@ small { font-size: var(--text-sm); }
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    /* التأخير وحده يُبقي المحتوى غائباً لحظاتٍ بلا حركة تبرّره */
+    animation-delay: 0s !important;
+    transition-delay: 0s !important;
     scroll-behavior: auto !important;
   }
 }

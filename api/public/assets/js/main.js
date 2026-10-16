@@ -9,7 +9,7 @@
  */
 
 import { hydrate } from './modules/data.js';
-import { mountLayout } from './modules/layout.js';
+import { mountLayout, refreshLayout } from './modules/layout.js';
 import { initThemeToggle } from './modules/theme.js';
 import { initHowSteps } from './modules/how.js';
 import {
@@ -29,6 +29,7 @@ import {
   initModals,
   initChipGroups,
   initPasswordToggles,
+  initToastStack,
 } from './modules/ui.js';
 import { initForms, initCardInput, initPasswordStrength } from './modules/forms.js';
 import { initCheckout, initThankYou } from './modules/checkout.js';
@@ -47,9 +48,8 @@ import { initProofBoard, initCredentials } from './modules/proof.js';
 import { initPortal } from './modules/portal.js';
 
 function boot() {
-  // ١) الهيكل أولاً — بقية الوحدات قد تحتاج عناصره
-  mountLayout();
-  initThemeToggle();
+  // ١) الهيكل مركَّب سلفاً من البذرة (انظر start)؛ تُكتب فيه الآن بيانات الخادم
+  refreshLayout();
 
   // ٢) المحتوى المُولَّد من البيانات قبل تشغيل الحركات عليه
   renderHomeSections();
@@ -137,7 +137,16 @@ function lockForms() {
 async function start() {
   const unlock = lockForms();
 
+  /*
+   * الهيدر والفوتر قبل انتظار الشبكة: كانا يُبنيان بعد `hydrate()`، فتبقى
+   * الصفحة حتى أربع ثوانٍ بلا ترويسة ولا تنقّل، ثم تقفز حين يظهران.
+   * يُبنيان من البذرة، و`refreshLayout()` يكتب إعدادات الخادم عند وصولها.
+   */
   try {
+    mountLayout();
+    initThemeToggle();
+    initToastStack();
+
     await hydrate();
     boot();
   } finally {

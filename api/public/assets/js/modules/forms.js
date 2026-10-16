@@ -13,7 +13,7 @@
 import { login, logout, register, forgotPassword, resetPassword, markSignedIn, isSponsor } from './auth.js';
 import { submitContact, subscribeNewsletter } from './api.js';
 import { toast } from './ui.js';
-import { $, $$, clamp } from './utils.js';
+import { $, $$, clamp, toLatinDigits } from './utils.js';
 import { submitCheckoutForm } from './checkout.js';
 
 /**
@@ -50,6 +50,11 @@ const RULES = {
 
   minlength: (value, param) =>
     value.trim().length >= Number(param) || `يجب ألا يقل عن ${param} أحرف`,
+
+  // ما يشترطه الخادم بعينه (Password::letters()->numbers()): حرفٌ ورقم بأي لغة،
+  // فيُعرف الرفض هنا قبل أن يُرسل النموذج ويعود
+  lettersNumbers: (value) =>
+    (/\p{L}/u.test(value) && /\p{N}/u.test(value)) || 'يجب أن تحتوي حرفاً ورقماً على الأقل',
 
   card: (value) => luhnCheck(value) || 'رقم البطاقة غير صحيح',
 
@@ -125,7 +130,7 @@ function setError(input, message) {
     // نص فقط — لا innerHTML مع محتوى متغيّر
     box.textContent = message || '';
     if (message) {
-      box.insertAdjacentHTML('afterbegin', '<i class="fa-solid fa-circle-exclamation"></i> ');
+      box.insertAdjacentHTML('afterbegin', '<i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> ');
     }
   }
 }
@@ -138,8 +143,16 @@ function validateInput(input) {
     return true;
   }
 
-  const value = input.value ?? '';
   const rules = (input.dataset.validate || '').split('|').filter(Boolean);
+
+  // خانة الموافقة قيمتها «on» دائماً، فالعبرة بحالة التأشير لا بالقيمة
+  if (input.type === 'checkbox') {
+    const ok = !rules.includes('required') || input.checked;
+    setError(input, ok ? '' : (input.dataset.requiredMessage || 'يلزم التأشير على هذه الخانة للمتابعة'));
+    return ok;
+  }
+
+  const value = input.value ?? '';
 
   // حقل اختياري وفارغ = صالح
   if (!rules.includes('required') && !value.trim()) {
@@ -167,9 +180,39 @@ function validateInput(input) {
 /* =========================================================================
    ربط النماذج
    ========================================================================= */
+/**
+ * الحقول الرقمية تقبل «٥٠» كما تقبل «50».
+ *
+ * كان المبلغ المكتوب بلوحة عربية يُرفض بـ«اكتب مبلغاً بالأرقام»، وأرقام
+ * البطاقة تُحذف كلها لأن `\D` لا يعدّها أرقاماً. التحويل في مرحلة الالتقاط
+ * يسبق أي معالج آخر (التنسيق والتحقق والمعاينة)، والطول لا يتغير فيبقى
+ * المؤشر مكانه. كلمات المرور مستثناة: «٣» فيها حرفٌ مقصود لا يُبدَّل.
+ */
+function initDigitInputs() {
+  const numeric = 'input[inputmode="numeric"], input[inputmode="decimal"], input[inputmode="tel"], input[type="tel"], input[type="number"]';
+
+  document.addEventListener('input', (e) => {
+    const input = e.target;
+    if (!input.matches?.(numeric)) return;
+
+    const latin = toLatinDigits(input.value);
+    if (latin === input.value) return;
+
+    const { selectionStart, selectionEnd } = input;
+    input.value = latin;
+    try { input.setSelectionRange(selectionStart, selectionEnd); } catch { /* type=number لا يدعم التحديد */ }
+  }, true);
+}
+
 export function initForms() {
+  initDigitInputs();
   $$('form[data-validate-form]').forEach((form) => {
     const inputs = $$('[data-validate]', form);
+
+    // «مطلوب» يُعلَن لقارئ الشاشة لا بالنجمة وحدها (وهي مخفية عنه)
+    inputs.forEach((input) => {
+      if (input.dataset.validate.split('|').includes('required')) input.setAttribute('aria-required', 'true');
+    });
 
     // نتحقق عند الخروج من الحقل، ثم مباشرةً أثناء الكتابة بعد أول خطأ.
     // هذا يمنع إزعاج المستخدم بخطأ قبل أن ينتهي من الكتابة.
@@ -198,7 +241,7 @@ export function initForms() {
 
       if (button) {
         button.disabled = true;
-        button.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> جارٍ المعالجة…';
+        button.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i> جارٍ المعالجة…';
       }
 
       submit(form, button, original);
@@ -339,7 +382,8 @@ async function submit(form, button, original) {
         phone: values.tel || values.phone || null,
         password: values.password,
         password_confirmation: values.password_confirmation ?? values.password,
-        terms: true,
+        // القيمة الفعلية للخانة، فالخادم يتحقق منها بـ accepted
+        terms: values.terms === 'on',
       });
     }
 
@@ -373,13 +417,11 @@ async function submit(form, button, original) {
 
     Object.entries(fields).forEach(([name, messages]) => {
       const input = form.querySelector(`[name="${name}"]`);
-      const wrapper = input?.closest('.field');
-      const errorEl = wrapper?.querySelector('.field__error');
+      const errorEl = input?.closest('.field')?.querySelector('.field__error');
 
-      if (wrapper) wrapper.classList.add('is-invalid');
-
-      if (errorEl && input?.type !== 'hidden') {
-        errorEl.textContent = messages[0];
+      // setError لا كتابة النص وحده: يضبط aria-invalid والأيقونة كخطأ المتصفح تماماً
+      if (errorEl && input.type !== 'hidden') {
+        setError(input, messages[0]);
       } else {
         orphaned.push(messages[0]);
       }
@@ -401,7 +443,9 @@ async function submit(form, button, original) {
       }
     }
 
-    if (orphaned.length) {
+    if (error.shown) {
+      // عُرض في مكانه من الصفحة (صندوق خطأ الكفالة فوق الزر)
+    } else if (orphaned.length) {
       toast(orphaned[0], 'error');
     } else if (!Object.keys(fields).length) {
       toast(error.message ?? 'تعذّر إتمام الطلب.', 'error');

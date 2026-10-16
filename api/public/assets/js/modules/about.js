@@ -6,7 +6,7 @@
  * هنا كلها من `/public/transparency` (proof)، وبلا خادم من PROOF في data.js.
  */
 
-import { $, $$, countUp, formatNumber, observeOnce } from './utils.js';
+import { $, $$, countUp, formatNumber, observeOnce, presetCount } from './utils.js';
 import { PROOF } from './data.js';
 import { apiEnabled, request } from './api.js';
 
@@ -48,7 +48,8 @@ export function initAbout() {
     const stat = $('#abVerifyStat');
     if (stat) stat.hidden = !values.verifyDays;
 
-    // العدّ حين يظهر الشريط، مرة واحدة
+    // العدّ حين يظهر الشريط، مرة واحدة؛ والرقم النهائي للقارئ الصوتي من الآن
+    $$('[data-ab-count]', figures).forEach((el) => presetCount(el, formatNumber(values[el.dataset.abCount] ?? 0)));
     observeOnce($$('[data-ab-count]', figures), (el) => countUp(el, values[el.dataset.abCount] ?? 0), { threshold: 0.4 });
   }
 }

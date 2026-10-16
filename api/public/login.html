@@ -21,11 +21,13 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300;400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Aref+Ruqaa:wght@400;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Aref+Ruqaa:wght@400;700&display=swap">
 
   <!-- السمة قبل أي رسم — يمنع وميض الوضع الفاتح لمن اختار الليلي -->
   <script src="assets/js/theme-init.js"></script>
 
+  <!-- خط الأيقونات المصمتة في كل صفحة: يُطلب مع الأنماط لا بعدها، فلا تبقى الأيقونات فارغة -->
+  <link rel="preload" href="assets/vendor/fontawesome/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="assets/vendor/fontawesome/css/all.min.css">
   <link rel="stylesheet" href="assets/css/tokens.css">
   <link rel="stylesheet" href="assets/css/base.css">
@@ -83,7 +85,7 @@
                      autocomplete="email" inputmode="email"
                      data-validate="required|email" aria-describedby="err-email">
             </div>
-            <p class="field__error" id="err-email" role="alert"></p>
+            <p class="field__error" id="err-email" aria-live="polite"></p>
           </div>
 
           <div class="field">
@@ -94,11 +96,11 @@
                      autocomplete="current-password"
                      data-validate="required|minlength:8" aria-describedby="err-password">
               <button class="field__action" type="button"
-                      data-password-toggle="password" aria-label="إظهار كلمة المرور">
+                      data-password-toggle="password" aria-label="إظهار كلمة المرور" aria-pressed="false">
                 <i class="fa-regular fa-eye" aria-hidden="true"></i>
               </button>
             </div>
-            <p class="field__error" id="err-password" role="alert"></p>
+            <p class="field__error" id="err-password" aria-live="polite"></p>
           </div>
 
           <div class="auth__meta">
@@ -196,7 +198,7 @@
                    autocomplete="email" data-autofocus
                    data-validate="required|email" aria-describedby="err-resetEmail">
           </div>
-          <p class="field__error" id="err-resetEmail" role="alert"></p>
+          <p class="field__error" id="err-resetEmail" aria-live="polite"></p>
         </div>
 
         <button class="btn btn--primary btn--block" type="submit">أرسل الرابط</button>

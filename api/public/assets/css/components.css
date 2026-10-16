@@ -51,6 +51,7 @@
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
+  min-block-size: 2.75rem;   /* ٤٤px: هدف لمس مريح */
   padding-block: 0.8em;
   padding-inline: 1.6em;
   border: 1.5px solid var(--btn-border);
@@ -60,7 +61,6 @@
   font-family: var(--font-display);
   font-size: var(--text-sm);
   font-weight: 600;
-  letter-spacing: -0.005em;
   line-height: 1.2;
   text-decoration: none;
   white-space: nowrap;
@@ -71,8 +71,11 @@
               color var(--dur-fast) var(--ease-out);
 }
 
-.btn:hover { transform: translateY(-2px); }
-.btn:active { transform: translateY(0); }
+/* الرفع عند المرور للفأرة وحدها: على اللمس تعلق حالة hover بعد النقر */
+@media (hover: hover) and (pointer: fine) {
+  .btn:hover { transform: translateY(-2px); }
+}
+.btn:active { transform: scale(0.98); }
 
 .btn[disabled],
 .btn[aria-disabled="true"] {
@@ -176,8 +179,9 @@
 
 /* المقاسات */
 .btn--lg { font-size: var(--text-md); padding-block: 0.95em; padding-inline: 2em; }
-.btn--sm { font-size: var(--text-xs); padding-block: 0.6em; padding-inline: 1.1em; }
-.btn--block { display: flex; width: 100%; }
+.btn--sm { min-block-size: 2.5rem; font-size: var(--text-xs); padding-block: 0.6em; padding-inline: 1.1em; }
+/* الزر العريض يلتفّ سطره بدل أن يفيض عن خليته على الشاشات الضيقة */
+.btn--block { display: flex; width: 100%; white-space: normal; text-align: center; }
 
 /* زر أيقونة دائري */
 .btn-icon {
@@ -200,8 +204,11 @@
   border-color: var(--color-brand);
   background: var(--color-brand-soft);
   color: var(--color-brand);
-  transform: translateY(-2px);
 }
+@media (hover: hover) and (pointer: fine) {
+  .btn-icon:hover { transform: translateY(-2px); }
+}
+.btn-icon:active { transform: scale(0.94); }
 
 .btn-icon[disabled] { opacity: 0.35; pointer-events: none; }
 
@@ -242,14 +249,15 @@
   align-items: center;
   gap: var(--space-2);
   align-self: flex-start;
-  padding: 0.35em 0.95em 0.35em 0.85em;
+  padding-block: 0.35em;
+  padding-inline: 0.85em 0.95em;
   border-radius: var(--radius-pill);
   background: var(--color-brand-soft);
   border: 1px solid var(--color-brand-border);
   font-family: var(--font-display);
   font-size: var(--text-xs);
   font-weight: 600;
-  letter-spacing: 0.01em;
+  letter-spacing: var(--tracking-wide);
   color: var(--color-brand-strong);
   text-transform: none;
 }
@@ -368,8 +376,11 @@
   overflow: hidden;
   transition: box-shadow var(--dur-normal) var(--ease-out), border-color var(--dur-normal) var(--ease-out);
 }
-.kid:hover { border-color: transparent; box-shadow: var(--shadow-lg); }
-.kid:focus-within { outline: 2px solid var(--color-focus); outline-offset: 3px; }
+@media (hover: hover) and (pointer: fine) {
+  .kid:hover { border-color: transparent; box-shadow: var(--shadow-lg); }
+}
+/* حلقة التركيز للوحة المفاتيح وحدها، لا عند النقر بالفأرة */
+.kid:has(:focus-visible) { outline: 3px solid var(--color-focus); outline-offset: 3px; }
 
 .kid__media {
   position: relative;
@@ -389,7 +400,9 @@
   object-position: center 30%;
   transition: transform var(--dur-scene, 700ms) var(--ease-out);
 }
-.kid:hover .kid__img { transform: scale(1.04); }
+@media (hover: hover) and (pointer: fine) {
+  .kid:hover .kid__img { transform: scale(1.04); }
+}
 
 /* بلا صورة: الحلم نفسه صورة البطاقة */
 .kid__art {
@@ -418,7 +431,7 @@
 .kid__art--brand  { background: var(--color-brand-soft);  color: var(--color-brand-strong); }
 .kid__art--cta    { background: var(--color-cta-soft);    color: var(--color-cta-strong); }
 .kid__art--growth { background: var(--color-growth-soft); color: var(--color-growth-strong); }
-.kid__art-label { font-size: var(--text-xs); font-weight: 600; letter-spacing: 0.02em; opacity: 0.75; }
+.kid__art-label { font-size: var(--text-xs); font-weight: 600; letter-spacing: var(--tracking-wide); }
 .kid__art-quote {
   font-family: var(--font-display);
   font-size: clamp(1.35rem, 2vw, 1.6rem);
@@ -524,6 +537,7 @@
 .kid__cta {
   position: relative;
   z-index: 1;
+  min-block-size: 2.75rem;
   padding: 0.6rem 1.15rem;
   font-size: var(--text-sm);
   white-space: nowrap;
@@ -678,11 +692,12 @@
   inline-size: 100%;
   min-block-size: 3.15rem;
   padding: 0.8rem 1rem;
-  border: 1.5px solid var(--color-border);
+  border: 1.5px solid var(--color-border-field);
   border-radius: var(--radius-md);
   background: var(--color-surface);
   color: var(--color-text);
-  font-size: var(--text-sm);
+  /* ١٦px حدٌّ أدنى: ما دونه يجعل Safari على iOS يكبّر الصفحة عند التركيز */
+  font-size: max(1rem, var(--text-sm));
   font-family: var(--font-body);
   transition: border-color var(--dur-fast) var(--ease-out),
               box-shadow var(--dur-fast) var(--ease-out),
@@ -704,9 +719,12 @@
   cursor: pointer;
 }
 
+/* السهم في نهاية السطر: يسار في العربية، ويمين في الإنجليزية */
+.select:dir(ltr) { background-position: right 0.85rem top 55%, right 1.15rem top 55%; }
+
 .input:hover,
 .textarea:hover,
-.select:hover { border-color: var(--color-border-strong); }
+.select:hover { border-color: var(--color-text-subtle); }
 
 .input:focus,
 .textarea:focus,
@@ -735,8 +753,8 @@
   inset-inline-end: 0.5rem;
   display: grid;
   place-items: center;
-  inline-size: 2.25rem;
-  block-size: 2.25rem;
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
   border-radius: var(--radius-sm);
   color: var(--color-text-subtle);
 }
@@ -755,7 +773,17 @@
 .field.is-invalid .field__error { display: flex; }
 .field.is-invalid .input,
 .field.is-invalid .textarea,
-.field.is-invalid .select { border-color: var(--color-urgent); }
+.field.is-invalid .select,
+.field.is-invalid .checkbox input,
+:is(.input, .textarea, .select)[aria-invalid="true"] { border-color: var(--color-urgent); }
+
+/* المعطّل يختلف عن المكتوب: خلفية خافتة ومؤشر المنع */
+:is(.input, .textarea, .select):disabled {
+  background: var(--color-surface-alt);
+  color: var(--color-text-subtle);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
 
 .field__hint { font-size: var(--text-xs); color: var(--color-text-subtle); }
 
@@ -775,7 +803,7 @@
   inline-size: 1.15rem;
   block-size: 1.15rem;
   margin: 0.15rem 0 0;
-  border: 1.5px solid var(--color-border-strong);
+  border: 1.5px solid var(--color-border-field);
   border-radius: var(--radius-xs);
   background: var(--color-surface);
   flex-shrink: 0;
@@ -815,6 +843,7 @@
 }
 
 .chip {
+  min-block-size: 2.75rem;
   padding: 0.55rem 1.1rem;
   border: 1.5px solid var(--color-border);
   border-radius: var(--radius-pill);
@@ -831,6 +860,7 @@
 }
 
 .chip:hover { border-color: var(--color-brand-border); color: var(--color-brand); }
+.chip:active { transform: scale(0.97); }
 
 .chip[aria-pressed="true"],
 .chip.is-active {
@@ -948,27 +978,37 @@
   gap: var(--space-2);
 }
 
-/* مؤشرات النقاط */
+/* مؤشرات النقاط: النقطة المرئية ٨px، والزر نفسه ٢٤px على الأقل كي يُصاب
+   باللمس (WCAG 2.5.8)؛ الهامش السالب يُبقي المسافة بينها كما تُرى */
 .slider__dots {
   display: flex;
   justify-content: center;
-  gap: var(--space-2);
   margin-block-start: var(--space-6);
 }
 
 .slider__dot {
-  inline-size: 0.5rem;
-  block-size: 0.5rem;
+  display: grid;
+  place-items: center;
+  min-inline-size: 1.5rem;
+  block-size: 1.5rem;
+  padding-inline: 0.25rem;
   border-radius: var(--radius-pill);
-  background: var(--color-border-strong);
-  transition: color var(--dur-normal) var(--ease-out),
-              background-color var(--dur-normal) var(--ease-out),
-              border-color var(--dur-normal) var(--ease-out),
-              transform var(--dur-normal) var(--ease-out),
-              box-shadow var(--dur-normal) var(--ease-out);
+  background: transparent;
 }
 
-.slider__dot[aria-current="true"] {
+.slider__dot::before {
+  content: "";
+  inline-size: 0.5rem;
+  block-size: 0.5rem;
+  border-radius: inherit;
+  background: var(--color-border-strong);
+  transition: background-color var(--dur-normal) var(--ease-out),
+              inline-size var(--dur-normal) var(--ease-out);
+}
+
+.slider__dot:hover::before { background: var(--color-text-subtle); }
+
+.slider__dot[aria-current="true"]::before {
   inline-size: 1.75rem;
   background: var(--color-brand);
 }
@@ -1019,7 +1059,8 @@
   position: absolute;
   inset: 0;
   background: var(--color-scrim);
-  backdrop-filter: blur(8px);
+  /* تمويه خفيف: الطبقة الداكنة تكفي للفصل، والتمويه الكثيف على الشاشة كلها مكلف */
+  backdrop-filter: blur(3px);
 }
 
 .modal__panel {
@@ -1043,8 +1084,8 @@
   inset-inline-end: var(--space-4);
   display: grid;
   place-items: center;
-  inline-size: 2.25rem;
-  block-size: 2.25rem;
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
   border-radius: 50%;
   background: var(--color-surface-alt);
   color: var(--color-text-muted);
@@ -1101,6 +1142,21 @@
   flex-shrink: 0;
   font-size: var(--text-xs);
 }
+
+.toast__text { flex: 1; }
+
+.toast__close {
+  display: grid;
+  place-items: center;
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
+  margin: calc(-1 * var(--space-3)) 0;
+  margin-inline-end: calc(-1 * var(--space-3));
+  border-radius: 50%;
+  color: var(--color-text-subtle);
+  flex-shrink: 0;
+}
+.toast__close:hover { color: var(--color-text); background: var(--color-surface-alt); }
 
 .toast--success .toast__icon { background: var(--color-success-soft); color: var(--color-success); }
 .toast--error   .toast__icon { background: var(--color-urgent-soft);  color: var(--color-urgent); }
@@ -1201,8 +1257,10 @@
 
 /* ==========================================================================
    حركات الكشف عند التمرير
+   الإخفاء مشروط بـ `.js` (يضعها theme-init.js قبل أول رسم): بلا JS، أو إن
+   تعطّل main.js، يبقى المحتوى ظاهراً بدل أن يختفي إلى الأبد.
    ========================================================================== */
-[data-reveal] {
+.js [data-reveal] {
   opacity: 0;
   transform: translateY(1.75rem);
   transition: opacity var(--dur-slow) var(--ease-out),
@@ -1210,31 +1268,26 @@
   transition-delay: var(--reveal-delay, 0ms);
 }
 
-[data-reveal="start"] { transform: translateX(2rem); }
-[data-reveal="end"]   { transform: translateX(-2rem); }
-[data-reveal="scale"] { transform: scale(0.94); }
+.js [data-reveal="start"] { transform: translateX(2rem); }
+.js [data-reveal="end"]   { transform: translateX(-2rem); }
+.js [data-reveal="scale"] { transform: scale(0.94); }
 
 /* على الشاشات الضيقة تشغل هذه العناصر العرض كاملاً، فأي إزاحة أفقية
    تدفعها خارج الحافة وتقصّها. نستبدلها بإزاحة رأسية تعطي الأثر نفسه. */
 @media (max-width: 60rem) {
-  [data-reveal="start"],
-  [data-reveal="end"] { transform: translateY(1.75rem); }
+  .js [data-reveal="start"],
+  .js [data-reveal="end"] { transform: translateY(1.75rem); }
 }
 
-[data-reveal].is-visible {
+.js [data-reveal].is-visible {
   opacity: 1;
   transform: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  [data-reveal] { opacity: 1; transform: none; }
+  .js [data-reveal] { opacity: 1; transform: none; }
 }
 
-
-/* على الجوال عمود واحد، فالصورة أعرض كي لا تملأ الشاشة وحدها */
-@media (max-width: 34rem) {
-  .kid__media { aspect-ratio: 4 / 3; }
-}
 
 /* الجوال: البطاقة بعرض الشاشة، فإطار الحلم أقصر كي لا يملأها وحده */
 @media (max-width: 40rem) {

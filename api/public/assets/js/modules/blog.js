@@ -12,7 +12,7 @@
  * بلا خادم: المقالات المضمَّنة في data.js تُفلتر وتُصفّح هنا.
  */
 
-import { $, $$, arabicDigits, debounce, escapeHtml, formatNumber, prefersReducedMotion, readingTime } from './utils.js';
+import { $, $$, arabicDigits, debounce, escapeHtml, formatNumber, keepFocus, prefersReducedMotion, readingTime } from './utils.js';
 import { POSTS } from './data.js';
 import { apiEnabled, request } from './api.js';
 import { initReveal } from './motion.js';
@@ -80,6 +80,7 @@ export function initBlog() {
 
   async function load({ scroll = false } = {}) {
     const mine = ++sequence;
+    const restoreFocus = keepFocus();
     grid.setAttribute('aria-busy', 'true');
     const filtered = Boolean(state.cat || state.q);
     const featured = !filtered ? facets?.featured : null;
@@ -124,6 +125,7 @@ export function initBlog() {
     initReveal();
 
     if (scroll) $('#blogTop')?.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'start' });
+    restoreFocus($('#blogTop'), scroll);
   }
 
   /* ── المميّز: عريض، الصورة في نصف والقصة في نصف ── */

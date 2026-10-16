@@ -21,11 +21,13 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300;400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Aref+Ruqaa:wght@400;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Aref+Ruqaa:wght@400;700&display=swap">
 
   <!-- السمة قبل أي رسم — يمنع وميض الوضع الفاتح لمن اختار الليلي -->
   <script src="assets/js/theme-init.js"></script>
 
+  <!-- خط الأيقونات المصمتة في كل صفحة: يُطلب مع الأنماط لا بعدها، فلا تبقى الأيقونات فارغة -->
+  <link rel="preload" href="assets/vendor/fontawesome/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="assets/vendor/fontawesome/css/all.min.css">
   <link rel="stylesheet" href="assets/css/tokens.css">
   <link rel="stylesheet" href="assets/css/base.css">
@@ -85,7 +87,7 @@
                        autocomplete="given-name"
                        data-validate="required|minlength:2" aria-describedby="err-firstName">
               </div>
-              <p class="field__error" id="err-firstName" role="alert"></p>
+              <p class="field__error" id="err-firstName" aria-live="polite"></p>
             </div>
 
             <div class="field">
@@ -96,7 +98,7 @@
                        autocomplete="family-name"
                        data-validate="required|minlength:2" aria-describedby="err-lastName">
               </div>
-              <p class="field__error" id="err-lastName" role="alert"></p>
+              <p class="field__error" id="err-lastName" aria-live="polite"></p>
             </div>
           </div>
 
@@ -108,7 +110,7 @@
                      autocomplete="email" inputmode="email"
                      data-validate="required|email" aria-describedby="err-email">
             </div>
-            <p class="field__error" id="err-email" role="alert"></p>
+            <p class="field__error" id="err-email" aria-live="polite"></p>
           </div>
 
           <div class="field">
@@ -119,7 +121,7 @@
                      autocomplete="tel" inputmode="tel" dir="ltr" placeholder="+970 599 000 000"
                      data-validate="required|phone" aria-describedby="err-phone">
             </div>
-            <p class="field__error" id="err-phone" role="alert"></p>
+            <p class="field__error" id="err-phone" aria-live="polite"></p>
           </div>
 
           <div class="field">
@@ -128,13 +130,13 @@
               <i class="fa-solid fa-lock field__icon" aria-hidden="true"></i>
               <input class="input" type="password" id="password" name="password"
                      autocomplete="new-password" data-strength-for="password"
-                     data-validate="required|minlength:8" aria-describedby="err-password passwordStrength">
+                     data-validate="required|minlength:8|lettersNumbers" aria-describedby="err-password passwordStrength">
               <button class="field__action" type="button"
-                      data-password-toggle="password" aria-label="إظهار كلمة المرور">
+                      data-password-toggle="password" aria-label="إظهار كلمة المرور" aria-pressed="false">
                 <i class="fa-regular fa-eye" aria-hidden="true"></i>
               </button>
             </div>
-            <p class="field__error" id="err-password" role="alert"></p>
+            <p class="field__error" id="err-password" aria-live="polite"></p>
           </div>
 
           <div class="strength" id="passwordStrength">
@@ -146,18 +148,21 @@
               <span class="strength__bar"></span>
             </div>
             <p class="strength__label" role="status" aria-live="polite">
-              استخدم ٨ أحرف على الأقل مع أرقام ورموز
+              ٨ أحرف على الأقل، فيها حرف ورقم
             </p>
           </div>
 
           <div class="field">
             <label class="checkbox">
-              <input type="checkbox" name="terms" required>
+              <input type="checkbox" name="terms" required
+                     data-validate="required" data-required-message="يلزم الموافقة على الشروط لإنشاء الحساب"
+                     aria-describedby="err-terms">
               <span>
                 أوافق على <a href="transparency.html#child-policy">شروط الاستخدام وسياسة الخصوصية</a>،
                 وأفهم أن بياناتي لن تُشارك مع أي جهة تسويقية.
               </span>
             </label>
+            <p class="field__error" id="err-terms" aria-live="polite"></p>
           </div>
 
           <button class="btn btn--primary btn--lg btn--block" type="submit">إنشاء الحساب</button>

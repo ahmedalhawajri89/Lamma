@@ -5,7 +5,7 @@
  * كل مكون يدير سمات ARIA بنفسه، ويعمل بالكيبورد كاملاً.
  */
 
-import { $, $$ } from './utils.js';
+import { $, $$, lockScroll } from './utils.js';
 
 /* =========================================================================
    الأكورديون
@@ -61,10 +61,11 @@ export function initTabs() {
         // في RTL اليسار يعني «التالي»، والأسفل كذلك في القوائم العمودية
         const forward = e.key === 'ArrowLeft' || e.key === 'ArrowDown';
         const back = e.key === 'ArrowRight' || e.key === 'ArrowUp';
-        if (!forward && !back) return;
+        const edge = e.key === 'Home' ? 0 : e.key === 'End' ? tabs.length - 1 : null;
+        if (!forward && !back && edge === null) return;
 
         e.preventDefault();
-        const next = (index + (forward ? 1 : -1) + tabs.length) % tabs.length;
+        const next = edge ?? (index + (forward ? 1 : -1) + tabs.length) % tabs.length;
         select(next);
         tabs[next].focus();
       });
@@ -102,7 +103,7 @@ export function openModal(id) {
   lastFocused = document.activeElement;
   modal.classList.add('is-open');
   modal.removeAttribute('aria-hidden');
-  document.body.style.overflow = 'hidden';
+  lockScroll('modal', true);
 
   // التركيز يُؤجَّل إطاراً واحداً: النافذة ما زالت visibility: hidden لحظة
   // إضافة الصنف، وعنصر مخفي لا يقبل التركيز.
@@ -116,7 +117,7 @@ export function closeModal(modal) {
   if (!modal) return;
   modal.classList.remove('is-open');
   modal.setAttribute('aria-hidden', 'true');
-  document.body.style.overflow = '';
+  lockScroll('modal', false);
   lastFocused?.focus();
   lastFocused = null;
 }
@@ -160,36 +161,66 @@ const TOAST_ICONS = {
   info: 'fa-circle-info',
 };
 
-export function toast(message, type = 'success', duration = 4000) {
+/**
+ * منطقة الإعلان الحيّ للإشعارات.
+ *
+ * تُنشأ عند الإقلاع لا مع أول إشعار: منطقةٌ تُنشأ وتُملأ في اللحظة نفسها
+ * يتجاهلها كثير من القارئات الصوتية، فيضيع أول إشعار (وغالباً هو الخطأ).
+ */
+export function initToastStack() {
   let stack = $('#toastStack');
+  if (stack) return stack;
 
-  if (!stack) {
-    stack = document.createElement('div');
-    stack.id = 'toastStack';
-    stack.className = 'toast-stack';
-    // القارئ الصوتي يعلن الرسائل الجديدة تلقائياً
-    stack.setAttribute('role', 'status');
-    stack.setAttribute('aria-live', 'polite');
-    document.body.appendChild(stack);
-  }
+  stack = document.createElement('div');
+  stack.id = 'toastStack';
+  stack.className = 'toast-stack';
+  stack.setAttribute('role', 'status');
+  stack.setAttribute('aria-live', 'polite');
+  document.body.appendChild(stack);
+  return stack;
+}
+
+/**
+ * إشعار عابر.
+ *
+ * الخطأ يبقى ثماني ثوانٍ لا أربعاً (يُقرأ ويُفهم قبل أن يختفي)، ولكل إشعار
+ * زرّ إغلاق. ولا يأخذ التركيز: يُعلَن عبر المنطقة الحيّة وحدها.
+ */
+export function toast(message, type = 'success', duration = type === 'error' ? 8000 : 4000) {
+  const fresh = !$('#toastStack');
+  const stack = initToastStack();
 
   const el = document.createElement('div');
   el.className = `toast toast--${type}`;
 
   const icon = document.createElement('span');
   icon.className = 'toast__icon';
-  icon.innerHTML = `<i class="fa-solid ${TOAST_ICONS[type] || TOAST_ICONS.info}"></i>`;
+  icon.innerHTML = `<i class="fa-solid ${TOAST_ICONS[type] || TOAST_ICONS.info}" aria-hidden="true"></i>`;
 
   const text = document.createElement('span');
+  text.className = 'toast__text';
   text.textContent = message; // نص فقط — لا حقن HTML
 
-  el.append(icon, text);
-  stack.appendChild(el);
+  const close = document.createElement('button');
+  close.type = 'button';
+  close.className = 'toast__close';
+  close.setAttribute('aria-label', 'إغلاق الإشعار');
+  close.innerHTML = '<i class="fa-solid fa-xmark" aria-hidden="true"></i>';
 
-  setTimeout(() => {
+  let timer = null;
+  const dismiss = () => {
+    clearTimeout(timer);
     el.classList.add('is-leaving');
     el.addEventListener('animationend', () => el.remove(), { once: true });
-  }, duration);
+  };
+  close.addEventListener('click', dismiss);
+
+  el.append(icon, text, close);
+  // منطقةٌ أُنشئت للتو تحتاج لحظة قبل أن تُعلن ما يُضاف إليها
+  if (fresh) setTimeout(() => stack.appendChild(el), 150);
+  else stack.appendChild(el);
+
+  timer = setTimeout(dismiss, duration);
 }
 
 /* =========================================================================
@@ -226,10 +257,12 @@ export function initPasswordToggles() {
       const input = document.getElementById(btn.dataset.passwordToggle);
       if (!input) return;
 
+      // اسمٌ ثابت وحالة مضغوطة: تغيير الاسم والحالة معاً يُقرأ متناقضاً
       const revealing = input.type === 'password';
       input.type = revealing ? 'text' : 'password';
-      btn.setAttribute('aria-label', revealing ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور');
-      btn.innerHTML = `<i class="fa-regular ${revealing ? 'fa-eye-slash' : 'fa-eye'}"></i>`;
+      btn.setAttribute('aria-label', 'إظهار كلمة المرور');
+      btn.setAttribute('aria-pressed', String(revealing));
+      btn.innerHTML = `<i class="fa-regular ${revealing ? 'fa-eye-slash' : 'fa-eye'}" aria-hidden="true"></i>`;
     });
   });
 }

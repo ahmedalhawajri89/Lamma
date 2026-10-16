@@ -22,6 +22,9 @@ import {
   fetchTransparency,
 } from './api.js';
 
+/** صفحة الطفل: تعذّر جلبه (انقطاع أو عطل)، لا أنه غير موجود. */
+export let DETAIL_FAILED = false;
+
 export let SITE = {
   name: 'كفالة',
   tagline: 'منصة كفالة الأيتام',
@@ -469,9 +472,14 @@ export async function hydrate() {
    */
   const wanted = document.querySelector('#orphanDetail') && new URLSearchParams(window.location.search).get('id');
   if (wanted && orphans && !ORPHANS.some((o) => o.id === wanted)) {
-    const one = await fetchOrphan(wanted).catch(() => null);
+    const one = await fetchOrphan(wanted).catch((error) => {
+      if (error?.status !== 404) DETAIL_FAILED = true;
+      return null;
+    });
     if (one) ORPHANS = [...ORPHANS, one];
   }
+  // القائمة نفسها لم تُحمَّل: غياب الطفل منها لا يعني أنه غير موجود
+  if (wanted && !orphans) DETAIL_FAILED = true;
   if (posts) POSTS = take(posts, POSTS);
 
   if (transparency) {

@@ -22,11 +22,13 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300;400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Aref+Ruqaa:wght@400;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Aref+Ruqaa:wght@400;700&display=swap">
 
   <!-- السمة قبل أي رسم — يمنع وميض الوضع الفاتح لمن اختار الليلي -->
   <script src="assets/js/theme-init.js"></script>
 
+  <!-- خط الأيقونات المصمتة في كل صفحة: يُطلب مع الأنماط لا بعدها، فلا تبقى الأيقونات فارغة -->
+  <link rel="preload" href="assets/vendor/fontawesome/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="assets/vendor/fontawesome/css/all.min.css">
   <link rel="stylesheet" href="assets/css/tokens.css">
   <link rel="stylesheet" href="assets/css/base.css">
@@ -190,8 +192,8 @@
               </div>
               <div class="field" data-profile-confirm hidden>
                 <label class="field__label" for="profileCurrent">كلمة المرور الحالية</label>
-                <input class="input" type="password" id="profileCurrent" name="current_password" autocomplete="current-password">
-                <p class="field__hint">لتغيير البريد نتأكد أنك صاحب الحساب.</p>
+                <input class="input" type="password" id="profileCurrent" name="current_password" autocomplete="current-password" aria-describedby="hint-profileCurrent">
+                <p class="field__hint" id="hint-profileCurrent">لتغيير البريد نتأكد أنك صاحب الحساب.</p>
               </div>
               <button class="btn btn--primary" type="submit">احفظ التعديلات</button>
             </form>
@@ -200,13 +202,13 @@
               <h3>كلمة المرور</h3>
               <div class="field">
                 <label class="field__label" for="currentPassword">كلمة المرور الحالية</label>
-                <input class="input" type="password" id="currentPassword" name="current_password" autocomplete="current-password" required>
-                <p class="field__hint">أنشأنا حسابك عند الكفالة ولم تضع كلمة مرور؟ <button class="link-button" type="button" data-send-reset>أرسل لي رابط تعيينها</button>.</p>
+                <input class="input" type="password" id="currentPassword" name="current_password" autocomplete="current-password" required aria-describedby="hint-currentPassword">
+                <p class="field__hint" id="hint-currentPassword">أنشأنا حسابك عند الكفالة ولم تضع كلمة مرور؟ <button class="link-button" type="button" data-send-reset>أرسل لي رابط تعيينها</button>.</p>
               </div>
               <div class="field">
                 <label class="field__label" for="newPassword">كلمة المرور الجديدة</label>
-                <input class="input" type="password" id="newPassword" name="password" autocomplete="new-password" required minlength="8">
-                <p class="field__hint">٨ أحرف على الأقل، فيها حروف وأرقام.</p>
+                <input class="input" type="password" id="newPassword" name="password" autocomplete="new-password" required minlength="8" aria-describedby="hint-newPassword">
+                <p class="field__hint" id="hint-newPassword">٨ أحرف على الأقل، فيها حرف ورقم.</p>
               </div>
               <div class="field">
                 <label class="field__label" for="newPassword2">أعد كتابتها</label>

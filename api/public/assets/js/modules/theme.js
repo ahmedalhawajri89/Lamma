@@ -40,8 +40,9 @@ function effectiveTheme() {
 function syncUi(button) {
   const dark = effectiveTheme() === 'dark';
 
+  // الاسم ثابت والحالة في aria-pressed: «تفعيل الوضع الفاتح، مضغوط» كانت تُقرأ متناقضة
   button.setAttribute('aria-pressed', String(dark));
-  button.setAttribute('aria-label', dark ? 'تفعيل الوضع الفاتح' : 'تفعيل الوضع الليلي');
+  button.setAttribute('aria-label', 'الوضع الليلي');
   button.title = dark ? 'الوضع الفاتح' : 'الوضع الليلي';
 
   const meta = document.querySelector('meta[name="theme-color"]');

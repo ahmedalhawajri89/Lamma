@@ -100,8 +100,8 @@
   margin: 0;
   font-size: clamp(2.3rem, 1.4rem + 2.8vw, 4.2rem);
   font-weight: 700;
-  line-height: 1.1;
-  letter-spacing: -0.03em;
+  line-height: 1.25; /* العربية تحتاج متّسعاً للتشكيل والحروف النازلة */
+  letter-spacing: var(--tracking-tight);
   color: var(--color-text);
 }
 
@@ -163,6 +163,7 @@
   align-items: center;
   gap: var(--space-3);
   font-size: var(--text-xs);
+  line-height: var(--leading-normal);
   color: var(--color-text-muted);
   line-height: 1.45;
 }
@@ -675,7 +676,7 @@
 }
 
 .home-blog__meta { display: flex; flex-wrap: wrap; gap: var(--space-2); margin: 0; font-size: var(--text-sm); color: var(--color-text-subtle); }
-.home-blog__title { margin: 0; font-size: clamp(1.4rem, 2.4vw, 1.9rem); line-height: 1.35; letter-spacing: -0.01em; }
+.home-blog__title { margin: 0; font-size: clamp(1.4rem, 2.4vw, 1.9rem); line-height: 1.35; letter-spacing: var(--tracking-tight); }
 .home-blog__excerpt {
   margin: 0;
   color: var(--color-text-muted);
@@ -721,7 +722,7 @@
 
 @media (max-width: 30rem) {
   .home-blog__row { grid-template-columns: 5rem minmax(0, 1fr); gap: var(--space-4); }
-  .home-blog__row-title { font-size: var(--text-base); }
+  .home-blog__row-title { font-size: var(--text-md); }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -821,7 +822,8 @@
   gap: 0.2rem;
   padding: var(--space-3) var(--space-4);
   border-radius: var(--radius-sm);
-  background: rgba(8, 38, 38, 0.72);
+  /* أعتم قليلاً: النص فوق صورة متبدّلة، وأسوأ الصور فاتحة */
+  background: rgba(8, 38, 38, 0.84);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   color: #fff;
@@ -832,9 +834,9 @@
 @keyframes caption-in { from { opacity: 0; transform: translateY(6px); } }
 .mosaic__who { font-size: var(--text-sm); color: rgba(255, 255, 255, 0.8); }
 .mosaic__who b { font-family: var(--font-display); font-size: var(--text-lg); color: #fff; }
-.mosaic__place { font-size: var(--text-xs); color: rgba(255, 255, 255, 0.7); }
+.mosaic__place { font-size: var(--text-xs); color: rgba(255, 255, 255, 0.85); }
 .mosaic__place i { font-size: 0.85em; }
-.mosaic__dream { font-size: var(--text-sm); color: #E0A63B; }
+.mosaic__dream { font-size: var(--text-sm); color: var(--gold-300); }
 .mosaic__dream:empty { display: none; }
 
 .mosaic__dots {
@@ -844,17 +846,46 @@
   display: flex;
   gap: 0.35rem;
 }
+/* الزر ٢٤px يُصاب بسهولة، والنقطة المرئية بداخله ٨px كما كانت */
+.mosaic__dots { gap: 0; margin: -0.5rem; }
 .mosaic__dots button {
-  inline-size: 0.5rem;
-  block-size: 0.5rem;
-  padding: 0;
+  display: grid;
+  place-items: center;
+  min-inline-size: 1.5rem;
+  block-size: 1.5rem;
+  padding: 0 0.25rem;
   border: 0;
   border-radius: var(--radius-pill);
-  background: rgba(255, 255, 255, 0.5);
+  background: transparent;
   cursor: pointer;
+}
+.mosaic__dots button::before {
+  content: "";
+  inline-size: 0.5rem;
+  block-size: 0.5rem;
+  border-radius: inherit;
+  background: rgba(255, 255, 255, 0.5);
   transition: inline-size 0.35s var(--ease-out), background-color 0.35s var(--ease-out);
 }
-.mosaic__dots button.is-active { inline-size: 1.4rem; background: #fff; }
+.mosaic__dots button.is-active::before { inline-size: 1.4rem; background: #fff; }
+.mosaic__dots button:focus-visible { outline-color: #fff; }
+
+.mosaic__toggle {
+  position: absolute;
+  inset-block-start: var(--space-3);
+  inset-inline-end: var(--space-3);
+  display: grid;
+  place-items: center;
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(8, 38, 38, 0.72);
+  color: #fff;
+  cursor: pointer;
+}
+.mosaic__toggle:hover { background: rgba(8, 38, 38, 0.9); }
+.mosaic__toggle:focus-visible { outline-color: #fff; }
 
 .mosaic__tile { aspect-ratio: auto; min-block-size: 9rem; }
 .mosaic__tile img { transition: transform 0.7s var(--ease-out); }
@@ -946,6 +977,7 @@
 .fbar__pills { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 .pill {
   display: inline-flex; align-items: center; gap: var(--space-2);
+  min-block-size: 2.75rem;
   padding: 0.55rem 0.95rem;
   border: 1px solid var(--color-border); border-radius: var(--radius-pill);
   background: var(--color-surface); color: var(--color-text);
@@ -970,11 +1002,12 @@
   inline-size: 100%;
   padding: 0.6rem 2.4rem 0.6rem 0.9rem;
   padding-inline: 2.4rem 0.9rem;
-  border: 1px solid var(--color-border); border-radius: var(--radius-pill);
-  background: var(--color-surface); color: var(--color-text); font: inherit; font-size: var(--text-sm);
+  border: 1px solid var(--color-border-field); border-radius: var(--radius-pill);
+  background: var(--color-surface); color: var(--color-text); font: inherit; font-size: max(1rem, var(--text-sm));
 }
-.fbar__search input:focus { outline: none; border-color: var(--color-brand); box-shadow: 0 0 0 3px var(--color-focus-halo); }
-.fbar__sort .select { inline-size: auto; border-radius: var(--radius-pill); padding-block: 0.55rem; font-size: var(--text-sm); }
+/* الهالة الفاتحة وحدها كانت بيضاء على أبيض، فلا يبقى للتركيز إلا تغيّر لون الحدّ */
+.fbar__search input:focus { outline: none; border-color: var(--color-brand); box-shadow: 0 0 0 2px var(--color-focus); }
+.fbar__sort .select { inline-size: auto; border-radius: var(--radius-pill); padding-block: 0.55rem; font-size: max(1rem, var(--text-sm)); }
 
 /* القائمة الصغيرة تحت زرّها */
 .fmenu {
@@ -1011,6 +1044,7 @@
 .fmenu__opt[aria-pressed="true"] { font-weight: 600; color: var(--color-brand-strong); }
 .fmenu__opt[aria-pressed="true"] i { visibility: visible; }
 .fmenu__opt:hover:not(:disabled), .fmenu__opt:focus-visible { background: var(--color-surface-alt); outline: none; }
+.fmenu__opt:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -2px; }
 .fmenu__opt:disabled { opacity: 0.4; cursor: default; }
 .fmenu__opt .num { font-size: var(--text-xs); color: var(--color-text-subtle); }
 .fmenu__clear {
@@ -1035,6 +1069,18 @@
   }
   .fmenu.is-open { transform: none; }
   .fmenu__opt { padding: 0.85rem 0.75rem; font-size: var(--text-md); }
+
+  /* اللوحة ثابتة لكنها داخل سياق تكديس الشريط (z-index: 5)، فكان شريط
+     الإجراء السفلي وغيره يعلوها. ترتفع طبقة الشريط كله ما دامت مفتوحة،
+     وتُعتّم الصفحة خلفها؛ والنقر على العتمة يغلقها (نقرٌ خارج القائمة) */
+  .fbar:has(.fmenu.is-open) { z-index: var(--z-drawer); }
+  .fbar:has(.fmenu.is-open)::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 19;
+    background: var(--color-scrim);
+  }
 }
 
 /* ── شريط النتائج ── */
@@ -1051,16 +1097,18 @@
 .active-filters[hidden] { display: none; }
 .active-chip {
   display: inline-flex; align-items: center; gap: var(--space-2);
+  min-block-size: 2.75rem;
   padding: 0.35rem 0.8rem;
   border: 1px solid var(--color-brand-border); border-radius: var(--radius-pill);
   background: var(--color-brand-soft); color: var(--color-brand-strong);
   font: inherit; font-size: var(--text-sm); font-weight: 500; cursor: pointer;
-  animation: chip-in 0.25s var(--ease-out);
+  animation: active-chip-in 0.25s var(--ease-out);
 }
 .active-chip i { font-size: 0.75em; opacity: 0.7; }
 .active-chip:hover i { opacity: 1; }
 .active-chip--clear { background: none; border-color: transparent; color: var(--color-text-muted); text-decoration: underline; text-underline-offset: 0.3em; }
-@keyframes chip-in { from { opacity: 0; transform: scale(0.92); } }
+/* اسمٌ مستقل: «chip-in» أدناه لشرائح الدول، وكان التكرار يُلغي هذه */
+@keyframes active-chip-in { from { opacity: 0; transform: scale(0.92); } }
 
 /* تبديل النتائج: تخفت القديمة أثناء الجلب، وتدخل الجديدة بهدوء */
 .kids--catalog[aria-busy="true"] > .kid { opacity: 0.45; transition: opacity 0.2s; }
@@ -1122,7 +1170,7 @@
    ========================================================================== */
 .bento {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: var(--space-8) clamp(var(--space-6), 3vw, var(--space-10));
 }
 
@@ -1622,8 +1670,8 @@
 .meet__name {
   margin: 0;
   font-size: var(--text-5xl);
-  line-height: 1;
-  letter-spacing: -0.03em;
+  line-height: 1.25; /* العربية تحتاج متّسعاً للتشكيل والحروف النازلة */
+  letter-spacing: var(--tracking-tight);
 }
 
 .meet__urgent {
@@ -1928,12 +1976,12 @@
   font-family: var(--font-display);
   font-size: var(--text-sm);
   font-weight: 700;
-  color: var(--color-brand);
-  opacity: 0.55;
-  transition: opacity var(--dur-normal) var(--ease-out);
+  /* الخامل بلون النص الخافت لا بشفافية: الشفافية أنزلته إلى 2.6:1 */
+  color: var(--color-text-subtle);
+  transition: color var(--dur-normal) var(--ease-out);
 }
 
-.how-tab[aria-selected="true"] .how-tab__num { opacity: 1; }
+.how-tab[aria-selected="true"] .how-tab__num { color: var(--color-brand); }
 
 .how-tab strong {
   font-family: var(--font-display);
@@ -2742,8 +2790,8 @@
 .closing h2 {
   margin: 0;
   font-size: var(--text-5xl);
-  line-height: 1.1;
-  letter-spacing: -0.02em;
+  line-height: 1.25; /* العربية تحتاج متّسعاً للتشكيل والحروف النازلة */
+  letter-spacing: var(--tracking-tight);
   color: var(--color-on-ink);
 }
 

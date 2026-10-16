@@ -21,11 +21,13 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300;400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Aref+Ruqaa:wght@400;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Aref+Ruqaa:wght@400;700&display=swap">
 
   <!-- السمة قبل أي رسم — يمنع وميض الوضع الفاتح لمن اختار الليلي -->
   <script src="assets/js/theme-init.js"></script>
 
+  <!-- خط الأيقونات المصمتة في كل صفحة: يُطلب مع الأنماط لا بعدها، فلا تبقى الأيقونات فارغة -->
+  <link rel="preload" href="assets/vendor/fontawesome/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="assets/vendor/fontawesome/css/all.min.css">
   <link rel="stylesheet" href="assets/css/tokens.css">
   <link rel="stylesheet" href="assets/css/base.css">
@@ -40,6 +42,14 @@
 
 <body data-header="solid" class="page-body">
   <div data-layout="header"></div>
+  <noscript>
+    <nav class="container" style="padding-block:1rem" aria-label="تنقل بديل">
+      <a href="index.html">الرئيسية</a> · <a href="about.html">من نحن</a> ·
+      <a href="programs.html">برامج الكفالة</a> · <a href="orphans.html">الأيتام</a> ·
+      <a href="transparency.html">الشفافية</a> · <a href="blog.html">المدونة</a> ·
+      <a href="contact.html">تواصل معنا</a>
+    </nav>
+  </noscript>
 
   <main id="main">
 
@@ -132,34 +142,34 @@
               <tr>
                 <th scope="row">غذاء وكسوة</th>
                 <td><span class="muted">غير مشمول</span></td><td><span class="muted">غير مشمول</span></td>
-                <td><i class="fa-solid fa-check is-yes" aria-label="مشمول"></i></td>
-                <td><i class="fa-solid fa-check is-yes" aria-label="مشمول"></i></td>
+                <td><i class="fa-solid fa-check is-yes" aria-hidden="true"></i><span class="sr-only">مشمول</span></td>
+                <td><i class="fa-solid fa-check is-yes" aria-hidden="true"></i><span class="sr-only">مشمول</span></td>
               </tr>
               <tr>
                 <th scope="row">رسوم ومستلزمات دراسية</th>
-                <td><i class="fa-solid fa-check is-yes" aria-label="مشمول"></i></td>
+                <td><i class="fa-solid fa-check is-yes" aria-hidden="true"></i><span class="sr-only">مشمول</span></td>
                 <td><span class="muted">غير مشمول</span></td>
-                <td><i class="fa-solid fa-check is-yes" aria-label="مشمول"></i></td>
-                <td><i class="fa-solid fa-check is-yes" aria-label="مشمول"></i></td>
+                <td><i class="fa-solid fa-check is-yes" aria-hidden="true"></i><span class="sr-only">مشمول</span></td>
+                <td><i class="fa-solid fa-check is-yes" aria-hidden="true"></i><span class="sr-only">مشمول</span></td>
               </tr>
               <tr>
                 <th scope="row">رعاية طبية ومتابعة</th>
                 <td><span class="muted">غير مشمول</span></td>
-                <td><i class="fa-solid fa-check is-yes" aria-label="مشمول"></i></td>
-                <td><i class="fa-solid fa-check is-yes" aria-label="مشمول"></i></td>
+                <td><i class="fa-solid fa-check is-yes" aria-hidden="true"></i><span class="sr-only">مشمول</span></td>
+                <td><i class="fa-solid fa-check is-yes" aria-hidden="true"></i><span class="sr-only">مشمول</span></td>
                 <td>جزئياً</td>
               </tr>
               <tr>
                 <th scope="row">دعم نفسي واجتماعي</th>
                 <td><span class="muted">غير مشمول</span></td>
-                <td><i class="fa-solid fa-check is-yes" aria-label="مشمول"></i></td>
-                <td><i class="fa-solid fa-check is-yes" aria-label="مشمول"></i></td>
-                <td><i class="fa-solid fa-check is-yes" aria-label="مشمول"></i></td>
+                <td><i class="fa-solid fa-check is-yes" aria-hidden="true"></i><span class="sr-only">مشمول</span></td>
+                <td><i class="fa-solid fa-check is-yes" aria-hidden="true"></i><span class="sr-only">مشمول</span></td>
+                <td><i class="fa-solid fa-check is-yes" aria-hidden="true"></i><span class="sr-only">مشمول</span></td>
               </tr>
               <tr>
                 <th scope="row">دعم الإخوة والأسرة</th>
                 <td><span class="muted">غير مشمول</span></td><td><span class="muted">غير مشمول</span></td><td><span class="muted">غير مشمول</span></td>
-                <td><i class="fa-solid fa-check is-yes" aria-label="مشمول"></i></td>
+                <td><i class="fa-solid fa-check is-yes" aria-hidden="true"></i><span class="sr-only">مشمول</span></td>
               </tr>
               <tr>
                 <th scope="row">تقرير دوري مصوّر</th>
@@ -207,17 +217,17 @@
             <ol class="columns" style="--cols:1">
               <li>
                 <span class="columns__num num">01</span>
-                <h3>الحالات المستحقة زكوياً أولاً</h3>
+                <h4>الحالات المستحقة زكوياً أولاً</h4>
                 <p>الأشد فقراً وفق تقييم المشرف الميداني.</p>
               </li>
               <li>
                 <span class="columns__num num">02</span>
-                <h3>صرف كامل بلا خصم</h3>
+                <h4>صرف كامل بلا خصم</h4>
                 <p>١٠٠٪ من مبلغ الزكاة يصل للمستحق.</p>
               </li>
               <li>
                 <span class="columns__num num">03</span>
-                <h3>توثيق منفصل</h3>
+                <h4>توثيق منفصل</h4>
                 <p>سجل مستقل يُراجعه المدقق الخارجي سنوياً.</p>
               </li>
             </ol>

@@ -32,10 +32,24 @@ const BASE = DISABLED ? '' : META;
 /** مهلة قصيرة: صفحة تنتظر خادماً بطيئاً أسوأ من صفحة تعرض بياناتها المبدئية. */
 const TIMEOUT_MS = 4000;
 
+/**
+ * مهلة الكتابة أطول عمداً: الدفع يمرّ بالبوابة وقد يستغرق ثوانيَ حقيقية.
+ * لكنها موجودة، فخادمٌ عالق لا يترك زرّ «ادفع» يدور إلى الأبد بلا كلمة.
+ */
+const REQUEST_TIMEOUT_MS = 20000;
+
 let offline = DISABLED;
+
+/**
+ * سبب آخر قراءة فشلت: `missing` (ردّ الخادم 404) أو `error` (انقطاع أو عطل).
+ * صفحة المقال أو الطفل تفرّق بهما بين «لم نجد» و«تعذّر التحميل، أعد المحاولة»؛
+ * كانت تقول «لم نجد» لكل إخفاق، فيظن الزائر أن الرابط مكسور وهو سليم.
+ */
+let lastFailure = null;
 
 export const apiEnabled = () => !DISABLED;
 export const isOffline = () => offline;
+export const lastReadFailure = () => lastFailure;
 
 /* =========================================================================
    CSRF
@@ -48,7 +62,14 @@ export const isOffline = () => offline;
 let csrfReady = null;
 
 function ensureCsrf() {
-  csrfReady ??= fetch(`${BASE}/sanctum/csrf-cookie`, { credentials: 'include' });
+  csrfReady ??= fetch(`${BASE}/sanctum/csrf-cookie`, {
+    credentials: 'include',
+    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+  }).catch((error) => {
+    // لا نحفظ الإخفاق: المحاولة التالية تطلب الكوكي من جديد
+    csrfReady = null;
+    throw error;
+  });
   return csrfReady;
 }
 
@@ -72,20 +93,39 @@ export async function request(path, { method = 'GET', body = null, headers: extr
     throw { message: 'هذه النسخة ساكنة بلا خادم.', errors: {} };
   }
 
-  if (method !== 'GET') await ensureCsrf();
+  let response;
 
-  const headers = { Accept: 'application/json', ...extra };
-  if (body) headers['Content-Type'] = 'application/json';
+  try {
+    if (method !== 'GET') await ensureCsrf();
 
-  const token = csrfToken();
-  if (token) headers['X-XSRF-TOKEN'] = token;
+    const headers = { Accept: 'application/json', ...extra };
+    if (body) headers['Content-Type'] = 'application/json';
 
-  const response = await fetch(`${BASE}/api/v1${path}`, {
-    method,
-    credentials: 'include',
-    headers,
-    body: body ? JSON.stringify(body) : null,
-  });
+    const token = csrfToken();
+    if (token) headers['X-XSRF-TOKEN'] = token;
+
+    response = await fetch(`${BASE}/api/v1${path}`, {
+      method,
+      credentials: 'include',
+      headers,
+      body: body ? JSON.stringify(body) : null,
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    });
+  } catch (error) {
+    /*
+     * لا ردّ أصلاً: انقطاع أو مهلة. الرسالة تقول ذلك صراحةً بدل «تعذّر إتمام
+     * الطلب» العامة، وإعادة المحاولة آمنة لأن مفتاح الكفالة ثابت للمحاولة.
+     */
+    const timedOut = error?.name === 'TimeoutError';
+    throw {
+      status: 0,
+      code: timedOut ? 'timeout' : 'network',
+      message: timedOut
+        ? 'لم يردّ الخادم في الوقت المحدد. تحقّق من اتصالك وحاول مجدداً.'
+        : 'تعذّر الاتصال بالخادم. تحقّق من اتصالك وحاول مجدداً.',
+      errors: {},
+    };
+  }
 
   const payload = await response.json().catch(() => ({}));
 
@@ -132,7 +172,7 @@ async function tryGet(path, params = {}) {
 
 /** كـ`tryGet` لكن يُرجع الحمولة كاملة (‏`data` و`meta`). */
 async function tryGetRaw(path, params = {}) {
-  if (offline) return null;
+  if (offline) { lastFailure = 'error'; return null; }
 
   // الأساس الثاني لازم: `BASE` فارغ في الوضع الطبيعي (الأصل نفسه)،
   // و`new URL()` بمسار نسبي بلا أساس يرمي TypeError — فيُبتلع في catch
@@ -162,12 +202,16 @@ async function tryGetRaw(path, params = {}) {
     });
 
     if (!response.ok) {
-      offline = true;
+      // 404 جوابٌ من خادم يعمل: لا يُسقط بقية القراءات كما يُسقطها العطل
+      lastFailure = response.status === 404 ? 'missing' : 'error';
+      if (response.status !== 404) offline = true;
       return null;
     }
 
+    lastFailure = null;
     return await response.json();
   } catch {
+    lastFailure = 'error';
     offline = true;
     return null;
   } finally {

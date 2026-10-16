@@ -43,6 +43,13 @@
   isolation: isolate;
 }
 
+/* حلقة التركيز فوق الأرضية الداكنة: لون التركيز الافتراضي 2.2:1 عليها فقط.
+   الأقسام الداكنة الأخرى تضبط المتغيرين نفسيهما في قواعدها. */
+:is(.kids-hero, .tp-hero, .ab-hero, .blog-news) {
+  --color-focus: var(--color-on-ink-brand);
+  --color-focus-halo: var(--color-ink);
+}
+
 .section--ink :is(h1, h2, h3, h4, strong) { color: var(--color-on-ink); }
 .section--ink :is(p, .section-lede) { color: var(--color-on-ink-muted); }
 
@@ -160,7 +167,6 @@
   position: absolute;
   border-radius: 50%;
   background: var(--gradient-glow);
-  filter: blur(8px);
   pointer-events: none;
   z-index: 0;
 }

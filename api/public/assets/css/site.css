@@ -29,10 +29,14 @@
   inset-block-end: -1px;
   inset-inline-start: 0;
   block-size: 2px;
-  inline-size: calc(var(--scroll-progress, 0) * 100%);
+  inline-size: 100%;
   background: var(--color-cta);
-  transition: inline-size 80ms linear;
+  /* scaleX لا عرضٌ متغيّر: يتحدّث مع كل إطار تمرير، والعرض يعيد حساب التخطيط */
+  transform: scaleX(var(--scroll-progress, 0));
+  transform-origin: right;
+  transition: transform 80ms linear;
 }
+.site-header:dir(ltr)::before { transform-origin: left; }
 
 .header-row {
   display: flex;
@@ -108,8 +112,8 @@
 .nav__link:hover { color: var(--color-text); }
 .nav__link:hover::after { transform: scaleX(1); }
 
-.nav__link[aria-current="page"] { color: var(--color-text); font-weight: 600; }
-.nav__link[aria-current="page"]::after { transform: scaleX(1); background: var(--color-cta); }
+.nav__link[aria-current] { color: var(--color-text); font-weight: 600; }
+.nav__link[aria-current]::after { transform: scaleX(1); background: var(--color-cta); }
 
 .header-actions {
   display: flex;
@@ -123,6 +127,9 @@
 
 /* تسجيل الدخول نصٌّ لا زر — زرٌّ واحد فقط في الشريط */
 .header-login {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 2.75rem;
   font-family: var(--font-display);
   font-size: var(--text-sm);
   font-weight: 600;
@@ -137,8 +144,8 @@
   position: relative;
   display: grid;
   place-items: center;
-  inline-size: 2.5rem;
-  block-size: 2.5rem;
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
   border-radius: 50%;
   border: 1px solid transparent;
   background: transparent;
@@ -179,13 +186,16 @@
 .nav-toggle {
   display: none;
   place-items: center;
-  inline-size: 2.6rem;
-  block-size: 2.6rem;
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
   border-radius: 50%;
   border: 1px solid var(--color-border);
   background: transparent;
   flex-shrink: 0;
 }
+
+.theme-toggle:active,
+.nav-toggle:active { transform: scale(0.94); }
 
 .nav-toggle__bars {
   position: relative;
@@ -270,9 +280,9 @@
   .nav__link::after { display: none; }
 
   .nav__link:hover,
-  .nav__link[aria-current="page"] { color: var(--color-on-ink); }
+  .nav__link[aria-current] { color: var(--color-on-ink); }
 
-  .nav__link[aria-current="page"]::before {
+  .nav__link[aria-current]::before {
     content: "";
     display: inline-block;
     inline-size: 0.45rem;
@@ -327,8 +337,8 @@
 .page-hero__title {
   margin: 0;
   font-size: var(--text-4xl);
-  line-height: 1.1;
-  letter-spacing: -0.02em;
+  line-height: 1.25; /* العربية تحتاج متّسعاً للتشكيل والحروف النازلة */
+  letter-spacing: var(--tracking-tight);
 }
 
 .page-hero__lede {
@@ -430,11 +440,16 @@
 /* روابط التصفّح السبعة في عمودين بدل قائمة طويلة */
 .footer-links--split {
   display: grid;
-  grid-template-columns: repeat(2, max-content);
+  /* minmax(0, auto) لا max-content: عمودٌ بأطول اسم لا يدفع الشبكة خارج الحاوية */
+  grid-template-columns: repeat(2, minmax(0, auto));
   gap: var(--space-3) var(--space-12);
 }
 
 .footer-links a {
+  /* هدف لمس أطول من السطر نفسه، بلا تغيير في المسافات المرئية */
+  display: inline-block;
+  padding-block: 0.5rem;
+  margin-block: -0.5rem;
   font-size: var(--text-sm);
   color: var(--color-text-muted);
   text-decoration: none;
@@ -468,8 +483,8 @@
 .social-row a {
   display: grid;
   place-items: center;
-  inline-size: 2.25rem;
-  block-size: 2.25rem;
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
   border-radius: 50%;
   border: 1px solid var(--color-border);
   color: var(--color-text-muted);
@@ -495,7 +510,7 @@
 
 .footer-bottom p { margin: 0; }
 .footer-bottom nav { display: flex; flex-wrap: wrap; gap: var(--space-5); }
-.footer-bottom a { color: var(--color-text-subtle); text-decoration: none; }
+.footer-bottom a { display: inline-block; padding-block: 0.5rem; margin-block: -0.5rem; color: var(--color-text-subtle); text-decoration: none; }
 .footer-bottom a:hover { color: var(--color-brand); }
 
 .payment-row {
@@ -531,8 +546,9 @@
   gap: var(--space-3);
   padding: var(--space-3) var(--gutter);
   padding-block-end: max(var(--space-3), env(safe-area-inset-bottom));
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
+  /* خلفية شبه مصمتة بلا تمويه: الشريط ثابت فوق محتوى يتحرك، والتمويه
+     يُعاد رسمه مع كل إطار تمرير على الهواتف الضعيفة */
+  background: var(--glass-strong);
   border-block-start: 1px solid var(--color-border);
   transform: translateY(110%);
   transition: transform var(--dur-normal) var(--ease-out);

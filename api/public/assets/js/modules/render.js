@@ -5,7 +5,7 @@
  * والمتغيّر الوحيد هو النص القادم من data.js، وهو مُهرَّب دائماً.
  */
 
-import { escapeHtml, formatMoney, arabicDigits, readingTime } from './utils.js';
+import { escapeHtml, formatMoney, arabicDigits, readingTime, safeColor, safeNumber } from './utils.js';
 
 /**
  * بطاقة يتيم: قصة قصيرة لا سطر في جدول.
@@ -57,6 +57,7 @@ export function orphanCard(orphan, { delay = 0, spotlight = false } = {}) {
     </h3>
     <p class="kid__place"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> ${place}</p>
     ${orphan.photo && dream ? `<p class="kid__dream"><span>${her ? 'حلمها' : 'حلمه'}:</span> ${dream}</p>` : ''}
+    ${!orphan.photo && dream ? `<p class="sr-only">${her ? 'حلمها' : 'حلمه'}: ${dream}</p>` : ''}
 
     <div class="kid__fund">
       <span class="kid__track" style="--v:${funded}%"><span></span></span>
@@ -82,7 +83,7 @@ export function programCard(program, { delay = 0 } = {}) {
 
   return `
 <article class="program-card${program.featured ? ' program-card--featured' : ''}"
-         style="--program-accent: ${program.accent}"
+         style="--program-accent: ${safeColor(program.accent)}"
          data-reveal data-reveal-delay="${delay}">
   ${program.featured ? '<span class="badge badge--accent program-card__ribbon">الأكثر أثراً</span>' : ''}
 
@@ -173,9 +174,9 @@ export function spendingDonut(segments, toChild) {
   let offset = 0;
 
   const arcs = segments.map((seg, i) => {
-    const length = (seg.value / 100) * CIRCUMFERENCE;
+    const length = (safeNumber(seg.value) / 100) * CIRCUMFERENCE;
     const arc = `<circle class="donut__seg" cx="90" cy="90" r="${RADIUS}"
-        stroke="${seg.color}"
+        stroke="${safeColor(seg.color)}"
         style="--seg-dash: ${length.toFixed(2)} ${(CIRCUMFERENCE - length).toFixed(2)};
                --seg-delay: ${i * 140}ms"
         stroke-dashoffset="${(-offset).toFixed(2)}"></circle>`;
@@ -184,7 +185,7 @@ export function spendingDonut(segments, toChild) {
   }).join('');
 
   return `
-<div class="donut" role="img" aria-label="توزيع الإنفاق: ${segments.map((s) => `${s.label} ${s.value}٪`).join('، ')}">
+<div class="donut" role="img" aria-label="توزيع الإنفاق: ${escapeHtml(segments.map((s) => `${s.label} ${safeNumber(s.value)}٪`).join('، '))}">
   <svg viewBox="0 0 180 180" aria-hidden="true">${arcs}</svg>
   <div class="donut__center">
     <strong class="num">${Number(toChild) || 0}٪</strong>
@@ -197,9 +198,9 @@ export function spendingDonut(segments, toChild) {
 export function spendingLegend(segments) {
   return segments.map((seg) => `
 <li>
-  <span class="legend__swatch" style="--swatch: ${seg.color}"></span>
+  <span class="legend__swatch" style="--swatch: ${safeColor(seg.color)}"></span>
   <span class="legend__name">${escapeHtml(seg.label)}</span>
-  <span class="legend__pct num">${seg.value}٪</span>
+  <span class="legend__pct num">${safeNumber(seg.value)}٪</span>
 </li>`).join('');
 }
 
