@@ -150,7 +150,7 @@
          ================================================================== -->
     <section class="section" aria-labelledby="childrenTitle">
       <div class="container">
-        <header class="block-head">
+        <header class="block-head" data-reveal>
           <div class="block-head__text">
             <h2 id="childrenTitle">أطفال ينتظرون كافلاً</h2>
             <p class="block-lede">
@@ -171,7 +171,7 @@
          ================================================================== -->
     <section class="section section--surface" id="how" aria-labelledby="howTitle">
       <div class="container how" data-how>
-        <header class="block-head">
+        <header class="block-head" data-reveal>
           <div class="block-head__text">
             <h2 id="howTitle">كيف تبدأ الكفالة</h2>
             <p class="block-lede">ثلاث خطوات تأخذ دقائق، بلا أوراق ولا مقابلات.</p>
@@ -182,7 +182,7 @@
           </a>
         </header>
 
-        <div class="how__tabs" role="tablist" aria-label="خطوات الكفالة">
+        <div class="how__tabs" data-reveal data-reveal-delay="80" role="tablist" aria-label="خطوات الكفالة">
           <button class="how-tab" type="button" role="tab" id="howTab1"
                   aria-selected="true" aria-controls="howPanel1">
             <span class="how-tab__bar" aria-hidden="true"><span></span></span>
@@ -206,7 +206,7 @@
           </button>
         </div>
 
-        <div class="how__stage">
+        <div class="how__stage" data-reveal data-reveal-delay="160">
           <div class="how__panel is-active" role="tabpanel" id="howPanel1" aria-labelledby="howTab1">
             <div class="how__copy">
               <h3>اختر طفلاً</h3>
@@ -302,19 +302,19 @@
          ================================================================== -->
     <section class="section section--ink" aria-labelledby="moneyTitle">
       <div class="container money">
-        <div class="money__text">
+        <div class="money__text" data-reveal="start">
           <h2 id="moneyTitle">أين تذهب كل مئة دولار</h2>
           <p class="block-lede">
-            أرقام السنة المالية الماضية كما راجعها مكتب التدقيق المستقل.
-            التقرير الكامل منشور للجميع، كفلاء وغير كفلاء.
+            أرقام هذه السنة من حساباتنا المعتمدة، تتحدّث مع كل صرف.
+            والتقرير الكامل منشور للجميع، كفلاء وغير كفلاء.
           </p>
           <dl class="money__stats" id="moneyStats"></dl>
           <a class="btn btn--ink-outline" href="transparency.html">
             <i class="fa-solid fa-file-arrow-down" aria-hidden="true"></i>
-            اقرأ التقرير المدقّق
+            اطّلع على تقرير الشفافية
           </a>
         </div>
-        <div class="money__chart">
+        <div class="money__chart" data-reveal="scale" data-reveal-delay="120">
           <div id="spendingDonut"></div>
           <ul class="legend" role="list" id="spendingLegend"></ul>
         </div>
@@ -326,7 +326,7 @@
          ================================================================== -->
     <section class="section" aria-labelledby="reportTitle">
       <div class="container report-show">
-        <div class="report-show__text">
+        <div class="report-show__text" data-reveal="start">
           <h2 id="reportTitle">هذا ما يصلك عن طفلك كل ثلاثة أشهر</h2>
           <p class="block-lede">
             يكتبه المشرف الميداني بعد زيارة البيت والمدرسة، ويصلك على بريدك
@@ -342,7 +342,7 @@
           </a>
         </div>
 
-        <article class="report-mock" aria-label="نموذج توضيحي لتقرير ربعي">
+        <article class="report-mock" data-reveal="end" data-reveal-delay="120" aria-label="نموذج توضيحي لتقرير ربعي">
           <header class="report-mock__head">
             <span class="avatar avatar--lg avatar--1" aria-hidden="true">أ</span>
             <div>
@@ -398,7 +398,7 @@
          ================================================================== -->
     <section class="section section--surface" aria-labelledby="programsTitle">
       <div class="container">
-        <header class="block-head">
+        <header class="block-head" data-reveal>
           <div class="block-head__text">
             <h2 id="programsTitle">اختر البرنامج الذي يناسبك</h2>
             <p class="block-lede">
@@ -418,7 +418,7 @@
          ================================================================== -->
     <section class="section" aria-labelledby="storiesTitle">
       <div class="container">
-        <header class="block-head">
+        <header class="block-head" data-reveal>
           <div class="block-head__text">
             <h2 id="storiesTitle">كفلاء معنا منذ سنوات</h2>
           </div>
@@ -430,19 +430,20 @@
     <!-- من المدونة: كانت المقالات بلا مدخل إلا رابطاً صغيراً في التذييل -->
     <section class="section section--surface" aria-labelledby="blogTitle">
       <div class="container">
-        <header class="block-head">
+        <header class="block-head" data-reveal>
           <div class="block-head__text">
             <h2 id="blogTitle">من المدونة</h2>
+            <p class="block-lede">ما نراه في الزيارات الميدانية، وكيف تُصرف الكفالات، بالأرقام.</p>
           </div>
           <a class="link-arrow" href="blog.html">كل المقالات <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
         </header>
-        <div class="grid grid--auto-lg" id="postsGrid" data-limit="3"></div>
+        <div class="home-blog" id="postsGrid" data-limit="4"></div>
       </div>
     </section>
 
     <section class="section" aria-labelledby="faqTitle">
       <div class="container faq-split">
-        <div class="faq-split__head">
+        <div class="faq-split__head" data-reveal>
           <h2 id="faqTitle">أسئلة قبل أن تبدأ</h2>
           <p class="block-lede">لم تجد سؤالك؟ راسلنا، ونرد على كل رسالة خلال ٧٢ ساعة.</p>
           <a class="link-arrow" href="contact.html">
@@ -452,7 +453,7 @@
             كل الأسئلة <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
           </a>
         </div>
-        <div class="accordion" data-accordion="single" id="faqList" data-limit="4"></div>
+        <div class="accordion" data-reveal data-reveal-delay="120" data-accordion="single" id="faqList" data-limit="4"></div>
       </div>
     </section>
 
@@ -462,7 +463,7 @@
     <section class="closing" aria-labelledby="closingTitle">
       <div class="container">
         <div class="closing__inner">
-          <div class="closing__pitch">
+          <div class="closing__pitch" data-reveal>
             <p class="closing__hadith">
               «أنا وكافل اليتيم في الجنة هكذا»
               <span>رواه البخاري</span>
@@ -478,7 +479,7 @@
             </div>
           </div>
 
-          <div class="closing__next">
+          <div class="closing__next" data-reveal data-reveal-delay="150">
             <p class="closing__next-title">ماذا يحدث بعد أن تكفل؟</p>
             <ol class="closing__steps">
               <li>

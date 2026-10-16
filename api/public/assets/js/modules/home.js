@@ -16,10 +16,9 @@ import {
 
 import {
   faqItem,
-  postCard,
+  homePosts,
   spendingDonut,
   spendingLegend,
-  renderInto,
 } from './render.js';
 
 import { $, $$, escapeHtml, formatNumber, formatMoney } from './utils.js';
@@ -175,8 +174,8 @@ function renderHomeOrphans() {
  * السعر والزر في الأعلى: القرار قبل التفاصيل، والمزايا تحتهما لمن يريد.
  */
 function renderPlans() {
-  const html = PROGRAMS.map((p) => `
-<article class="plan${p.featured ? ' is-featured' : ''}">
+  const html = PROGRAMS.map((p, i) => `
+<article class="plan${p.featured ? ' is-featured' : ''}" data-reveal data-reveal-delay="${i * 90}">
   <p class="plan__flag">${p.featured ? 'الأكثر اختياراً' : ''}</p>
   <h3 class="plan__name">${escapeHtml(p.name)}</h3>
   <p class="plan__price"><strong class="num">${formatMoney(p.price)}</strong><span>في الشهر</span></p>
@@ -201,13 +200,13 @@ function renderVoices() {
   const by = (s) => `<figcaption><strong>${escapeHtml(s.name)}</strong><span>${escapeHtml(s.role)}</span></figcaption>`;
 
   host.innerHTML = `
-<figure class="voice voice--lead">
+<figure class="voice voice--lead" data-reveal>
   <blockquote>${escapeHtml(lead.quote)}</blockquote>
   ${by(lead)}
 </figure>
 <div class="voices__more">
-  ${rest.slice(0, 2).map((s) => `
-  <figure class="voice">
+  ${rest.slice(0, 2).map((s, i) => `
+  <figure class="voice" data-reveal data-reveal-delay="${150 + i * 100}">
     <blockquote>${escapeHtml(s.quote)}</blockquote>
     ${by(s)}
   </figure>`).join('')}
@@ -223,7 +222,8 @@ function renderMoneyStats() {
     // ٩٣٪ ظاهرة في وسط الحلقة بجانبها، فلا تتكرر هنا
     { value: formatNumber(new Date().getFullYear() - PROOF.startYear), label: 'سنة من العمل الموثّق' },
     { value: formatNumber(PROOF.sponsored), label: 'يتيماً مكفولاً اليوم' },
-    { value: formatNumber(PROOF.visits), label: 'زيارة ميدانية العام الماضي' },
+    // العدد كل الزيارات المسجّلة لا زيارات سنة واحدة
+    { value: formatNumber(PROOF.visits), label: 'زيارة ميدانية موثّقة' },
     { value: formatNumber(COUNTRIES.length), label: 'دولة نعمل فيها' },
   ];
 
@@ -250,12 +250,13 @@ export function renderHomeSections() {
   const postsHost = document.querySelector('#postsGrid');
   if (postsHost) {
     const limit = Number(postsHost.dataset.limit) || POSTS.length;
-    renderInto('#postsGrid', POSTS.slice(0, limit), postCard);
+    postsHost.innerHTML = homePosts(POSTS.slice(0, limit));
   }
 
   /* حلقة الشفافية */
   const donutHost = document.querySelector('#spendingDonut');
-  if (donutHost) donutHost.innerHTML = spendingDonut(SPENDING);
+  // الرقم في الوسط من الشفافية نفسها: كان «٩٣٪» مكتوباً في القالب
+  if (donutHost) donutHost.innerHTML = spendingDonut(SPENDING, PROOF.toChild);
 
   const legendHost = document.querySelector('#spendingLegend');
   if (legendHost) legendHost.innerHTML = spendingLegend(SPENDING);

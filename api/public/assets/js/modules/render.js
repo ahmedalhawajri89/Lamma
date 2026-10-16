@@ -124,44 +124,50 @@ export function faqItem(faq, index) {
 </div>`;
 }
 
-/** بطاقة مقال. */
-export function postCard(post, { delay = 0 } = {}) {
+/**
+ * «من المدونة» في الرئيسية: مقالٌ رئيسي كبير وقائمة مختصرة بجانبه، بخطوط
+ * فاصلة لا بطاقات. الرئيسي هو المميّز إن وُجد وإلا الأحدث.
+ */
+export function homePosts(posts) {
+  if (!posts.length) return '';
+  const lead = posts.find((p) => p.featured) ?? posts[0];
+  const rest = posts.filter((p) => p !== lead).slice(0, 3);
+  const href = (p) => (p.slug ? `post.html?slug=${encodeURIComponent(p.slug)}` : null);
+  const title = (p) => (href(p) ? `<a href="${href(p)}">${escapeHtml(p.title)}</a>` : escapeHtml(p.title));
+  const media = (p, w, h) => (p.image
+    ? `<img src="${escapeHtml(p.image)}" alt="" loading="lazy" width="${w}" height="${h}">`
+    : '<span class="home-blog__mark"></span>');
+  const date = (p) => `<time datetime="${escapeHtml(p.date ?? '')}">${escapeHtml(arabicDigits(p.dateLabel ?? ''))}</time>`;
+
   return `
-<article class="post-card" data-reveal data-reveal-delay="${delay}">
-  <div class="post-card__media${post.image ? '' : ' post-card__media--empty'}">
-    ${
-      // مقال بلا صورة أو تصنيف وضعٌ وارد من لوحة الإدارة: لا نعرض صورة
-      // مكسورة ولا كلمة «null»، بل سطحاً هادئاً بالشعار، ونُسقط الشارة.
-      post.image
-        ? `<img src="${escapeHtml(post.image)}" alt="" loading="lazy" width="400" height="250">`
-        : '<img class="post-card__mark" src="assets/img/logo.svg" alt="" width="56" height="56">'
-    }
-    ${post.category ? `<span class="badge badge--glass post-card__date">${escapeHtml(post.category)}</span>` : ''}
+<article class="home-blog__lead" data-reveal>
+  <div class="home-blog__media">
+    ${media(lead, 720, 450)}
+    ${lead.category ? `<span class="home-blog__tag">${escapeHtml(lead.category)}</span>` : ''}
   </div>
-  <div class="post-card__body">
-    <h3 class="post-card__title">${
-      // البذرة (وضع بلا خادم) بلا slug — والعنوان حينها نصّ لا رابط:
-      // رابط يقود إلى صفحة تقول «لم نجد المقال» أسوأ من عنوان بلا رابط.
-      post.slug
-        ? `<a href="post.html?slug=${encodeURIComponent(post.slug)}">${escapeHtml(post.title)}</a>`
-        : escapeHtml(post.title)
-    }</h3>
-    <p class="post-card__excerpt">${escapeHtml(post.excerpt)}</p>
-    <div class="post-card__foot">
-      <time datetime="${escapeHtml(post.date)}">
-        <i class="fa-regular fa-calendar" aria-hidden="true"></i> ${escapeHtml(arabicDigits(post.dateLabel ?? ''))}
-      </time>
-      <span><i class="fa-regular fa-clock" aria-hidden="true"></i> ${readingTime(post.readMin)} قراءة</span>
+  <p class="home-blog__meta">${date(lead)}<span aria-hidden="true">·</span><span>${readingTime(lead.readMin)} قراءة</span></p>
+  <h3 class="home-blog__title">${title(lead)}</h3>
+  <p class="home-blog__excerpt">${escapeHtml(lead.excerpt ?? '')}</p>
+  ${href(lead) ? '<span class="home-blog__cta" aria-hidden="true">اقرأ المقال <i class="fa-solid fa-arrow-left"></i></span>' : ''}
+</article>
+<ul class="home-blog__list" role="list">
+  ${rest.map((p, i) => `
+  <li class="home-blog__row" data-reveal data-reveal-delay="${120 + i * 90}">
+    <div class="home-blog__thumb">${media(p, 192, 192)}</div>
+    <div>
+      ${p.category ? `<p class="home-blog__cat">${escapeHtml(p.category)}</p>` : ''}
+      <h3 class="home-blog__row-title">${title(p)}</h3>
+      <p class="home-blog__meta">${date(p)}</p>
     </div>
-  </div>
-</article>`;
+  </li>`).join('')}
+</ul>`;
 }
 
 /**
  * حلقة توزيع الإنفاق — تُبنى كـ SVG خالص بلا مكتبة رسم بيانية.
  * نحسب نصيب كل قطاع من محيط الدائرة ونزيح كلاً منها بمقدار ما سبقه.
  */
-export function spendingDonut(segments) {
+export function spendingDonut(segments, toChild) {
   const RADIUS = 70;
   const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
   let offset = 0;
@@ -181,7 +187,7 @@ export function spendingDonut(segments) {
 <div class="donut" role="img" aria-label="توزيع الإنفاق: ${segments.map((s) => `${s.label} ${s.value}٪`).join('، ')}">
   <svg viewBox="0 0 180 180" aria-hidden="true">${arcs}</svg>
   <div class="donut__center">
-    <strong>٩٣٪</strong>
+    <strong class="num">${Number(toChild) || 0}٪</strong>
     <span>يصل للطفل مباشرة</span>
   </div>
 </div>`;
