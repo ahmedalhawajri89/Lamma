@@ -38,15 +38,4 @@ class ProgramsPageController extends Controller
             'waiting' => $waiting,
         ]);
     }
-
-    /**
-     * لون البرنامج كما حُفظ من اللوحة، لا يدخل `style` إلا رمزاً أو لوناً سداسياً:
-     * قيمةٌ حرّة هناك تُدخل ما شاءت من CSS. ومثله safeColor في المتصفح.
-     */
-    public static function accent(?string $value): string
-    {
-        $value = trim((string) $value);
-
-        return preg_match('/^(var\(--[a-z0-9-]+\)|#[0-9a-f]{3,8})$/i', $value) ? $value : 'var(--color-brand)';
-    }
 }

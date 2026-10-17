@@ -131,7 +131,7 @@ it('صفحة الكفالة لطفلٍ مكتمل بلا نموذج دفع، و�
 it('ترسم صفحة البرامج أسعارها وبنودها من جدولها، وتعدّ من ينتظر في كلٍّ', function () {
     $this->seed(Database\Seeders\ContentSeeder::class);
     $program = App\Models\Program::active()->with('features')->first();
-    $program->update(['monthly_price' => 77, 'accent' => 'red; background:url(//evil)']);
+    $program->update(['monthly_price' => 77]);
 
     // منتظران، ومكفولٌ بالكامل لا يُعدّ
     profileChild(['program_id' => $program->id]);
@@ -145,7 +145,5 @@ it('ترسم صفحة البرامج أسعارها وبنودها من جدول
         ->toContain('$77')
         ->toContain($program->features->first()->label_ar)
         ->toContain('<b class="num">2</b> طفلان ينتظران')
-        ->toContain('href="/orphans?program='.$program->slug.'"')
-        // لونٌ حرّ من اللوحة لا يدخل style
-        ->not->toContain('evil');
+        ->toContain('href="/orphans?program='.$program->slug.'"');
 });

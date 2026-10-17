@@ -7,6 +7,7 @@
 
 @push('styles')
   <link rel="stylesheet" href="/assets/css/kids.css">
+  <link rel="stylesheet" href="/assets/css/plans.css">
   <link rel="stylesheet" href="/assets/css/home.css">
 @endpush
 

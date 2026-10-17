@@ -22,6 +22,7 @@
 @section('canonical', url('/programs'))
 
 @push('styles')
+  <link rel="stylesheet" href="/assets/css/plans.css">
   <link rel="stylesheet" href="/assets/css/programs.css">
 @endpush
 
@@ -42,44 +43,30 @@
       </div>
     </section>
 
-    {{-- ══ البطاقات ══ --}}
+    {{-- ══ البرامج: أعمدة الرئيسية نفسها (plans.css)، من جدول البرامج ══ --}}
     <section class="pg-plans" aria-label="البرامج">
       <div class="container">
-        <div class="row g-4">
-          @foreach ($programs as $p)
+        <div class="plans plans--full">
+          @foreach ($programs as $i => $p)
             @php($n = (int) ($waiting[$p->id] ?? 0))
-            <div class="col-md-6 col-xl-3">
-              <article @class(['pg-card', 'pg-card--featured' => $p->is_featured]) style="--accent: {{ \App\Http\Controllers\Site\ProgramsPageController::accent($p->accent) }}" id="{{ $p->slug }}" data-reveal>
-                @if ($p->is_featured)
-                  <span class="pg-card__flag">الأشمل</span>
-                @endif
-                <span class="pg-card__icon" aria-hidden="true"><i class="fa-solid {{ preg_match('/^fa-[a-z0-9-]+$/', (string) $p->icon) ? $p->icon : 'fa-hand-holding-heart' }}"></i></span>
-                <h2 class="pg-card__name">{{ $p->name_ar }}</h2>
-                <p class="pg-card__summary">{{ $p->summary_ar }}</p>
-                <p class="pg-card__price"><strong class="num">{{ $money($p->monthly_price) }}</strong> <span>في الشهر</span></p>
-
-                <ul class="pg-card__features">
-                  @foreach ($p->features as $f)
-                    <li><i class="fa-solid fa-check" aria-hidden="true"></i> {{ $f->label_ar }}</li>
-                  @endforeach
-                </ul>
-
-                <div class="pg-card__foot">
-                  <p class="pg-card__waiting">
-                    @if ($n)
-                      <span class="pg-card__dot" aria-hidden="true"></span> <b class="num">{{ $n }}</b> {{ $n === 1 ? 'طفل ينتظر' : ($n === 2 ? 'طفلان ينتظران' : ($n <= 10 ? 'أطفال ينتظرون' : 'طفلاً ينتظرون')) }} كافلاً
-                    @else
-                      كل أطفاله مكفولون الآن
-                    @endif
-                  </p>
-                  @if ($n)
-                    <a class="btn {{ $p->is_featured ? 'btn-cta' : 'btn-outline-primary' }} w-100" href="/orphans?program={{ urlencode($p->slug) }}">اختر طفلاً من هذا البرنامج</a>
-                  @else
-                    <a class="btn btn-outline-primary w-100" href="/orphans">أطفال في برامج أخرى</a>
-                  @endif
-                </div>
-              </article>
-            </div>
+            <article @class(['plan', 'is-featured' => $p->is_featured]) id="{{ $p->slug }}" data-reveal data-reveal-delay="{{ $i * 90 }}">
+              <p class="plan__flag">{{ $p->is_featured ? 'الأكثر اختياراً' : '' }}</p>
+              <h2 class="plan__name">{{ $p->name_ar }}</h2>
+              <p class="plan__price"><strong class="num">{{ $money($p->monthly_price) }}</strong><span>في الشهر</span></p>
+              <p class="plan__summary">{{ $p->summary_ar }}</p>
+              @if ($n)
+                <a class="btn {{ $p->is_featured ? 'btn-cta' : 'btn-outline-primary' }} plan__cta" href="/orphans?program={{ urlencode($p->slug) }}">اكفل يتيماً</a>
+                <p class="plan__waiting"><span class="plan__dot" aria-hidden="true"></span> <b class="num">{{ $n }}</b> {{ $n === 1 ? 'طفل ينتظر' : ($n === 2 ? 'طفلان ينتظران' : ($n <= 10 ? 'أطفال ينتظرون' : 'طفلاً ينتظرون')) }} كافلاً</p>
+              @else
+                <a class="btn btn-outline-primary plan__cta" href="/orphans">أطفال في برامج أخرى</a>
+                <p class="plan__waiting">كل أطفاله مكفولون الآن</p>
+              @endif
+              <ul class="plan__features">
+                @foreach ($p->features as $f)
+                  <li><i class="fa-solid fa-check" aria-hidden="true"></i>{{ $f->label_ar }}</li>
+                @endforeach
+              </ul>
+            </article>
           @endforeach
         </div>
       </div>
