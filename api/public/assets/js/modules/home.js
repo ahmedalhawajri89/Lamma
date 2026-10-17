@@ -103,22 +103,33 @@ function renderPlans() {
   $$('#homePlans, #programsGrid').forEach((host) => { host.innerHTML = html; });
 }
 
-/** الشهادات: اقتباس رئيسي بخط كبير، واثنان قصيران تحته. بلا بطاقات. */
+/**
+ * الشهادات: اقتباس رئيسي كبير على لوح بلون الحبر بعلامة اقتباس ذهبية تُرسم،
+ * وبجانبه اقتباسان أقصر. صورة الكافل دائرة بحرف اسمه: لا صور لأشخاص حقيقيين.
+ */
 function renderVoices() {
   const host = $('#homeVoices');
   if (!host || !STORIES.length) return;
 
   const [lead, ...rest] = STORIES;
-  const by = (s) => `<figcaption><strong>${escapeHtml(s.name)}</strong><span>${escapeHtml(s.role)}</span></figcaption>`;
+  const by = (s) => `
+    <figcaption class="voice__by">
+      <span class="voice__avatar" aria-hidden="true">${escapeHtml(s.name.charAt(0))}</span>
+      <span><strong>${escapeHtml(s.name)}</strong><span>${escapeHtml(s.role)}</span></span>
+    </figcaption>`;
+  const mark = '<svg class="voice__mark" viewBox="0 0 64 48" aria-hidden="true" focusable="false"><path d="M26 6C14 10 6 19 6 31c0 7 4 11 10 11 5 0 9-4 9-9s-4-9-9-9c-1 0-2 0-3 1 2-7 7-12 15-15zM58 6C46 10 38 19 38 31c0 7 4 11 10 11 5 0 9-4 9-9s-4-9-9-9c-1 0-2 0-3 1 2-7 7-12 15-15z"/></svg>';
 
   host.innerHTML = `
-<figure class="voice voice--lead" data-reveal>
-  <blockquote>${escapeHtml(lead.quote)}</blockquote>
-  ${by(lead)}
-</figure>
-<div class="voices__more">
+<div class="col-lg-7">
+  <figure class="voice-lead" data-reveal="start">
+    ${mark}
+    <blockquote>${escapeHtml(lead.quote)}</blockquote>
+    ${by(lead)}
+  </figure>
+</div>
+<div class="col-lg-5 d-flex flex-column gap-4">
   ${rest.slice(0, 2).map((s, i) => `
-  <figure class="voice" data-reveal data-reveal-delay="${150 + i * 100}">
+  <figure class="voice-card" data-reveal="end" data-reveal-delay="${150 + i * 120}">
     <blockquote>${escapeHtml(s.quote)}</blockquote>
     ${by(s)}
   </figure>`).join('')}
