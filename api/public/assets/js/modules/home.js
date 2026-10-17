@@ -81,35 +81,6 @@ function renderHomeOrphans() {
   host.innerHTML = kids.map(kidCard).join('');
 }
 
-const PLAN_ICON = {
-  comprehensive: 'fa-hand-holding-heart',
-  education: 'fa-graduation-cap',
-  health: 'fa-stethoscope',
-  family: 'fa-people-roof',
-};
-
-/**
- * بطاقة برنامج في الرئيسية: أيقونة واسم ووصف، ثم السعر والقرار، ثم المزايا.
- * الأكثر اختياراً بلون الحبر وشريط ذهبي، والذهبي لزرّها وحدها.
- */
-function planCard(p, i) {
-  const featured = Boolean(p.featured);
-  return `
-<div class="col-md-6 col-xl-3">
-  <article class="plan-card${featured ? ' is-featured' : ''}" data-reveal data-reveal-delay="${i * 90}">
-    ${featured ? '<p class="plan-card__flag"><i class="fa-solid fa-star" aria-hidden="true"></i> الأكثر اختياراً</p>' : ''}
-    <span class="plan-card__icon" aria-hidden="true"><i class="fa-solid ${PLAN_ICON[p.id] ?? 'fa-heart'}"></i></span>
-    <h3 class="plan-card__name">${escapeHtml(p.name)}</h3>
-    <p class="plan-card__summary">${escapeHtml(p.summary)}</p>
-    <p class="plan-card__price"><strong class="num">${formatMoney(p.price)}</strong><span>في الشهر</span></p>
-    <a class="btn ${featured ? 'btn-cta' : 'btn-outline-primary'} w-100" href="orphans.html?program=${encodeURIComponent(p.id)}">اكفل يتيماً</a>
-    <ul class="plan-card__features" role="list">
-      ${(p.features ?? []).map((f) => `<li><i class="fa-solid fa-check" aria-hidden="true"></i>${escapeHtml(f)}</li>`).join('')}
-    </ul>
-  </article>
-</div>`;
-}
-
 /**
  * البرامج كأعمدة مفتوحة بلا بطاقات، تفصلها خطوط شعرية.
  * السعر والزر في الأعلى: القرار قبل التفاصيل، والمزايا تحتهما لمن يريد.
@@ -128,11 +99,8 @@ function renderPlans() {
   </ul>
 </article>`).join('');
 
-  // صفحة البرامج لم تنتقل إلى Bootstrap بعد: تبقى بشكلها، والرئيسية لها بطاقاتها
-  const programsGrid = $('#programsGrid');
-  if (programsGrid) programsGrid.innerHTML = html;
-  const homePlans = $('#homePlans');
-  if (homePlans) homePlans.innerHTML = PROGRAMS.map(planCard).join('');
+  // الرئيسية وصفحة البرامج تعرضانها بالشكل نفسه
+  $$('#homePlans, #programsGrid').forEach((host) => { host.innerHTML = html; });
 }
 
 /** الشهادات: اقتباس رئيسي بخط كبير، واثنان قصيران تحته. بلا بطاقات. */
