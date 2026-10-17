@@ -45,8 +45,9 @@
   inline-size: 60%;
   margin: 0;
   overflow: hidden;
-  /* الحافة السفلية جهة النهاية منحنية (الموقع عربي فقط، فاليسار هو النهاية) */
-  border-bottom-left-radius: 62% 26%;
+  /* زاوية النهاية السفلية ربع دائرة: نصف القطر نفسه في الاتجاهين، لا قطع
+     ناقص مسطّح. (الموقع عربي فقط، فاليسار هو النهاية) */
+  border-bottom-left-radius: clamp(10rem, 22vw, 22rem);
   /* تذوب نحو النص: الطرف المجاور للعمود شفاف تدريجياً */
   -webkit-mask-image: linear-gradient(to right, #000 50%, transparent 97%);
           mask-image: linear-gradient(to right, #000 50%, transparent 97%);
