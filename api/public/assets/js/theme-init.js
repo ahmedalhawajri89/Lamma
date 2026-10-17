@@ -51,4 +51,17 @@
     vt.finished.catch(ignore);
     if (!to || !AUTH.test(new URL(to).pathname)) vt.skipTransition();
   });
+
+  /*
+   * اتجاه الانتقال في الصفحة الجديدة (account.css): إلى التسجيل «تقدّم»،
+   * والعودة إلى الدخول «رجوع»، فينزلق النموذج في الاتجاه الذي يُقرأ به.
+   * يُضبط هنا لأن هذا الملف يُحمَّل متزامناً في <head> قبل أول رسم.
+   */
+  window.addEventListener('pagereveal', function (e) {
+    var vt = e.viewTransition;
+    if (!vt || !vt.types || !window.navigation || !navigation.activation || !navigation.activation.from) return;
+    var from = new URL(navigation.activation.from.url).pathname;
+    var to = location.pathname;
+    vt.types.add(/register/.test(to) ? 'acc-forward' : /register/.test(from) ? 'acc-back' : 'acc-forward');
+  });
 })();

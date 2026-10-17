@@ -4,13 +4,18 @@
    ========================================================================= */
 
 .acc-body { min-block-size: 100dvh; background: var(--color-canvas); }
-.acc { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); min-block-size: 100dvh; }
+.acc { --acc-pad: clamp(1.25rem, 3vw, 2rem); position: relative; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); min-block-size: 100dvh; }
 
 /* ── النموذج ── */
-.acc-main { display: flex; flex-direction: column; padding: clamp(1.25rem, 3vw, 2rem) clamp(1.25rem, 5vw, 4rem); }
-.acc-bar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.acc-main { display: flex; flex-direction: column; padding: var(--acc-pad) clamp(1.25rem, 5vw, 4rem); }
+.acc-bar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; min-block-size: 2.75rem; z-index: 2; }
 .acc-brand .kf-brand__name { font-size: 1.35rem; color: var(--color-brand); }
-.acc-bar__tools { display: flex; align-items: center; gap: 0.5rem; }
+.acc-bar__tools { display: flex; align-items: center; gap: 0.5rem; view-transition-name: acc-tools; }
+/* على الشاشة العريضة: الشعار يفتتح الصفحة يميناً، والأدوات تختمها في الزاوية
+   اليسرى فوق اللوح، كما يتوقعها الزائر في أي موقع. على الجوال تبقى في الشريط. */
+@media (min-width: 62rem) {
+  .acc-bar__tools { position: absolute; z-index: 2; inset-block-start: var(--acc-pad); inset-inline-end: clamp(1.25rem, 3vw, 2.5rem); block-size: 2.75rem; }
+}
 .acc-back { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.9rem; font-weight: 600; color: var(--color-text-muted); text-decoration: none; }
 .acc-back:hover { color: var(--color-brand); }
 
@@ -240,7 +245,7 @@
 /* شاشات قصيرة (حواسيب 768، والجوال): كل شيء في شاشةٍ واحدة بلا تمرير.
    تضيق المسافات لا الحقول: الحقل والزرّ يبقيان بحجمٍ يُلمس بسهولة. */
 @media (max-height: 920px), (max-width: 35.98rem) {
-  .acc-main { padding-block: 1rem; }
+  .acc { --acc-pad: 1rem; }
   .acc-panel { padding-block: 1rem; }
   .acc-title { font-size: clamp(1.7rem, 3.4vw, 2.2rem); }
   .acc-lede { margin-block-start: 0.35rem; font-size: 0.975rem; }
@@ -266,3 +271,35 @@
   .acc { grid-template-columns: minmax(0, 1fr); }
   .acc-aside { display: none; }
 }
+
+/* =========================================================================
+   الانتقال بين الدخول والتسجيل (View Transitions بين المستندات)
+   -------------------------------------------------------------------------
+   الشريط واللوح الجانبي باقيان ويتحوّلان بهدوء، والنموذج القديم ينزلق
+   ويخفت والجديد يدخل من الجهة الأخرى، باتجاه القراءة: إلى التسجيل تقدّمٌ
+   نحو اليسار، والعودة إلى الدخول عكسه (الاتجاه من theme-init.js). وحيث لا
+   يدعمه المتصفح، أو طلب الزائر تقليل الحركة، تنتقل الصفحة كالمعتاد.
+   ========================================================================= */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition { navigation: auto; }
+}
+.acc-bar { view-transition-name: acc-bar; }
+.acc-panel { view-transition-name: acc-form; }
+.acc-aside__inner { view-transition-name: acc-aside; }
+
+::view-transition-old(root),
+::view-transition-new(root) { animation: none; }
+::view-transition-group(acc-aside),
+::view-transition-group(acc-bar) { animation-duration: 0.55s; animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1); }
+::view-transition-old(acc-aside),
+::view-transition-new(acc-aside) { animation-duration: 0.55s; }
+
+::view-transition-old(acc-form) { animation: acc-out 0.32s cubic-bezier(0.4, 0, 1, 1) both; }
+::view-transition-new(acc-form) { animation: acc-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both; }
+/* التقدّم في صفحةٍ عربية: يمضي القديم يساراً ويأتي الجديد من اليمين */
+@keyframes acc-out { to { opacity: 0; translate: -2.5rem 0; filter: blur(4px); } }
+@keyframes acc-in { from { opacity: 0; translate: 2.5rem 0; filter: blur(4px); } }
+html:active-view-transition-type(acc-back)::view-transition-old(acc-form) { animation-name: acc-out-back; }
+html:active-view-transition-type(acc-back)::view-transition-new(acc-form) { animation-name: acc-in-back; }
+@keyframes acc-out-back { to { opacity: 0; translate: 2.5rem 0; filter: blur(4px); } }
+@keyframes acc-in-back { from { opacity: 0; translate: -2.5rem 0; filter: blur(4px); } }
