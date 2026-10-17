@@ -608,7 +608,8 @@ button:focus-visible,
 .kf-section--ink { background: var(--color-ink); color: #fff; }
 .kf-section--ink h2, .kf-section--ink h3 { color: #fff; }
 .kf-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 1rem 2rem; margin-block-end: clamp(2rem, 4vw, 3rem); }
-.kf-head h2 { margin: 0; font-size: clamp(1.75rem, 3.2vw, 2.5rem); }
+.kf-head h2,
+.kf-title { margin: 0; font-size: clamp(1.75rem, 3.2vw, 2.5rem); }
 .kf-lede { max-inline-size: 40rem; margin: 0.75rem 0 0; font-size: 1.125rem; line-height: 1.8; color: var(--color-text-muted); }
 .kf-section--ink .kf-lede { color: var(--color-on-ink-muted); }
 /* رأس بالوسط بخط ذهبي قصير فوقه، كما في رأس الهيرو */

@@ -1,0 +1,151 @@
+/* =========================================================================
+   صفحة البرامج: البطاقات من جدول البرامج، ثم إرشادٌ للاختيار وحاسبة وزكاة
+   ========================================================================= */
+
+/* ── الصدر ── */
+.pg-hero { padding-block: clamp(1.5rem, 3vw, 2.25rem) clamp(1.5rem, 3vw, 2.5rem); background: var(--color-canvas); }
+.pg-crumbs { margin-block-end: clamp(1.25rem, 3vw, 2rem); font-size: 0.875rem; }
+.pg-crumbs a { color: var(--color-text-muted); text-decoration: none; }
+.pg-crumbs a:hover { color: var(--color-brand); }
+.pg-hero__title { margin: 0; font-size: clamp(2rem, 4.4vw, 3.4rem); line-height: 1.2; }
+.pg-hero__title em { font-style: normal; color: var(--color-brand); }
+.pg-hero__lede { max-inline-size: 40rem; margin: 1rem 0 0; font-size: 1.1rem; line-height: 1.8; color: var(--color-text-muted); }
+
+/* ── البطاقات ── */
+.pg-plans { padding-block: clamp(1rem, 2vw, 1.5rem) clamp(3rem, 6vw, 4.5rem); background: var(--color-canvas); }
+.pg-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  block-size: 100%;
+  padding: clamp(1.4rem, 2.5vw, 1.75rem);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface);
+  scroll-margin-block-start: 7rem;
+  transition: translate var(--dur-normal) var(--ease-out), box-shadow var(--dur-normal) var(--ease-out), border-color var(--dur-normal) var(--ease-out);
+}
+.pg-card:hover { translate: 0 -4px; border-color: transparent; box-shadow: var(--shadow-lg); }
+.pg-card:target { border-color: var(--color-brand); box-shadow: 0 0 0 4px var(--color-brand-soft); }
+.pg-card--featured { border: 2px solid var(--color-brand); box-shadow: var(--shadow-md); }
+.pg-card__flag {
+  position: absolute;
+  inset-block-start: -0.8rem;
+  inset-inline-start: 1.5rem;
+  padding: 0.25rem 0.85rem;
+  border-radius: var(--radius-pill);
+  background: var(--color-brand);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--color-brand-contrast);
+}
+.pg-card__icon {
+  display: inline-grid;
+  place-items: center;
+  inline-size: 3.25rem;
+  block-size: 3.25rem;
+  border-radius: var(--radius-md);
+  background: var(--accent, var(--color-brand));
+  color: #fff;
+  font-size: 1.35rem;
+}
+.pg-card__name { margin: 0.25rem 0 0; font-size: 1.35rem; }
+.pg-card__summary { margin: 0; font-size: 0.925rem; line-height: 1.75; color: var(--color-text-muted); }
+.pg-card__price { display: flex; align-items: baseline; gap: 0.4rem; margin: 0.25rem 0 0; padding-block: 0.85rem; border-block: 1px solid var(--color-border); }
+.pg-card__price strong { font-family: var(--font-display); font-size: 2.2rem; line-height: 1; color: var(--color-text); }
+.pg-card__price span { color: var(--color-text-muted); }
+
+.pg-card__features { display: grid; gap: 0.6rem; margin: 0.25rem 0 0; padding: 0; list-style: none; font-size: 0.925rem; }
+.pg-card__features li { display: flex; align-items: flex-start; gap: 0.55rem; }
+.pg-card__features i { margin-block-start: 0.3rem; font-size: 0.75rem; color: var(--color-success); }
+
+.pg-card__foot { display: grid; gap: 0.75rem; margin-block-start: auto; padding-block-start: 1rem; }
+.pg-card__waiting { display: flex; align-items: center; gap: 0.4rem; margin: 0; font-size: 0.85rem; color: var(--color-text-muted); }
+.pg-card__waiting b { color: var(--color-text); }
+.pg-card__dot { inline-size: 0.5rem; block-size: 0.5rem; border-radius: 50%; background: var(--color-urgent); }
+
+/* ── أيّها يناسبك ── */
+.pg-guide { padding-block: clamp(3rem, 6vw, 5rem); border-block-start: 1px solid var(--color-border); background: var(--color-surface); }
+.pg-guide__list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.85rem; max-inline-size: 64rem; margin: 0 auto; padding: 0; list-style: none; }
+.pg-guide__item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  block-size: 100%;
+  padding: 1.1rem 1.25rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-canvas);
+  color: inherit;
+  text-decoration: none;
+  transition: border-color var(--dur-fast) var(--ease-out), background-color var(--dur-fast) var(--ease-out);
+}
+.pg-guide__item:hover { border-color: var(--color-brand); background: var(--color-surface); }
+.pg-guide__icon { display: inline-grid; place-items: center; flex-shrink: 0; inline-size: 2.75rem; block-size: 2.75rem; border-radius: var(--radius-md); background: var(--color-brand-soft); color: var(--color-brand); font-size: 1.1rem; }
+.pg-guide__text { flex: 1; min-inline-size: 0; }
+.pg-guide__text strong { display: block; font-family: var(--font-display); color: var(--color-text); }
+.pg-guide__text span { font-size: 0.875rem; color: var(--color-text-muted); }
+.pg-guide__pick { flex-shrink: 0; font-size: 0.85rem; font-weight: 600; color: var(--color-brand); white-space: nowrap; }
+.pg-guide__pick i { margin-inline-start: 0.25rem; transition: translate var(--dur-fast) var(--ease-out); }
+.pg-guide__item:hover .pg-guide__pick i { translate: -0.2rem 0; }
+
+/* ── الحاسبة ── */
+.pg-calc { padding-block: clamp(3rem, 6vw, 5rem); background: var(--color-canvas); }
+.pg-calc__amount { display: flex; align-items: baseline; gap: 0.35rem; margin: 1.5rem 0 0.5rem; color: var(--color-text-muted); }
+.pg-calc__amount output { font-family: var(--font-display); font-size: clamp(3rem, 6vw, 4rem); font-weight: 700; line-height: 1; color: var(--color-brand); }
+.pg-calc__range { --bs-form-range-thumb-bg: var(--color-brand); --bs-form-range-thumb-active-bg: var(--color-brand); }
+.pg-calc__range::-webkit-slider-thumb { inline-size: 1.4rem; block-size: 1.4rem; margin-block-start: -0.45rem; }
+.pg-calc__range::-moz-range-thumb { inline-size: 1.4rem; block-size: 1.4rem; }
+.pg-calc__scale { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--color-text-muted); }
+.pg-calc__hint { min-block-size: 1.6rem; margin: 1rem 0 1.25rem; font-weight: 600; color: var(--color-brand); }
+.pg-calc__list-label { margin: 0 0 0.75rem; font-weight: 600; color: var(--color-text-muted); }
+.pg-calc__list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; margin: 0; padding: 0; list-style: none; }
+.pg-calc__list li { display: flex; align-items: flex-start; gap: 0.75rem; padding: 1rem; border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); }
+.pg-calc__list .impact-list__icon { display: inline-grid; place-items: center; flex-shrink: 0; inline-size: 2.5rem; block-size: 2.5rem; border-radius: var(--radius-md); background: var(--color-brand-soft); color: var(--color-brand); }
+.pg-calc__list .impact-list__text { font-size: 0.875rem; line-height: 1.6; color: var(--color-text-muted); }
+.pg-calc__list .impact-list__text strong { display: block; font-family: var(--font-display); font-size: 0.95rem; color: var(--color-text); }
+/* البند الذي أضافه المبلغ الجديد يظهر مرة */
+@media (prefers-reduced-motion: no-preference) {
+  .pg-calc__list li.is-updated { animation: pg-in 0.4s var(--ease-out); }
+}
+@keyframes pg-in { from { opacity: 0; translate: 0 6px; } }
+
+/* ── الزكاة ── */
+.pg-zakat { padding-block: clamp(3rem, 6vw, 5rem); border-block-start: 1px solid var(--color-border); background: var(--color-surface); }
+.pg-zakat__p { max-inline-size: 36rem; margin: 1rem 0 0; line-height: 1.9; color: var(--color-text); }
+.pg-zakat .link-arrow { display: inline-flex; margin-block-start: 1.25rem; }
+.pg-zakat__steps { display: grid; gap: 0.75rem; margin: 0; padding: 0; list-style: none; }
+.pg-zakat__steps li { display: flex; align-items: flex-start; gap: 0.9rem; padding: 1rem 1.15rem; border-radius: var(--radius-lg); background: var(--color-canvas); }
+.pg-zakat__steps .num { display: inline-grid; place-items: center; flex-shrink: 0; inline-size: 2.2rem; block-size: 2.2rem; border-radius: 50%; background: var(--color-cta); font-weight: 700; color: var(--color-cta-contrast); }
+.pg-zakat__steps strong { display: block; font-family: var(--font-display); }
+.pg-zakat__steps span:not(.num) { font-size: 0.875rem; color: var(--color-text-muted); }
+
+/* ── الخاتمة: بطاقة دعوة بلون الهوية الفاتح ── */
+.pg-cta { padding-block: 0 clamp(3rem, 6vw, 5rem); background: var(--color-surface); }
+.pg-cta__card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem 2rem;
+  padding: clamp(1.75rem, 4vw, 2.75rem);
+  border: 1px solid var(--color-brand-border);
+  border-radius: 2rem;
+  background: var(--color-brand-soft);
+}
+.pg-cta__card h2 { margin: 0; font-size: clamp(1.4rem, 2.6vw, 1.9rem); }
+.pg-cta__card p { margin: 0.4rem 0 0; color: var(--color-text-muted); }
+
+@media (max-width: 61.98rem) {
+  .pg-guide__list { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 35.98rem) {
+  .pg-guide__item { flex-wrap: wrap; }
+  .pg-guide__pick { inline-size: 100%; padding-inline-start: 3.75rem; }
+  .pg-calc__list { grid-template-columns: minmax(0, 1fr); }
+  .pg-cta__card .btn { inline-size: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pg-card, .pg-guide__item, .pg-guide__pick i { transition: none; }
+}

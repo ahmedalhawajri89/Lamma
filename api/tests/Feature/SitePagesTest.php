@@ -127,3 +127,25 @@ it('صفحة الكفالة لطفلٍ مكتمل بلا نموذج دفع، و�
     $this->get('/checkout?id=NOPE')->assertNotFound();
     $this->get('/checkout')->assertRedirect('/orphans');
 });
+
+it('ترسم صفحة البرامج أسعارها وبنودها من جدولها، وتعدّ من ينتظر في كلٍّ', function () {
+    $this->seed(Database\Seeders\ContentSeeder::class);
+    $program = App\Models\Program::active()->with('features')->first();
+    $program->update(['monthly_price' => 77, 'accent' => 'red; background:url(//evil)']);
+
+    // منتظران، ومكفولٌ بالكامل لا يُعدّ
+    profileChild(['program_id' => $program->id]);
+    profileChild(['program_id' => $program->id]);
+    $full = profileChild(['program_id' => $program->id]);
+    App\Models\Sponsorship::factory()->for($full)->create(['monthly_amount' => 50]);
+
+    $html = $this->get('/programs')->assertOk()->getContent();
+
+    expect($html)
+        ->toContain('$77')
+        ->toContain($program->features->first()->label_ar)
+        ->toContain('<b class="num">2</b> طفلان ينتظران')
+        ->toContain('href="/orphans?program='.$program->slug.'"')
+        // لونٌ حرّ من اللوحة لا يدخل style
+        ->not->toContain('evil');
+});

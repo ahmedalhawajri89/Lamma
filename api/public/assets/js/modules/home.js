@@ -57,7 +57,8 @@ function renderPlans() {
 </article>`).join('');
 
   // الرئيسية وصفحة البرامج تعرضانها بالشكل نفسه
-  $$('#homePlans, #programsGrid').forEach((host) => { host.innerHTML = html; });
+  // صفحة البرامج يرسمها الخادم من جدولها (ProgramsPageController)
+  $$('#homePlans').forEach((host) => { host.innerHTML = html; });
 }
 
 /**
