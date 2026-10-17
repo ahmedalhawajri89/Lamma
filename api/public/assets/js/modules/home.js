@@ -21,7 +21,7 @@ import {
   spendingLegend,
 } from './render.js';
 
-import { $, $$, escapeHtml, formatNumber, formatMoney, safeNumber } from './utils.js';
+import { $, $$, countUp, escapeHtml, formatNumber, formatMoney, observeOnce, presetCount, safeNumber } from './utils.js';
 
 /** عدد الأطفال الذين يُعرَّف بهم في الرئيسية: الأول مفتوحاً والباقون وجوهاً. */
 const MEET_COUNT = 6;
@@ -240,20 +240,37 @@ function renderMoneyStats() {
 }
 
 /**
- * بطاقتا الهيرو العائمتان: عدد المكفولين ونسبة ما يصل للطفل، من الشفافية.
- * مخفيتان في HTML ولا تظهران إلا برقم حقيقي: بطاقة بقيمة فارغة أو صفر
- * أسوأ من غيابها، ورقمٌ مكتوب باليد هو ما خرجنا منه.
+ * بطاقة أرقام الهيرو: من الشفافية لحظة الفتح، تعدّ مرة واحدة حين تظهر.
+ * البند الذي لا رقم له يُخفى: بطاقة تقول «0 يتيماً مكفولاً» أسوأ من غيابه،
+ * ورقمٌ مكتوب باليد (كان «120,000» في التصميم المقترح) هو ما خرجنا منه.
  */
 function renderHeroProof() {
-  const values = { sponsored: formatNumber(PROOF.sponsored), toChild: `${safeNumber(PROOF.toChild)}٪` };
-  const ok = { sponsored: PROOF.sponsored > 0, toChild: PROOF.toChild > 0 };
+  const host = $('#heroStats');
+  if (!host) return;
 
-  $$('[data-hero]').forEach((el) => {
-    const key = el.dataset.hero;
-    if (!ok[key]) return;
-    el.textContent = values[key];
-    el.closest('[data-hero-chip]')?.removeAttribute('hidden');
+  const stats = {
+    sponsored: { value: PROOF.sponsored },
+    toChild: { value: PROOF.toChild, format: (n) => `${formatNumber(n)}٪` },
+    startYear: { value: PROOF.startYear, format: String, still: true },
+    visits: { value: PROOF.visits },
+  };
+
+  $$('[data-hero-item]', host).forEach((item) => {
+    const stat = stats[item.dataset.heroItem];
+    item.hidden = !(Number(stat?.value) > 0);
   });
+
+  const items = $$('[data-hero]', host).filter((el) => !el.closest('[hidden]'));
+  // السنة تُكتب كما هي، والبقية تعدّ من الصفر حين تظهر البطاقة
+  items.forEach((el) => {
+    const { value, format = formatNumber, still } = stats[el.dataset.hero];
+    if (still) el.textContent = format(value);
+    else presetCount(el, format(value)).textContent = format(0);
+  });
+  observeOnce([host], () => items.forEach((el) => {
+    const { value, format = formatNumber, still } = stats[el.dataset.hero];
+    if (!still) countUp(el, Number(value), format);
+  }), { threshold: 0.4 });
 }
 
 export function renderHomeSections() {

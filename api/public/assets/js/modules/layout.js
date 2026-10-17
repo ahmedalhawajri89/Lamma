@@ -206,7 +206,7 @@ function bsHeaderMarkup({ page }) {
 <header class="kf-header" id="siteHeader">
   <nav class="navbar navbar-expand-lg" aria-label="التنقل الرئيسي">
     <div class="container">
-      <a class="navbar-brand kf-brand" href="index.html">${brand(36)}</a>
+      <a class="navbar-brand kf-brand" href="index.html">${brand(46)}</a>
 
       <div class="offcanvas-lg offcanvas-end flex-lg-grow-1" tabindex="-1" id="siteNav" aria-labelledby="siteNavTitle">
         <div class="offcanvas-header">
@@ -223,12 +223,17 @@ function bsHeaderMarkup({ page }) {
       </div>
 
       <div class="kf-header__actions">
-        <button class="btn btn-icon" type="button" id="themeToggle" aria-pressed="false" aria-label="الوضع الليلي">
+        <a class="btn btn-outline-primary d-none d-lg-inline-flex" href="login.html" data-account-link>تسجيل الدخول</a>
+        <a class="btn btn-cta d-none d-sm-inline-flex" href="orphans.html">
+          <i class="fa-regular fa-heart" aria-hidden="true"></i> اكفل يتيماً
+        </a>
+        <a class="btn btn-icon btn-icon--plain" href="orphans.html" aria-label="ابحث عن طفل" title="ابحث عن طفل">
+          <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+        </a>
+        <button class="btn btn-icon btn-icon--plain" type="button" id="themeToggle" aria-pressed="false" aria-label="الوضع الليلي">
           <i class="fa-solid fa-moon" aria-hidden="true"></i>
           <i class="fa-solid fa-sun" aria-hidden="true"></i>
         </button>
-        <a class="btn btn-link d-none d-lg-inline-flex" href="login.html" data-account-link>تسجيل الدخول</a>
-        <a class="btn btn-cta d-none d-sm-inline-flex" href="orphans.html">اكفل يتيماً</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#siteNav"
                 aria-controls="siteNav" aria-label="فتح قائمة التنقل">
           <i class="fa-solid fa-bars" aria-hidden="true"></i>

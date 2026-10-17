@@ -400,13 +400,21 @@ button:focus-visible,
   /* لا backdrop-filter ولا transform هنا: كلاهما يجعل الهيدر مرجعاً لما
      بداخله من position: fixed، فينحصر درج الجوال في ارتفاع الهيدر ويُحدث
      تمريراً أفقياً بعرضه وهو مغلق */
-  background: var(--color-surface);
+  /* بلون الأرضية لا السطح: يتصل بالهيرو تحته بلا شريط أبيض فاصل */
+  background: var(--color-canvas);
   border-block-end: 1px solid var(--color-border);
   transition: inset-block-start var(--dur-normal) var(--ease-out);
 }
 /* يختفي عند النزول ويعود عند أول صعود (initStickyHeader في layout.js) */
 .kf-header.is-hidden { inset-block-start: -6rem; }
 .kf-header .navbar { --bs-navbar-padding-y: 0.75rem; }
+/* الشعار في الهيدر أكبر، والاسم بلون المنصة */
+.kf-header .kf-brand__name { font-size: 1.5rem; color: var(--color-brand); }
+.kf-header .kf-brand__tag { font-size: 0.78rem; }
+.kf-header .navbar-nav .nav-link { font-size: 1rem; }
+@media (min-width: 992px) { .kf-header .navbar-nav { gap: 0.5rem; } }
+/* أيقونة بلا إطار (البحث والوضع الليلي) */
+.btn-icon--plain { --bs-btn-border-color: transparent; --bs-btn-hover-border-color: transparent; }
 
 .kf-brand { display: inline-flex; align-items: center; gap: 0.6rem; color: var(--color-text); text-decoration: none; }
 .kf-brand:hover { color: var(--color-text); }

@@ -71,48 +71,81 @@
 
   <main id="main">
 
-    <!-- ══ الهيرو: رسالة ودليل حيّ (نمط «الثقة والتحويل» من ui-ux-pro-max) ══
-         النص والقرار في عمود، والصورة في الآخر بإطار هادئ وكتلة تركوازية خلفها.
-         البطاقتان العائمتان بأرقام من النظام؛ مخفيتان حتى تُملآ، فلا يظهر رقم مختلق. -->
+    <!-- ══ الهيرو: الصورة تذوب في الأرضية من جهة النص، وحافة سفلية منحنية،
+         وبطاقة أرقام حيّة تتداخل مع أسفله. الحركة مرة واحدة عند الفتح. ══ -->
     <section class="hero" aria-labelledby="heroTitle">
-      <div class="container">
-        <div class="row g-4 g-lg-5 align-items-center">
-          <div class="col-lg-6">
-            <p class="hero__kicker">منصة مرخّصة ومدقّقة · منذ <span class="num">2012</span></p>
-            <h1 class="hero__title" id="heroTitle">اكفل يتيماً،<br><em>وتابع أثرك بنفسك.</em></h1>
-            <p class="hero__lede">
-              تقرير مصوّر كل ثلاثة أشهر لا مرةً في السنة، وكشف حساب لكل دفعة،
-              وإيقاف كفالتك أو تعديلها بنقرة واحدة، بلا اتصال ولا انتظار.
-            </p>
-            <div class="hero__actions">
-              <a class="btn btn-cta btn-lg" href="orphans.html">
-                اكفل يتيماً <i class="fa-solid fa-arrow-left btn__icon btn__icon--arrow" aria-hidden="true"></i>
-              </a>
-              <a class="link-arrow" href="transparency.html">كيف نضمن وصولها؟</a>
-            </div>
-            <ul class="hero__proof" role="list">
-              <li><span class="hero__proof-icon"><i class="fa-solid fa-camera" aria-hidden="true"></i></span><span><strong>كل 3 أشهر</strong>تقرير مصوّر عن طفلك</span></li>
-              <li><span class="hero__proof-icon"><i class="fa-solid fa-scale-balanced" aria-hidden="true"></i></span><span><strong>زكاتك منفصلة</strong>عن صدقتك في الإيصال</span></li>
-              <li><span class="hero__proof-icon"><i class="fa-solid fa-circle-pause" aria-hidden="true"></i></span><span><strong>إيقاف بنقرة</strong>متى شئت، بلا اتصال</span></li>
-            </ul>
-          </div>
+      <figure class="hero__photo">
+        <picture>
+          <source media="(max-width: 61.98rem)" srcset="assets/img/hero-girl-tall.webp">
+          <img src="assets/img/hero-girl.webp"
+               srcset="assets/img/hero-girl-md.webp 1100w, assets/img/hero-girl.webp 1672w"
+               sizes="(min-width: 62rem) 62vw, 100vw"
+               alt="طفلة تحمل كتبها المدرسية وتبتسم أمام خيام المخيم"
+               width="1672" height="941" fetchpriority="high">
+        </picture>
+      </figure>
 
-          <div class="col-lg-6">
-            <figure class="hero__media">
-              <img src="assets/img/hero-tall.webp" alt="طفلة بسترة بنفسجية تبتسم للكاميرا"
-                   width="760" height="950" fetchpriority="high">
-              <p class="hero__chip hero__chip--top" data-hero-chip hidden>
-                <span class="hero__chip-icon"><i class="fa-solid fa-heart" aria-hidden="true"></i></span>
-                <span><b class="num" data-hero="sponsored"></b> طفلاً مكفولاً اليوم</span>
-              </p>
-              <p class="hero__chip hero__chip--bottom" data-hero-chip hidden>
-                <span class="hero__chip-icon hero__chip-icon--gold"><i class="fa-solid fa-hand-holding-heart" aria-hidden="true"></i></span>
-                <span><b class="num" data-hero="toChild"></b> من كفالتك تصل للطفل</span>
-              </p>
-              <figcaption class="hero__credit">صورة توضيحية · Salah Darwish / Unsplash</figcaption>
-            </figure>
+      <!-- عبارة بخط اليد فوق الصورة، وتحتها خط ذهبي يُرسم مرة واحدة -->
+      <p class="hero__script" aria-hidden="true">
+        <span>بكفالتك..</span>
+        <span>نمنحهم غداً أفضل</span>
+        <svg class="hero__swoosh" viewBox="0 0 120 30" focusable="false"><path d="M4 24 C 34 8, 72 4, 116 6"/></svg>
+      </p>
+
+      <!-- أوراق خطية زخرفية: تُرسم خطوطها عند الفتح -->
+      <svg class="hero__leaves" viewBox="0 0 140 240" aria-hidden="true" focusable="false">
+        <path class="hero__stem" d="M20 236 C 46 180, 70 120, 118 20"/>
+        <path d="M38 196 C 10 186, 2 160, 12 140 C 32 150, 42 172, 38 196 Z"/>
+        <path d="M52 162 C 74 142, 98 142, 112 152 C 96 170, 72 174, 52 162 Z"/>
+        <path d="M66 128 C 42 112, 40 86, 52 70 C 70 86, 72 108, 66 128 Z"/>
+        <path d="M84 96 C 104 76, 126 72, 138 80 C 124 98, 104 104, 84 96 Z"/>
+        <path d="M96 64 C 82 44, 86 22, 100 12 C 110 30, 108 50, 96 64 Z"/>
+      </svg>
+      <span class="hero__blob" aria-hidden="true"></span>
+
+      <div class="container hero__inner">
+        <div class="hero__text">
+          <p class="hero__kicker">منصة مرخّصة وموثوقة <span class="hero__dot" aria-hidden="true"></span> منذ <span class="num">2012</span></p>
+          <h1 class="hero__title" id="heroTitle">
+            <span class="hero__line">اكفل <mark class="hero__mark">يتيماً</mark>..</span>
+            <span class="hero__line hero__line--brand">وتابع أثرك بنفسك.</span>
+          </h1>
+          <p class="hero__lede">
+            لكلّ يتيم الحقّ في حياة كريمة. وكفالتك تمنحه الأمل والتعليم والمستقبل،
+            وتصلك تقارير مصوّرة عنه كل ثلاثة أشهر.
+          </p>
+          <div class="hero__actions">
+            <a class="btn btn-cta btn-lg" href="orphans.html">
+              اكفل يتيماً <i class="fa-solid fa-arrow-left btn__icon btn__icon--arrow" aria-hidden="true"></i>
+            </a>
+            <a class="hero__how" href="#how">
+              كيف نضمن وصولها؟
+              <span class="hero__how-icon" aria-hidden="true"><i class="fa-solid fa-play"></i></span>
+            </a>
           </div>
         </div>
+      </div>
+
+      <!-- الأرقام من الشفافية لحظة الفتح؛ البند الذي لا رقم له يُخفى -->
+      <div class="container hero__stats-wrap">
+        <ul class="hero__stats" id="heroStats" role="list" aria-label="المنصة بالأرقام">
+          <li data-hero-item="sponsored">
+            <span class="hero__stat-icon" aria-hidden="true"><i class="fa-solid fa-children"></i></span>
+            <span class="hero__stat-text"><strong class="num" data-hero="sponsored">0</strong><span class="hero__stat-label">يتيماً مكفولاً اليوم</span></span>
+          </li>
+          <li data-hero-item="toChild">
+            <span class="hero__stat-icon" aria-hidden="true"><i class="fa-regular fa-heart"></i></span>
+            <span class="hero__stat-text"><strong class="num" data-hero="toChild">0</strong><span class="hero__stat-label">من كفالتك تصل للطفل</span></span>
+          </li>
+          <li data-hero-item="startYear">
+            <span class="hero__stat-icon" aria-hidden="true"><i class="fa-solid fa-shield-halved"></i></span>
+            <span class="hero__stat-text"><span class="hero__stat-pre">منذ</span><strong class="num" data-hero="startYear">2012</strong><span class="hero__stat-label">خبرة موثّقة</span></span>
+          </li>
+          <li data-hero-item="visits">
+            <span class="hero__stat-icon" aria-hidden="true"><i class="fa-solid fa-house-chimney-user"></i></span>
+            <span class="hero__stat-text"><strong class="num" data-hero="visits">0</strong><span class="hero__stat-label">زيارة ميدانية موثّقة</span></span>
+          </li>
+        </ul>
       </div>
     </section>
 
