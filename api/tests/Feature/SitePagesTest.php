@@ -194,3 +194,18 @@ it('«اقرأ أيضاً» من المنشور وحده بلا المقال ن�
     $this->get('/post?slug=nope')->assertNotFound();
     $this->get('/post')->assertRedirect('/blog');
 });
+
+it('يبني فهرس المقال من عناوينه الفرعية بمراسٍ يولّدها الخادم', function () {
+    $post = App\Models\Post::factory()->create([
+        'body' => '<p>مقدمة</p><h2 id="evil" onclick="x()">المرحلة <em>الأولى</em></h2><p>نص</p><h2>المرحلة الثانية</h2><p>نص</p>',
+    ]);
+
+    $html = $this->get('/post?slug='.urlencode($post->slug))->assertOk()->getContent();
+
+    expect($html)
+        ->toContain('<h2 id="section-1">المرحلة <em>الأولى</em></h2>')
+        ->toContain('<a href="#section-2">المرحلة الثانية</a>')
+        ->toContain('في هذا المقال')
+        ->not->toContain('id="evil"')
+        ->not->toContain('onclick');
+});

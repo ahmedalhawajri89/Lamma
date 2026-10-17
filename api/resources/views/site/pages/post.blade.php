@@ -68,7 +68,7 @@
 
     <article class="post" aria-labelledby="postTitle">
       <header class="post-head">
-        <div class="container post-narrow">
+        <div class="container">
           <nav aria-label="مسار التنقل">
             <ol class="breadcrumb post-crumbs">
               <li class="breadcrumb-item"><a href="/">الرئيسية</a></li>
@@ -78,20 +78,14 @@
               @endif
             </ol>
           </nav>
-          @if ($post->category)
-            <a class="post-tag" href="/blog?cat={{ urlencode($post->category->slug) }}">{{ $post->category->name_ar }}</a>
-          @endif
-          <h1 class="post-title" id="postTitle">{{ $post->title }}</h1>
-          @if ($post->excerpt)
-            <p class="post-lede">{{ $post->excerpt }}</p>
-          @endif
-          <div class="post-meta">
-            <span class="post-meta__by"><span class="post-meta__avatar" aria-hidden="true"><img src="/assets/img/logo.svg" alt="" width="40" height="40"></span>
-              <span><b>{{ $post->author?->name ?? 'فريق كفالة' }}</b><span><time datetime="{{ $post->published_at?->toDateString() }}">{{ $post->published_at?->translatedFormat('j F Y') }}</time> · {{ $read }} قراءة</span></span>
-            </span>
-            <button type="button" class="post-share" data-share data-share-title="{{ $post->title }}">
-              <i class="fa-solid fa-share-nodes" aria-hidden="true"></i> شارك المقال
-            </button>
+          <div class="post-head__text">
+            @if ($post->category)
+              <a class="post-tag" href="/blog?cat={{ urlencode($post->category->slug) }}">{{ $post->category->name_ar }}</a>
+            @endif
+            <h1 class="post-title" id="postTitle">{{ $post->title }}</h1>
+            @if ($post->excerpt)
+              <p class="post-lede">{{ $post->excerpt }}</p>
+            @endif
           </div>
         </div>
       </header>
@@ -102,24 +96,61 @@
         </figure>
       @endif
 
-      <div class="container post-narrow">
-        <div class="post-body">{!! $body !!}</div>
+      <div class="container">
+        <div class="row g-4 g-xl-5">
+          {{-- ══ النصّ: عمودٌ عريض مقروء ══ --}}
+          <div class="col-lg-8">
+            <div class="post-body">{!! $body !!}</div>
 
-        <footer class="post-end">
-          <p>هل وجدت المقال مفيداً؟ أرسله لمن يهمّه.</p>
-          <button type="button" class="btn btn-outline-primary" data-share data-share-title="{{ $post->title }}">
-            <i class="fa-solid fa-share-nodes" aria-hidden="true"></i> شارك المقال
-          </button>
-        </footer>
-
-        {{-- دعوةٌ في آخر القراءة: أنسب لحظة لها --}}
-        <aside class="post-invite" aria-label="اكفل يتيماً">
-          <div>
-            <h2>كل ما قرأته هنا يحدث لطفلٍ ينتظر كافلاً</h2>
-            <p>ملفات موثّقة ومزارة ميدانياً، وتقرير مصوّر كل ثلاثة أشهر.</p>
+            <footer class="post-end">
+              <p>هل وجدت المقال مفيداً؟ أرسله لمن يهمّه.</p>
+              <button type="button" class="btn btn-outline-primary" data-share data-share-title="{{ $post->title }}">
+                <i class="fa-solid fa-share-nodes" aria-hidden="true"></i> شارك المقال
+              </button>
+            </footer>
           </div>
-          <a class="btn btn-cta btn-lg" href="/orphans">اكفل يتيماً <i class="fa-solid fa-arrow-left ms-1" aria-hidden="true"></i></a>
-        </aside>
+
+          {{-- ══ الجانب: يلتصق أثناء القراءة ══ --}}
+          <aside class="col-lg-4" aria-label="عن المقال">
+            <div class="post-aside">
+              @if (count($toc) > 1)
+                <nav class="post-card post-toc" aria-labelledby="tocTitle">
+                  <h2 class="post-card__title" id="tocTitle">في هذا المقال</h2>
+                  <ol>
+                    @foreach ($toc as $item)
+                      <li><a href="#{{ $item['id'] }}">{{ $item['title'] }}</a></li>
+                    @endforeach
+                  </ol>
+                </nav>
+              @endif
+
+              <div class="post-card post-about">
+                <div class="post-meta__by">
+                  <span class="post-meta__avatar" aria-hidden="true"><img src="/assets/img/logo.svg" alt="" width="40" height="40"></span>
+                  <span><b>{{ $post->author?->name ?? 'فريق كفالة' }}</b><span>من فريق المنصة</span></span>
+                </div>
+                <dl class="post-facts">
+                  <div><dt><i class="fa-regular fa-calendar" aria-hidden="true"></i> نُشر</dt><dd><time datetime="{{ $post->published_at?->toDateString() }}">{{ $post->published_at?->translatedFormat('j F Y') }}</time></dd></div>
+                  <div><dt><i class="fa-regular fa-clock" aria-hidden="true"></i> القراءة</dt><dd>{{ $read }}</dd></div>
+                  @if ($post->category)
+                    <div><dt><i class="fa-regular fa-folder" aria-hidden="true"></i> التصنيف</dt><dd><a href="/blog?cat={{ urlencode($post->category->slug) }}">{{ $post->category->name_ar }}</a></dd></div>
+                  @endif
+                </dl>
+                <button type="button" class="post-share" data-share data-share-title="{{ $post->title }}">
+                  <i class="fa-solid fa-share-nodes" aria-hidden="true"></i> شارك المقال
+                </button>
+              </div>
+
+              {{-- الدعوة بجانب القراءة لا بعدها وحدها --}}
+              <div class="post-card post-invite">
+                <span class="post-invite__icon" aria-hidden="true"><i class="fa-solid fa-hand-holding-heart"></i></span>
+                <h2>كل ما تقرؤه هنا يحدث لطفلٍ ينتظر كافلاً</h2>
+                <p>ملفات موثّقة ومزارة ميدانياً، وتقرير مصوّر كل ثلاثة أشهر.</p>
+                <a class="btn btn-cta w-100" href="/orphans">اكفل يتيماً <i class="fa-solid fa-arrow-left ms-1" aria-hidden="true"></i></a>
+              </div>
+            </div>
+          </aside>
+        </div>
       </div>
     </article>
 

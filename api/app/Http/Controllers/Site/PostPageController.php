@@ -54,6 +54,18 @@ class PostPageController extends Controller
             ? $rich->sanitize($post->body)
             : $rich->fromPlain($post->body ?: $post->excerpt);
 
+        /*
+         * فهرس المقال من عناوينه الفرعية (h2)، ولكلٍّ مرساةٌ يقفز إليها. المعرّف
+         * نولّده نحن («section-1») بعد التنظيف، فلا يدخل من النصّ سمةٌ غيره.
+         */
+        $toc = [];
+        $body = preg_replace_callback('#<h2>(.*?)</h2>#su', function (array $m) use (&$toc): string {
+            $id = 'section-'.(count($toc) + 1);
+            $toc[] = ['id' => $id, 'title' => trim(html_entity_decode(strip_tags($m[1]), ENT_QUOTES | ENT_HTML5, 'UTF-8'))];
+
+            return '<h2 id="'.$id.'">'.$m[1].'</h2>';
+        }, (string) $body);
+
         // من التصنيف نفسه أولاً، ثم الأحدث، بلا المقال نفسه
         $related = Post::query()->published()->with('category:id,name_ar,slug')
             ->whereKeyNot($post->getKey())
@@ -67,6 +79,7 @@ class PostPageController extends Controller
         return response()->view('site.pages.post', [
             'post' => $post,
             'body' => $body,
+            'toc' => $toc,
             'related' => $related,
         ]);
     }

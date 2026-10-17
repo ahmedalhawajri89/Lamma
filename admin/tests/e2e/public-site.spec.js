@@ -235,8 +235,8 @@ test.describe('المدونة وصفحة المقال', () => {
     expect(await page.locator('.post-body p').count()).toBeGreaterThan(2)
 
     // صيغة جمع صحيحة لزمن القراءة (والأرقام لاتينية كبقية الموقع)
-    const meta = await page.locator('.post-meta').innerText()
-    expect(meta).toMatch(/قراءة/)
+    const meta = await page.locator('.post-about').innerText()
+    expect(meta).toMatch(/دقيقة|دقيقتان|دقائق/)
     expect(meta).not.toMatch(/دقيقتان دقائق|1 دقائق|2 دقائق/)
   })
 
