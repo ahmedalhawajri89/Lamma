@@ -1472,96 +1472,120 @@
   .money-row, .money-donut__seg { transition: none; }
 }
 
-/* ------- ٦) البرامج: أعمدة مفتوحة بلا بطاقات ------- */
-/* خطوط شعرية بين الأعمدة بدل صناديق، والبرنامج الأكثر اختياراً وحده بأرضية ملوّنة.
-   السعر والزر قبل المزايا: القرار أولاً، والتفاصيل لمن يريدها. */
-.plans {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  border-block: 1px solid var(--color-border);
-}
-
-.plan {
+/* ------- ٦) البرامج: بطاقات أسعار، والأكثر اختياراً بلون الحبر ------- */
+.plan-card {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
-  padding: var(--space-8) var(--space-6);
+  gap: 0.85rem;
+  block-size: 100%;
+  padding: 1.75rem 1.5rem 1.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  background: var(--color-canvas);
+  transition: translate var(--dur-normal) var(--ease-out),
+              box-shadow var(--dur-normal) var(--ease-out),
+              border-color var(--dur-normal) var(--ease-out);
 }
+.plan-card:hover { translate: 0 -6px; border-color: var(--color-brand-border); box-shadow: var(--shadow-lg); }
 
-.plan + .plan { border-inline-start: 1px solid var(--color-border); }
-
-.plan.is-featured {
+.plan-card__icon {
+  display: inline-grid;
+  place-items: center;
+  inline-size: 3.25rem;
+  block-size: 3.25rem;
+  border-radius: var(--radius-md);
   background: var(--color-brand-soft);
-  border-color: transparent;
+  color: var(--color-brand);
+  font-size: 1.3rem;
 }
+.plan-card__name { margin: 0.25rem 0 0; font-size: 1.3rem; }
+.plan-card__summary { margin: 0; min-block-size: 3.4em; font-size: 0.92rem; line-height: 1.7; color: var(--color-text-muted); }
 
-.plan.is-featured + .plan { border-inline-start-color: transparent; }
+.plan-card__price { display: flex; align-items: baseline; gap: 0.5rem; margin: 0.25rem 0 0.35rem; }
+.plan-card__price strong { font-family: var(--font-display); font-size: 2.6rem; font-weight: 700; line-height: 1; color: var(--color-text); }
+.plan-card__price span { font-size: 0.9rem; color: var(--color-text-muted); }
 
-.plan__flag {
-  min-block-size: 1.2rem;
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: var(--text-2xs);
-  font-weight: 600;
-  color: var(--color-brand-strong);
-}
-
-.plan__name { margin: 0; font-size: var(--text-lg); }
-
-.plan__price { display: flex; align-items: baseline; gap: var(--space-2); margin: 0; }
-
-.plan__price strong {
-  font-family: var(--font-display);
-  font-size: var(--text-4xl);
-  font-weight: 700;
-  line-height: 1;
-  color: var(--color-text);
-}
-
-.plan__price span { font-size: var(--text-sm); color: var(--color-text-subtle); }
-
-.plan__summary {
-  margin: 0;
-  min-block-size: 4.8em;
-  font-size: var(--text-sm);
-  line-height: 1.6;
-  color: var(--color-text-muted);
-}
-
-.plan__cta { inline-size: 100%; }
-.plan__cta.btn--cta { box-shadow: none; }
-
-.plan__features {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  margin: var(--space-2) 0 0;
-  padding: var(--space-5) 0 0;
-  border-block-start: 1px solid var(--color-border);
+.plan-card__features {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0.6rem 0 0;
+  padding: 1.1rem 0 0;
+  border-block-start: 1px dashed var(--color-border-strong);
   list-style: none;
-  font-size: var(--text-sm);
+  font-size: 0.9rem;
+}
+.plan-card__features li { display: flex; align-items: flex-start; gap: 0.6rem; color: var(--color-text); }
+.plan-card__features i {
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+  margin-block-start: 0.15rem;
+  border-radius: 50%;
+  background: var(--color-brand-soft);
+  color: var(--color-brand);
+  font-size: 0.6rem;
+}
+
+/* الأكثر اختياراً: بلون الحبر في الوضعين، ومرفوعة قليلاً على الشاشة العريضة */
+.plan-card.is-featured {
+  border-color: transparent;
+  background: var(--color-ink);
+  color: #fff;
+  box-shadow: var(--shadow-xl);
+}
+@media (min-width: 1200px) {
+  .plan-card.is-featured { translate: 0 -0.9rem; }
+  .plan-card.is-featured:hover { translate: 0 -1.3rem; }
+}
+.plan-card.is-featured .plan-card__name,
+.plan-card.is-featured .plan-card__price strong,
+.plan-card.is-featured .plan-card__features li { color: #fff; }
+.plan-card.is-featured .plan-card__summary,
+.plan-card.is-featured .plan-card__price span { color: var(--color-on-ink-muted); }
+.plan-card.is-featured .plan-card__icon { background: rgb(255 255 255 / 0.1); color: var(--color-cta); }
+.plan-card.is-featured .plan-card__features { border-color: rgb(255 255 255 / 0.18); }
+.plan-card.is-featured .plan-card__features i { background: rgb(224 166 59 / 0.18); color: var(--color-cta); }
+.plan-card__flag {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 50%;
+  translate: 50% -50%;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0.35rem 0.9rem;
+  border-radius: var(--radius-pill);
+  background: var(--color-cta);
+  color: var(--color-cta-contrast);
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: var(--shadow-md);
+}
+:dir(ltr) .plan-card__flag { translate: -50% -50%; }
+
+/* ما يشمله كل برنامج: سطر واحد تحت البطاقات */
+.plans__includes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem 1.5rem;
+  margin-block-start: 2.5rem;
+  font-size: 0.92rem;
   color: var(--color-text-muted);
 }
+.plans__includes-title { font-family: var(--font-display); font-weight: 600; color: var(--color-text); }
+.plans__includes > span:not(.plans__includes-title) { display: inline-flex; align-items: center; gap: 0.45rem; }
+.plans__includes i { color: var(--color-brand); }
 
-.plan.is-featured .plan__features { border-block-start-color: var(--color-brand-border); }
-
-.plan__features li { display: flex; align-items: flex-start; gap: var(--space-3); }
-.plan__features i { margin-block-start: 0.3rem; font-size: var(--text-2xs); color: var(--color-brand); }
-
-@media (max-width: 75rem) {
-  .plans { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .plan:nth-child(3) { border-inline-start: 0; }
-  .plan:nth-child(n + 3) { border-block-start: 1px solid var(--color-border); }
-}
-
-@media (max-width: 40rem) {
-  .plans { grid-template-columns: minmax(0, 1fr); }
-  .plan + .plan { border-inline-start: 0; border-block-start: 1px solid var(--color-border); }
-  .plan { padding-inline: var(--space-4); }
-  .plan__summary { min-block-size: 0; }
-
-  /* على الهاتف يكفي السعر والزر لبقية البرامج، والمقارنة الكاملة على بُعد رابط */
-  .plan:not(.is-featured) .plan__features { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  .plan-card { transition: none; }
 }
 
 /* ------- ٧) الشهادات: اقتباس رئيسي واثنان تحته ------- */
