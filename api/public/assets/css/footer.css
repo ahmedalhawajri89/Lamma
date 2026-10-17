@@ -1,0 +1,250 @@
+/* =========================================================================
+   الفوتر: نسخة واحدة لكل الصفحات
+   -------------------------------------------------------------------------
+   يُحمَّل في القالبين (app وlegacy)، فلا يعتمد إلا على tokens.css: لا شبكة
+   Bootstrap ولا أصناف الأنماط القديمة. كل صنف فيه يبدأ بـ kf-footer أو
+   kf-news، وكل عنصر يضبط هوامشه بنفسه، فلا يتسرّب إليه اختلاف القالبين.
+   ========================================================================= */
+
+.kf-footer {
+  --kf-footer-text: var(--color-on-ink, #f4f7f5);
+  --kf-footer-muted: var(--color-on-ink-muted, rgb(244 247 245 / 0.76));
+  --kf-footer-line: rgb(255 255 255 / 0.12);
+  --kf-footer-accent: var(--color-on-ink-cta, #f0c46c);
+
+  position: relative;
+  overflow: hidden;
+  padding-block-start: clamp(3.5rem, 7vw, 6rem);
+  background: var(--color-ink);
+  color: var(--kf-footer-text);
+  font-family: var(--font-body);
+  line-height: 1.7;
+}
+.kf-footer *,
+.kf-footer *::before,
+.kf-footer *::after { box-sizing: border-box; }
+.kf-footer :where(h2, p, ul) { margin: 0; }
+.kf-footer :where(ul) { padding: 0; list-style: none; }
+
+.kf-footer__wrap {
+  position: relative;
+  z-index: 1;
+  inline-size: min(100% - 2.5rem, 80rem);
+  margin-inline: auto;
+}
+
+.kf-footer a { color: var(--kf-footer-muted); text-decoration: none; transition: color var(--dur-fast) var(--ease-out); }
+.kf-footer a:hover { color: var(--kf-footer-text); }
+.kf-footer a:focus-visible,
+.kf-footer button:focus-visible { outline: 3px solid var(--kf-footer-accent); outline-offset: 3px; border-radius: 0.4rem; }
+.kf-footer__muted { color: var(--kf-footer-muted); }
+.kf-footer__sr { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* ── العبارة والنشرة ── */
+.kf-footer__lead {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  align-items: end;
+  gap: 2.5rem 4rem;
+  padding-block-end: clamp(2.5rem, 5vw, 4rem);
+  border-block-end: 1px solid var(--kf-footer-line);
+}
+.kf-footer__kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-block-end: 1rem !important;
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--kf-footer-accent);
+}
+.kf-footer__kicker::before { content: ""; inline-size: 2rem; block-size: 2px; background: currentColor; }
+.kf-footer__statement {
+  font-family: var(--font-display);
+  font-size: clamp(2.2rem, 4.6vw, 3.75rem);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: var(--kf-footer-text);
+}
+.kf-footer__statement em { font-style: normal; color: var(--color-on-ink-brand, #7fd1c3); }
+
+.kf-footer__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-block-start: 1.75rem;
+  padding: 0.85rem 1.75rem;
+  border-radius: 999px;
+  background: var(--color-cta);
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--color-cta-contrast) !important;
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+.kf-footer__cta:hover { background: var(--color-cta-hover); }
+.kf-footer__cta i { transition: translate var(--dur-fast) var(--ease-out); }
+.kf-footer__cta:hover i { translate: -0.25rem 0; }
+
+.kf-footer__news-title {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-block-end: 0.4rem !important;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--kf-footer-text);
+}
+.kf-footer__news-title i { color: var(--kf-footer-accent); }
+.kf-footer__news .kf-footer__muted { font-size: 0.95rem; }
+
+/* حقل واحد والزر داخله */
+.kf-news { margin-block-start: 1.25rem; }
+.kf-news .field { margin: 0; }
+.kf-news__box {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem;
+  padding-inline-start: 1.25rem;
+  border: 1px solid rgb(255 255 255 / 0.22);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.06);
+  transition: border-color var(--dur-fast) var(--ease-out), background-color var(--dur-fast) var(--ease-out);
+}
+.kf-news__box:focus-within { border-color: var(--kf-footer-accent); background: rgb(255 255 255 / 0.1); }
+.kf-news .field.is-invalid .kf-news__box { border-color: var(--kf-footer-accent); }
+.kf-news__input {
+  flex: 1;
+  min-inline-size: 0;
+  padding-block: 0.6rem;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--kf-footer-text);
+}
+.kf-news__input::placeholder { color: rgb(255 255 255 / 0.6); }
+.kf-news__input:focus { outline: none; }
+.kf-news__submit {
+  flex-shrink: 0;
+  padding: 0.7rem 1.5rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--color-cta);
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-cta-contrast);
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+.kf-news__submit:hover { background: var(--color-cta-hover); }
+.kf-news__submit:disabled { opacity: 0.7; cursor: progress; }
+.kf-news .field__error { margin: 0.5rem 0 0; padding-inline-start: 1.25rem; font-size: 0.875rem; color: var(--kf-footer-accent); }
+.kf-news .field__error:empty { display: none; }
+
+/* ── الأعمدة ── */
+.kf-footer__cols {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1fr);
+  gap: 2.5rem 3rem;
+  padding-block: clamp(2.5rem, 5vw, 3.5rem);
+}
+.kf-footer__brand { display: inline-flex; align-items: center; gap: 0.75rem; margin-block-end: 1rem; color: var(--kf-footer-text) !important; }
+.kf-footer__brand img { inline-size: 2.5rem; block-size: 2.5rem; }
+.kf-footer__brand span { display: grid; line-height: 1.3; }
+.kf-footer__brand b { font-family: var(--font-display); font-size: 1.35rem; }
+.kf-footer__brand small { font-size: 0.8rem; color: var(--kf-footer-muted); }
+.kf-footer__about .kf-footer__muted { max-inline-size: 20rem; }
+
+.kf-footer__heading {
+  margin-block-end: 1.1rem !important;
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: rgb(255 255 255 / 0.5);
+}
+.kf-footer__links { display: grid; gap: 0.7rem; }
+.kf-footer__links--two { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 1.5rem; }
+.kf-footer__links span { color: var(--kf-footer-muted); }
+.kf-footer__links a { overflow-wrap: anywhere; }
+
+.kf-footer__social { display: flex; gap: 0.5rem; margin-block-start: 1.25rem; }
+.kf-footer__social a {
+  display: inline-grid;
+  place-items: center;
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+  border: 1px solid rgb(255 255 255 / 0.2);
+  border-radius: 50%;
+  transition: background-color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+}
+.kf-footer__social a:hover { background: var(--color-cta); border-color: var(--color-cta); color: var(--color-cta-contrast); }
+
+/* ── السطر الأخير ── */
+.kf-footer__bottom {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem 2rem;
+  padding-block: 1.5rem;
+  border-block-start: 1px solid var(--kf-footer-line);
+  font-size: 0.875rem;
+  color: var(--kf-footer-muted);
+}
+.kf-footer__bottom nav { display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; }
+.kf-footer__pay { display: flex; gap: 0.85rem; font-size: 1.5rem; color: var(--kf-footer-muted); }
+
+/* ── العلامة المائية: الاسم ضخماً يُقصّ نصفه السفلي عند حافة الصفحة ── */
+.kf-footer__mark {
+  margin: 0 0 calc(clamp(6rem, 24vw, 22rem) * -0.32) !important;
+  font-family: var(--font-display);
+  font-size: clamp(6rem, 24vw, 22rem);
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+  color: rgb(255 255 255 / 0.045);
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* تُكتب الكلمة مرةً واحدة حين تظهر: خطٌّ ذهبي رفيع يُرسم من اليمين إلى
+   اليسار كما يُكتب الحرف العربي، ثم يمتلئ بلونه الباهت ويخفت الخط.
+   بلا JS أو مع تقليل الحركة تظهر ثابتة بلونها الأخير.
+   القصّ على الـ span لا على الفقرة: IntersectionObserver يحسب المساحة بعد
+   clip-path، فلو قُصّت الفقرة نفسها لما رآها ظاهرةً قط. */
+.kf-footer__mark span { display: inline-block; }
+@media (prefers-reduced-motion: no-preference) {
+  .js .kf-footer__mark span {
+    clip-path: inset(0 0 0 100%);
+    translate: 0 1.5rem;
+    color: transparent;
+    -webkit-text-stroke: 1.5px rgb(240 196 108 / 0.55);
+  }
+  .js .kf-footer__mark.is-visible span {
+    animation:
+      kf-mark-write 1.8s cubic-bezier(0.65, 0, 0.35, 1) forwards,
+      kf-mark-settle 1.4s var(--ease-out) 1.6s forwards;
+  }
+}
+@keyframes kf-mark-write { to { clip-path: inset(0); translate: 0 0; } }
+@keyframes kf-mark-settle { to { color: rgb(255 255 255 / 0.045); -webkit-text-stroke-color: rgb(240 196 108 / 0); } }
+
+@media (max-width: 61.98rem) {
+  .kf-footer__lead { grid-template-columns: minmax(0, 1fr); align-items: start; }
+  .kf-footer__cols { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kf-footer__about { grid-column: 1 / -1; }
+}
+@media (max-width: 35rem) {
+  .kf-footer__cols { grid-template-columns: minmax(0, 1fr); }
+  .kf-footer__bottom { flex-direction: column; align-items: flex-start; }
+  .kf-footer__cta { inline-size: 100%; justify-content: center; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .kf-footer *, .kf-footer *::before { transition: none !important; }
+}

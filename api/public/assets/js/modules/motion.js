@@ -85,6 +85,14 @@ export function initDonuts() {
   observeOnce($$('.donut'), (el) => el.classList.add('is-visible'), { threshold: 0.3 });
 }
 
+/**
+ * اسم الموقع الضخم في الفوتر: يُكتب مرةً واحدة حين يظهر منه شيء.
+ * الحركة كلها في footer.css، وهنا الإشارة وحدها؛ وتقليل الحركة يُسقطها هناك.
+ */
+export function initFooterMark() {
+  observeOnce($$('.kf-footer__mark'), (el) => el.classList.add('is-visible'), { threshold: 0.2, rootMargin: '0px' });
+}
+
 /* -------------------------------------------------------------------------
    5. ميلان لطيف للقوس مع حركة الفأرة
    يعمل على المؤشر فقط — لا معنى له باللمس، ويُعطَّل مع تقليل الحركة.

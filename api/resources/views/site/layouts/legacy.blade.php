@@ -1,7 +1,8 @@
 {{--
   قالب الصفحات التي لم يُعَد تصميمها بعد: أنماط الموقع القديمة، والترويسة
-  والفوتر يبنيهما layout.js في مكانيهما. حين تُصمَّم صفحة على Bootstrap
-  تنتقل إلى site.layouts.app ويبقى هذا لما سواها، ثم يُحذف مع آخرها.
+  يبنيها layout.js في مكانها. أما الفوتر فواحد للقالبين يرسمه الخادم.
+  حين تُصمَّم صفحة على Bootstrap تنتقل إلى site.layouts.app ويبقى هذا لما
+  سواها، ثم يُحذف مع آخرها.
 
   $chrome = false لصفحات بلا ترويسة ولا فوتر: الدخول والتسجيل والبوابة والشكر.
 --}}
@@ -18,6 +19,7 @@
   <link rel="stylesheet" href="/assets/css/components.css">
   <link rel="stylesheet" href="/assets/css/sections.css">
   <link rel="stylesheet" href="/assets/css/pages.css">
+  <link rel="stylesheet" href="/assets/css/footer.css">
   @stack('styles')
 
   <script type="module" src="/assets/js/main.js"></script>
@@ -40,7 +42,7 @@
 @yield('content')
 
 @if ($chrome)
-  <div data-layout="footer"></div>
+  @include('site.partials.footer')
 @endif
 
 @stack('after-footer')

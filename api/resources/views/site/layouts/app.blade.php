@@ -18,6 +18,7 @@
   <link rel="stylesheet" href="/assets/vendor/bootstrap/css/bootstrap.rtl.min.css">
   <link rel="stylesheet" href="/assets/css/tokens.css">
   <link rel="stylesheet" href="/assets/css/theme.css">
+  <link rel="stylesheet" href="/assets/css/footer.css">
   @stack('styles')
 
   <script type="module" src="/assets/js/main.js"></script>

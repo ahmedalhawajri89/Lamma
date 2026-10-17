@@ -1,5 +1,5 @@
 /**
- * الهيدر والفوتر — مصدر واحد لكل الصفحات.
+ * الهيدر لصفحات التصميم القديم (legacy)، وسلوك الترويسة في كل الصفحات.
  *
  * لماذا بناؤهما بـ JS بدل fetch لملف HTML؟
  * لأن fetch يفشل تحت بروتوكول file://، فيفتح أحدهم / بنقرة مزدوجة
@@ -16,16 +16,6 @@
 import { SITE, NAV_LINKS } from './data.js';
 import { $, $$, currentPage, rafThrottle, escapeHtml, lockScroll } from './utils.js';
 import { me, hasSignedInHint, clearSignedIn } from './auth.js';
-
-const YEAR = new Date().getFullYear();
-
-/** روابط الفوتر المساعدة. */
-const FOOTER_HELP = [
-  { label: 'الأسئلة الشائعة', href: '/faq' },
-  { label: 'تقارير الشفافية', href: '/transparency' },
-  { label: 'سياسة حماية الطفل', href: '/transparency#child-policy' },
-  { label: 'حسابي', href: '/dashboard' },
-];
 
 /** الصفحات العميقة تُبرز قسمها في التنقل: ملف الطفل والكفالة تحت «الأيتام»، والمقال تحت «المدونة». */
 const SECTION_OF = { '/orphan': '/orphans', '/checkout': '/orphans', '/post': '/blog' };
@@ -72,115 +62,6 @@ function headerMarkup({ page }) {
     </div>
   </div>
 </header>`;
-}
-
-function footerMarkup() {
-  const social = SITE.social
-    .map(({ label, icon, url }) =>
-      `<a href="${escapeHtml(url)}" aria-label="${escapeHtml(label)} (تفتح في نافذة جديدة)" rel="noopener noreferrer" target="_blank">
-         <i class="fa-brands ${icon}" aria-hidden="true"></i>
-       </a>`)
-    .join('');
-
-  const quickLinks = [
-    { label: 'الرئيسية', href: '/' },
-    ...NAV_LINKS,
-  ]
-    .map(({ label, href }) => `<li><a href="${href}">${label}</a></li>`)
-    .join('');
-
-  const helpLinks = FOOTER_HELP
-    .map(({ label, href }) => `<li><a href="${href}">${label}</a></li>`)
-    .join('');
-
-  return `
-<footer class="site-footer">
-  <div class="container">
-
-    <div class="footer-top">
-      <div class="footer-intro">
-        <a class="brand" href="/">
-          <img class="brand__mark" src="assets/img/logo.svg" alt="" width="38" height="38">
-          <span class="brand__name"><span data-site="name">${escapeHtml(SITE.name)}</span><span class="brand__tag" data-site="tagline">${escapeHtml(SITE.tagline)}</span></span>
-        </a>
-        <p class="footer-about">
-          منصة تربط بين من يريد أن يعطي ومن يستحق أن يُعطى، بشفافية موثّقة وتقارير دورية.
-          نعمل منذ ١٤ عاماً في ١٢ دولة.
-        </p>
-        <p class="footer-trust">
-          <i class="fa-solid fa-file-shield" aria-hidden="true"></i>
-          <span><strong>مرخّصون ومدقّقون.</strong> ميزانية سنوية معتمدة من مكتب مستقل ومنشورة للجميع.</span>
-        </p>
-      </div>
-
-      <div class="footer-news">
-        <p class="footer-claim">تابِع أثر الكفالة كل شهر، ولو لم تكفل بعد.</p>
-        <p class="footer-news__label">
-          رسالة واحدة كل شهر: ما أنجزناه، وما صرفناه، وقصة طفل واحد. بلا إلحاح.
-        </p>
-        <form class="newsletter" data-validate-form data-action="newsletter" data-source="footer"
-              data-success-message="تم اشتراكك، ستصلك أول رسالة مطلع الشهر" novalidate>
-          <div class="field" style="flex:1">
-            <label class="sr-only" for="footerNewsEmail">البريد الإلكتروني</label>
-            <div class="field__control">
-              <input class="input" type="email" id="footerNewsEmail" name="email"
-                     placeholder="بريدك الإلكتروني" autocomplete="email"
-                     data-validate="required|email" aria-describedby="err-footerNews">
-            </div>
-            <p class="field__error" id="err-footerNews" aria-live="polite"></p>
-          </div>
-          <button class="btn btn--primary" type="submit">اشترك</button>
-        </form>
-      </div>
-    </div>
-
-    <div class="site-footer__grid">
-      <nav class="footer-col footer-col--wide" aria-labelledby="footerNavHeading">
-        <h2 class="footer-heading" id="footerNavHeading">تصفّح</h2>
-        <ul class="footer-links footer-links--split" role="list">${quickLinks}</ul>
-      </nav>
-
-      <nav class="footer-col" aria-labelledby="footerHelpHeading">
-        <h2 class="footer-heading" id="footerHelpHeading">مساعدة</h2>
-        <ul class="footer-links" role="list">${helpLinks}</ul>
-      </nav>
-
-      <div class="footer-col">
-        <h2 class="footer-heading">تواصل معنا</h2>
-        <ul class="footer-contact" role="list">
-          <li>
-            <i class="fa-solid fa-phone" aria-hidden="true"></i>
-            <a href="tel:${escapeHtml(SITE.phoneHref)}" dir="ltr" data-site="phone">${escapeHtml(SITE.phone)}</a>
-          </li>
-          <li>
-            <i class="fa-solid fa-envelope" aria-hidden="true"></i>
-            <a href="mailto:${escapeHtml(SITE.email)}" data-site="email">${escapeHtml(SITE.email)}</a>
-          </li>
-          <li>
-            <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
-            <span data-site="address">${escapeHtml(SITE.address)}</span>
-          </li>
-        </ul>
-        <div class="social-row">${social}</div>
-      </div>
-    </div>
-
-    <div class="footer-bottom">
-      <p>© ${YEAR} منصة <span data-site="name">${escapeHtml(SITE.name)}</span>. جميع الحقوق محفوظة.</p>
-      <nav aria-label="روابط قانونية">
-        <a href="/transparency#child-policy">سياسة حماية الطفل</a>
-        <a href="/transparency">الخصوصية</a>
-        <a href="/faq">شروط الاستخدام</a>
-      </nav>
-      <div class="payment-row" role="img" aria-label="وسائل الدفع المقبولة: فيزا، ماستركارد، Apple Pay، والتحويل البنكي">
-        <i class="fa-brands fa-cc-visa" aria-hidden="true"></i>
-        <i class="fa-brands fa-cc-mastercard" aria-hidden="true"></i>
-        <i class="fa-brands fa-apple-pay" aria-hidden="true"></i>
-        <i class="fa-solid fa-building-columns" aria-hidden="true"></i>
-      </div>
-    </div>
-  </div>
-</footer>`;
 }
 
 /* =========================================================================
@@ -246,80 +127,6 @@ function bsHeaderMarkup({ page }) {
     </div>
   </nav>
 </header>`;
-}
-
-function bsFooterMarkup() {
-  const links = (items) => items.map(({ label, href }) => `<li><a href="${href}">${label}</a></li>`).join('');
-  const social = SITE.social
-    .map(({ label, icon, url }) =>
-      `<a class="kf-footer__social" href="${escapeHtml(url)}" aria-label="${escapeHtml(label)} (تفتح في نافذة جديدة)" rel="noopener noreferrer" target="_blank"><i class="fa-brands ${icon}" aria-hidden="true"></i></a>`)
-    .join('');
-
-  return `
-<footer class="kf-footer">
-  <div class="container">
-    <div class="kf-news-card">
-      <span class="kf-news-card__icon" aria-hidden="true"><i class="fa-solid fa-envelope-open-text"></i></span>
-      <div class="kf-news-card__text">
-        <h2 class="kf-news-card__title">تابِع أثر الكفالة كل شهر، ولو لم تكفل بعد.</h2>
-        <p class="kf-footer__hint">رسالة واحدة كل شهر: ما أنجزناه، وما صرفناه، وقصة طفل واحد.</p>
-      </div>
-      <form class="kf-news" data-validate-form data-action="newsletter" data-source="footer"
-            data-success-message="تم اشتراكك، ستصلك أول رسالة مطلع الشهر" novalidate>
-        <div class="field flex-grow-1">
-          <label class="visually-hidden" for="footerNewsEmail">البريد الإلكتروني</label>
-          <input class="form-control form-control-lg" type="email" id="footerNewsEmail" name="email"
-                 placeholder="بريدك الإلكتروني" autocomplete="email"
-                 data-validate="required|email" aria-describedby="err-footerNews">
-          <p class="field__error" id="err-footerNews" aria-live="polite"></p>
-        </div>
-        <button class="btn btn-cta btn-lg" type="submit">اشترك</button>
-      </form>
-    </div>
-
-    <div class="row g-4 g-lg-5 kf-footer__grid">
-      <div class="col-lg-4">
-        <a class="kf-brand kf-brand--on-ink" href="/">
-          <img src="assets/img/logo.svg" alt="" width="40" height="40">
-          <span class="kf-brand__name"><span data-site="name">${escapeHtml(SITE.name)}</span><span class="kf-brand__tag" data-site="tagline">${escapeHtml(SITE.tagline)}</span></span>
-        </a>
-        <p class="kf-footer__about">منصة تربط بين من يريد أن يعطي ومن يستحق أن يُعطى، بشفافية موثّقة وتقارير دورية.</p>
-        <div class="d-flex gap-2">${social}</div>
-      </div>
-      <nav class="col-7 col-md-4 col-lg-3" aria-labelledby="footerNavHeading">
-        <h2 class="kf-footer__heading" id="footerNavHeading">تصفّح</h2>
-        <ul class="kf-footer__links kf-footer__links--two">${links([{ label: 'الرئيسية', href: '/' }, ...NAV_LINKS])}</ul>
-      </nav>
-      <nav class="col-5 col-md-4 col-lg-2" aria-labelledby="footerHelpHeading">
-        <h2 class="kf-footer__heading" id="footerHelpHeading">مساعدة</h2>
-        <ul class="kf-footer__links">${links(FOOTER_HELP)}</ul>
-      </nav>
-      <div class="col-md-4 col-lg-3">
-        <h2 class="kf-footer__heading">تواصل معنا</h2>
-        <ul class="kf-footer__contact">
-          <li><span class="kf-footer__ico" aria-hidden="true"><i class="fa-solid fa-phone"></i></span><a href="tel:${escapeHtml(SITE.phoneHref)}" dir="ltr" data-site="phone">${escapeHtml(SITE.phone)}</a></li>
-          <li><span class="kf-footer__ico" aria-hidden="true"><i class="fa-solid fa-envelope"></i></span><a href="mailto:${escapeHtml(SITE.email)}" data-site="email">${escapeHtml(SITE.email)}</a></li>
-          <li><span class="kf-footer__ico" aria-hidden="true"><i class="fa-solid fa-location-dot"></i></span><span data-site="address">${escapeHtml(SITE.address)}</span></li>
-        </ul>
-      </div>
-    </div>
-
-    <div class="kf-footer__bottom">
-      <p class="mb-0">© ${YEAR} منصة <span data-site="name">${escapeHtml(SITE.name)}</span>. جميع الحقوق محفوظة.</p>
-      <nav class="d-flex flex-wrap gap-3" aria-label="روابط قانونية">
-        <a href="/transparency#child-policy">سياسة حماية الطفل</a>
-        <a href="/transparency">الخصوصية</a>
-        <a href="/faq">شروط الاستخدام</a>
-      </nav>
-      <div class="kf-footer__pay" role="img" aria-label="وسائل الدفع المقبولة: فيزا، ماستركارد، Apple Pay، والتحويل البنكي">
-        <i class="fa-brands fa-cc-visa" aria-hidden="true"></i>
-        <i class="fa-brands fa-cc-mastercard" aria-hidden="true"></i>
-        <i class="fa-brands fa-apple-pay" aria-hidden="true"></i>
-        <i class="fa-solid fa-building-columns" aria-hidden="true"></i>
-      </div>
-    </div>
-  </div>
-</footer>`;
 }
 
 /** فتح/غلق القائمة الجوالة مع إدارة صحيحة لحالة ARIA. */
@@ -453,12 +260,10 @@ export function refreshLayout() {
 /** تركيب هيكل الصفحة: الهيدر والفوتر وسلوكهما. */
 export function mountLayout() {
   const headerSlot = $('[data-layout="header"]');
-  const footerSlot = $('[data-layout="footer"]');
   const page = currentPage();
 
   const bs = usesBootstrap();
   if (headerSlot) headerSlot.outerHTML = bs ? bsHeaderMarkup({ page }) : headerMarkup({ page });
-  if (footerSlot) footerSlot.outerHTML = bs ? bsFooterMarkup() : footerMarkup();
 
   // درج Bootstrap يدير نفسه؛ القائمة القديمة تحتاج سلوكها
   if (!bs) initNavToggle();

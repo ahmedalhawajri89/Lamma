@@ -17,6 +17,7 @@ import {
   initCounters,
   initProgressBars,
   initDonuts,
+  initFooterMark,
   initTilt,
   initWordReveal,
   initToTop,
@@ -87,6 +88,7 @@ function boot() {
   initCounters();
   initProgressBars();
   initDonuts();
+  initFooterMark();
   initTilt();
   initToTop();
   initActionBar();
