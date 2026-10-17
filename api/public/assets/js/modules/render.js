@@ -126,8 +126,10 @@ export function faqItem(faq, index) {
 }
 
 /**
- * «من المدونة» في الرئيسية: مقالٌ رئيسي كبير وقائمة مختصرة بجانبه، بخطوط
- * فاصلة لا بطاقات. الرئيسي هو المميّز إن وُجد وإلا الأحدث.
+ * «من المدونة» في الرئيسية: شبكة Bento غير متماثلة.
+ * المقال الرئيسي (المميّز وإلا الأحدث) طويل بصورة كاملة ونصّه على لوح مصمت
+ * بلون الحبر فوقها، وبجانبه مقالان صغيران، وتحتها مقال عريض بمقتطفه.
+ * العنوان رابطٌ ممتد فالبطاقة كلها تُضغط.
  */
 export function homePosts(posts) {
   if (!posts.length) return '';
@@ -135,33 +137,32 @@ export function homePosts(posts) {
   const rest = posts.filter((p) => p !== lead).slice(0, 3);
   const href = (p) => (p.slug ? `post.html?slug=${encodeURIComponent(p.slug)}` : null);
   const title = (p) => (href(p) ? `<a href="${href(p)}">${escapeHtml(p.title)}</a>` : escapeHtml(p.title));
-  const media = (p, w, h) => (p.image
+  const media = (p, w, h) => `<div class="bento__media">${p.image
     ? `<img src="${escapeHtml(p.image)}" alt="" loading="lazy" width="${w}" height="${h}">`
-    : '<span class="home-blog__mark"></span>');
+    : '<span class="bento__mark"></span>'}</div>`;
   const date = (p) => `<time datetime="${escapeHtml(p.date ?? '')}">${escapeHtml(arabicDigits(p.dateLabel ?? ''))}</time>`;
+  const tag = (p) => (p.category ? `<span class="bento__tag">${escapeHtml(p.category)}</span>` : '');
+  const kinds = ['a', 'b', 'wide'];
 
   return `
-<article class="home-blog__lead" data-reveal>
-  <div class="home-blog__media">
-    ${media(lead, 720, 450)}
-    ${lead.category ? `<span class="home-blog__tag">${escapeHtml(lead.category)}</span>` : ''}
+<article class="bento bento--lead" data-reveal>
+  ${media(lead, 760, 900)}
+  <div class="bento__panel">
+    <p class="bento__meta">${tag(lead)}<span>${readingTime(lead.readMin)} قراءة</span></p>
+    <h3 class="bento__title">${title(lead)}</h3>
+    <p class="bento__excerpt">${escapeHtml(lead.excerpt ?? '')}</p>
+    ${href(lead) ? '<span class="bento__cta" aria-hidden="true">اقرأ المقال <i class="fa-solid fa-arrow-left"></i></span>' : ''}
   </div>
-  <p class="home-blog__meta">${date(lead)}<span aria-hidden="true">·</span><span>${readingTime(lead.readMin)} قراءة</span></p>
-  <h3 class="home-blog__title">${title(lead)}</h3>
-  <p class="home-blog__excerpt">${escapeHtml(lead.excerpt ?? '')}</p>
-  ${href(lead) ? '<span class="home-blog__cta" aria-hidden="true">اقرأ المقال <i class="fa-solid fa-arrow-left"></i></span>' : ''}
 </article>
-<ul class="home-blog__list" role="list">
-  ${rest.map((p, i) => `
-  <li class="home-blog__row" data-reveal data-reveal-delay="${120 + i * 90}">
-    <div class="home-blog__thumb">${media(p, 192, 192)}</div>
-    <div>
-      ${p.category ? `<p class="home-blog__cat">${escapeHtml(p.category)}</p>` : ''}
-      <h3 class="home-blog__row-title">${title(p)}</h3>
-      <p class="home-blog__meta">${date(p)}</p>
-    </div>
-  </li>`).join('')}
-</ul>`;
+${rest.map((p, i) => `
+<article class="bento bento--${kinds[i]}" data-reveal data-reveal-delay="${120 + i * 100}">
+  ${media(p, 480, 360)}
+  <div class="bento__body">
+    <p class="bento__meta">${tag(p)}${date(p)}</p>
+    <h3 class="bento__title">${title(p)}</h3>
+    ${kinds[i] === 'wide' ? `<p class="bento__excerpt">${escapeHtml(p.excerpt ?? '')}</p>` : ''}
+  </div>
+</article>`).join('')}`;
 }
 
 
