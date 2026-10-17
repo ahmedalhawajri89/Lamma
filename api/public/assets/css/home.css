@@ -1667,29 +1667,119 @@
   .voice-card { transition: none; }
 }
 
-/* ------- الأسئلة: قائمة مفتوحة بخطوط شعرية ------- */
-.faq-split {
-  display: grid;
-  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
-  gap: clamp(var(--space-8), 6vw, var(--space-20));
-  align-items: start;
+/* ------- الأسئلة: بطاقات قابلة للطيّ بأيقونة الموضوع، وبطاقة تواصل ------- */
+.faq-list { display: grid; gap: 0.75rem; }
+.faq-title { font-size: clamp(1.75rem, 3.2vw, 2.5rem); margin-block-end: 0; }
+
+.accordion__item {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  transition: border-color var(--dur-fast) var(--ease-out), box-shadow var(--dur-normal) var(--ease-out);
+  scroll-margin-block-start: 7rem;
+}
+.accordion__item:hover { border-color: var(--color-brand-border); }
+.accordion__item.is-open { border-color: var(--color-brand-border); box-shadow: var(--shadow-md); }
+.accordion__item h3 { margin: 0; font-size: inherit; }
+
+.accordion__trigger {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  inline-size: 100%;
+  padding: 1.1rem 1.25rem;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--color-text);
+  text-align: start;
+}
+.accordion__trigger > span:nth-last-child(2) { flex: 1; }
+.accordion__trigger:hover { color: var(--color-brand); }
+.accordion__trigger:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; border-radius: var(--radius-lg); }
+
+.accordion__topic {
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  inline-size: 2.6rem;
+  block-size: 2.6rem;
+  border-radius: var(--radius-md);
+  background: var(--color-brand-soft);
+  color: var(--color-brand);
+  transition: background-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+}
+.accordion__item.is-open .accordion__topic { background: var(--color-brand); color: var(--color-brand-contrast); }
+
+/* السهم بلا دائرة ملوّنة خلفه: رمادي، ويصير ذهبياً حين يُفتح السؤال */
+.accordion__icon {
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
+  background: none;
+  color: var(--color-text-subtle);
+  font-size: 0.85rem;
+  transition: rotate var(--dur-normal) var(--ease-out), color var(--dur-fast) var(--ease-out);
+}
+.accordion__trigger:hover .accordion__icon { color: var(--color-brand); }
+.accordion__trigger[aria-expanded="true"] .accordion__icon { rotate: 180deg; color: var(--color-cta-strong); }
+
+/* الطيّ بارتفاع سلس: 0fr ↔ 1fr */
+.accordion__panel { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--dur-normal) var(--ease-out); }
+.accordion__item.is-open .accordion__panel { grid-template-rows: 1fr; }
+.accordion__panel > div { overflow: hidden; }
+.accordion__body {
+  margin: 0;
+  padding: 0 1.25rem 1.25rem calc(1.25rem + 2.6rem + 1rem);
+  padding-inline-start: calc(1.25rem + 2.6rem + 1rem);
+  padding-inline-end: 1.25rem;
+  line-height: 1.9;
+  color: var(--color-text-muted);
 }
 
-.faq-split__head {
+/* ── بطاقة التواصل ── */
+.faq-help {
   position: sticky;
   inset-block-start: 6.5rem;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: var(--space-4);
+  gap: 0.75rem;
+  padding: 1.75rem;
+  border-radius: var(--radius-xl);
+  background: var(--color-ink);
+  color: #fff;
 }
+.faq-help__icon {
+  display: inline-grid;
+  place-items: center;
+  inline-size: 3.25rem;
+  block-size: 3.25rem;
+  border-radius: var(--radius-md);
+  background: rgb(255 255 255 / 0.1);
+  color: var(--color-cta);
+  font-size: 1.35rem;
+}
+.faq-help h3 { margin: 0.25rem 0 0; font-size: 1.35rem; color: #fff; }
+.faq-help p { margin: 0 0 0.5rem; line-height: 1.8; color: var(--color-on-ink-muted); }
+.faq-help p b { color: #fff; font-family: var(--font-display); }
+.faq-help .btn-primary { --bs-btn-bg: var(--color-cta); --bs-btn-border-color: var(--color-cta); --bs-btn-color: var(--color-cta-contrast); --bs-btn-hover-bg: var(--color-cta-hover); --bs-btn-hover-border-color: var(--color-cta-hover); --bs-btn-hover-color: var(--color-cta-contrast); }
+.faq-help .link-arrow { color: #fff; }
+.faq-help .link-arrow:hover { color: var(--color-cta); }
 
-.faq-split__head h2 { font-size: var(--text-3xl); }
-
-
-@media (max-width: 62rem) {
-  .faq-split { grid-template-columns: minmax(0, 1fr); }
-  .faq-split__head { position: static; }
+@media (max-width: 61.98rem) {
+  .faq-help { position: static; }
+}
+@media (max-width: 30rem) {
+  .accordion__trigger { gap: 0.75rem; padding: 1rem; font-size: 0.98rem; }
+  .accordion__topic { inline-size: 2.2rem; block-size: 2.2rem; }
+  .accordion__body { padding-inline: 1rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .accordion__panel, .accordion__icon, .accordion__item, .accordion__topic { transition: none; }
 }
 
 /* ------- الخاتمة: بطاقة دعوة على الأرضية الفاتحة ------- */
@@ -1928,87 +2018,6 @@
 }
 
 /* ==========================================================================
-   الأكورديون (الأسئلة الشائعة)
-   ========================================================================== */
-.faq-list {
-  display: flex;
-  flex-direction: column;
-  border-block-start: 1px solid var(--color-border);
-}
-
-.accordion__item {
-  border-block-end: 1px solid var(--color-border);
-  overflow: hidden;
-}
-
-.accordion__trigger {
-  inline-size: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-4);
-  padding: var(--space-5) 0;
-  text-align: start;
-  font-family: var(--font-display);
-  font-size: var(--text-lg);
-  font-weight: 600;
-  color: var(--color-text);
-  transition: color var(--dur-fast) var(--ease-out);
-}
-
-.accordion__trigger:hover { color: var(--color-brand); }
-
-.accordion__icon {
-  display: grid;
-  place-items: center;
-  inline-size: 1.75rem;
-  block-size: 1.75rem;
-  border-radius: 50%;
-  background: var(--color-brand-soft);
-  color: var(--color-brand);
-  font-size: var(--text-xs);
-  flex-shrink: 0;
-  transition: transform var(--dur-normal) var(--ease-out);
-}
-
-.accordion__trigger[aria-expanded="true"] .accordion__icon {
-  transform: rotate(180deg);
-  background: var(--color-brand);
-  color: var(--color-brand-contrast);
-}
-
-/* الطي بـ grid يعطي ارتفاعاً تلقائياً دقيقاً بلا max-height تخميني */
-.accordion__panel {
-  display: grid;
-  grid-template-rows: 0fr;
-  transition: grid-template-rows var(--dur-normal) var(--ease-out);
-}
-
-.accordion__item.is-open .accordion__panel { grid-template-rows: 1fr; }
-
-.accordion__panel > div { overflow: hidden; }
-
-.accordion__body {
-  padding: 0 0 var(--space-6);
-  color: var(--color-text-muted);
-  font-size: var(--text-md);
-  line-height: var(--leading-relaxed);
-  margin: 0;
-}
-
-
-/* نقطة نابضة للحالات العاجلة */
-.pulse-dot {
-  inline-size: 0.5rem;
-  block-size: 0.5rem;
-  border-radius: 50%;
-  background: currentColor;
-  box-shadow: 0 0 0 0 currentColor;
-}
-
-
-
-/* ==========================================================================
    شريط الإجراء السفلي على الجوال — يبقي "اكفل الآن" في متناول الإبهام
    ========================================================================== */
 .action-bar {
@@ -2082,5 +2091,4 @@
    (1.25rem): الصفوف التي تمتد لحافة الشاشة تُزاح بها وإلا فاضت أفقياً */
 :root { --kf-gutter: calc(var(--bs-gutter-x, 1.5rem) * 0.5); }
 
-.faq__title { font-size: clamp(1.75rem, 3.2vw, 2.5rem); margin-block-end: 0; }
 

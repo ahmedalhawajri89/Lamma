@@ -80,3 +80,19 @@ it('يمنع السبام بحقل مصيدة صامت', function () {
 
     $this->assertDatabaseCount('contact_messages', 0);
 });
+
+it('يملأ أرقام الأسئلة الشائعة من الشفافية بدل كتابتها باليد', function () {
+    \App\Models\Faq::create([
+        'question' => 'سؤال برموز الشفافية',
+        'answer' => 'التشغيل {overhead}٪، ويصل للطفل {toChild}٪.',
+        'sort_order' => 99,
+        'is_published' => true,
+    ]);
+
+    $answer = collect($this->getJson('/api/v1/public/faqs')->assertOk()->json('data'))
+        ->firstWhere('q', 'سؤال برموز الشفافية')['a'];
+
+    // بلا صرفٍ معتمد في الاختبار: ما يصل للطفل 93 والتشغيل مكمّله، ولا يبقى رمز ولا شرطة
+    expect($answer)->toBe('التشغيل 7٪، ويصل للطفل 93٪.')
+        ->not->toContain('{')->not->toContain('—');
+});

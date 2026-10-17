@@ -469,20 +469,25 @@
       </div>
     </section>
 
-    <!-- ══ أسئلة قبل أن تبدأ ══ -->
-    <section class="kf-section" aria-labelledby="faqTitle">
+    <!-- ══ أسئلة قبل أن تبدأ: الأسئلة بأيقونات موضوعها، وبطاقة تواصل بجانبها ══ -->
+    <section class="kf-section faq" aria-labelledby="faqTitle">
       <div class="container">
-        <div class="row g-4 g-lg-5">
-          <div class="col-lg-4" data-reveal>
-            <h2 id="faqTitle" class="faq__title">أسئلة قبل أن تبدأ</h2>
-            <p class="kf-lede">لم تجد سؤالك؟ راسلنا، ونرد على كل رسالة خلال 72 ساعة.</p>
-            <div class="d-flex flex-column align-items-start mt-3">
-              <a class="link-arrow" href="contact.html">راسل الفريق <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
-              <a class="link-arrow" href="faq.html">كل الأسئلة <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
-            </div>
-          </div>
+        <header class="kf-head kf-head--center" data-reveal>
+          <h2 id="faqTitle">أسئلة قبل أن تبدأ</h2>
+          <p class="kf-lede">أكثر ما يسأله الكفلاء قبل القرار، بأجوبة مباشرة.</p>
+        </header>
+        <div class="row g-4 g-lg-5 align-items-start">
           <div class="col-lg-8">
-            <div class="faq-list" data-reveal data-reveal-delay="120" data-accordion="single" id="faqList" data-limit="4"></div>
+            <div class="faq-list" data-reveal data-accordion="single" data-faq="rich" id="faqList" data-limit="4"></div>
+          </div>
+          <div class="col-lg-4">
+            <aside class="faq-help" data-reveal data-reveal-delay="120" aria-labelledby="faqHelpTitle">
+              <span class="faq-help__icon" aria-hidden="true"><i class="fa-solid fa-headset"></i></span>
+              <h3 id="faqHelpTitle">لم تجد سؤالك؟</h3>
+              <p>راسل الفريق، ونرد على كل رسالة خلال <b class="num">72</b> ساعة.</p>
+              <a class="btn btn-primary w-100" href="contact.html">راسل الفريق</a>
+              <a class="link-arrow" href="faq.html">كل الأسئلة الشائعة <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
+            </aside>
           </div>
         </div>
       </div>

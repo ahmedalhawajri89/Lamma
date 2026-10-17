@@ -108,13 +108,33 @@ export function programCard(program, { delay = 0 } = {}) {
 </article>`;
 }
 
-/** عنصر سؤال شائع. */
-export function faqItem(faq, index) {
+/** موضوع السؤال من كلماته: رابطٌ ثابت له (faq.html#zakat) وأيقونة. */
+const FAQ_TOPICS = [
+  ['وصل', 'delivery', 'fa-circle-check'],
+  ['الزكاة', 'zakat', 'fa-scale-balanced'],
+  ['المصاريف', 'overhead', 'fa-chart-pie'],
+  ['إيقاف', 'pause', 'fa-circle-pause'],
+  ['الدفع', 'payment', 'fa-credit-card'],
+  ['التواصل', 'contact', 'fa-comments'],
+];
+export function faqTopic(faq, index) {
+  const hit = FAQ_TOPICS.find(([word]) => String(faq.q).includes(word));
+  return { slug: hit?.[1] ?? `q-${faq.id ?? index}`, icon: hit?.[2] ?? 'fa-circle-question' };
+}
+
+/**
+ * سؤال شائع قابل للطيّ (ui.js: initAccordions).
+ * `icon` أيقونة الموضوع بجانب السؤال، و`open` يفتحه أولاً؛ وللسؤال رابطٌ ثابت
+ * بموضوعه كي يُرسَل جوابٌ بعينه لكافل.
+ */
+export function faqItem(faq, index, { icon = false, open = false } = {}) {
+  const topic = faqTopic(faq, index);
   return `
-<div class="accordion__item">
+<div class="accordion__item${open ? ' is-open' : ''}" id="${topic.slug}">
   <h3>
     <button class="accordion__trigger" type="button"
-            id="faq-t-${index}" aria-expanded="false" aria-controls="faq-p-${index}">
+            id="faq-t-${index}" aria-expanded="${open}" aria-controls="faq-p-${index}">
+      ${icon ? `<span class="accordion__topic" aria-hidden="true"><i class="fa-solid ${topic.icon}"></i></span>` : ''}
       <span>${escapeHtml(faq.q)}</span>
       <span class="accordion__icon" aria-hidden="true"><i class="fa-solid fa-chevron-down"></i></span>
     </button>

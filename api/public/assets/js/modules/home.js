@@ -291,6 +291,30 @@ function linkReportPoints() {
   });
 }
 
+/**
+ * بيانات منظّمة FAQPage لمحركات البحث: تعرض الأسئلة والأجوبة في النتائج.
+ * كتلة بيانات (application/ld+json) لا سكربت يُنفَّذ، فلا تمسّها CSP. وتصف
+ * الأسئلة الظاهرة في الصفحة وحدها، كما تشترط إرشادات Google.
+ */
+function publishFaqSchema(faqs) {
+  if (!faqs.length) return;
+  document.querySelector('#faqSchema')?.remove();
+  const data = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((f) => ({
+      '@type': 'Question',
+      name: f.q,
+      acceptedAnswer: { '@type': 'Answer', text: f.a },
+    })),
+  };
+  const block = document.createElement('script');
+  block.type = 'application/ld+json';
+  block.id = 'faqSchema';
+  block.textContent = JSON.stringify(data);
+  document.head.append(block);
+}
+
 export function renderHomeSections() {
   renderHeroProof();
   renderHomeOrphans();
@@ -304,7 +328,11 @@ export function renderHomeSections() {
   const faqHost = document.querySelector('#faqList');
   if (faqHost) {
     const limit = Number(faqHost.dataset.limit) || FAQS.length;
-    faqHost.innerHTML = FAQS.slice(0, limit).map(faqItem).join('');
+    const shown = FAQS.slice(0, limit);
+    // data-faq="rich" (الرئيسية): أيقونة الموضوع، والسؤال الأول مفتوح
+    const rich = faqHost.dataset.faq === 'rich';
+    faqHost.innerHTML = shown.map((f, i) => faqItem(f, i, { icon: rich, open: rich && i === 0 })).join('');
+    publishFaqSchema(shown);
   }
 
   /* المدونة */
