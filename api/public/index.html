@@ -177,86 +177,98 @@
       </div>
     </section>
 
-    <!-- ══ كيف تبدأ: تبويبات فوق مسرح ثابت الارتفاع ══
-         اللوحات مكدّسة في خلية واحدة فلا يتغيّر ارتفاع القسم عند التبديل. -->
+    <!-- ══ كيف تبدأ: ثلاث خطوات مرقّمة بجانب شاشة هاتف تتبدّل معها ══
+         بلا دوران تلقائي: الزائر يختار الخطوة، والهاتف زينة تتبعه (aria-hidden). -->
     <section class="kf-section kf-section--surface" id="how" aria-labelledby="howTitle">
       <div class="container how" data-how>
-        <header class="kf-head" data-reveal>
-          <div>
-            <h2 id="howTitle">كيف تبدأ الكفالة</h2>
-            <p class="kf-lede">ثلاث خطوات تأخذ دقائق، بلا أوراق ولا مقابلات.</p>
-          </div>
-          <a class="btn btn-cta" href="orphans.html">
-            اكفل يتيماً <i class="fa-solid fa-arrow-left btn__icon btn__icon--arrow" aria-hidden="true"></i>
-          </a>
+        <header class="kf-head kf-head--center" data-reveal>
+          <h2 id="howTitle">كيف تبدأ الكفالة؟</h2>
+          <p class="kf-lede">ثلاث خطوات تأخذ دقائق، بلا أوراق ولا مقابلات.</p>
         </header>
 
-        <div class="how__tabs" data-reveal data-reveal-delay="80" role="tablist" aria-label="خطوات الكفالة">
-          <button class="how-tab" type="button" role="tab" id="howTab1" aria-selected="true" aria-controls="howPanel1">
-            <span class="how-tab__bar" aria-hidden="true"><span></span></span>
-            <span class="how-tab__num num">01</span>
-            <strong>اختر طفلاً</strong>
-            <span class="how-tab__hint">ملفات موثّقة زارها مشرف ميداني</span>
-          </button>
-          <button class="how-tab" type="button" role="tab" id="howTab2" aria-selected="false" aria-controls="howPanel2" tabindex="-1">
-            <span class="how-tab__bar" aria-hidden="true"><span></span></span>
-            <span class="how-tab__num num">02</span>
-            <strong>حدّد المبلغ ونوعه</strong>
-            <span class="how-tab__hint">شهرية أو سنوية، من زكاتك أو صدقتك</span>
-          </button>
-          <button class="how-tab" type="button" role="tab" id="howTab3" aria-selected="false" aria-controls="howPanel3" tabindex="-1">
-            <span class="how-tab__bar" aria-hidden="true"><span></span></span>
-            <span class="how-tab__num num">03</span>
-            <strong>تابع طفلك</strong>
-            <span class="how-tab__hint">تقرير مصوّر كل 90 يوماً</span>
-          </button>
-        </div>
+        <div class="row g-4 g-lg-5 align-items-center">
+          <div class="col-lg-6" data-reveal="start">
+            <ol class="how-steps" role="list">
+            <li class="how-step">
+              <button class="how-step__tab" type="button" aria-expanded="true" aria-controls="howMore1">
+                <span class="how-step__num num">1</span>
+                <span class="how-step__head"><strong>اختر طفلاً</strong><span>ملفات موثّقة زارها مشرف ميداني</span></span>
+              </button>
+              <div class="how-step__more" id="howMore1">
+                <p>كل ملف فيه عمر الطفل ومدرسته وحالته الصحية، والمبلغ الذي يحتاجه كل شهر. ولا يُنشر ملف قبل أن يزور مشرف ميداني بيت الطفل.</p>
+                <ul class="how-step__points" role="list">
+                  <li><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> ابحث بالاسم أو المدينة أو البرنامج</li>
+                  <li><i class="fa-solid fa-bolt" aria-hidden="true"></i> الحالات العاجلة تظهر أولاً</li>
+                </ul>
+              </div>
+            </li>
+            <li class="how-step">
+              <button class="how-step__tab" type="button" aria-expanded="false" aria-controls="howMore2">
+                <span class="how-step__num num">2</span>
+                <span class="how-step__head"><strong>حدّد المبلغ ونوعه</strong><span>شهرية أو سنوية، من زكاتك أو صدقتك</span></span>
+              </button>
+              <div class="how-step__more" id="howMore2">
+                <p>كفالة شهرية أو كل ثلاثة أشهر أو سنوية. وتحدد إن كانت من زكاتك أو من صدقتك، فنصرف كلاً منهما في بابه ويظهر ذلك في إيصالك.</p>
+                <ul class="how-step__points" role="list">
+                  <li><i class="fa-solid fa-credit-card" aria-hidden="true"></i> بطاقة أو Apple Pay أو تحويل بنكي</li>
+                  <li><i class="fa-solid fa-scale-balanced" aria-hidden="true"></i> الزكاة لأسر ثبت استحقاقها فقط</li>
+                </ul>
+              </div>
+            </li>
+            <li class="how-step">
+              <button class="how-step__tab" type="button" aria-expanded="false" aria-controls="howMore3">
+                <span class="how-step__num num">3</span>
+                <span class="how-step__head"><strong>تابع طفلك</strong><span>تقرير مصوّر كل 90 يوماً</span></span>
+              </button>
+              <div class="how-step__more" id="howMore3">
+                <p>يصلك تقرير مصوّر كل 90 يوماً عن دراسته وصحته، وفي حسابك كشف بكل دفعة وأين صُرفت.</p>
+                <ul class="how-step__points" role="list">
+                  <li><i class="fa-solid fa-circle-pause" aria-hidden="true"></i> إيقاف مؤقت أو إلغاء من حسابك</li>
+                  <li><i class="fa-solid fa-comments" aria-hidden="true"></i> اسأل الفريق عن أي تقرير</li>
+                </ul>
+              </div>
+            </li>
+            </ol>
+            <a class="btn btn-cta btn-lg how-cta" href="orphans.html">
+              ابدأ باختيار طفل <i class="fa-solid fa-arrow-left btn__icon btn__icon--arrow" aria-hidden="true"></i>
+            </a>
+          </div>
 
-        <div class="how__stage" data-reveal data-reveal-delay="160">
-          <div class="how__panel is-active" role="tabpanel" id="howPanel1" aria-labelledby="howTab1">
-            <div class="how__copy">
-              <h3>اختر طفلاً</h3>
-              <p>كل ملف فيه عمر الطفل ومدرسته وحالته الصحية، والمبلغ الذي يحتاجه كل شهر. ولا يُنشر ملف قبل أن يزور مشرف ميداني بيت الطفل.</p>
-              <ul class="how__points" role="list">
-                <li><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> ابحث بالاسم أو المدينة أو البرنامج</li>
-                <li><i class="fa-solid fa-bolt" aria-hidden="true"></i> الحالات العاجلة تظهر أولاً</li>
-              </ul>
-            </div>
-            <div class="how__device" aria-hidden="true">
-              <div class="how__screen">
+          <div class="col-lg-6" data-reveal="end" data-reveal-delay="120">
+            <div class="how-phone" aria-hidden="true">
+              <div class="how-orbit">
+                <span class="how-orbit__disc"></span>
+                <span class="how-orbit__ring how-orbit__ring--1"><i class="how-orbit__dot how-orbit__dot--gold"></i></span>
+                <span class="how-orbit__ring how-orbit__ring--2"><i class="how-orbit__badge"><i class="fa-solid fa-heart"></i></i></span>
+                <span class="how-orbit__ring how-orbit__ring--3"><i class="how-orbit__dot how-orbit__dot--teal"></i><i class="how-orbit__badge how-orbit__badge--gold"><i class="fa-solid fa-star"></i></i></span>
+              </div>
+              <div class="how-phone__frame">
+                <span class="how-phone__island"></span>
+              <div class="how__panel is-active" data-step="1">
+                <div class="how__screen">
                 <div class="how__bar"><span></span><span></span><span></span></div>
                 <p class="how__label">أطفال ينتظرون كافلاً</p>
                 <div class="how-search"><i class="fa-solid fa-magnifying-glass"></i> ابحث بالاسم أو المدينة</div>
                 <ul class="how-kids">
                   <li class="is-picked">
-                    <span class="avatar avatar--1">أ</span>
+                    <img class="avatar" src="assets/img/kids/girl-02.svg" alt="" width="44" height="44">
                     <span><strong>أمنية، 8 سنوات</strong><small>غزة · الكفالة التعليمية</small></span>
                     <span class="how-kids__pick"><i class="fa-solid fa-check"></i> اخترتها</span>
                   </li>
                   <li>
-                    <span class="avatar avatar--2">ي</span>
+                    <img class="avatar" src="assets/img/kids/boy-03.svg" alt="" width="44" height="44">
                     <span><strong>يوسف، 7 سنوات</strong><small>الخليل · كفالة الأسرة</small></span>
                   </li>
                   <li>
-                    <span class="avatar avatar--4">م</span>
+                    <img class="avatar" src="assets/img/kids/girl-08.svg" alt="" width="44" height="44">
                     <span><strong>مريم، 12 سنة</strong><small>أم درمان · الكفالة التعليمية</small></span>
                   </li>
                 </ul>
               </div>
-            </div>
-          </div>
-
-          <div class="how__panel" role="tabpanel" id="howPanel2" aria-labelledby="howTab2" aria-hidden="true" inert>
-            <div class="how__copy">
-              <h3>حدّد المبلغ ونوعه</h3>
-              <p>كفالة شهرية أو كل ثلاثة أشهر أو سنوية. وتحدد إن كانت من زكاتك أو من صدقتك، فنصرف كلاً منهما في بابه ويظهر ذلك في إيصالك.</p>
-              <ul class="how__points" role="list">
-                <li><i class="fa-solid fa-credit-card" aria-hidden="true"></i> بطاقة أو Apple Pay أو تحويل بنكي</li>
-                <li><i class="fa-solid fa-scale-balanced" aria-hidden="true"></i> الزكاة لأسر ثبت استحقاقها فقط</li>
-              </ul>
-            </div>
-            <div class="how__device" aria-hidden="true">
-              <div class="how__screen">
+                <p class="how-float how-float--1"><span class="how-float__icon"><i class="fa-solid fa-circle-check"></i></span><span><strong>ملف موثّق</strong>زاره مشرف ميداني قبل النشر</span></p>
+              </div>
+              <div class="how__panel" data-step="2">
+                <div class="how__screen">
                 <div class="how__bar"><span></span><span></span><span></span></div>
                 <p class="how__label">كفالة أمنية</p>
                 <div class="how-seg"><span class="is-on">شهرية</span><span>كل 3 أشهر</span><span>سنوية</span></div>
@@ -268,20 +280,10 @@
                 </div>
                 <div class="how-total"><span>الإجمالي هذا الشهر</span><strong class="num">$35</strong></div>
               </div>
-            </div>
-          </div>
-
-          <div class="how__panel" role="tabpanel" id="howPanel3" aria-labelledby="howTab3" aria-hidden="true" inert>
-            <div class="how__copy">
-              <h3>تابع طفلك</h3>
-              <p>يصلك تقرير مصوّر كل 90 يوماً عن دراسته وصحته، وفي حسابك كشف بكل دفعة وأين صُرفت.</p>
-              <ul class="how__points" role="list">
-                <li><i class="fa-solid fa-circle-pause" aria-hidden="true"></i> إيقاف مؤقت أو إلغاء من حسابك</li>
-                <li><i class="fa-solid fa-comments" aria-hidden="true"></i> اسأل الفريق عن أي تقرير</li>
-              </ul>
-            </div>
-            <div class="how__device" aria-hidden="true">
-              <div class="how__screen">
+                <p class="how-float how-float--2"><span class="how-float__icon"><i class="fa-solid fa-lock"></i></span><span><strong>دفع آمن</strong>إيصال الزكاة منفصل عن الصدقة</span></p>
+              </div>
+              <div class="how__panel" data-step="3">
+                <div class="how__screen">
                 <div class="how__bar"><span></span><span></span><span></span></div>
                 <div class="how-note">
                   <span class="how-note__icon"><i class="fa-solid fa-file-image"></i></span>
@@ -296,6 +298,9 @@
                   <span><strong>إيقاف مؤقت</strong><small>بلا رسوم، وتستأنف متى شئت</small></span>
                   <span class="how-switch"></span>
                 </div>
+              </div>
+                <p class="how-float how-float--3"><span class="how-float__icon"><i class="fa-solid fa-camera"></i></span><span><strong>وصل تقرير جديد</strong>الربع الثالث · مع الصور</span></p>
+              </div>
               </div>
             </div>
           </div>

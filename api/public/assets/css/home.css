@@ -583,195 +583,311 @@
   .kid-card, .kid-card__media img { transition: none; }
 }
 
-/* ------- ٣) كيف تبدأ: تبويبات أفقية فوق مسرح ثابت الارتفاع ------- */
-.how .kf-head .btn-cta { box-shadow: none; }
+/* ------- ٣) كيف تبدأ: خطوات مرقّمة بجانب شاشة هاتف ------- */
+/* الخطوات قائمة رأسية يصلها خطٌّ منقّط، وكل خطوة زرٌّ يفتح شرحها. والهاتف
+   زينة تتبع الخطوة المفتوحة بتلاشٍ قصير. لا شيء يدور وحده. */
+#how { overflow: clip; }
 
-/* ------- التبويبات ------- */
-.how__tabs {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--space-6);
-  margin-block-end: var(--space-12);
-}
-
-.how-tab {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--space-1);
-  padding-block-end: var(--space-2);
-  text-align: start;
-  color: var(--color-text-subtle);
-  transition: color var(--dur-normal) var(--ease-out);
-}
-
-.how-tab:hover { color: var(--color-text-muted); }
-.how-tab[aria-selected="true"] { color: var(--color-text); }
-
-/* الخط العلوي: رمادي للكل، ويمتلئ بالتركوازي للنشط */
-.how-tab__bar {
-  display: block;
-  inline-size: 100%;
-  block-size: 3px;
-  margin-block-end: var(--space-4);
-  border-radius: var(--radius-pill);
-  background: var(--color-border);
-  overflow: hidden;
-}
-
-.how-tab__bar span {
-  display: block;
-  block-size: 100%;
-  border-radius: inherit;
-  background: var(--color-brand);
-  transform: scaleX(0);
-  transform-origin: right;
-  transition: transform var(--dur-normal) var(--ease-out);
-}
-
-:dir(ltr) .how-tab__bar span { transform-origin: left; }
-
-.how-tab[aria-selected="true"] .how-tab__bar span { transform: scaleX(1); }
-
-/* أثناء العرض التلقائي يمتلئ الخط خلال مدة الخطوة، كمؤقّت */
-.how-tab.is-timing .how-tab__bar span {
-  animation: how-timer var(--how-step, 3.6s) linear both;
-}
-
-@keyframes how-timer {
-  from { transform: scaleX(0); }
-  to   { transform: scaleX(1); }
-}
-
-.how-tab__num {
-  font-family: var(--font-display);
-  font-size: var(--text-sm);
-  font-weight: 700;
-  /* الخامل بلون النص الخافت لا بشفافية: الشفافية أنزلته إلى 2.6:1 */
-  color: var(--color-text-subtle);
-  transition: color var(--dur-normal) var(--ease-out);
-}
-
-.how-tab[aria-selected="true"] .how-tab__num { color: var(--color-brand); }
-
-.how-tab strong {
-  font-family: var(--font-display);
-  font-size: var(--text-xl);
-  line-height: 1.3;
-}
-
-.how-tab__hint { font-size: var(--text-sm); }
-
-/* ------- المسرح: اللوحات مكدّسة في خلية واحدة ------- */
-.how__stage {
-  display: grid;
-}
-
-.how__panel {
-  grid-area: 1 / 1;
-  display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
-  gap: clamp(var(--space-10), 6vw, var(--space-20));
-  align-items: center;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 320ms var(--ease-out), visibility 0s linear 320ms;
-}
-
-.how__panel.is-active {
-  opacity: 1;
-  visibility: visible;
-  transition: opacity 320ms var(--ease-out), visibility 0s linear 0s;
-}
-
-/* العناصر تصعد بتدرّج حين تصير اللوحة نشطة: موضع وشفافية فقط، لا ارتفاع */
-.how__copy > *,
-.how__device {
-  opacity: 0;
-  transform: translateY(0.8rem);
-  transition: opacity 480ms var(--ease-out), transform 480ms var(--ease-out);
-}
-
-.how__panel.is-active .how__copy > *,
-.how__panel.is-active .how__device { opacity: 1; transform: none; }
-
-.how__panel.is-active .how__copy > :nth-child(1) { transition-delay: 80ms; }
-.how__panel.is-active .how__copy > :nth-child(2) { transition-delay: 140ms; }
-.how__panel.is-active .how__copy > :nth-child(3) { transition-delay: 200ms; }
-.how__panel.is-active .how__device { transition-delay: 120ms; }
-
-.how__copy {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-5);
-}
-
-.how__copy h3 { font-size: var(--text-3xl); }
-
-.how__copy p {
+.how-steps {
+  position: relative;
   margin: 0;
-  max-inline-size: 30rem;
-  font-size: var(--text-lg);
-  line-height: var(--leading-relaxed);
-  color: var(--color-text-muted);
-}
-
-.how__points {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  margin: 0;
-  padding: var(--space-5) 0 0;
-  border-block-start: 1px solid var(--color-border);
+  padding: 0;
   list-style: none;
-  color: var(--color-text);
+}
+/* الخط الواصل بين الأرقام */
+.how-steps::before {
+  content: "";
+  position: absolute;
+  inset-block: 1.75rem 1.75rem;
+  inset-inline-start: calc(0.75rem + 1.4rem - 1px);
+  border-inline-start: 2px dashed var(--color-brand-border);
 }
 
-.how__points li { display: flex; align-items: center; gap: var(--space-3); }
+.how-step { position: relative; }
+.how-step + .how-step { margin-block-start: 0.5rem; }
 
-.how__points i {
-  display: grid;
+.how-step__tab {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  inline-size: 100%;
+  padding: 0.75rem;
+  border-radius: var(--radius-lg);
+  text-align: start;
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+.how-step__tab:hover { background: var(--color-canvas); }
+.how-step__tab:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
+
+.how-step__num {
+  position: relative;
+  z-index: 1;
+  display: inline-grid;
   place-items: center;
-  inline-size: 2rem;
-  block-size: 2rem;
-  border-radius: 50%;
-  background: var(--color-brand-soft);
-  color: var(--color-brand);
-  font-size: var(--text-xs);
   flex-shrink: 0;
+  inline-size: 2.8rem;
+  block-size: 2.8rem;
+  border: 2px solid var(--color-brand-border);
+  border-radius: 50%;
+  background: var(--color-surface);
+  color: var(--color-brand);
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 700;
+  transition: background-color var(--dur-normal) var(--ease-out),
+              color var(--dur-normal) var(--ease-out),
+              box-shadow var(--dur-normal) var(--ease-out);
+}
+.how-step__tab[aria-expanded="true"] .how-step__num {
+  border-color: var(--color-brand);
+  background: var(--color-brand);
+  color: var(--color-brand-contrast);
+  box-shadow: 0 0 0 6px var(--color-brand-soft);
 }
 
-/* الجهاز فوق دائرتين، بلا صندوق */
-.how__device {
+.how-step__head { display: flex; flex-direction: column; gap: 0.15rem; }
+.how-step__head strong { font-family: var(--font-display); font-size: 1.25rem; color: var(--color-text); }
+.how-step__head span { font-size: 0.9rem; color: var(--color-text-muted); }
+.how-step__tab[aria-expanded="false"] .how-step__head strong { color: var(--color-text-muted); }
+
+/* الشرح: ظاهر للخطوة المفتوحة وحدها، ويعمل بلا JS (الأولى مفتوحة في HTML) */
+.how-step__more {
+  padding-inline-start: calc(0.75rem + 2.8rem + 1rem);
+  padding-inline-end: 0.75rem;
+  padding-block-end: 0.75rem;
+}
+.how-step__tab[aria-expanded="false"] + .how-step__more { display: none; }
+.how-step__tab[aria-expanded="true"] + .how-step__more { animation: how-in 0.45s var(--ease-out) both; }
+.how-step__more p { margin: 0 0 0.85rem; line-height: 1.85; color: var(--color-text-muted); }
+.how-step__points { display: grid; gap: 0.5rem; margin: 0; padding: 0; list-style: none; font-size: 0.92rem; }
+.how-step__points li { display: flex; align-items: center; gap: 0.6rem; color: var(--color-text); }
+.how-step__points i {
+  display: inline-grid;
+  place-items: center;
+  inline-size: 1.75rem;
+  block-size: 1.75rem;
+  border-radius: 50%;
+  background: var(--color-cta-soft);
+  color: var(--color-cta-strong);
+  font-size: 0.7rem;
+}
+
+.how-cta { margin-block-start: 1.75rem; margin-inline-start: 0.75rem; }
+
+/* ── الهاتف: نحيف وطويل بحواف رفيعة وجزيرة صغيرة، لا علبة عريضة ── */
+.how-phone {
   position: relative;
   display: grid;
   place-items: center;
-  padding-block: var(--space-6);
-  isolation: isolate;
+  padding-block: 2rem;
 }
-
-.how__device::before,
-.how__device::after {
-  content: "";
+/* خلفية الهاتف: قرص ناعم وثلاث حلقات متحدة المركز، على الحلقات نقاط وشارات.
+   الحركة مرتبطة بحدثين لا بزمن: الحلقات تتسع واحدة بعد أخرى حين يظهر
+   القسم، وتدور قليلاً كلما اختار الزائر خطوة (--how-i من how.js). لا دوران
+   مستمر. */
+.how-orbit {
   position: absolute;
-  z-index: -1;
-  border-radius: 50%;
-}
-
-.how__device::before {
-  inline-size: min(100%, 28rem);
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  inline-size: min(36rem, 120%);
   aspect-ratio: 1;
+  pointer-events: none;
+}
+.how-orbit__disc {
+  position: absolute;
+  inset: 22%;
+  border-radius: 50%;
   background: var(--color-brand-soft);
 }
+.how-orbit__ring {
+  --a: 0deg;
+  position: absolute;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-brand-border);
+  rotate: calc(var(--a) + var(--how-i, 0) * 28deg);
+  transition: rotate 1.1s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.how-orbit__ring--1 { inset: 14%; --a: 20deg; }
+.how-orbit__ring--2 { inset: 5%; --a: 200deg; border-style: dashed; border-color: color-mix(in srgb, var(--color-brand-border) 80%, transparent); }
+.how-orbit__ring--3 { inset: -4%; --a: 115deg; border-color: color-mix(in srgb, var(--color-brand-border) 55%, transparent); }
+/* الحلقة الوسطى تدور بعكس الأخريين عند تبديل الخطوة */
+.how-orbit__ring--2 { rotate: calc(var(--a) - var(--how-i, 0) * 34deg); }
 
-.how__device::after {
-  inline-size: 5.5rem;
-  aspect-ratio: 1;
-  inset-block-start: 6%;
-  inset-inline-end: 14%;
-  background: var(--color-cta);
+/* ما على الحلقات: يجلس على حافتها العليا، ودوران الحلقة يحرّكه حولها */
+.how-orbit__dot,
+.how-orbit__badge {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  translate: -50% -50%;
+  border-radius: 50%;
+}
+.how-orbit__dot { inline-size: 0.85rem; block-size: 0.85rem; }
+.how-orbit__dot--gold { background: var(--color-cta); box-shadow: 0 0 0 5px var(--color-cta-soft); }
+.how-orbit__dot--teal { top: 100%; background: var(--color-brand); box-shadow: 0 0 0 5px var(--color-brand-soft); }
+.how-orbit__badge {
+  display: grid;
+  place-items: center;
+  inline-size: 2.6rem;
+  block-size: 2.6rem;
+  background: var(--color-surface);
+  color: var(--color-brand);
+  font-size: 0.85rem;
+  box-shadow: var(--shadow-md);
+  /* الشارة تبقى قائمة مهما دارت حلقتها */
+  rotate: calc(-1 * (var(--a) + var(--how-i, 0) * 28deg));
+  transition: rotate 1.1s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.how-orbit__ring--2 .how-orbit__badge { rotate: calc(-1 * (var(--a) - var(--how-i, 0) * 34deg)); }
+.how-orbit__badge--gold { top: 50%; left: 0; color: var(--color-cta-strong); }
+
+/* الدخول: الحلقات تتسع من المركز واحدة بعد أخرى، وما عليها ينزلق لمكانه */
+@media (prefers-reduced-motion: no-preference) {
+  .js [data-reveal] .how-orbit__disc,
+  .js [data-reveal] .how-orbit__ring { opacity: 0; scale: 0.6; }
+  .js [data-reveal].is-visible .how-orbit__disc { animation: orbit-in 0.9s var(--ease-out) 0.1s both; }
+  .js [data-reveal].is-visible .how-orbit__ring--1 { animation: orbit-in 1s var(--ease-out) 0.25s both, orbit-spin-1 1.6s var(--ease-out) 0.25s both; }
+  .js [data-reveal].is-visible .how-orbit__ring--2 { animation: orbit-in 1s var(--ease-out) 0.4s both, orbit-spin-2 1.8s var(--ease-out) 0.4s both; }
+  .js [data-reveal].is-visible .how-orbit__ring--3 { animation: orbit-in 1s var(--ease-out) 0.55s both, orbit-spin-3 2s var(--ease-out) 0.55s both; }
+}
+@keyframes orbit-in { from { opacity: 0; scale: 0.6; } to { opacity: 1; scale: 1; } }
+/* انزلاقٌ على الحلقة حتى الزاوية المستقرّة (مرة واحدة) */
+@keyframes orbit-spin-1 { from { rotate: calc(var(--a) - 90deg); } }
+@keyframes orbit-spin-2 { from { rotate: calc(var(--a) + 120deg); } }
+@keyframes orbit-spin-3 { from { rotate: calc(var(--a) - 140deg); } }
+
+@media (max-width: 61.98rem) {
+  .how-orbit { inline-size: min(26rem, 110%); }
+  .how-orbit__badge { inline-size: 2.2rem; block-size: 2.2rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .how-orbit__ring, .how-orbit__badge { transition: none; }
 }
 
+.how-phone__frame {
+  position: relative;
+  display: grid;
+  inline-size: min(100%, 17.5rem);
+  aspect-ratio: 9 / 19;
+  /* إطار رفيع: الشاشة تكاد تبلغ الحافة */
+  padding: 0.28rem;
+  border-radius: 2.75rem;
+  background: #10292a;
+  /* حافة معدنية رفيعة حول الإطار، وظلّان: قريب حادّ وبعيد ناعم */
+  box-shadow:
+    0 0 0 1px #3d5f5f,
+    0 2px 6px rgb(0 0 0 / 0.18),
+    0 30px 60px -18px rgb(9 31 31 / 0.45);
+}
+/* أزرار الجانب */
+.how-phone__frame::before,
+.how-phone__frame::after {
+  content: "";
+  position: absolute;
+  inline-size: 3px;
+  border-radius: 2px;
+  background: #2c4b4b;
+}
+.how-phone__frame::before { inset-inline-start: -4px; inset-block-start: 22%; block-size: 3.5rem; }
+.how-phone__frame::after { inset-inline-end: -4px; inset-block-start: 18%; block-size: 2.25rem; box-shadow: 0 3.25rem 0 #2c4b4b; }
+
+/* الجزيرة */
+.how-phone__island {
+  position: absolute;
+  z-index: 3;
+  inset-block-start: 0.75rem;
+  inset-inline-start: 50%;
+  translate: 50% 0;
+  inline-size: 4.6rem;
+  block-size: 1.25rem;
+  border-radius: var(--radius-pill);
+  background: #050d0d;
+}
+:dir(ltr) .how-phone__island { translate: -50% 0; }
+
+/* الشاشات الثلاث مكدّسة في خلية واحدة */
+.how__panel {
+  grid-area: 1 / 1;
+  min-block-size: 0;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.4s var(--ease-out), visibility 0s linear 0.4s;
+}
+.how__panel.is-active {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.45s var(--ease-out) 0.05s, visibility 0s;
+}
+.how-phone .how__screen {
+  block-size: 100%;
+  overflow: hidden;
+  padding: 2.75rem 1rem 1rem;
+  border: 0;
+  border-radius: 2.5rem;
+  box-shadow: none;
+  font-size: 0.9em;
+}
+.how-phone .how__bar { display: none; }
+.how-kids img.avatar { object-fit: cover; background: var(--color-brand-soft); }
+/* أزرار الدورية في سطر واحد داخل الشاشة النحيفة */
+.how-phone .how-seg span { white-space: nowrap; font-size: 0.78rem; padding-inline: 0.5rem; }
+/* الصف المحدَّد مميَّز بلونه؛ التسمية تزاحم الاسم في شاشة نحيفة */
+.how-phone .how-kids__pick { display: none; }
+
+/* بطاقة عائمة خارج الهاتف، تتبدّل مع الخطوة */
+.how-float {
+  position: absolute;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin: 0;
+  padding: 0.7rem 0.95rem;
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-lg);
+  font-size: 0.78rem;
+  line-height: 1.35;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  translate: 0 12px;
+  opacity: 0;
+  transition: opacity 0.45s var(--ease-out), translate 0.45s var(--ease-out);
+}
+.how__panel.is-active .how-float { opacity: 1; translate: 0 0; transition-delay: 0.2s; }
+.how-float strong { display: block; font-family: var(--font-display); font-size: 0.88rem; color: var(--color-text); }
+.how-float__icon {
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  inline-size: 2.1rem;
+  block-size: 2.1rem;
+  border-radius: 50%;
+  background: var(--color-brand-soft);
+  color: var(--color-brand);
+}
+.how-float--1 { inset-block-start: 14%; inset-inline-end: -10rem; }
+.how-float--2 { inset-block-end: 16%; inset-inline-start: -10rem; }
+.how-float--2 .how-float__icon { background: var(--color-cta-soft); color: var(--color-cta-strong); }
+.how-float--3 { inset-block-start: 20%; inset-inline-start: -10rem; }
+
+@keyframes how-in { from { opacity: 0; translate: 0 -6px; } to { opacity: 1; translate: 0 0; } }
+
+@media (max-width: 61.98rem) {
+  .how-phone { padding-block: 1.5rem 0.5rem; margin-block-start: 0.5rem; }
+  .how-phone__frame { inline-size: min(100%, 16rem); }
+  /* البطاقة داخل حدود الشاشة على الجوال */
+  .how-float--1, .how-float--3 { inset-inline-end: auto; inset-inline-start: auto; inset-block-start: auto; inset-block-end: 1.5rem; inset-inline: 0.75rem auto; }
+  .how-float--2 { inset-inline: auto 0.75rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .how__panel, .how__panel.is-active, .how-float, .how-step__num, .how-step__tab { transition: none; }
+  .how-step__tab[aria-expanded="true"] + .how-step__more { animation: none; }
+}
+
+/* ------- محتوى شاشة الهاتف ------- */
 .how__screen {
   position: relative;
   display: flex;
@@ -966,28 +1082,6 @@
   border-radius: 50%;
   background: var(--color-surface);
   box-shadow: var(--shadow-xs);
-}
-
-@media (max-width: 62rem) {
-  .how__panel { grid-template-columns: minmax(0, 1fr); gap: var(--space-6); }
-  .how__copy h3 { font-size: var(--text-2xl); }
-}
-
-@media (max-width: 40rem) {
-  .how__tabs { gap: var(--space-3); margin-block-end: var(--space-8); }
-  .how-tab strong { font-size: var(--text-sm); }
-  .how-tab__hint { display: none; }
-  .how .kf-head .btn-cta { display: none; }
-  .how__device::after { inline-size: 4rem; inset-inline-end: 4%; }
-  .how__screen { min-block-size: 23rem; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .how__panel,
-  .how__copy > *,
-  .how__device,
-  .how-tab__bar span { transition: none; }
-  .how-tab.is-timing .how-tab__bar span { animation: none; }
 }
 
 /* ------- ٤) التقرير الربعي ------- */
