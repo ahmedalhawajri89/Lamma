@@ -1084,41 +1084,117 @@
   box-shadow: var(--shadow-xs);
 }
 
-/* ------- ٤) التقرير الربعي ------- */
-.report-show {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
-  gap: clamp(var(--space-10), 6vw, var(--space-20));
-  align-items: center;
-}
-
-.report-show__text {
+/* ------- ٤) التقرير الربعي: بنود مربوطة بأجزاء التقرير ------- */
+.report { overflow: clip; }
+.report-points { display: grid; gap: 0.75rem; margin: 0; padding: 0; list-style: none; }
+.report-point {
   display: flex;
-  flex-direction: column;
   align-items: flex-start;
-  gap: var(--space-6);
+  gap: 1rem;
+  inline-size: 100%;
+  padding: 1.1rem 1.25rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  text-align: start;
+  transition: border-color var(--dur-fast) var(--ease-out),
+              box-shadow var(--dur-normal) var(--ease-out),
+              translate var(--dur-normal) var(--ease-out);
 }
+.report-point:hover,
+.report-point.is-on { border-color: var(--color-brand-border); box-shadow: var(--shadow-md); translate: -6px 0; }
+.report-point[aria-pressed="true"] { border-color: var(--color-brand); }
+.report-point:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
+.report-point__icon {
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  inline-size: 2.9rem;
+  block-size: 2.9rem;
+  border-radius: var(--radius-md);
+  background: var(--color-brand-soft);
+  color: var(--color-brand);
+  font-size: 1.1rem;
+  transition: background-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+}
+.report-point.is-on .report-point__icon { background: var(--color-brand); color: var(--color-brand-contrast); }
+.report-point strong { display: block; margin-block-end: 0.2rem; font-family: var(--font-display); font-size: 1.1rem; color: var(--color-text); }
+.report-point > span:last-child > span { font-size: 0.92rem; line-height: 1.7; color: var(--color-text-muted); }
 
-.report-show__text h2 { font-size: var(--text-3xl); }
+.report__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-block-start: 1.5rem;
+}
+.report__stat { display: flex; align-items: center; gap: 0.75rem; margin: 0; font-size: 0.9rem; line-height: 1.35; color: var(--color-text-muted); }
+.report__stat b { font-family: var(--font-display); font-size: 2.6rem; line-height: 1; color: var(--color-cta-strong); }
 
-.report-points {
-  display: grid;
-  gap: var(--space-4);
+/* ── المسرح: نموذج التقرير وبطاقتان عائمتان ── */
+.report-stage { position: relative; max-inline-size: 36rem; margin-inline: auto; padding-block: 1.5rem; }
+/* لوح تركوازي ناعم مائل خلف التقرير، بروح خلفية الهاتف */
+.report-stage::before {
+  content: "";
+  position: absolute;
+  inset: 0 6% 4% -4%;
+  border-radius: 2.5rem;
+  background: var(--color-brand-soft);
+  rotate: 3deg;
+}
+.report-stage .report-mock { position: relative; }
+
+/* الجزء المقابل للبند المُبرَز يبقى، والباقي يخفت */
+.report-mock [data-block] { transition: opacity 0.3s var(--ease-out), background-color 0.3s var(--ease-out); border-radius: var(--radius-md); }
+.report-mock.is-focused [data-block] { opacity: 0.35; }
+.report-mock.is-focused [data-block].is-on { opacity: 1; background: var(--color-brand-soft); box-shadow: 0 0 0 0.6rem var(--color-brand-soft); }
+
+.report-float {
+  position: absolute;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
   margin: 0;
+  padding: 0.7rem 1rem;
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-lg);
+  font-size: 0.78rem;
+  line-height: 1.35;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+.report-float strong { display: block; font-family: var(--font-display); font-size: 0.88rem; color: var(--color-text); }
+.report-float__icon {
+  display: inline-grid;
+  place-items: center;
+  inline-size: 2.1rem;
+  block-size: 2.1rem;
+  border-radius: 50%;
+  background: var(--color-brand-soft);
+  color: var(--color-brand);
+}
+.report-float__icon--gold { background: var(--color-cta-soft); color: var(--color-cta-strong); }
+.report-float--visit { inset-block-start: 0; inset-inline-end: -1.5rem; }
+.report-float--mail { inset-block-end: 0; inset-inline-start: -1.5rem; }
+
+/* تظهر البطاقتان بعد التقرير نفسه، مرة واحدة */
+@media (prefers-reduced-motion: no-preference) {
+  .js .report-float { opacity: 0; translate: 0 14px; transition: opacity 0.6s var(--ease-out), translate 0.6s var(--ease-out); }
+  .js .report-stage:has(.report-mock.is-visible) .report-float { opacity: 1; translate: 0 0; }
+  .js .report-stage:has(.report-mock.is-visible) .report-float--visit { transition-delay: 0.5s; }
+  .js .report-stage:has(.report-mock.is-visible) .report-float--mail { transition-delay: 0.75s; }
 }
 
-.report-points > div {
-  padding-inline-start: var(--space-4);
-  border-inline-start: 2px solid var(--color-brand-border);
+@media (max-width: 61.98rem) {
+  .report-float--visit { inset-inline-end: 0.5rem; }
+  .report-float--mail { inset-inline-start: 0.5rem; }
 }
-
-.report-points dt {
-  font-family: var(--font-display);
-  font-weight: 600;
-  color: var(--color-text);
+@media (prefers-reduced-motion: reduce) {
+  .report-point, .report-point__icon, .report-mock [data-block] { transition: none; }
 }
-
-.report-points dd { margin: 0; color: var(--color-text-muted); }
 
 .report-mock {
   display: flex;
@@ -1273,7 +1349,6 @@
 }
 
 @media (max-width: 62rem) {
-  .report-show { grid-template-columns: minmax(0, 1fr); }
 }
 
 @media (max-width: 30rem) {
@@ -1937,9 +2012,7 @@
    (1.25rem): الصفوف التي تمتد لحافة الشاشة تُزاح بها وإلا فاضت أفقياً */
 :root { --kf-gutter: calc(var(--bs-gutter-x, 1.5rem) * 0.5); }
 
-/* عناوين الأقسام ذات العمودين بحجم رؤوس الأقسام نفسه */
-.report__title, .faq__title { font-size: clamp(1.75rem, 3.2vw, 2.5rem); margin-block-end: 0; }
-.report-points { margin-block: 1.75rem 1.25rem; }
+.faq__title { font-size: clamp(1.75rem, 3.2vw, 2.5rem); margin-block-end: 0; }
 
 /* الخاتمة: كانت شبكتها في .closing__inner، وصارت صفّ Bootstrap */
 .closing__title { margin: 0.75rem 0 0; }

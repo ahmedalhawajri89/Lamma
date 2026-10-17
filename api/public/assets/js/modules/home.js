@@ -250,10 +250,41 @@ function renderHeroProof() {
   }), { threshold: 0.4 });
 }
 
+/**
+ * نموذج التقرير: كل بند (الدراسة، الصحة، كفالتك) مربوط بجزئه من التقرير.
+ * المرور أو التركيز يُبرز الجزء ويُخفت الباقي، والنقر يثبّته (aria-pressed).
+ */
+function linkReportPoints() {
+  const mock = $('#reportMock');
+  const points = $$('.report-point');
+  if (!mock || !points.length) return;
+
+  let pinned = null;
+  const show = (key) => {
+    mock.classList.toggle('is-focused', Boolean(key));
+    $$('[data-block]', mock).forEach((b) => b.classList.toggle('is-on', b.dataset.block === key));
+    points.forEach((p) => p.classList.toggle('is-on', p.dataset.block === key));
+  };
+
+  points.forEach((point) => {
+    const key = point.dataset.block;
+    point.addEventListener('mouseenter', () => show(key));
+    point.addEventListener('focus', () => show(key));
+    point.addEventListener('mouseleave', () => show(pinned));
+    point.addEventListener('blur', () => show(pinned));
+    point.addEventListener('click', () => {
+      pinned = pinned === key ? null : key;
+      points.forEach((p) => p.setAttribute('aria-pressed', String(p.dataset.block === pinned)));
+      show(pinned ?? key);
+    });
+  });
+}
+
 export function renderHomeSections() {
   renderHeroProof();
   renderHomeOrphans();
   renderMoney();
+  linkReportPoints();
 
   renderPlans();
   renderVoices();

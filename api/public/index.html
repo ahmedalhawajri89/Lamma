@@ -335,71 +335,94 @@
       </div>
     </section>
 
-    <!-- ══ التقرير الربعي: نُري الكافل ما سيصله بدل أن نصفه ══ -->
-    <section class="kf-section" aria-labelledby="reportTitle">
+    <!-- ══ التقرير الربعي: نُري الكافل ما سيصله بدل أن نصفه ══
+         كل بند مربوط بجزئه من التقرير: المرور عليه يُبرزه ويُخفت الباقي. -->
+    <section class="kf-section report" aria-labelledby="reportTitle">
       <div class="container">
+        <header class="kf-head kf-head--center" data-reveal>
+          <h2 id="reportTitle">هذا ما يصلك عن طفلك كل ثلاثة أشهر</h2>
+          <p class="kf-lede">يكتبه المشرف الميداني بعد زيارة البيت والمدرسة، ويصلك على بريدك وفي حسابك. أربعة تقارير في السنة، لا تقرير واحد.</p>
+        </header>
+
         <div class="row g-4 g-lg-5 align-items-center">
-          <div class="col-lg-6 order-lg-1" data-reveal="start">
-            <h2 id="reportTitle" class="report__title">هذا ما يصلك عن طفلك كل ثلاثة أشهر</h2>
-            <p class="kf-lede">
-              يكتبه المشرف الميداني بعد زيارة البيت والمدرسة، ويصلك على بريدك
-              وفي حسابك. معظم الجهات ترسل تقريراً واحداً في السنة، ونحن نرسل أربعة.
-            </p>
-            <dl class="report-points">
-              <div><dt>الدراسة</dt><dd>الدرجات في كل مادة، وملاحظة المعلم.</dd></div>
-              <div><dt>الصحة</dt><dd>آخر فحص، وأي علاج يحتاجه.</dd></div>
-              <div><dt>كفالتك</dt><dd>كيف صُرف مبلغك بالدولار، بنداً بنداً.</dd></div>
-            </dl>
-            <a class="link-arrow" href="transparency.html">كيف نتحقق من كل حالة <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
+          <div class="col-lg-5">
+            <ul class="report-points" role="list">
+              <li data-reveal data-reveal-delay="0">
+                <button class="report-point" type="button" data-block="study" aria-pressed="false">
+                  <span class="report-point__icon" aria-hidden="true"><i class="fa-solid fa-book-open"></i></span>
+                  <span><strong>الدراسة</strong><span>الدرجات في كل مادة، وملاحظة المعلم.</span></span>
+                </button>
+              </li>
+              <li data-reveal data-reveal-delay="90">
+                <button class="report-point" type="button" data-block="health" aria-pressed="false">
+                  <span class="report-point__icon" aria-hidden="true"><i class="fa-solid fa-heart-pulse"></i></span>
+                  <span><strong>الصحة</strong><span>آخر فحص، وأي علاج يحتاجه.</span></span>
+                </button>
+              </li>
+              <li data-reveal data-reveal-delay="180">
+                <button class="report-point" type="button" data-block="money" aria-pressed="false">
+                  <span class="report-point__icon" aria-hidden="true"><i class="fa-solid fa-hand-holding-dollar"></i></span>
+                  <span><strong>كفالتك</strong><span>كيف صُرف مبلغك بالدولار، بنداً بنداً.</span></span>
+                </button>
+              </li>
+            </ul>
+            <div class="report__foot" data-reveal>
+              <p class="report__stat"><b class="num">4</b><span>تقارير مصوّرة<br>كل سنة</span></p>
+              <a class="link-arrow" href="transparency.html">كيف نتحقق من كل حالة <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
+            </div>
           </div>
 
-          <div class="col-lg-6 order-lg-2">
-            <article class="report-mock" data-reveal="end" data-reveal-delay="120" aria-label="نموذج توضيحي لتقرير ربعي">
-              <header class="report-mock__head">
-                <span class="avatar avatar--lg avatar--1" aria-hidden="true">أ</span>
-                <div>
-                  <strong>أمنية، 8 سنوات</strong>
-                  <span>غزة · الكفالة التعليمية</span>
+          <div class="col-lg-7">
+            <div class="report-stage">
+              <p class="report-float report-float--visit" aria-hidden="true"><span class="report-float__icon"><i class="fa-solid fa-house-user"></i></span><span><strong>زيارة ميدانية</strong>24 سبتمبر</span></p>
+              <article class="report-mock" id="reportMock" data-reveal="end" data-reveal-delay="120" aria-label="نموذج توضيحي لتقرير ربعي">
+                <header class="report-mock__head">
+                  <img class="avatar avatar--lg" src="assets/img/kids/girl-02.svg" alt="" width="48" height="48">
+                  <div>
+                    <strong>أمنية، 8 سنوات</strong>
+                    <span>غزة · الكفالة التعليمية</span>
+                  </div>
+                  <span class="report-mock__tag">الربع الثالث <span class="num">2026</span></span>
+                </header>
+
+                <div class="report-mock__block" data-block="study">
+                  <h3>الدراسة <span>الصف الثالث</span></h3>
+                  <ul class="report-bars" role="list">
+                    <li><span>اللغة العربية</span><span class="report-bars__track"><span style="--v:92%"></span></span><b class="num">92</b></li>
+                    <li><span>الرياضيات</span><span class="report-bars__track"><span style="--v:85%"></span></span><b class="num">85</b></li>
+                    <li><span>العلوم</span><span class="report-bars__track"><span style="--v:88%"></span></span><b class="num">88</b></li>
+                  </ul>
+                  <p class="report-mock__note">«تحسّنت قراءتها كثيراً هذا الفصل، وصارت تشارك في الحصة.» معلمة الصف</p>
                 </div>
-                <span class="report-mock__tag">الربع الثالث <span class="num">2026</span></span>
-              </header>
 
-              <div class="report-mock__block">
-                <h3>الدراسة <span>الصف الثالث</span></h3>
-                <ul class="report-bars" role="list">
-                  <li><span>اللغة العربية</span><span class="report-bars__track"><span style="--v:92%"></span></span><b class="num">92</b></li>
-                  <li><span>الرياضيات</span><span class="report-bars__track"><span style="--v:85%"></span></span><b class="num">85</b></li>
-                  <li><span>العلوم</span><span class="report-bars__track"><span style="--v:88%"></span></span><b class="num">88</b></li>
-                </ul>
-                <p class="report-mock__note">«تحسّنت قراءتها كثيراً هذا الفصل، وصارت تشارك في الحصة.» معلمة الصف</p>
-              </div>
-
-              <div class="report-mock__block report-mock__row">
-                <h3>الصحة</h3>
-                <p><i class="fa-solid fa-circle-check" aria-hidden="true"></i> فحص نظر في 12 سبتمبر، النتيجة سليمة</p>
-              </div>
-
-              <div class="report-mock__block">
-                <h3>كيف صُرفت كفالتك <span class="num">$35</span></h3>
-                <div class="report-split" role="img" aria-label="رسوم وقرطاسية 14 دولاراً، غذاء 12، صحة 5، أنشطة 4">
-                  <span style="--w:40%; --c:var(--chart-1)"></span>
-                  <span style="--w:34%; --c:var(--chart-4)"></span>
-                  <span style="--w:14%; --c:var(--chart-2)"></span>
-                  <span style="--w:12%; --c:var(--chart-5)"></span>
+                <div class="report-mock__block report-mock__row" data-block="health">
+                  <h3>الصحة</h3>
+                  <p><i class="fa-solid fa-circle-check" aria-hidden="true"></i> فحص نظر في 12 سبتمبر، النتيجة سليمة</p>
                 </div>
-                <ul class="report-legend" role="list">
-                  <li><i style="--c:var(--chart-1)"></i>رسوم وقرطاسية <b class="num">$14</b></li>
-                  <li><i style="--c:var(--chart-4)"></i>غذاء <b class="num">$12</b></li>
-                  <li><i style="--c:var(--chart-2)"></i>صحة <b class="num">$5</b></li>
-                  <li><i style="--c:var(--chart-5)"></i>أنشطة <b class="num">$4</b></li>
-                </ul>
-              </div>
 
-              <footer class="report-mock__foot">
-                <span>زيارة ميدانية في 24 سبتمبر</span>
-                <span>نموذج توضيحي</span>
-              </footer>
-            </article>
+                <div class="report-mock__block" data-block="money">
+                  <h3>كيف صُرفت كفالتك <span class="num">$35</span></h3>
+                  <div class="report-split" role="img" aria-label="رسوم وقرطاسية 14 دولاراً، غذاء 12، صحة 5، أنشطة 4">
+                    <span style="--w:40%; --c:var(--chart-1)"></span>
+                    <span style="--w:34%; --c:var(--chart-4)"></span>
+                    <span style="--w:14%; --c:var(--chart-2)"></span>
+                    <span style="--w:12%; --c:var(--chart-5)"></span>
+                  </div>
+                  <ul class="report-legend" role="list">
+                    <li><i style="--c:var(--chart-1)"></i>رسوم وقرطاسية <b class="num">$14</b></li>
+                    <li><i style="--c:var(--chart-4)"></i>غذاء <b class="num">$12</b></li>
+                    <li><i style="--c:var(--chart-2)"></i>صحة <b class="num">$5</b></li>
+                    <li><i style="--c:var(--chart-5)"></i>أنشطة <b class="num">$4</b></li>
+                  </ul>
+                </div>
+
+                <footer class="report-mock__foot">
+                  <span>زيارة ميدانية في 24 سبتمبر</span>
+                  <span>نموذج توضيحي</span>
+                </footer>
+              </article>
+              <p class="report-float report-float--mail" aria-hidden="true"><span class="report-float__icon report-float__icon--gold"><i class="fa-solid fa-envelope-open-text"></i></span><span><strong>وصل على بريدك</strong>وفي حسابك أيضاً</span></p>
+            </div>
           </div>
         </div>
       </div>
