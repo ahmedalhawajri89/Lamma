@@ -42,6 +42,7 @@ import {
 import { renderHomeSections } from './modules/home.js';
 import { initCatalog } from './modules/catalog.js';
 import { initProfile } from './modules/profile.js';
+import { initFaqPage } from './modules/faq.js';
 import { initTransparency } from './modules/transparency.js';
 import { initBlog } from './modules/blog.js';
 import { initAbout } from './modules/about.js';
@@ -60,6 +61,7 @@ function boot() {
   initAbout();
   initCatalog();
   initProfile();
+  initFaqPage();
   initCheckout();
   initBlog();
   initResetPassword();

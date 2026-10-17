@@ -26,7 +26,7 @@ Route::view('/', 'site.pages.home')->name('home');
 /** صفحات الموقع: العنوان هو اسم القالب في site/pages. */
 foreach ([
     'orphans', 'thank-you', 'transparency',
-    'blog', 'about', 'faq',
+    'blog', 'about',
 ] as $page) {
     Route::view("/{$page}", "site.pages.{$page}")->name("site.{$page}");
 }
@@ -40,6 +40,9 @@ Route::get('/post', App\Http\Controllers\Site\PostPageController::class)->name('
 
 /** التواصل: بياناته من الإعدادات، وأكثر الأسئلة قبل النموذج */
 Route::get('/contact', App\Http\Controllers\Site\ContactPageController::class)->name('site.contact');
+
+/** الأسئلة الشائعة من الخادم: نصّها ووصفها المنظَّم لمحركات البحث */
+Route::get('/faq', App\Http\Controllers\Site\FaqPageController::class)->name('site.faq');
 
 /** البرامج من جدولها: السعر والبنود من مصدرٍ واحد، ومع كلٍّ من ينتظر فيه */
 Route::get('/programs', App\Http\Controllers\Site\ProgramsPageController::class)->name('site.programs');

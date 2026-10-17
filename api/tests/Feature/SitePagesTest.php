@@ -240,3 +240,18 @@ it('تأخذ صفحة التواصل الهاتف والبريد من الإعد
         // المصيدة باقية للروبوتات
         ->toContain('name="website"');
 });
+
+it('ترسم صفحة الأسئلة أجوبتها من الخادم بمراسٍ ثابتة ووصفٍ منظَّم وأرقامٍ حيّة', function () {
+    $this->seed(Database\Seeders\ContentSeeder::class);
+
+    $html = $this->get('/faq')->assertOk()->getContent();
+
+    expect($html)
+        // صفحة الكفالة تربط /faq#zakat
+        ->toContain('id="zakat"')
+        ->toContain('"@type":"FAQPage"')
+        ->toContain(App\Models\Faq::published()->first()->question)
+        // رموز الشفافية تُملأ، لا تُطبع كما هي
+        ->not->toContain('{overhead}')
+        ->not->toContain('{toChild}');
+});
