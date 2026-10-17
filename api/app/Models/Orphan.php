@@ -198,6 +198,27 @@ class Orphan extends Model
             ->whereNotNull('verified_at');
     }
 
+    /**
+     * من يقبل كفالة الآن: المنشور الذي لم يكتمل تمويله.
+     *
+     * فهرس الموقع والرئيسية يعرضان هؤلاء وحدهم. كان المكفول بالكامل يظهر بزرّ
+     * «اكفل»، فيملأ الزائر بياناته ثم يُرفض في آخر خطوة. صفحته تبقى (public)
+     * لمن يحمل رابطها، وتقول إن كفالته اكتملت.
+     */
+    public function scopeSeekingSponsor(Builder $query): Builder
+    {
+        return $query->public()->where('status', OrphanStatus::Active);
+    }
+
+    /** عدد الكافلين الذين تُحسب كفالاتهم في تمويله الآن، باسم `sponsors_count`. */
+    public function scopeWithSponsorCount(Builder $query): Builder
+    {
+        return $query->withCount(['sponsorships as sponsors_count' => fn (Builder $q) => $q->whereIn(
+            'status',
+            array_filter(SponsorshipStatus::cases(), fn (SponsorshipStatus $s): bool => $s->countsTowardFunding()),
+        )]);
+    }
+
     /** ترتيب شبكة orphans.html: العاجل أولاً، ثم الأقل تمويلاً. */
     public function scopeByNeed(Builder $query): Builder
     {

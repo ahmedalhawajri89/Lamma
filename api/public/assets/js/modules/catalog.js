@@ -53,7 +53,8 @@ export function initCatalog() {
   const moreBtn = $('[data-load-more]');
 
   sortSelect.innerHTML = SORTS.map((s) => `<option value="${s.value}">${s.label}</option>`).join('');
-  sortSelect.value = state.sort || 'urgent';
+  // ترتيبٌ يقبله الخادم وليس في القائمة (رابطٌ يدوي) يُعرض «الأشد احتياجاً» لا خانةً فارغة
+  sortSelect.value = SORTS.some((x) => x.value === state.sort) ? state.sort : 'urgent';
   sortSelect.addEventListener('change', () => update({ sort: sortSelect.value === 'urgent' ? '' : sortSelect.value }));
 
   search.value = state.q || '';

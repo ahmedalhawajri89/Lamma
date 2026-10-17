@@ -1127,6 +1127,19 @@
 .sponsor-panel__fund b { color: var(--color-text); }
 .sponsor-panel .btn--cta { box-shadow: none; }
 
+/* اكتملت كفالته: شكرٌ بدل زرّ «اكفل» (features.js) */
+.sponsor-panel__done {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-success-soft, var(--color-brand-soft));
+  font-weight: 600;
+  color: var(--color-success, var(--color-brand));
+}
+
 .sponsor-panel__hint {
   display: flex;
   align-items: baseline;

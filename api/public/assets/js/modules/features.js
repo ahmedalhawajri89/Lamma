@@ -140,6 +140,22 @@ export function initOrphanDetail() {
     link.href = `/checkout?id=${encodeURIComponent(orphan.id)}`;
   });
 
+  /*
+   * اكتملت كفالته: الفهرس لا يعرضه، لكن رابطه القديم يصل هنا. لا زرّ «اكفل»
+   * يُرفض في آخر خطوة، بل شكرٌ لكافليه وطريقٌ إلى من ينتظر.
+   */
+  if (Number(orphan.funded) >= 100) {
+    const done = `<p class="sponsor-panel__done" role="status">
+        <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+        <span>اكتملت ${her ? 'كفالتها' : 'كفالته'}، شكراً لكافلي${her ? 'ها' : 'ه'}.</span>
+      </p>
+      <a class="btn btn--outline btn--lg btn--block" href="/orphans">أطفال ينتظرون كافلاً
+        <i class="fa-solid fa-arrow-left btn__icon btn__icon--arrow" aria-hidden="true"></i></a>`;
+    $$('.sponsor-panel [data-sponsor-link]').forEach((link) => { link.outerHTML = done; });
+    $('.sponsor-panel__hint')?.remove();
+    $('#actionBar')?.remove();
+  }
+
   const urgentSlot = $('#orphanUrgent');
   if (urgentSlot && !orphan.urgent) urgentSlot.remove();
 

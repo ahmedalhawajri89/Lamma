@@ -53,6 +53,7 @@ class OrphanController extends Controller
         ]);
 
         $query = $this->filtered($request)
+            ->withSponsorCount()
             ->with(['program:id,slug', 'family:id,country_id,city_id', 'family.country:id,name_ar', 'family.city:id,name_ar']);
 
         foreach (self::SORTS[$validated['sort'] ?? 'urgent'] as [$column, $direction]) {
@@ -91,7 +92,8 @@ class OrphanController extends Controller
         $has = fn (string $k) => ! in_array($k, $except, true) && $request->filled($k);
 
         return Orphan::query()
-            ->public()
+            // من يقبل كفالة الآن وحده: المكفول بالكامل لا يُعرض بزرّ «اكفل» يُرفض
+            ->seekingSponsor()
             ->search($has('q') ? $request->string('q')->toString() : null)
             ->when($has('program'), fn ($q) => $q->whereHas('program', fn ($p) => $p->where('slug', $request->string('program'))))
             ->when($has('country'), fn ($q) => $q->whereHas('family.country', fn ($c) => $c->where('name_ar', $request->string('country'))))
@@ -136,15 +138,17 @@ class OrphanController extends Controller
             'gender' => $genders,
             'age' => $ages,
             'urgent' => $this->filtered($request, ['urgent'])->where('is_urgent', true)->count(),
-            'all' => Orphan::query()->public()->count(),
+            'all' => Orphan::query()->seekingSponsor()->count(),
         ];
     }
 
     /** يُطلب بالمعرّف العلني `KFL-1042` لا بالمفتاح الرقمي. */
     public function show(string $reference): JsonResponse
     {
+        // public لا seekingSponsor: رابط طفلٍ اكتملت كفالته يفتح صفحته وتقول ذلك
         $orphan = Orphan::query()
             ->public()
+            ->withSponsorCount()
             ->with([
                 'program:id,slug,name_ar,monthly_price,icon,accent',
                 'family:id,country_id,city_id',

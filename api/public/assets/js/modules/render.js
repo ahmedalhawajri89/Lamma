@@ -13,9 +13,19 @@ const ageLabel = (age) => `${age} ${age >= 3 && age <= 10 ? 'سنوات' : 'سن
 /** كم يتبقى بالدولار لاكتمال كفالة الطفل هذا الشهر. */
 const remainingOf = (o) => Math.max(0, Math.round((o.monthly * (100 - o.funded)) / 100));
 
+/** «يكفله شخص واحد، شخصان، 3 أشخاص، 11 شخصاً» بضمير الطفل. */
+function sponsorsLabel(n, her) {
+  const verb = her ? 'يكفلها' : 'يكفله';
+  if (n === 1) return `${verb} شخص واحد`;
+  if (n === 2) return `${verb} شخصان`;
+  return `${verb} <b class="num">${n}</b> ${n <= 10 ? 'أشخاص' : 'شخصاً'}`;
+}
+
 /**
  * بطاقة طفل: الرسم (لا صورة حقيقية على الموقع العام)، ثم الاسم والعمر والمدينة،
  * والحلم بسطر، والتمويل بشريط يمتلئ حين تظهر، وزرّ «اكفل» صريح.
+ * الكفالة تُشارَك: من بدأ غيره كفالته تقول بطاقته كم يكفله وكم بقي، وزرّها
+ * «أكمل كفالة…» لا «اكفل…»، فيعرف الزائر أن مبلغاً صغيراً يكفي.
  * الاسم رابطٌ ممتد إلى ملفه فالبطاقة كلها تُضغط، والزرّ فوقه إلى الكفالة.
  * واحدة للرئيسية وصفحة الأيتام، وأنماطها في kids.css.
  */
@@ -23,6 +33,8 @@ export function kidCard(o, { delay = 0, cols = 'col-sm-6 col-lg-3' } = {}) {
   const name = escapeHtml(o.name);
   const her = isGirl(o);
   const funded = safeNumber(o.funded);
+  const sponsors = safeNumber(o.sponsors);
+  const shared = funded > 0;
   const link = `/orphan?id=${encodeURIComponent(o.id)}`;
 
   return `
@@ -41,12 +53,13 @@ export function kidCard(o, { delay = 0, cols = 'col-sm-6 col-lg-3' } = {}) {
       ${o.dream ? `<p class="kid-card__dream"><span>${her ? 'حلمها' : 'حلمه'}:</span> ${escapeHtml(o.dream)}</p>` : ''}
       <div class="kid-card__fund">
         <div class="kid-card__fund-row">
-          <span>مكفول <b class="num">${funded}٪</b></span>
+          <span>${sponsors ? sponsorsLabel(sponsors, her) : `مكفول <b class="num">${funded}٪</b>`}</span>
           <span>يتبقى <b class="num">$${remainingOf(o)}</b></span>
         </div>
         <span class="kid-card__track" role="progressbar" aria-label="نسبة كفالة ${name}" aria-valuenow="${funded}" aria-valuemin="0" aria-valuemax="100"><span style="--v:${funded}%"></span></span>
+        ${shared ? `<p class="kid-card__share">شارك بأي مبلغ من <b class="num">$5</b> لإكمال ${her ? 'كفالتها' : 'كفالته'}</p>` : ''}
       </div>
-      <a class="btn btn-cta w-100 kid-card__cta" href="/checkout?id=${encodeURIComponent(o.id)}">اكفل ${name}</a>
+      <a class="btn btn-cta w-100 kid-card__cta" href="/checkout?id=${encodeURIComponent(o.id)}">${shared ? 'أكمل كفالة' : 'اكفل'} ${name}</a>
     </div>
   </article>
 </div>`;

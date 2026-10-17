@@ -29,6 +29,11 @@ class PublicOrphanResource extends JsonResource
             'program' => $this->whenLoaded('program', fn () => $this->program->slug),
             'monthly' => (float) $this->monthly_need,
             'funded' => $this->funded_percent,
+            // كم كافلاً يتشاركون كفالته: «يكفله شخصان، ويتبقى 10$»
+            'sponsors' => $this->when(
+                array_key_exists('sponsors_count', $this->resource->getAttributes()),
+                fn () => (int) $this->sponsors_count,
+            ),
             'urgent' => $this->is_urgent,
             'photo' => $this->illustration(),
             'grade' => $this->grade_level,

@@ -54,3 +54,30 @@ it('لا تخرج صورة الطفل الحقيقية إلى الموقع ال�
         ->and($one)->toBe($list[$girl->reference_code]['photo'])
         ->and(json_encode($list))->not->toContain('real-girl')->not->toContain('storage/orphans');
 });
+
+it('لا يعرض في الفهرس من اكتملت كفالته، وتبقى صفحته تقول ذلك', function () {
+    $open = publicChild(['monthly_need' => 50]);
+    $full = publicChild(['monthly_need' => 50]);
+
+    // كافلان يتشاركان الأول ولم يكملاه، وكفالةٌ ملغاة لا تُعدّ
+    App\Models\Sponsorship::factory()->for($open)->create(['monthly_amount' => 20]);
+    App\Models\Sponsorship::factory()->for($open)->create(['monthly_amount' => 10]);
+    App\Models\Sponsorship::factory()->for($open)->cancelled()->create(['monthly_amount' => 15]);
+    App\Models\Sponsorship::factory()->for($full)->create(['monthly_amount' => 50]);
+
+    expect($full->fresh()->status)->toBe(OrphanStatus::FullyFunded);
+
+    $list = $this->getJson('/api/v1/public/orphans?facets=1')->assertOk();
+    expect($list->json('meta.total'))->toBe(1)
+        ->and($list->json('meta.facets.all'))->toBe(1)
+        ->and($list->json('data.0.id'))->toBe($open->reference_code)
+        ->and($list->json('data.0.funded'))->toBe(60)
+        ->and($list->json('data.0.sponsors'))->toBe(2);
+
+    // الرابط القديم يفتح الصفحة: مكتملة، ولا تقبل كفالة
+    $this->getJson("/api/v1/public/orphans/{$full->reference_code}")
+        ->assertOk()
+        ->assertJsonPath('data.funded', 100)
+        ->assertJsonPath('data.sponsors', 1)
+        ->assertJsonPath('data.accepting', false);
+});
