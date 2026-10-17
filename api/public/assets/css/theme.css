@@ -474,17 +474,58 @@ button:focus-visible,
   padding-block: clamp(3rem, 6vw, 4.5rem) 1.5rem;
   /* بلا هامش علوي: الصفحات تنتهي غالباً بقسم داكن (الخاتمة)، والهامش كان
      يترك شريطاً فاتحاً بين كتلتين داكنتين. خطٌّ رفيع يفصلهما بدله */
-  border-block-start: 1px solid rgb(255 255 255 / 0.12);
+  border-block-start: 4px solid var(--color-cta);
+  position: relative;
+  overflow: hidden;
 }
-.kf-footer a { color: var(--kf-footer-muted); text-decoration: none; }
-.kf-footer a:hover { color: #fff; text-decoration: underline; text-underline-offset: 0.3em; }
+/* حلقات في الزاوية: صدى لخلفية الهاتف وبطاقة الخاتمة */
+.kf-footer::before,
+.kf-footer::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  border: 1.5px solid rgb(255 255 255 / 0.07);
+  pointer-events: none;
+}
+.kf-footer::before { inline-size: 30rem; block-size: 30rem; inset-block-start: -15rem; inset-inline-end: -10rem; }
+.kf-footer::after { inline-size: 46rem; block-size: 46rem; inset-block-start: -23rem; inset-inline-end: -18rem; }
+.kf-footer > .container { position: relative; z-index: 1; }
+.kf-footer a { color: var(--kf-footer-muted); text-decoration: none; transition: color var(--dur-fast) var(--ease-out); }
+.kf-footer a:hover { color: #fff; }
 .kf-footer a:focus-visible { outline-color: var(--color-cta); }
-/* الفاصل عنصرٌ مستقل لا حدٌّ على .row: للصف هوامش سالبة فيمتد حدّه خارج الحاوية */
-.kf-footer__top { padding-block-end: 2.5rem; }
-.kf-footer__rule { margin: 0; border: 0; border-block-start: 1px solid rgb(255 255 255 / 0.12); opacity: 1; }
-.kf-footer__about { max-inline-size: 30rem; margin: 1rem 0 0; color: var(--kf-footer-muted); line-height: 1.8; }
-.kf-footer__claim { font-family: var(--font-display); font-weight: 600; font-size: 1.15rem; margin-block-end: 0.75rem; }
-.kf-footer__hint { margin: 0.75rem 0 0; font-size: 0.875rem; color: var(--kf-footer-muted); }
+.kf-footer__about { max-inline-size: 22rem; margin: 1rem 0 1.25rem; color: var(--kf-footer-muted); line-height: 1.8; }
+.kf-footer__hint { margin: 0.35rem 0 0; font-size: 0.9rem; color: var(--kf-footer-muted); }
+
+/* ── بطاقة النشرة: سطح أفتح قليلاً من الحبر ── */
+.kf-news-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) minmax(0, 26rem);
+  align-items: center;
+  gap: 1.25rem 1.75rem;
+  padding: clamp(1.5rem, 3vw, 2rem) clamp(1.25rem, 3vw, 2.25rem);
+  border: 1px solid rgb(255 255 255 / 0.12);
+  border-radius: 1.75rem;
+  background: rgb(255 255 255 / 0.05);
+}
+.kf-news-card__icon {
+  display: inline-grid;
+  place-items: center;
+  inline-size: 3.5rem;
+  block-size: 3.5rem;
+  border-radius: 1rem;
+  background: var(--color-cta);
+  color: var(--color-cta-contrast);
+  font-size: 1.4rem;
+}
+.kf-news-card__title { margin: 0; font-size: clamp(1.1rem, 1.8vw, 1.35rem); font-weight: 700; line-height: 1.5; color: #fff; }
+.kf-news-card .kf-news .btn { min-inline-size: 7rem; }
+@media (max-width: 61.98rem) {
+  .kf-news-card { grid-template-columns: auto minmax(0, 1fr); }
+  .kf-news-card .kf-news { grid-column: 1 / -1; }
+}
+@media (max-width: 30rem) {
+  .kf-news-card { grid-template-columns: minmax(0, 1fr); }
+}
 
 .kf-news { display: flex; gap: 0.5rem; align-items: flex-start; }
 .kf-news .form-control { background: rgb(255 255 255 / 0.08); border-color: rgb(255 255 255 / 0.35); color: #fff; }
@@ -493,12 +534,28 @@ button:focus-visible,
 .kf-news .field__error { color: var(--color-cta); }
 @media (max-width: 30rem) { .kf-news { flex-direction: column; align-items: stretch; } }
 
-.kf-footer__grid { padding-block: 2.5rem; }
-.kf-footer__heading { font-size: 0.95rem; font-weight: 700; color: #fff; margin-block-end: 1rem; }
+.kf-footer__grid { padding-block: clamp(2.5rem, 5vw, 3.5rem); }
+.kf-footer__heading { position: relative; font-size: 1rem; font-weight: 700; color: #fff; margin-block-end: 1.25rem; padding-block-end: 0.75rem; }
+/* خط ذهبي قصير تحت العنوان، كما في عناوين الأقسام */
+.kf-footer__heading::after { content: ""; position: absolute; inset-block-end: 0; inset-inline-start: 0; inline-size: 1.75rem; block-size: 2px; border-radius: 2px; background: var(--color-cta); }
 .kf-footer__links,
-.kf-footer__contact { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.65rem; }
-.kf-footer__contact li { display: flex; align-items: center; gap: 0.6rem; color: var(--kf-footer-muted); }
-.kf-footer__contact i { inline-size: 1rem; color: var(--color-cta); }
+.kf-footer__contact { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.75rem; }
+.kf-footer__links--two { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 1.25rem; }
+.kf-footer__links a:hover { padding-inline-start: 0.25rem; }
+.kf-footer__links a { transition: color var(--dur-fast) var(--ease-out), padding var(--dur-fast) var(--ease-out); }
+.kf-footer__contact li { display: flex; align-items: center; gap: 0.75rem; color: var(--kf-footer-muted); overflow-wrap: anywhere; }
+.kf-footer__ico {
+  display: inline-grid; place-items: center; flex-shrink: 0;
+  inline-size: 2.25rem; block-size: 2.25rem;
+  border-radius: 0.7rem;
+  background: rgb(255 255 255 / 0.07);
+  color: var(--color-cta);
+  font-size: 0.9rem;
+}
+@media (prefers-reduced-motion: reduce) {
+  .kf-footer__links a { transition: none; }
+  .kf-footer__links a:hover { padding-inline-start: 0; }
+}
 .kf-footer__social {
   display: inline-grid; place-items: center;
   inline-size: 2.75rem; block-size: 2.75rem;

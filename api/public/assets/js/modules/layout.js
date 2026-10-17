@@ -254,50 +254,49 @@ function bsFooterMarkup() {
   return `
 <footer class="kf-footer">
   <div class="container">
-    <div class="row g-4 g-lg-5 align-items-center kf-footer__top">
-      <div class="col-lg-6">
+    <div class="kf-news-card">
+      <span class="kf-news-card__icon" aria-hidden="true"><i class="fa-solid fa-envelope-open-text"></i></span>
+      <div class="kf-news-card__text">
+        <h2 class="kf-news-card__title">تابِع أثر الكفالة كل شهر، ولو لم تكفل بعد.</h2>
+        <p class="kf-footer__hint">رسالة واحدة كل شهر: ما أنجزناه، وما صرفناه، وقصة طفل واحد.</p>
+      </div>
+      <form class="kf-news" data-validate-form data-action="newsletter" data-source="footer"
+            data-success-message="تم اشتراكك، ستصلك أول رسالة مطلع الشهر" novalidate>
+        <div class="field flex-grow-1">
+          <label class="visually-hidden" for="footerNewsEmail">البريد الإلكتروني</label>
+          <input class="form-control form-control-lg" type="email" id="footerNewsEmail" name="email"
+                 placeholder="بريدك الإلكتروني" autocomplete="email"
+                 data-validate="required|email" aria-describedby="err-footerNews">
+          <p class="field__error" id="err-footerNews" aria-live="polite"></p>
+        </div>
+        <button class="btn btn-cta btn-lg" type="submit">اشترك</button>
+      </form>
+    </div>
+
+    <div class="row g-4 g-lg-5 kf-footer__grid">
+      <div class="col-lg-4">
         <a class="kf-brand kf-brand--on-ink" href="index.html">
           <img src="assets/img/logo.svg" alt="" width="40" height="40">
           <span class="kf-brand__name"><span data-site="name">${escapeHtml(SITE.name)}</span><span class="kf-brand__tag" data-site="tagline">${escapeHtml(SITE.tagline)}</span></span>
         </a>
         <p class="kf-footer__about">منصة تربط بين من يريد أن يعطي ومن يستحق أن يُعطى، بشفافية موثّقة وتقارير دورية.</p>
+        <div class="d-flex gap-2">${social}</div>
       </div>
-      <div class="col-lg-6">
-        <p class="kf-footer__claim">تابِع أثر الكفالة كل شهر، ولو لم تكفل بعد.</p>
-        <form class="kf-news" data-validate-form data-action="newsletter" data-source="footer"
-              data-success-message="تم اشتراكك، ستصلك أول رسالة مطلع الشهر" novalidate>
-          <div class="field flex-grow-1">
-            <label class="visually-hidden" for="footerNewsEmail">البريد الإلكتروني</label>
-            <input class="form-control" type="email" id="footerNewsEmail" name="email"
-                   placeholder="بريدك الإلكتروني" autocomplete="email"
-                   data-validate="required|email" aria-describedby="err-footerNews">
-            <p class="field__error" id="err-footerNews" aria-live="polite"></p>
-          </div>
-          <button class="btn btn-cta" type="submit">اشترك</button>
-        </form>
-        <p class="kf-footer__hint">رسالة واحدة كل شهر: ما أنجزناه، وما صرفناه، وقصة طفل واحد.</p>
-      </div>
-    </div>
-
-    <hr class="kf-footer__rule">
-
-    <div class="row g-4 kf-footer__grid">
-      <nav class="col-6 col-lg-3" aria-labelledby="footerNavHeading">
+      <nav class="col-7 col-md-4 col-lg-3" aria-labelledby="footerNavHeading">
         <h2 class="kf-footer__heading" id="footerNavHeading">تصفّح</h2>
-        <ul class="kf-footer__links">${links([{ label: 'الرئيسية', href: 'index.html' }, ...NAV_LINKS])}</ul>
+        <ul class="kf-footer__links kf-footer__links--two">${links([{ label: 'الرئيسية', href: 'index.html' }, ...NAV_LINKS])}</ul>
       </nav>
-      <nav class="col-6 col-lg-3" aria-labelledby="footerHelpHeading">
+      <nav class="col-5 col-md-4 col-lg-2" aria-labelledby="footerHelpHeading">
         <h2 class="kf-footer__heading" id="footerHelpHeading">مساعدة</h2>
         <ul class="kf-footer__links">${links(FOOTER_HELP)}</ul>
       </nav>
-      <div class="col-lg-6">
+      <div class="col-md-4 col-lg-3">
         <h2 class="kf-footer__heading">تواصل معنا</h2>
         <ul class="kf-footer__contact">
-          <li><i class="fa-solid fa-phone" aria-hidden="true"></i><a href="tel:${escapeHtml(SITE.phoneHref)}" dir="ltr" data-site="phone">${escapeHtml(SITE.phone)}</a></li>
-          <li><i class="fa-solid fa-envelope" aria-hidden="true"></i><a href="mailto:${escapeHtml(SITE.email)}" data-site="email">${escapeHtml(SITE.email)}</a></li>
-          <li><i class="fa-solid fa-location-dot" aria-hidden="true"></i><span data-site="address">${escapeHtml(SITE.address)}</span></li>
+          <li><span class="kf-footer__ico" aria-hidden="true"><i class="fa-solid fa-phone"></i></span><a href="tel:${escapeHtml(SITE.phoneHref)}" dir="ltr" data-site="phone">${escapeHtml(SITE.phone)}</a></li>
+          <li><span class="kf-footer__ico" aria-hidden="true"><i class="fa-solid fa-envelope"></i></span><a href="mailto:${escapeHtml(SITE.email)}" data-site="email">${escapeHtml(SITE.email)}</a></li>
+          <li><span class="kf-footer__ico" aria-hidden="true"><i class="fa-solid fa-location-dot"></i></span><span data-site="address">${escapeHtml(SITE.address)}</span></li>
         </ul>
-        <div class="d-flex gap-2 mt-3">${social}</div>
       </div>
     </div>
 
