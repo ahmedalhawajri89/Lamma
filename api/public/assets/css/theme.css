@@ -464,7 +464,9 @@ button:focus-visible,
   background: var(--color-ink);
   color: #fff;
   padding-block: clamp(3rem, 6vw, 4.5rem) 1.5rem;
-  margin-block-start: clamp(3rem, 6vw, 5rem);
+  /* بلا هامش علوي: الصفحات تنتهي غالباً بقسم داكن (الخاتمة)، والهامش كان
+     يترك شريطاً فاتحاً بين كتلتين داكنتين. خطٌّ رفيع يفصلهما بدله */
+  border-block-start: 1px solid rgb(255 255 255 / 0.12);
 }
 .kf-footer a { color: var(--kf-footer-muted); text-decoration: none; }
 .kf-footer a:hover { color: #fff; text-decoration: underline; text-underline-offset: 0.3em; }
@@ -510,7 +512,72 @@ button:focus-visible,
 .field.is-invalid .form-control,
 .field.is-invalid .form-select { border-color: var(--color-urgent); }
 
-/* ── 14. الحركة: ظهور هادئ مرة واحدة عند التمرير ── */
+/* ── 13ب. تهيئة العناصر كما في base.css القديم ──
+   Reboot في Bootstrap يترك للزر حدّه وخلفيته الافتراضيين، والمكوّنات
+   المخصّصة (تبويبات الأطفال والخطوات) بُنيت على زرٍّ مُصفَّر. :where()
+   تجعل الوزن صفراً، فأي صنف (ومنه أزرار Bootstrap) يغلبها. */
+:where(button:not(.btn, .btn-close, .navbar-toggler, .accordion-button, .page-link)) {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+:where(img, picture, svg, video) { max-inline-size: 100%; block-size: auto; }
+:where(ul[role="list"], ol[role="list"]) { list-style: none; padding: 0; margin: 0; }
+:where(p, li, dd, dt, figcaption, h1, h2, h3, h4, h5, h6) { overflow-wrap: break-word; }
+:where(h1, h2, h3, h4) { text-wrap: balance; }
+:where(p) { text-wrap: pretty; }
+:where(a) { text-underline-offset: 0.22em; }
+
+/* ── 14. طبقة توافق: أصناف قديمة تولّدها وحدات JS المشتركة ──
+   الصفحات تنتقل واحدةً واحدة، والدوال التي تبني البطاقات تخدم الصفحات
+   القديمة والمنقولة معاً. فبدل نسختين من كل دالة، نعرّف هنا معنى أصنافها
+   القديمة بلغة Bootstrap. تُحذف حين تنتقل آخر صفحة. */
+.num, .u-tnum {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+.sr-only { position: absolute !important; inline-size: 1px !important; block-size: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; border: 0 !important; }
+
+.btn--cta { --bs-btn-color: var(--color-cta-contrast); --bs-btn-bg: var(--color-cta); --bs-btn-border-color: var(--color-cta); --bs-btn-hover-color: var(--color-cta-contrast); --bs-btn-hover-bg: var(--color-cta-hover); --bs-btn-hover-border-color: var(--color-cta-hover); --bs-btn-active-color: var(--color-cta-contrast); --bs-btn-active-bg: var(--color-cta-hover); --bs-btn-active-border-color: var(--color-cta-hover); --bs-btn-focus-box-shadow: 0 0 0 3px rgba(224, 166, 59, 0.45); }
+.btn--primary { --bs-btn-color: var(--color-brand-contrast); --bs-btn-bg: var(--color-brand); --bs-btn-border-color: var(--color-brand); --bs-btn-hover-color: var(--color-brand-contrast); --bs-btn-hover-bg: var(--color-brand-hover); --bs-btn-hover-border-color: var(--color-brand-hover); --bs-btn-active-bg: var(--color-brand-hover); --bs-btn-active-color: var(--color-brand-contrast); }
+.btn--outline { --bs-btn-color: var(--color-brand); --bs-btn-border-color: var(--color-brand-border); --bs-btn-hover-color: var(--color-brand-contrast); --bs-btn-hover-bg: var(--color-brand); --bs-btn-hover-border-color: var(--color-brand); --bs-btn-active-color: var(--color-brand-contrast); --bs-btn-active-bg: var(--color-brand-hover); }
+.btn--ink-outline { --bs-btn-color: #fff; --bs-btn-border-color: rgb(255 255 255 / 0.4); --bs-btn-hover-color: var(--color-ink); --bs-btn-hover-bg: #fff; --bs-btn-hover-border-color: #fff; --bs-btn-active-color: var(--color-ink); --bs-btn-active-bg: #fff; }
+.btn--lg { --bs-btn-padding-y: 0.8rem; --bs-btn-padding-x: 1.75rem; --bs-btn-font-size: 1.05rem; min-block-size: 3.25rem; }
+.btn--sm { --bs-btn-padding-x: 1rem; min-block-size: 2.5rem; }
+.btn__icon { font-size: 0.85em; transition: translate var(--dur-fast) var(--ease-out); }
+.btn:hover .btn__icon--arrow { translate: -3px 0; }
+
+/* رابط بسهم: «كل المقالات ←» */
+.link-arrow { display: inline-flex; align-items: center; gap: 0.5rem; font-family: var(--font-display); font-weight: 600; color: var(--color-brand); text-decoration: none; min-block-size: 2.75rem; }
+.link-arrow i { font-size: 0.8em; transition: translate var(--dur-fast) var(--ease-out); }
+.link-arrow:hover { color: var(--color-brand-hover); }
+.link-arrow:hover i { translate: -4px 0; }
+
+.avatar { display: grid; place-items: center; inline-size: 2.75rem; block-size: 2.75rem; border-radius: 50%; background: var(--avatar-bg, var(--avatar-1)); color: #fff; font-family: var(--font-display); font-weight: 600; line-height: 1; flex-shrink: 0; }
+.avatar--lg { inline-size: 3rem; block-size: 3rem; }
+.avatar--1 { --avatar-bg: var(--avatar-1); }
+.avatar--2 { --avatar-bg: var(--avatar-2); }
+.avatar--3 { --avatar-bg: var(--avatar-3); }
+.avatar--4 { --avatar-bg: var(--avatar-4); }
+
+/* ── 15. رؤوس الأقسام وإيقاعها في الصفحات المنقولة ── */
+.kf-section { padding-block: clamp(3.5rem, 7vw, 6rem); }
+.kf-section--surface { background: var(--color-surface); }
+.kf-section--ink { background: var(--color-ink); color: #fff; }
+.kf-section--ink h2, .kf-section--ink h3 { color: #fff; }
+.kf-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 1rem 2rem; margin-block-end: clamp(2rem, 4vw, 3rem); }
+.kf-head h2 { margin: 0; font-size: clamp(1.75rem, 3.2vw, 2.5rem); }
+.kf-lede { max-inline-size: 40rem; margin: 0.75rem 0 0; font-size: 1.125rem; line-height: 1.8; color: var(--color-text-muted); }
+.kf-section--ink .kf-lede { color: var(--color-on-ink-muted); }
+.kf-eyebrow { margin: 0 0 0.5rem; font-family: var(--font-display); font-size: 0.85rem; font-weight: 700; color: var(--color-brand); }
+
+/* ── 16. الحركة: ظهور هادئ مرة واحدة عند التمرير ── */
 .js [data-reveal] {
   opacity: 0;
   transform: translateY(12px);

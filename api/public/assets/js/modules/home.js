@@ -239,7 +239,25 @@ function renderMoneyStats() {
     .join('');
 }
 
+/**
+ * بطاقتا الهيرو العائمتان: عدد المكفولين ونسبة ما يصل للطفل، من الشفافية.
+ * مخفيتان في HTML ولا تظهران إلا برقم حقيقي: بطاقة بقيمة فارغة أو صفر
+ * أسوأ من غيابها، ورقمٌ مكتوب باليد هو ما خرجنا منه.
+ */
+function renderHeroProof() {
+  const values = { sponsored: formatNumber(PROOF.sponsored), toChild: `${safeNumber(PROOF.toChild)}٪` };
+  const ok = { sponsored: PROOF.sponsored > 0, toChild: PROOF.toChild > 0 };
+
+  $$('[data-hero]').forEach((el) => {
+    const key = el.dataset.hero;
+    if (!ok[key]) return;
+    el.textContent = values[key];
+    el.closest('[data-hero-chip]')?.removeAttribute('hidden');
+  });
+}
+
 export function renderHomeSections() {
+  renderHeroProof();
   renderHomeOrphans();
   renderMoneyStats();
 

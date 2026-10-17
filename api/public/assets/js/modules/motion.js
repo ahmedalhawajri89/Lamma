@@ -191,7 +191,7 @@ export function initActionBar() {
   const bar = $('#actionBar');
   if (!bar) return;
 
-  const zones = $$('.hero, .closing, .site-footer');
+  const zones = $$('.hero, .closing, .site-footer, .kf-footer');
   const inView = new Set();
 
   const update = rafThrottle(() => {

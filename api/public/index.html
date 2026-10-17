@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" data-ui="bs">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -48,22 +48,20 @@
   <!-- خط الأيقونات المصمتة في كل صفحة: يُطلب مع الأنماط لا بعدها، فلا تبقى الأيقونات فارغة -->
   <link rel="preload" href="assets/vendor/fontawesome/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="assets/vendor/fontawesome/css/all.min.css">
+  <!-- Bootstrap ثم رموز الهوية ثم جسرها إليه ثم أنماط هذه الصفحة -->
+  <link rel="stylesheet" href="assets/vendor/bootstrap/css/bootstrap.rtl.min.css">
   <link rel="stylesheet" href="assets/css/tokens.css">
-  <link rel="stylesheet" href="assets/css/base.css">
-  <link rel="stylesheet" href="assets/css/layout.css">
-  <link rel="stylesheet" href="assets/css/site.css">
-  <link rel="stylesheet" href="assets/css/components.css">
-  <link rel="stylesheet" href="assets/css/sections.css">
-  <link rel="stylesheet" href="assets/css/pages.css">
+  <link rel="stylesheet" href="assets/css/theme.css">
+  <link rel="stylesheet" href="assets/css/home.css">
 
   <script type="module" src="assets/js/main.js"></script>
 </head>
 
-<body data-header="solid" class="page-body">
+<body>
   <div data-layout="header"></div>
 
   <noscript>
-    <nav class="container" style="padding-block:1rem" aria-label="تنقل بديل">
+    <nav class="container py-3" aria-label="تنقل بديل">
       <a href="index.html">الرئيسية</a> · <a href="about.html">من نحن</a> ·
       <a href="programs.html">برامج الكفالة</a> · <a href="orphans.html">الأيتام</a> ·
       <a href="transparency.html">الشفافية</a> · <a href="blog.html">المدونة</a> ·
@@ -73,73 +71,55 @@
 
   <main id="main">
 
-    <!-- ==================================================================
-         الهيرو — صورة بعرض الشاشة وبطاقة مصمتة تتداخل مع أسفلها
-         الصورة بلا تعتيم، والنص على بطاقة فاتحة لا فوق الصورة.
-         الوعود الثلاثة مأخوذة من دراسة السوق: ما يفتقده الكفلاء فعلاً.
-         ================================================================== -->
+    <!-- ══ الهيرو: رسالة ودليل حيّ (نمط «الثقة والتحويل» من ui-ux-pro-max) ══
+         النص والقرار في عمود، والصورة في الآخر بإطار هادئ وكتلة تركوازية خلفها.
+         البطاقتان العائمتان بأرقام من النظام؛ مخفيتان حتى تُملآ، فلا يظهر رقم مختلق. -->
     <section class="hero" aria-labelledby="heroTitle">
-
-      <figure class="hero__photo">
-        <picture>
-          <source media="(max-width: 40rem)" srcset="assets/img/hero-tall.webp">
-          <img src="assets/img/hero-wide.webp"
-               srcset="assets/img/hero-wide-md.webp 1100w, assets/img/hero-wide.webp 1920w"
-               sizes="100vw"
-               alt="طفلة بسترة بنفسجية تبتسم للكاميرا"
-               width="1920" height="960" fetchpriority="high">
-        </picture>
-        <figcaption class="hero__credit">صورة توضيحية · Salah Darwish / Unsplash</figcaption>
-      </figure>
-
-      <div class="container hero__slab">
-        <div class="hero__card">
-          <div class="hero__text">
-            <p class="hero__kicker">منصة مرخّصة ومدقّقة · منذ ٢٠١٢</p>
-            <h1 class="hero__title" id="heroTitle">
-              اكفل يتيماً،
-              <em>وتابع أثرك بنفسك.</em>
-            </h1>
+      <div class="container">
+        <div class="row g-4 g-lg-5 align-items-center">
+          <div class="col-lg-6">
+            <p class="hero__kicker">منصة مرخّصة ومدقّقة · منذ <span class="num">2012</span></p>
+            <h1 class="hero__title" id="heroTitle">اكفل يتيماً،<br><em>وتابع أثرك بنفسك.</em></h1>
             <p class="hero__lede">
               تقرير مصوّر كل ثلاثة أشهر لا مرةً في السنة، وكشف حساب لكل دفعة،
               وإيقاف كفالتك أو تعديلها بنقرة واحدة، بلا اتصال ولا انتظار.
             </p>
+            <div class="hero__actions">
+              <a class="btn btn-cta btn-lg" href="orphans.html">
+                اكفل يتيماً <i class="fa-solid fa-arrow-left btn__icon btn__icon--arrow" aria-hidden="true"></i>
+              </a>
+              <a class="link-arrow" href="transparency.html">كيف نضمن وصولها؟</a>
+            </div>
+            <ul class="hero__proof" role="list">
+              <li><span class="hero__proof-icon"><i class="fa-solid fa-camera" aria-hidden="true"></i></span><span><strong>كل 3 أشهر</strong>تقرير مصوّر عن طفلك</span></li>
+              <li><span class="hero__proof-icon"><i class="fa-solid fa-scale-balanced" aria-hidden="true"></i></span><span><strong>زكاتك منفصلة</strong>عن صدقتك في الإيصال</span></li>
+              <li><span class="hero__proof-icon"><i class="fa-solid fa-circle-pause" aria-hidden="true"></i></span><span><strong>إيقاف بنقرة</strong>متى شئت، بلا اتصال</span></li>
+            </ul>
           </div>
 
-          <div class="hero__side">
-            <div class="hero__actions">
-              <a class="btn btn--cta btn--lg" href="orphans.html">
-                اكفل يتيماً
-                <i class="fa-solid fa-arrow-left btn__icon btn__icon--arrow" aria-hidden="true"></i>
-              </a>
-              <a class="hero__link" href="transparency.html">كيف نضمن وصولها؟</a>
-            </div>
-
-            <ul class="hero__proof" role="list">
-              <li>
-                <i class="fa-solid fa-camera" aria-hidden="true"></i>
-                <span><strong>كل ٣ أشهر</strong>تقرير مصوّر عن طفلك</span>
-              </li>
-              <li>
-                <i class="fa-solid fa-scale-balanced" aria-hidden="true"></i>
-                <span><strong>زكاتك منفصلة</strong>عن صدقتك في الإيصال</span>
-              </li>
-              <li>
-                <i class="fa-solid fa-circle-pause" aria-hidden="true"></i>
-                <span><strong>إيقاف بنقرة</strong>متى شئت، بلا اتصال</span>
-              </li>
-            </ul>
+          <div class="col-lg-6">
+            <figure class="hero__media">
+              <img src="assets/img/hero-tall.webp" alt="طفلة بسترة بنفسجية تبتسم للكاميرا"
+                   width="760" height="950" fetchpriority="high">
+              <p class="hero__chip hero__chip--top" data-hero-chip hidden>
+                <span class="hero__chip-icon"><i class="fa-solid fa-heart" aria-hidden="true"></i></span>
+                <span><b class="num" data-hero="sponsored"></b> طفلاً مكفولاً اليوم</span>
+              </p>
+              <p class="hero__chip hero__chip--bottom" data-hero-chip hidden>
+                <span class="hero__chip-icon hero__chip-icon--gold"><i class="fa-solid fa-hand-holding-heart" aria-hidden="true"></i></span>
+                <span><b class="num" data-hero="toChild"></b> من كفالتك تصل للطفل</span>
+              </p>
+              <figcaption class="hero__credit">صورة توضيحية · Salah Darwish / Unsplash</figcaption>
+            </figure>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- ==================================================================
-         ١) شريط الثقة: سطر واحد هادئ تحت الهيرو مباشرة
-         ================================================================== -->
+    <!-- ══ شريط الثقة ══ -->
     <section class="trust" aria-label="الترخيص والاعتماد">
-      <div class="container trust__row">
-        <p class="trust__lead">
+      <div class="container d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <p class="trust__lead mb-0">
           <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
           جهة مرخّصة، وحساباتها يدقّقها مكتب مستقل كل سنة.
         </p>
@@ -147,64 +127,52 @@
       </div>
     </section>
 
-    <!-- ==================================================================
-         ٢) أطفال ينتظرون كافلاً: سبب الزيارة، فيأتي أولاً
-         ================================================================== -->
-    <section class="section" aria-labelledby="childrenTitle">
+    <!-- ══ أطفال ينتظرون كافلاً: سبب الزيارة، فيأتي أولاً ══ -->
+    <section class="kf-section" aria-labelledby="childrenTitle">
       <div class="container">
-        <header class="block-head" data-reveal>
-          <div class="block-head__text">
+        <header class="kf-head" data-reveal>
+          <div>
             <h2 id="childrenTitle">أطفال ينتظرون كافلاً</h2>
-            <p class="block-lede">
-              زار مشرفٌ ميداني بيت كل طفل هنا قبل نشر ملفه. تعرّف عليه باسمه وحلمه،
-              ثم قرّر.
-            </p>
+            <p class="kf-lede">زار مشرفٌ ميداني بيت كل طفل هنا قبل نشر ملفه. تعرّف عليه باسمه وحلمه، ثم قرّر.</p>
           </div>
+          <a class="link-arrow" href="orphans.html">كل الأطفال <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
         </header>
-
         <div class="home-orphans" id="homeOrphans" aria-busy="true"></div>
       </div>
     </section>
 
-    <!-- ==================================================================
-         ٣) كيف تبدأ: تبويبات أفقية فوق مسرح ثابت الارتفاع.
-         اللوحات الثلاث مكدّسة في خلية واحدة وتحجز مكانها دائماً، فلا يتغيّر
-         ارتفاع القسم عند التبديل ولا يتحرّك ما فوقه وما تحته.
-         ================================================================== -->
-    <section class="section section--surface" id="how" aria-labelledby="howTitle">
+    <!-- ══ كيف تبدأ: تبويبات فوق مسرح ثابت الارتفاع ══
+         اللوحات مكدّسة في خلية واحدة فلا يتغيّر ارتفاع القسم عند التبديل. -->
+    <section class="kf-section kf-section--surface" id="how" aria-labelledby="howTitle">
       <div class="container how" data-how>
-        <header class="block-head" data-reveal>
-          <div class="block-head__text">
+        <header class="kf-head" data-reveal>
+          <div>
             <h2 id="howTitle">كيف تبدأ الكفالة</h2>
-            <p class="block-lede">ثلاث خطوات تأخذ دقائق، بلا أوراق ولا مقابلات.</p>
+            <p class="kf-lede">ثلاث خطوات تأخذ دقائق، بلا أوراق ولا مقابلات.</p>
           </div>
-          <a class="btn btn--cta" href="orphans.html">
-            اكفل يتيماً
-            <i class="fa-solid fa-arrow-left btn__icon btn__icon--arrow" aria-hidden="true"></i>
+          <a class="btn btn-cta" href="orphans.html">
+            اكفل يتيماً <i class="fa-solid fa-arrow-left btn__icon btn__icon--arrow" aria-hidden="true"></i>
           </a>
         </header>
 
         <div class="how__tabs" data-reveal data-reveal-delay="80" role="tablist" aria-label="خطوات الكفالة">
-          <button class="how-tab" type="button" role="tab" id="howTab1"
-                  aria-selected="true" aria-controls="howPanel1">
+          <button class="how-tab" type="button" role="tab" id="howTab1" aria-selected="true" aria-controls="howPanel1">
             <span class="how-tab__bar" aria-hidden="true"><span></span></span>
             <span class="how-tab__num num">01</span>
             <strong>اختر طفلاً</strong>
             <span class="how-tab__hint">ملفات موثّقة زارها مشرف ميداني</span>
           </button>
-          <button class="how-tab" type="button" role="tab" id="howTab2"
-                  aria-selected="false" aria-controls="howPanel2" tabindex="-1">
+          <button class="how-tab" type="button" role="tab" id="howTab2" aria-selected="false" aria-controls="howPanel2" tabindex="-1">
             <span class="how-tab__bar" aria-hidden="true"><span></span></span>
             <span class="how-tab__num num">02</span>
             <strong>حدّد المبلغ ونوعه</strong>
             <span class="how-tab__hint">شهرية أو سنوية، من زكاتك أو صدقتك</span>
           </button>
-          <button class="how-tab" type="button" role="tab" id="howTab3"
-                  aria-selected="false" aria-controls="howPanel3" tabindex="-1">
+          <button class="how-tab" type="button" role="tab" id="howTab3" aria-selected="false" aria-controls="howPanel3" tabindex="-1">
             <span class="how-tab__bar" aria-hidden="true"><span></span></span>
             <span class="how-tab__num num">03</span>
             <strong>تابع طفلك</strong>
-            <span class="how-tab__hint">تقرير مصوّر كل ٩٠ يوماً</span>
+            <span class="how-tab__hint">تقرير مصوّر كل 90 يوماً</span>
           </button>
         </div>
 
@@ -226,16 +194,16 @@
                 <ul class="how-kids">
                   <li class="is-picked">
                     <span class="avatar avatar--1">أ</span>
-                    <span><strong>أمنية، ٨ سنوات</strong><small>غزة · الكفالة التعليمية</small></span>
+                    <span><strong>أمنية، 8 سنوات</strong><small>غزة · الكفالة التعليمية</small></span>
                     <span class="how-kids__pick"><i class="fa-solid fa-check"></i> اخترتها</span>
                   </li>
                   <li>
                     <span class="avatar avatar--2">ي</span>
-                    <span><strong>يوسف، ٧ سنوات</strong><small>الخليل · كفالة الأسرة</small></span>
+                    <span><strong>يوسف، 7 سنوات</strong><small>الخليل · كفالة الأسرة</small></span>
                   </li>
                   <li>
                     <span class="avatar avatar--4">م</span>
-                    <span><strong>مريم، ١٢ سنة</strong><small>أم درمان · الكفالة التعليمية</small></span>
+                    <span><strong>مريم، 12 سنة</strong><small>أم درمان · الكفالة التعليمية</small></span>
                   </li>
                 </ul>
               </div>
@@ -255,7 +223,7 @@
               <div class="how__screen">
                 <div class="how__bar"><span></span><span></span><span></span></div>
                 <p class="how__label">كفالة أمنية</p>
-                <div class="how-seg"><span class="is-on">شهرية</span><span>كل ٣ أشهر</span><span>سنوية</span></div>
+                <div class="how-seg"><span class="is-on">شهرية</span><span>كل 3 أشهر</span><span>سنوية</span></div>
                 <div class="how-amounts"><span class="is-on num">$35</span><span class="num">$50</span><span class="num">$70</span></div>
                 <p class="how__label">من أين تُدفع؟</p>
                 <div class="how-kind">
@@ -270,7 +238,7 @@
           <div class="how__panel" role="tabpanel" id="howPanel3" aria-labelledby="howTab3" aria-hidden="true" inert>
             <div class="how__copy">
               <h3>تابع طفلك</h3>
-              <p>يصلك تقرير مصوّر كل ٩٠ يوماً عن دراسته وصحته، وفي حسابك كشف بكل دفعة وأين صُرفت.</p>
+              <p>يصلك تقرير مصوّر كل 90 يوماً عن دراسته وصحته، وفي حسابك كشف بكل دفعة وأين صُرفت.</p>
               <ul class="how__points" role="list">
                 <li><i class="fa-solid fa-circle-pause" aria-hidden="true"></i> إيقاف مؤقت أو إلغاء من حسابك</li>
                 <li><i class="fa-solid fa-comments" aria-hidden="true"></i> اسأل الفريق عن أي تقرير</li>
@@ -299,143 +267,133 @@
       </div>
     </section>
 
-    <!-- ==================================================================
-         ٥) أين يذهب المال: القسم الداكن الوحيد قبل الخاتمة
-         ================================================================== -->
-    <section class="section section--ink" aria-labelledby="moneyTitle">
-      <div class="container money">
-        <div class="money__text" data-reveal="start">
-          <h2 id="moneyTitle">أين تذهب كل مئة دولار</h2>
-          <p class="block-lede">
-            أرقام هذه السنة من حساباتنا المعتمدة، تتحدّث مع كل صرف.
-            والتقرير الكامل منشور للجميع، كفلاء وغير كفلاء.
-          </p>
-          <dl class="money__stats" id="moneyStats"></dl>
-          <a class="btn btn--ink-outline" href="transparency.html">
-            <i class="fa-solid fa-file-arrow-down" aria-hidden="true"></i>
-            اطّلع على تقرير الشفافية
-          </a>
-        </div>
-        <div class="money__chart" data-reveal="scale" data-reveal-delay="120">
-          <div id="spendingDonut"></div>
-          <ul class="legend" role="list" id="spendingLegend"></ul>
-        </div>
-      </div>
-    </section>
-
-    <!-- ==================================================================
-         ٤) التقرير الربعي: نُري الكافل ما سيصله بدل أن نصفه
-         ================================================================== -->
-    <section class="section" aria-labelledby="reportTitle">
-      <div class="container report-show">
-        <div class="report-show__text" data-reveal="start">
-          <h2 id="reportTitle">هذا ما يصلك عن طفلك كل ثلاثة أشهر</h2>
-          <p class="block-lede">
-            يكتبه المشرف الميداني بعد زيارة البيت والمدرسة، ويصلك على بريدك
-            وفي حسابك. معظم الجهات ترسل تقريراً واحداً في السنة، ونحن نرسل أربعة.
-          </p>
-          <dl class="report-points">
-            <div><dt>الدراسة</dt><dd>الدرجات في كل مادة، وملاحظة المعلم.</dd></div>
-            <div><dt>الصحة</dt><dd>آخر فحص، وأي علاج يحتاجه.</dd></div>
-            <div><dt>كفالتك</dt><dd>كيف صُرف مبلغك بالدولار، بنداً بنداً.</dd></div>
-          </dl>
-          <a class="link-arrow" href="transparency.html">
-            كيف نتحقق من كل حالة <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
-          </a>
-        </div>
-
-        <article class="report-mock" data-reveal="end" data-reveal-delay="120" aria-label="نموذج توضيحي لتقرير ربعي">
-          <header class="report-mock__head">
-            <span class="avatar avatar--lg avatar--1" aria-hidden="true">أ</span>
-            <div>
-              <strong>أمنية، ٨ سنوات</strong>
-              <span>غزة · الكفالة التعليمية</span>
-            </div>
-            <span class="report-mock__tag">الربع الثالث ٢٠٢٦</span>
-          </header>
-
-          <div class="report-mock__block">
-            <h3>الدراسة <span>الصف الثالث</span></h3>
-            <ul class="report-bars" role="list">
-              <li><span>اللغة العربية</span><span class="report-bars__track"><span style="--v:92%"></span></span><b class="num">92</b></li>
-              <li><span>الرياضيات</span><span class="report-bars__track"><span style="--v:85%"></span></span><b class="num">85</b></li>
-              <li><span>العلوم</span><span class="report-bars__track"><span style="--v:88%"></span></span><b class="num">88</b></li>
-            </ul>
-            <p class="report-mock__note">«تحسّنت قراءتها كثيراً هذا الفصل، وصارت تشارك في الحصة.» معلمة الصف</p>
-          </div>
-
-          <div class="report-mock__block report-mock__row">
-            <h3>الصحة</h3>
-            <p><i class="fa-solid fa-circle-check" aria-hidden="true"></i> فحص نظر في ١٢ سبتمبر، النتيجة سليمة</p>
-          </div>
-
-          <div class="report-mock__block">
-            <h3>كيف صُرفت كفالتك <span class="num">$35</span></h3>
-            <div class="report-split" role="img" aria-label="رسوم وقرطاسية 14 دولاراً، غذاء 12، صحة 5، أنشطة 4">
-              <span style="--w:40%; --c:var(--chart-1)"></span>
-              <span style="--w:34%; --c:var(--chart-4)"></span>
-              <span style="--w:14%; --c:var(--chart-2)"></span>
-              <span style="--w:12%; --c:var(--chart-5)"></span>
-            </div>
-            <ul class="report-legend" role="list">
-              <li><i style="--c:var(--chart-1)"></i>رسوم وقرطاسية <b class="num">$14</b></li>
-              <li><i style="--c:var(--chart-4)"></i>غذاء <b class="num">$12</b></li>
-              <li><i style="--c:var(--chart-2)"></i>صحة <b class="num">$5</b></li>
-              <li><i style="--c:var(--chart-5)"></i>أنشطة <b class="num">$4</b></li>
-            </ul>
-          </div>
-
-          <footer class="report-mock__foot">
-            <span>زيارة ميدانية في ٢٤ سبتمبر</span>
-            <span>نموذج توضيحي</span>
-          </footer>
-        </article>
-      </div>
-    </section>
-
-
-
-    <!-- ==================================================================
-         ٦) برامج الكفالة
-         ================================================================== -->
-    <section class="section section--surface" aria-labelledby="programsTitle">
+    <!-- ══ أين يذهب المال: القسم الداكن ══ -->
+    <section class="kf-section kf-section--ink" aria-labelledby="moneyTitle">
       <div class="container">
-        <header class="block-head" data-reveal>
-          <div class="block-head__text">
-            <h2 id="programsTitle">اختر البرنامج الذي يناسبك</h2>
-            <p class="block-lede">
-              كل البرامج تشمل التقرير الربعي وكشف الحساب. الفرق في ما تغطيه الكفالة.
+        <div class="row g-4 g-lg-5 align-items-center">
+          <div class="col-lg-6" data-reveal="start">
+            <h2 id="moneyTitle" class="money__title">أين تذهب كل مئة دولار</h2>
+            <p class="kf-lede">
+              أرقام هذه السنة من حساباتنا المعتمدة، تتحدّث مع كل صرف.
+              والتقرير الكامل منشور للجميع، كفلاء وغير كفلاء.
             </p>
+            <dl class="money__stats" id="moneyStats"></dl>
+            <a class="btn btn--ink-outline" href="transparency.html">
+              <i class="fa-solid fa-file-lines" aria-hidden="true"></i>
+              اطّلع على تقرير الشفافية
+            </a>
           </div>
-          <a class="link-arrow" href="programs.html">
-            قارن البرامج بالتفصيل <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
-          </a>
+          <div class="col-lg-6" data-reveal="scale" data-reveal-delay="120">
+            <div class="money__chart">
+              <div id="spendingDonut"></div>
+              <ul class="legend" role="list" id="spendingLegend"></ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ التقرير الربعي: نُري الكافل ما سيصله بدل أن نصفه ══ -->
+    <section class="kf-section" aria-labelledby="reportTitle">
+      <div class="container">
+        <div class="row g-4 g-lg-5 align-items-center">
+          <div class="col-lg-6 order-lg-1" data-reveal="start">
+            <h2 id="reportTitle" class="report__title">هذا ما يصلك عن طفلك كل ثلاثة أشهر</h2>
+            <p class="kf-lede">
+              يكتبه المشرف الميداني بعد زيارة البيت والمدرسة، ويصلك على بريدك
+              وفي حسابك. معظم الجهات ترسل تقريراً واحداً في السنة، ونحن نرسل أربعة.
+            </p>
+            <dl class="report-points">
+              <div><dt>الدراسة</dt><dd>الدرجات في كل مادة، وملاحظة المعلم.</dd></div>
+              <div><dt>الصحة</dt><dd>آخر فحص، وأي علاج يحتاجه.</dd></div>
+              <div><dt>كفالتك</dt><dd>كيف صُرف مبلغك بالدولار، بنداً بنداً.</dd></div>
+            </dl>
+            <a class="link-arrow" href="transparency.html">كيف نتحقق من كل حالة <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
+          </div>
+
+          <div class="col-lg-6 order-lg-2">
+            <article class="report-mock" data-reveal="end" data-reveal-delay="120" aria-label="نموذج توضيحي لتقرير ربعي">
+              <header class="report-mock__head">
+                <span class="avatar avatar--lg avatar--1" aria-hidden="true">أ</span>
+                <div>
+                  <strong>أمنية، 8 سنوات</strong>
+                  <span>غزة · الكفالة التعليمية</span>
+                </div>
+                <span class="report-mock__tag">الربع الثالث <span class="num">2026</span></span>
+              </header>
+
+              <div class="report-mock__block">
+                <h3>الدراسة <span>الصف الثالث</span></h3>
+                <ul class="report-bars" role="list">
+                  <li><span>اللغة العربية</span><span class="report-bars__track"><span style="--v:92%"></span></span><b class="num">92</b></li>
+                  <li><span>الرياضيات</span><span class="report-bars__track"><span style="--v:85%"></span></span><b class="num">85</b></li>
+                  <li><span>العلوم</span><span class="report-bars__track"><span style="--v:88%"></span></span><b class="num">88</b></li>
+                </ul>
+                <p class="report-mock__note">«تحسّنت قراءتها كثيراً هذا الفصل، وصارت تشارك في الحصة.» معلمة الصف</p>
+              </div>
+
+              <div class="report-mock__block report-mock__row">
+                <h3>الصحة</h3>
+                <p><i class="fa-solid fa-circle-check" aria-hidden="true"></i> فحص نظر في 12 سبتمبر، النتيجة سليمة</p>
+              </div>
+
+              <div class="report-mock__block">
+                <h3>كيف صُرفت كفالتك <span class="num">$35</span></h3>
+                <div class="report-split" role="img" aria-label="رسوم وقرطاسية 14 دولاراً، غذاء 12، صحة 5، أنشطة 4">
+                  <span style="--w:40%; --c:var(--chart-1)"></span>
+                  <span style="--w:34%; --c:var(--chart-4)"></span>
+                  <span style="--w:14%; --c:var(--chart-2)"></span>
+                  <span style="--w:12%; --c:var(--chart-5)"></span>
+                </div>
+                <ul class="report-legend" role="list">
+                  <li><i style="--c:var(--chart-1)"></i>رسوم وقرطاسية <b class="num">$14</b></li>
+                  <li><i style="--c:var(--chart-4)"></i>غذاء <b class="num">$12</b></li>
+                  <li><i style="--c:var(--chart-2)"></i>صحة <b class="num">$5</b></li>
+                  <li><i style="--c:var(--chart-5)"></i>أنشطة <b class="num">$4</b></li>
+                </ul>
+              </div>
+
+              <footer class="report-mock__foot">
+                <span>زيارة ميدانية في 24 سبتمبر</span>
+                <span>نموذج توضيحي</span>
+              </footer>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ برامج الكفالة ══ -->
+    <section class="kf-section kf-section--surface" aria-labelledby="programsTitle">
+      <div class="container">
+        <header class="kf-head" data-reveal>
+          <div>
+            <h2 id="programsTitle">اختر البرنامج الذي يناسبك</h2>
+            <p class="kf-lede">كل البرامج تشمل التقرير الربعي وكشف الحساب. الفرق في ما تغطيه الكفالة.</p>
+          </div>
+          <a class="link-arrow" href="programs.html">قارن البرامج بالتفصيل <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
         </header>
         <div class="plans" id="homePlans"></div>
       </div>
     </section>
 
-    <!-- ==================================================================
-         ٧) كفلاء معنا، ثم الأسئلة
-         ================================================================== -->
-    <section class="section" aria-labelledby="storiesTitle">
+    <!-- ══ كفلاء معنا ══ -->
+    <section class="kf-section" aria-labelledby="storiesTitle">
       <div class="container">
-        <header class="block-head" data-reveal>
-          <div class="block-head__text">
-            <h2 id="storiesTitle">كفلاء معنا منذ سنوات</h2>
-          </div>
+        <header class="kf-head" data-reveal>
+          <h2 id="storiesTitle">كفلاء معنا منذ سنوات</h2>
         </header>
         <div class="voices" id="homeVoices"></div>
       </div>
     </section>
 
-    <!-- من المدونة: كانت المقالات بلا مدخل إلا رابطاً صغيراً في التذييل -->
-    <section class="section section--surface" aria-labelledby="blogTitle">
+    <!-- ══ من المدونة ══ -->
+    <section class="kf-section kf-section--surface" aria-labelledby="blogTitle">
       <div class="container">
-        <header class="block-head" data-reveal>
-          <div class="block-head__text">
+        <header class="kf-head" data-reveal>
+          <div>
             <h2 id="blogTitle">من المدونة</h2>
-            <p class="block-lede">ما نراه في الزيارات الميدانية، وكيف تُصرف الكفالات، بالأرقام.</p>
+            <p class="kf-lede">ما نراه في الزيارات الميدانية، وكيف تُصرف الكفالات، بالأرقام.</p>
           </div>
           <a class="link-arrow" href="blog.html">كل المقالات <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
         </header>
@@ -443,67 +401,55 @@
       </div>
     </section>
 
-    <section class="section" aria-labelledby="faqTitle">
-      <div class="container faq-split">
-        <div class="faq-split__head" data-reveal>
-          <h2 id="faqTitle">أسئلة قبل أن تبدأ</h2>
-          <p class="block-lede">لم تجد سؤالك؟ راسلنا، ونرد على كل رسالة خلال ٧٢ ساعة.</p>
-          <a class="link-arrow" href="contact.html">
-            راسل الفريق <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
-          </a>
-          <a class="link-arrow" href="faq.html">
-            كل الأسئلة <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
-          </a>
+    <!-- ══ أسئلة قبل أن تبدأ ══ -->
+    <section class="kf-section" aria-labelledby="faqTitle">
+      <div class="container">
+        <div class="row g-4 g-lg-5">
+          <div class="col-lg-4" data-reveal>
+            <h2 id="faqTitle" class="faq__title">أسئلة قبل أن تبدأ</h2>
+            <p class="kf-lede">لم تجد سؤالك؟ راسلنا، ونرد على كل رسالة خلال 72 ساعة.</p>
+            <div class="d-flex flex-column align-items-start mt-3">
+              <a class="link-arrow" href="contact.html">راسل الفريق <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
+              <a class="link-arrow" href="faq.html">كل الأسئلة <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
+            </div>
+          </div>
+          <div class="col-lg-8">
+            <div class="faq-list" data-reveal data-reveal-delay="120" data-accordion="single" id="faqList" data-limit="4"></div>
+          </div>
         </div>
-        <div class="accordion" data-reveal data-reveal-delay="120" data-accordion="single" id="faqList" data-limit="4"></div>
       </div>
     </section>
 
-    <!-- ==================================================================
-         الخاتمة
-         ================================================================== -->
+    <!-- ══ الخاتمة ══ -->
     <section class="closing" aria-labelledby="closingTitle">
       <div class="container">
-        <div class="closing__inner">
-          <div class="closing__pitch" data-reveal>
-            <p class="closing__hadith">
-              «أنا وكافل اليتيم في الجنة هكذا»
-              <span>رواه البخاري</span>
-            </p>
-            <h2 id="closingTitle">ابدأ كفالة طفل هذا الشهر</h2>
-            <p class="closing__lede">من ٣٥ دولاراً في الشهر، وتستطيع إيقافها متى شئت.</p>
-            <div class="closing__actions">
-              <a class="btn btn--cta btn--lg" href="orphans.html">
-                اكفل يتيماً
-                <i class="fa-solid fa-arrow-left btn__icon btn__icon--arrow" aria-hidden="true"></i>
+        <div class="row g-4 g-lg-5 align-items-start">
+          <div class="col-lg-6" data-reveal>
+            <p class="closing__hadith">«أنا وكافل اليتيم في الجنة هكذا»<span>رواه البخاري</span></p>
+            <h2 id="closingTitle" class="closing__title">ابدأ كفالة طفل هذا الشهر</h2>
+            <p class="closing__lede">من <span class="num">35</span> دولاراً في الشهر، وتستطيع إيقافها متى شئت.</p>
+            <div class="d-flex flex-wrap align-items-center gap-4 mt-4">
+              <a class="btn btn-cta btn-lg" href="orphans.html">
+                اكفل يتيماً <i class="fa-solid fa-arrow-left btn__icon btn__icon--arrow" aria-hidden="true"></i>
               </a>
               <a class="closing__link" href="contact.html">تحدّث مع فريقنا</a>
             </div>
           </div>
 
-          <div class="closing__next" data-reveal data-reveal-delay="150">
+          <div class="col-lg-6" data-reveal data-reveal-delay="150">
             <p class="closing__next-title">ماذا يحدث بعد أن تكفل؟</p>
             <ol class="closing__steps">
               <li>
                 <span class="closing__num num">01</span>
-                <div>
-                  <strong>تختار الطفل والبرنامج</strong>
-                  <p>وتدفع شهرياً أو سنوياً بالطريقة التي تناسبك.</p>
-                </div>
+                <div><strong>تختار الطفل والبرنامج</strong><p>وتدفع شهرياً أو سنوياً بالطريقة التي تناسبك.</p></div>
               </li>
               <li>
                 <span class="closing__num num">02</span>
-                <div>
-                  <strong>يصلك ملف الطفل</strong>
-                  <p>قصته واحتياجاته، ويبقى في حسابك تعود إليه متى أردت.</p>
-                </div>
+                <div><strong>يصلك ملف الطفل</strong><p>قصته واحتياجاته، ويبقى في حسابك تعود إليه متى أردت.</p></div>
               </li>
               <li>
                 <span class="closing__num num">03</span>
-                <div>
-                  <strong>تقرير مصوّر كل ثلاثة أشهر</strong>
-                  <p>وتستطيع الإيقاف أو التعديل من حسابك بلا اتصال ولا إحراج.</p>
-                </div>
+                <div><strong>تقرير مصوّر كل ثلاثة أشهر</strong><p>وتستطيع الإيقاف أو التعديل من حسابك بلا اتصال ولا إحراج.</p></div>
               </li>
             </ol>
           </div>
@@ -521,12 +467,13 @@
       <span>الكفالة تبدأ من</span>
       <strong><b class="num">$35</b> في الشهر</strong>
     </div>
-    <a class="btn btn--cta" href="orphans.html">اكفل يتيماً</a>
+    <a class="btn btn-cta" href="orphans.html">اكفل يتيماً</a>
   </div>
 
   <button class="to-top" type="button" id="toTop" aria-label="العودة إلى أعلى الصفحة">
     <i class="fa-solid fa-arrow-up" aria-hidden="true"></i>
   </button>
 
+  <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
