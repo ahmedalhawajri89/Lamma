@@ -393,7 +393,7 @@ async function submit(form, button, original) {
         phone: values.tel || values.phone || null,
         password: values.password,
         password_confirmation: values.password_confirmation ?? values.password,
-        // القيمة الفعلية للخانة، فالخادم يتحقق منها بـ accepted
+        // خانة الموافقة أو الحقل المخفي مع جملة الموافقة عند الزرّ؛ والخادم يتحقق بـ accepted
         terms: values.terms === 'on',
       });
     }

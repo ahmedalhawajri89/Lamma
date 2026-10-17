@@ -5,6 +5,7 @@
  *    والبريد المكتوب ينتقل من الدخول إلى الاستعادة. كانت نافذةً منبثقة.
  *  · بعد طلب الرابط حالة «تحقّق من بريدك» بجملةٍ لا تكشف إن كان للبريد حساب.
  *  · تنبيه Caps Lock تحت حقل كلمة المرور: أكثر سبب لـ«كلمة المرور خاطئة».
+ *  · شروط كلمة المرور في التسجيل تُعلَّم وهي تتحقق، لا بعد الرفض.
  */
 
 import { $, $$ } from './utils.js';
@@ -12,6 +13,26 @@ import { $, $$ } from './utils.js';
 export function initSignin() {
   initViews();
   initCapsLock();
+  initPasswordRules();
+}
+
+/** الشروط نفسها التي يفرضها الخادم (Password::min(8)->letters()->numbers()) */
+const RULES = {
+  length: (v) => v.length >= 8,
+  letter: (v) => /\p{L}/u.test(v),
+  digit: (v) => /\d/.test(v),
+};
+
+function initPasswordRules() {
+  $$('[data-pw-rules]').forEach((list) => {
+    const input = document.getElementById(list.dataset.pwRules);
+    if (!input) return;
+    const sync = () => $$('[data-rule]', list).forEach((li) => {
+      li.classList.toggle('is-met', RULES[li.dataset.rule]?.(input.value) ?? false);
+    });
+    input.addEventListener('input', sync);
+    sync();
+  });
 }
 
 function initViews() {

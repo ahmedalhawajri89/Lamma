@@ -1,165 +1,122 @@
-@extends('site.layouts.legacy', ['chrome' => false])
+@extends('site.layouts.auth')
 
+{{--
+  إنشاء حساب. forms.js يرسله (data-action="register") ثم ينتقل إلى الحساب.
+  الحقول مسمّاة بقيم autocomplete (given-name, tel) ليملأها المتصفح، والربط
+  بأسماء الـ API في forms.js.
+
+  ثلاثة حقول فقط، ما يطلبه الخادم وحده: الاسم والبريد وكلمة المرور. الجوال
+  (اختياري في الخادم) يُطلب حين يلزم لا عند التسجيل، والموافقة جملةٌ عند
+  الزرّ. وشروط كلمة المرور تُرى وهي تتحقق (signin.js)، والخادم يرفض فوقها ما
+  ظهر في تسريبٍ معروف (uncompromised) برسالةٍ عربية تحت الحقل.
+--}}
 @section('title')إنشاء حساب | كفالة@endsection
-@section('description')أنشئ حسابك في دقيقة وابدأ كفالتك الأولى.@endsection
+@section('description')أنشئ حسابك مجاناً لتكفل يتيماً وتتابع تقاريره.@endsection
 @section('canonical', url('/register'))
 
-@push('styles')
-  <link rel="stylesheet" href="/assets/css/auth.css">
-  <style>
-    @view-transition { navigation: auto; }
-    .auth__aside { view-transition-name: auth-aside; }
-    .auth__form { view-transition-name: auth-form; }
-  </style>
-@endpush
-
 @section('content')
-  <a class="skip-link" href="#main">تخطَّ إلى المحتوى الرئيسي</a>
+  <div class="acc">
 
-  <div class="auth auth--flip">
-
-
-    <main class="auth__main" id="main">
-      <div class="auth__form">
-
-        <div class="auth__bar">
-          <a class="brand" href="/">
-            <img class="brand__mark" src="/assets/img/logo.svg" alt="" width="36" height="36">
-            <span class="brand__name">كفالة</span>
-          </a>
-          <div class="auth__tools" data-theme-slot>
-            <a class="auth__back" href="/">
-              العودة للرئيسية
-              <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
-            </a>
-          </div>
+    {{-- ══ النموذج ══ --}}
+    <main class="acc-main" id="main">
+      <div class="acc-bar">
+        <a class="kf-brand acc-brand" href="/">
+          <img src="/assets/img/logo.svg" alt="" width="40" height="40">
+          <span class="kf-brand__name"><span>كفالة</span><span class="kf-brand__tag">منصة كفالة الأيتام</span></span>
+        </a>
+        <div class="acc-bar__tools">
+          <button class="btn btn-icon btn-icon--plain" type="button" id="themeToggle" aria-pressed="false" aria-label="الوضع الليلي">
+            <i class="fa-solid fa-moon" aria-hidden="true"></i>
+            <i class="fa-solid fa-sun" aria-hidden="true"></i>
+          </button>
+          <a class="acc-back" href="/">الرئيسية <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
         </div>
+      </div>
 
-        <div class="auth__head">
-          <h1>أنشئ حسابك</h1>
-          <p>دقيقة واحدة تفصلك عن كفالتك الأولى.</p>
-        </div>
+      <div class="acc-panel acc-panel--wide">
+        <h1 class="acc-title">أنشئ حسابك</h1>
+        <p class="acc-lede">دقيقةٌ واحدة تفصلك عن كفالتك الأولى. الحساب مجاني.</p>
 
-
-        <form data-validate-form data-action="register" data-redirect="/dashboard" novalidate>
-
-          <div class="grid grid--2 auth__pair">
-            <div class="field">
-              <label class="field__label" for="firstName">الاسم الأول</label>
-              <div class="field__control">
-                <i class="fa-regular fa-user field__icon" aria-hidden="true"></i>
-                <input class="input" type="text" id="firstName" name="given-name"
-                       autocomplete="given-name"
-                       data-validate="required|minlength:2" aria-describedby="err-firstName">
-              </div>
-              <p class="field__error" id="err-firstName" aria-live="polite"></p>
+        <form class="acc-form" data-validate-form data-action="register" data-redirect="/dashboard" novalidate>
+          <div class="field">
+            <label class="form-label" for="fullName">الاسم الكامل</label>
+            <div class="acc-input">
+              <i class="fa-regular fa-user" aria-hidden="true"></i>
+              <input class="form-control form-control-lg" type="text" id="fullName" name="name"
+                     autocomplete="name" data-validate="required|minlength:3" aria-describedby="err-fullName">
             </div>
-
-            <div class="field">
-              <label class="field__label" for="lastName">اسم العائلة</label>
-              <div class="field__control">
-                <i class="fa-regular fa-user field__icon" aria-hidden="true"></i>
-                <input class="input" type="text" id="lastName" name="family-name"
-                       autocomplete="family-name"
-                       data-validate="required|minlength:2" aria-describedby="err-lastName">
-              </div>
-              <p class="field__error" id="err-lastName" aria-live="polite"></p>
-            </div>
+            <p class="field__error" id="err-fullName" aria-live="polite"></p>
           </div>
 
           <div class="field">
-            <label class="field__label" for="email">البريد الإلكتروني</label>
-            <div class="field__control">
-              <i class="fa-regular fa-envelope field__icon" aria-hidden="true"></i>
-              <input class="input" type="email" id="email" name="email"
-                     autocomplete="email" inputmode="email"
+            <label class="form-label" for="email">البريد الإلكتروني</label>
+            <div class="acc-input">
+              <i class="fa-regular fa-envelope" aria-hidden="true"></i>
+              <input class="form-control form-control-lg" type="email" id="email" name="email" dir="ltr"
+                     autocomplete="email" inputmode="email" autocapitalize="off" spellcheck="false"
                      data-validate="required|email" aria-describedby="err-email">
             </div>
             <p class="field__error" id="err-email" aria-live="polite"></p>
           </div>
 
           <div class="field">
-            <label class="field__label" for="phone">رقم الجوال</label>
-            <div class="field__control">
-              <i class="fa-solid fa-mobile-screen field__icon" aria-hidden="true"></i>
-              <input class="input" type="tel" id="phone" name="tel"
-                     autocomplete="tel" inputmode="tel" dir="ltr" placeholder="+970 599 000 000"
-                     data-validate="required|phone" aria-describedby="err-phone">
-            </div>
-            <p class="field__error" id="err-phone" aria-live="polite"></p>
-          </div>
-
-          <div class="field">
-            <label class="field__label" for="password">كلمة المرور</label>
-            <div class="field__control">
-              <i class="fa-solid fa-lock field__icon" aria-hidden="true"></i>
-              <input class="input" type="password" id="password" name="password"
-                     autocomplete="new-password" data-strength-for="password"
-                     data-validate="required|minlength:8|lettersNumbers" aria-describedby="err-password passwordStrength">
-              <button class="field__action" type="button"
-                      data-password-toggle="password" aria-label="إظهار كلمة المرور" aria-pressed="false">
+            <label class="form-label" for="password">كلمة المرور</label>
+            <div class="acc-input">
+              <i class="fa-solid fa-lock" aria-hidden="true"></i>
+              <input class="form-control form-control-lg" type="password" id="password" name="password" dir="ltr"
+                     autocomplete="new-password" data-validate="required|minlength:8|lettersNumbers"
+                     aria-describedby="pwRules caps-password err-password">
+              <button class="acc-input__toggle" type="button" data-password-toggle="password" aria-label="إظهار كلمة المرور" aria-pressed="false">
                 <i class="fa-regular fa-eye" aria-hidden="true"></i>
               </button>
             </div>
+            <p class="acc-caps" id="caps-password" data-caps-for="password" hidden><i class="fa-solid fa-arrow-up" aria-hidden="true"></i> مفتاح الأحرف الكبيرة (Caps Lock) مفعّل</p>
+            {{-- الشروط تُعلَّم وهي تتحقق (signin.js)، وهي شروط الخادم نفسها --}}
+            <ul class="acc-rules" id="pwRules" data-pw-rules="password">
+              <li data-rule="length"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> 8 أحرف</li>
+              <li data-rule="letter"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> حرف</li>
+              <li data-rule="digit"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> رقم</li>
+            </ul>
             <p class="field__error" id="err-password" aria-live="polite"></p>
           </div>
 
-          <div class="strength" id="passwordStrength">
-            <div class="strength__bars" aria-hidden="true">
-              <span class="strength__bar"></span>
-              <span class="strength__bar"></span>
-              <span class="strength__bar"></span>
-              <span class="strength__bar"></span>
-              <span class="strength__bar"></span>
-            </div>
-            <p class="strength__label" role="status" aria-live="polite">
-              ٨ أحرف على الأقل، فيها حرف ورقم
-            </p>
-          </div>
-
-          <div class="field">
-            <label class="checkbox">
-              <input type="checkbox" name="terms" required
-                     data-validate="required" data-required-message="يلزم الموافقة على الشروط لإنشاء الحساب"
-                     aria-describedby="err-terms">
-              <span>
-                أوافق على <a href="/transparency#child-policy">شروط الاستخدام وسياسة الخصوصية</a>،
-                وأفهم أن بياناتي لن تُشارك مع أي جهة تسويقية.
-              </span>
-            </label>
-            <p class="field__error" id="err-terms" aria-live="polite"></p>
-          </div>
-
-          <button class="btn btn--primary btn--lg btn--block" type="submit">إنشاء الحساب</button>
+          {{-- الموافقة بجملةٍ صريحة عند الزرّ لا بخانة: إنشاء الحساب هو الموافقة، وتُرسل terms معه --}}
+          <input type="hidden" name="terms" value="on">
+          <button class="btn btn-primary btn-lg w-100" type="submit">إنشاء الحساب <i class="fa-solid fa-arrow-left acc-btn__arrow" aria-hidden="true"></i></button>
+          <p class="acc-consent">بإنشاء الحساب توافق على <a href="/transparency#child-policy">شروط الاستخدام وسياسة الخصوصية</a>. لا نشارك بياناتك مع أي جهة.</p>
         </form>
 
-        <div class="auth__switch">
-          <p>لديك حساب بالفعل؟</p>
-          <a class="btn btn--outline btn--lg btn--block" href="/login">تسجيل الدخول</a>
+        <div class="acc-switch">
+          <span>لديك حساب بالفعل؟</span>
+          <a href="/login">سجّل الدخول <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
         </div>
-
       </div>
     </main>
 
-    <aside class="auth__aside" aria-label="لماذا تنشئ حساباً">
-      <div class="auth__aside-inner">
-        <p class="auth__quote">وَيُطْعِمُونَ الطَّعَامَ عَلَىٰ حُبِّهِ مِسْكِينًا وَيَتِيمًا وَأَسِيرًا</p>
-        <h2>ابدأ من حيث تستطيع، وتوقّف متى شئت.</h2>
+    {{-- ══ الجانب: من الحساب إلى الأثر في ثلاث خطوات ══ --}}
+    <aside class="acc-aside" aria-label="لماذا تنشئ حساباً">
+      <div class="acc-aside__inner">
+        <p class="acc-aside__kicker acc-aside__verse">﴿وَيُطْعِمُونَ الطَّعَامَ عَلَىٰ حُبِّهِ مِسْكِينًا وَيَتِيمًا وَأَسِيرًا﴾</p>
+        <h2 class="acc-aside__title">ابدأ من حيث تستطيع،<br>وتوقّف متى شئت.</h2>
 
-        <ol class="auth__points" role="list">
-          <li><span class="num">01</span><div><strong>الحساب مجاني</strong><p>لا رسوم على التسجيل، ولا حد أدنى مُلزم.</p></div></li>
-          <li><span class="num">02</span><div><strong>تقرّر بعد أن تتصفّح</strong><p>كل الحالات أمامك قبل أن تختار أي شيء.</p></div></li>
-          <li><span class="num">03</span><div><strong>كل شيء في مكان واحد</strong><p>التقارير والمدفوعات والرسائل، من أي جهاز.</p></div></li>
-        </ol>
+        <div class="acc-mock" aria-hidden="true">
+          <div class="acc-mock__card acc-mock__card--main">
+            <ol class="acc-journey">
+              <li class="is-now"><span>1</span><div><b>أنشئ حسابك</b><small>الآن، مجاناً</small></div></li>
+              <li><span>2</span><div><b>اختر طفلاً</b><small>من ملفاتٍ موثّقة ميدانياً</small></div></li>
+              <li><span>3</span><div><b>تابع أثره</b><small>تقرير مصوّر كل ثلاثة أشهر</small></div></li>
+            </ol>
+          </div>
+          <div class="acc-mock__chip acc-mock__chip--a"><i class="fa-solid fa-gift"></i><span><b>الحساب مجاني</b>بلا رسوم تسجيل</span></div>
+          <div class="acc-mock__chip acc-mock__chip--b"><i class="fa-solid fa-hand"></i><span><b>إيقاف بنقرة</b>بلا أسئلة ولا رسوم</span></div>
+        </div>
 
-        <dl class="auth__stats">
-          <div><dt>كافل يتابع أثره</dt><dd class="num">+1,500</dd></div>
-          <div><dt>دولة نعمل فيها</dt><dd class="num">12</dd></div>
-          <div><dt>يوماً بين كل تقرير</dt><dd class="num">90</dd></div>
-        </dl>
+        <ul class="acc-aside__points">
+          <li><i class="fa-solid fa-user-shield" aria-hidden="true"></i> بياناتك لا تُشارك</li>
+          <li><i class="fa-solid fa-scale-balanced" aria-hidden="true"></i> يمكن احتسابها من الزكاة</li>
+          <li><i class="fa-solid fa-mobile-screen" aria-hidden="true"></i> من أي جهاز</li>
+        </ul>
       </div>
     </aside>
-
-
   </div>
 @endsection
