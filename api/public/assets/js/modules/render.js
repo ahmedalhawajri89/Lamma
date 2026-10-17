@@ -164,45 +164,7 @@ export function homePosts(posts) {
 </ul>`;
 }
 
-/**
- * حلقة توزيع الإنفاق — تُبنى كـ SVG خالص بلا مكتبة رسم بيانية.
- * نحسب نصيب كل قطاع من محيط الدائرة ونزيح كلاً منها بمقدار ما سبقه.
- */
-export function spendingDonut(segments, toChild) {
-  const RADIUS = 70;
-  const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
-  let offset = 0;
 
-  const arcs = segments.map((seg, i) => {
-    const length = (safeNumber(seg.value) / 100) * CIRCUMFERENCE;
-    const arc = `<circle class="donut__seg" cx="90" cy="90" r="${RADIUS}"
-        stroke="${safeColor(seg.color)}"
-        style="--seg-dash: ${length.toFixed(2)} ${(CIRCUMFERENCE - length).toFixed(2)};
-               --seg-delay: ${i * 140}ms"
-        stroke-dashoffset="${(-offset).toFixed(2)}"></circle>`;
-    offset += length;
-    return arc;
-  }).join('');
-
-  return `
-<div class="donut" role="img" aria-label="توزيع الإنفاق: ${escapeHtml(segments.map((s) => `${s.label} ${safeNumber(s.value)}٪`).join('، '))}">
-  <svg viewBox="0 0 180 180" aria-hidden="true">${arcs}</svg>
-  <div class="donut__center">
-    <strong class="num">${Number(toChild) || 0}٪</strong>
-    <span>يصل للطفل مباشرة</span>
-  </div>
-</div>`;
-}
-
-/** مفتاح ألوان الحلقة. */
-export function spendingLegend(segments) {
-  return segments.map((seg) => `
-<li>
-  <span class="legend__swatch" style="--swatch: ${safeColor(seg.color)}"></span>
-  <span class="legend__name">${escapeHtml(seg.label)}</span>
-  <span class="legend__pct num">${safeNumber(seg.value)}٪</span>
-</li>`).join('');
-}
 
 /**
  * حقن قائمة عناصر في حاوية.

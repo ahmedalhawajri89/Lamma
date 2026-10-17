@@ -1295,60 +1295,106 @@
   --color-focus-halo: var(--color-ink);
 }
 
-.money {
-  display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
-  gap: clamp(var(--space-10), 6vw, var(--space-20));
-  align-items: center;
-}
-
-.money__text {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--space-6);
-}
-
-.money__title { font-size: var(--text-3xl); }
-
-.money__stats {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-6) var(--space-8);
-  inline-size: 100%;
-  margin: 0;
-  padding-block: var(--space-6);
-  border-block: 1px solid var(--color-ink-line);
-}
-
-.money__stats > div { display: flex; flex-direction: column-reverse; gap: var(--space-1); }
-
-.money__stats dd {
-  margin: 0;
+/* البنود: من كل 100 دولار */
+.money__caption {
+  margin: 0 0 1rem;
   font-family: var(--font-display);
-  font-size: var(--text-3xl);
-  font-weight: 700;
-  line-height: 1.1;
-  color: var(--color-on-ink);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-on-ink-muted);
 }
+.money-list { display: grid; gap: 0.5rem; margin: 0; padding: 0; list-style: none; }
+.money-row {
+  display: grid;
+  grid-template-columns: auto minmax(7.5rem, 11rem) minmax(0, 1fr) 4.25rem;
+  align-items: center;
+  gap: 1rem;
+  inline-size: 100%;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgb(255 255 255 / 0.08);
+  border-radius: var(--radius-md);
+  background: rgb(255 255 255 / 0.03);
+  color: #fff;
+  text-align: start;
+  transition: background-color var(--dur-fast) var(--ease-out),
+              border-color var(--dur-fast) var(--ease-out),
+              translate var(--dur-fast) var(--ease-out);
+}
+.money-row:hover,
+.money-row.is-on { background: rgb(255 255 255 / 0.08); border-color: rgb(255 255 255 / 0.18); translate: -4px 0; }
+.money-row[aria-pressed="true"] { border-color: var(--c); }
+.money-row:focus-visible { outline: 3px solid var(--color-cta); outline-offset: 2px; }
+.money-row__swatch { inline-size: 0.85rem; block-size: 0.85rem; border-radius: 4px; background: var(--c); }
+.money-row__name { font-weight: 500; }
+.money-row__bar { block-size: 0.5rem; overflow: hidden; border-radius: var(--radius-pill); background: rgb(255 255 255 / 0.1); }
+.money-row__bar span { display: block; block-size: 100%; inline-size: var(--v); border-radius: inherit; background: var(--c); }
+.money-row__amount { justify-self: end; font-family: var(--font-display); font-size: 1.15rem; color: #fff; }
 
-.money__stats dt { font-size: var(--text-sm); color: var(--color-on-ink-muted); }
+.money__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem 1.5rem;
+  margin-block-start: 1.75rem;
+  padding-block-start: 1.5rem;
+  border-block-start: 1px solid rgb(255 255 255 / 0.12);
+}
+.money__foot p { display: flex; align-items: center; gap: 0.6rem; margin: 0; font-size: 0.9rem; color: var(--color-on-ink-muted); }
+.money__foot p i { color: var(--color-cta); }
 
-.money__chart {
+/* الحلقة */
+.money-donut { display: grid; place-items: center; }
+.money-donut__chart { position: relative; inline-size: min(100%, 24rem); aspect-ratio: 1; }
+.money-donut__chart svg { inline-size: 100%; block-size: 100%; rotate: -90deg; overflow: visible; }
+.money-donut__track { fill: none; stroke: rgb(255 255 255 / 0.07); stroke-width: 24; }
+.money-donut__seg {
+  fill: none;
+  stroke-width: 24;
+  stroke-linecap: butt;
+  stroke-dasharray: var(--len) var(--gap);
+  transition: opacity 0.3s var(--ease-out), stroke-width 0.3s var(--ease-out);
+}
+/* البند المُبرَز أعرض، والباقي يخفت */
+.money-donut__chart.is-focused .money-donut__seg { opacity: 0.25; }
+.money-donut__chart.is-focused .money-donut__seg.is-on { opacity: 1; stroke-width: 30; }
+
+.money-donut__center {
+  position: absolute;
+  inset: 26%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-8);
+  justify-content: center;
+  border-radius: 50%;
+  text-align: center;
+}
+.money-donut__center strong {
+  font-family: var(--font-display);
+  font-size: clamp(2.6rem, 5vw, 3.6rem);
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+}
+.money-donut__center span { margin-block-start: 0.4rem; max-inline-size: 9rem; font-size: 0.85rem; line-height: 1.4; color: var(--color-on-ink-muted); }
+
+/* الرسم مرة واحدة: كل قطعة تمتدّ بعد سابقتها، والأشرطة تمتلئ */
+@media (prefers-reduced-motion: no-preference) {
+  .js .money-donut__seg { stroke-dasharray: 0 999; }
+  .js .money-donut__chart.is-drawn .money-donut__seg {
+    stroke-dasharray: var(--len) var(--gap);
+    transition: stroke-dasharray 1s var(--ease-out) var(--d), opacity 0.3s var(--ease-out), stroke-width 0.3s var(--ease-out);
+  }
+  .js .money-list [data-reveal] .money-row__bar span { inline-size: 0; transition: inline-size 1s var(--ease-out) 0.3s; }
+  .js .money-list [data-reveal].is-visible .money-row__bar span { inline-size: var(--v); }
 }
 
-.money__chart .legend { inline-size: min(100%, 22rem); }
-.kf-section--ink .legend__name { color: var(--color-on-ink-muted); }
-.kf-section--ink .legend__pct { color: var(--color-on-ink); }
-.kf-section--ink .donut__center strong { color: var(--color-on-ink); }
-.kf-section--ink .donut__center span { color: var(--color-on-ink-muted); }
-
-@media (max-width: 62rem) {
-  .money { grid-template-columns: minmax(0, 1fr); }
+@media (max-width: 35.98rem) {
+  .money-row { grid-template-columns: auto minmax(0, 1fr) 3.75rem; row-gap: 0.5rem; }
+  .money-row__bar { grid-column: 1 / -1; grid-row: 2; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .money-row, .money-donut__seg { transition: none; }
 }
 
 /* ------- ٦) البرامج: أعمدة مفتوحة بلا بطاقات ------- */
@@ -1639,76 +1685,6 @@
 }
 
 /* ==========================================================================
-   7. الشفافية — حلقة توزيع المصاريف
-   ========================================================================== */
-.donut {
-  position: relative;
-  inline-size: min(100%, 20rem);
-  aspect-ratio: 1;
-  margin-inline: auto;
-}
-
-.donut svg { inline-size: 100%; block-size: 100%; transform: rotate(-90deg); }
-
-.donut__seg {
-  fill: none;
-  stroke-width: 18;
-  stroke-linecap: butt;
-  /* يُرسم من الصفر عند الظهور */
-  stroke-dasharray: 0 1000;
-  transition: stroke-dasharray 1.2s var(--ease-out);
-  transition-delay: var(--seg-delay, 0ms);
-}
-
-.donut.is-visible .donut__seg { stroke-dasharray: var(--seg-dash); }
-
-.donut__center {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-content: center;
-  text-align: center;
-  gap: var(--space-1);
-}
-
-.donut__center strong {
-  font-family: var(--font-display);
-  font-size: var(--text-3xl);
-  color: var(--color-brand);
-  line-height: 1;
-}
-
-.donut__center span { font-size: var(--text-xs); color: var(--color-text-muted); }
-
-.legend {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.legend li {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  font-size: var(--text-sm);
-}
-
-.legend__swatch {
-  inline-size: 0.9rem;
-  block-size: 0.9rem;
-  border-radius: var(--radius-xs);
-  background: var(--swatch);
-  flex-shrink: 0;
-}
-
-.legend__name { flex: 1; color: var(--color-text-muted); }
-.legend__pct  { font-family: var(--font-display); font-weight: 600; }
-
-
-/* ==========================================================================
    12. «من المدونة» في الرئيسية
    مقالٌ رئيسي كبير وقائمة مختصرة بجانبه بخطوط فاصلة، بلا بطاقات: لغة
    صفحة المدونة نفسها. الرئيسي والصفوف كلها تُضغط (رابط ممتد).
@@ -1960,10 +1936,6 @@
 /* حشوة الحاوية في Bootstrap نصف --bs-gutter-x (0.75rem)، لا --gutter القديم
    (1.25rem): الصفوف التي تمتد لحافة الشاشة تُزاح بها وإلا فاضت أفقياً */
 :root { --kf-gutter: calc(var(--bs-gutter-x, 1.5rem) * 0.5); }
-/* المال: الأعمدة من الصف، والمسافات بين عناصر النص هنا. وBootstrap يثقّل
-   كل dt، والتسمية هنا ثانوية تحت الرقم */
-.money__stats { margin-block: 1.75rem 2rem; }
-.money__stats dt { font-weight: 400; }
 
 /* عناوين الأقسام ذات العمودين بحجم رؤوس الأقسام نفسه */
 .report__title, .faq__title { font-size: clamp(1.75rem, 3.2vw, 2.5rem); margin-block-end: 0; }

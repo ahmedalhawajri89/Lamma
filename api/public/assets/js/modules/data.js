@@ -441,7 +441,8 @@ export async function hydrate() {
   const needsOrphans = has([
     '#homeOrphans', '#orphanDetail', '#similarOrphans', '#checkoutSummary',
   ]);
-  const needsTransparency = has(['#spendingDonut', '#spendingLegend', '#proofBoard']);
+  // #heroStats و#moneyDonut في الرئيسية: أرقام الهيرو والحلقة من الشفافية نفسها
+  const needsTransparency = has(['#spendingDonut', '#spendingLegend', '#proofBoard', '#heroStats', '#moneyDonut']);
   const needsPosts = has(['#postsGrid']);
 
   const [bootstrap, orphans, transparency, posts] = (

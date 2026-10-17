@@ -11,17 +11,14 @@ import {
   POSTS,
   SPENDING,
   PROOF,
-  COUNTRIES,
 } from './data.js';
 
 import {
   faqItem,
   homePosts,
-  spendingDonut,
-  spendingLegend,
 } from './render.js';
 
-import { $, $$, countUp, escapeHtml, formatNumber, formatMoney, observeOnce, presetCount, safeNumber } from './utils.js';
+import { $, $$, countUp, escapeHtml, formatNumber, formatMoney, observeOnce, prefersReducedMotion, presetCount, safeColor, safeNumber } from './utils.js';
 
 /** عدد الأطفال في بطاقات الرئيسية: صفّ واحد على الشاشة العريضة. */
 const KIDS_COUNT = 4;
@@ -128,23 +125,95 @@ function renderVoices() {
 </div>`;
 }
 
-/** أرقام القسم الداكن من بيانات الشفافية نفسها، لا من نصٍّ ثابت. */
-function renderMoneyStats() {
-  const host = $('#moneyStats');
-  if (!host) return;
+/**
+ * «أين تذهب كل مئة دولار»: الحلقة والبنود متّصلتان.
+ *
+ * البند زرٌّ (aria-pressed): المرور عليه أو التركيز يُبرز قطعته ويُخفت
+ * الباقي ويكتب حصته في وسط الحلقة، والنقر يثبّته. وفي الوسط افتراضياً ما
+ * يصل للطفل. الأرقام كلها من الشفافية (SPENDING وPROOF)، لا من نصٍّ ثابت.
+ */
+function renderMoney() {
+  const donutHost = $('#moneyDonut');
+  const listHost = $('#moneyList');
+  if (!donutHost || !listHost || !SPENDING.length) return;
 
-  const stats = [
-    // ٩٣٪ ظاهرة في وسط الحلقة بجانبها، فلا تتكرر هنا
-    { value: formatNumber(new Date().getFullYear() - PROOF.startYear), label: 'سنة من العمل الموثّق' },
-    { value: formatNumber(PROOF.sponsored), label: 'يتيماً مكفولاً اليوم' },
-    // العدد كل الزيارات المسجّلة لا زيارات سنة واحدة
-    { value: formatNumber(PROOF.visits), label: 'زيارة ميدانية موثّقة' },
-    { value: formatNumber(COUNTRIES.length), label: 'دولة نعمل فيها' },
-  ];
+  const R = 78;
+  const C = 2 * Math.PI * R;
+  const GAP = 3; // فاصل بين القطع
+  let offset = 0;
+  const arcs = SPENDING.map((seg, i) => {
+    const len = Math.max(0, (safeNumber(seg.value) / 100) * C - GAP);
+    const arc = `<circle class="money-donut__seg" data-i="${i}" cx="100" cy="100" r="${R}" stroke="${safeColor(seg.color)}"
+      style="--len:${len.toFixed(2)};--gap:${(C - len).toFixed(2)};--d:${i * 160}ms" stroke-dashoffset="${(-offset).toFixed(2)}"></circle>`;
+    offset += (safeNumber(seg.value) / 100) * C;
+    return arc;
+  }).join('');
 
-  host.innerHTML = stats
-    .map((s) => `<div><dt>${escapeHtml(s.label)}</dt><dd class="num">${escapeHtml(s.value)}</dd></div>`)
-    .join('');
+  const toChild = safeNumber(PROOF.toChild);
+  donutHost.innerHTML = `
+<div class="money-donut__chart" role="img" aria-label="توزيع الإنفاق: ${escapeHtml(SPENDING.map((s) => `${s.label} ${safeNumber(s.value)}٪`).join('، '))}">
+  <svg viewBox="0 0 200 200" aria-hidden="true"><circle class="money-donut__track" cx="100" cy="100" r="${R}"></circle>${arcs}</svg>
+  <div class="money-donut__center" aria-hidden="true">
+    <strong class="num" data-money-value>${toChild}٪</strong>
+    <span data-money-label>من كفالتك تصل للطفل</span>
+  </div>
+</div>`;
+
+  listHost.innerHTML = SPENDING.map((seg, i) => {
+    const v = safeNumber(seg.value);
+    return `
+<li data-reveal data-reveal-delay="${i * 80}">
+  <button class="money-row" type="button" data-i="${i}" aria-pressed="false" style="--c:${safeColor(seg.color)};--v:${v}%">
+    <span class="money-row__swatch" aria-hidden="true"></span>
+    <span class="money-row__name">${escapeHtml(seg.label)}</span>
+    <span class="money-row__bar" aria-hidden="true"><span></span></span>
+    <b class="money-row__amount num">$${formatNumber(v)}</b>
+  </button>
+</li>`;
+  }).join('');
+
+  const chart = $('.money-donut__chart', donutHost);
+  const valueEl = $('[data-money-value]', donutHost);
+  const labelEl = $('[data-money-label]', donutHost);
+  const rows = $$('.money-row', listHost);
+  let pinned = -1;
+
+  const show = (i) => {
+    chart.classList.toggle('is-focused', i >= 0);
+    $$('.money-donut__seg', chart).forEach((seg) => seg.classList.toggle('is-on', Number(seg.dataset.i) === i));
+    rows.forEach((row, j) => row.classList.toggle('is-on', j === i));
+    if (i < 0) { valueEl.textContent = `${toChild}٪`; labelEl.textContent = 'من كفالتك تصل للطفل'; return; }
+    valueEl.textContent = `${formatNumber(safeNumber(SPENDING[i].value))}٪`;
+    labelEl.textContent = SPENDING[i].label;
+  };
+
+  rows.forEach((row, i) => {
+    row.addEventListener('mouseenter', () => show(i));
+    row.addEventListener('focus', () => show(i));
+    row.addEventListener('mouseleave', () => show(pinned));
+    row.addEventListener('blur', () => show(pinned));
+    row.addEventListener('click', () => {
+      pinned = pinned === i ? -1 : i;
+      rows.forEach((r, j) => r.setAttribute('aria-pressed', String(j === pinned)));
+      show(pinned === -1 ? i : pinned);
+    });
+  });
+
+  // تُرسم القطع وتعدّ النسبة حين تظهر الحلقة، مرة واحدة
+  observeOnce([chart], () => {
+    chart.classList.add('is-drawn');
+    // عدّ بسيط للنص مباشرة: الوسط زينة (aria-hidden) والقائمة تحمل الأرقام
+    // للقارئ الصوتي، وcountUp يغلّف النص بعناصر يمحوها show() عند المرور
+    if (prefersReducedMotion()) return;
+    const start = performance.now();
+    const tick = (now) => {
+      if (chart.classList.contains('is-focused')) return;
+      const t = Math.min(1, (now - start) / 1100);
+      valueEl.textContent = `${formatNumber(Math.round(toChild * (1 - (1 - t) ** 3)))}٪`;
+      if (t < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }, { threshold: 0.35 });
 }
 
 /**
@@ -184,7 +253,7 @@ function renderHeroProof() {
 export function renderHomeSections() {
   renderHeroProof();
   renderHomeOrphans();
-  renderMoneyStats();
+  renderMoney();
 
   renderPlans();
   renderVoices();
@@ -203,11 +272,4 @@ export function renderHomeSections() {
     postsHost.innerHTML = homePosts(POSTS.slice(0, limit));
   }
 
-  /* حلقة الشفافية */
-  const donutHost = document.querySelector('#spendingDonut');
-  // الرقم في الوسط من الشفافية نفسها: كان «٩٣٪» مكتوباً في القالب
-  if (donutHost) donutHost.innerHTML = spendingDonut(SPENDING, PROOF.toChild);
-
-  const legendHost = document.querySelector('#spendingLegend');
-  if (legendHost) legendHost.innerHTML = spendingLegend(SPENDING);
 }

@@ -308,27 +308,28 @@
       </div>
     </section>
 
-    <!-- ══ أين يذهب المال: القسم الداكن ══ -->
-    <section class="kf-section kf-section--ink" aria-labelledby="moneyTitle">
+    <!-- ══ أين تذهب كل مئة دولار: الحلقة والبنود متّصلتان ══
+         المرور على بند (أو التركيز عليه) يُبرز قطعته ويكتب حصته في الوسط. -->
+    <section class="kf-section kf-section--ink money" aria-labelledby="moneyTitle">
       <div class="container">
+        <header class="kf-head kf-head--center" data-reveal>
+          <h2 id="moneyTitle">أين تذهب كل مئة دولار؟</h2>
+          <p class="kf-lede">أرقام هذه السنة من حساباتنا المعتمدة، وتتحدّث مع كل صرف. مرّر على أي بند لترى حصته.</p>
+        </header>
+
         <div class="row g-4 g-lg-5 align-items-center">
-          <div class="col-lg-6" data-reveal="start">
-            <h2 id="moneyTitle" class="money__title">أين تذهب كل مئة دولار</h2>
-            <p class="kf-lede">
-              أرقام هذه السنة من حساباتنا المعتمدة، تتحدّث مع كل صرف.
-              والتقرير الكامل منشور للجميع، كفلاء وغير كفلاء.
-            </p>
-            <dl class="money__stats" id="moneyStats"></dl>
-            <a class="btn btn--ink-outline" href="transparency.html">
-              <i class="fa-solid fa-file-lines" aria-hidden="true"></i>
-              اطّلع على تقرير الشفافية
-            </a>
-          </div>
-          <div class="col-lg-6" data-reveal="scale" data-reveal-delay="120">
-            <div class="money__chart">
-              <div id="spendingDonut"></div>
-              <ul class="legend" role="list" id="spendingLegend"></ul>
+          <div class="col-lg-7" data-reveal="start">
+            <p class="money__caption">من كل <span class="num">$100</span> تدفعها</p>
+            <ul class="money-list" id="moneyList" role="list"></ul>
+            <div class="money__foot">
+              <p><i class="fa-solid fa-file-shield" aria-hidden="true"></i> التقرير الكامل والوثائق منشورة للجميع، كفلاء وغير كفلاء.</p>
+              <a class="btn btn--ink-outline" href="transparency.html">
+                اطّلع على تقرير الشفافية <i class="fa-solid fa-arrow-left btn__icon btn__icon--arrow" aria-hidden="true"></i>
+              </a>
             </div>
+          </div>
+          <div class="col-lg-5 order-first order-lg-0" data-reveal="scale" data-reveal-delay="120">
+            <div class="money-donut" id="moneyDonut"></div>
           </div>
         </div>
       </div>
