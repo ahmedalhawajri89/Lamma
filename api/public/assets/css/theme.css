@@ -583,6 +583,10 @@ button:focus-visible,
 .kf-head h2 { margin: 0; font-size: clamp(1.75rem, 3.2vw, 2.5rem); }
 .kf-lede { max-inline-size: 40rem; margin: 0.75rem 0 0; font-size: 1.125rem; line-height: 1.8; color: var(--color-text-muted); }
 .kf-section--ink .kf-lede { color: var(--color-on-ink-muted); }
+/* رأس بالوسط بخط ذهبي قصير فوقه، كما في رأس الهيرو */
+.kf-head--center { flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.kf-head--center::before { content: ""; inline-size: 3rem; block-size: 3px; border-radius: 3px; background: var(--color-cta); margin-block-end: 0.5rem; }
+.kf-head--center .kf-lede { margin-inline: auto; }
 .kf-eyebrow { margin: 0 0 0.5rem; font-family: var(--font-display); font-size: 0.85rem; font-weight: 700; color: var(--color-brand); }
 
 /* ── 16. الحركة: ظهور هادئ مرة واحدة عند التمرير ── */

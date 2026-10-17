@@ -23,95 +23,54 @@ import {
 
 import { $, $$, countUp, escapeHtml, formatNumber, formatMoney, observeOnce, presetCount, safeNumber } from './utils.js';
 
-/** عدد الأطفال الذين يُعرَّف بهم في الرئيسية: الأول مفتوحاً والباقون وجوهاً. */
-const MEET_COUNT = 6;
+/** عدد الأطفال في بطاقات الرئيسية: صفّ واحد على الشاشة العريضة. */
+const KIDS_COUNT = 4;
 
 const isGirl = (o) => o.gender === 'أنثى';
 const ageLabel = (age) => `${age} ${age >= 3 && age <= 10 ? 'سنوات' : 'سنة'}`;
-const programOf = (o) => PROGRAMS.find((p) => p.id === o.program);
 
 /** كم يتبقى بالدولار لاكتمال كفالة الطفل هذا الشهر. */
 const remainingOf = (o) => Math.max(0, Math.round((o.monthly * (100 - o.funded)) / 100));
 
-function photo(o, cls) {
-  return o.photo
-    ? `<img class="${cls}" src="${escapeHtml(o.photo)}" alt="" loading="lazy" width="600" height="600">`
-    : `<span class="${cls} ${cls}--empty" aria-hidden="true">${escapeHtml(o.name.charAt(0))}</span>`;
-}
-
 /**
- * لوحة طفل واحد، مرتّبة كبطاقة تعريف: الاسم، ثم صفّ حقائق، ثم الحلم
- * اقتباساً، ثم القصة، ثم كتلة التمويل، ثم القرار.
- * والصورة وثيقة لا زينة: زوايا شبه حادة، وكتلة ملوّنة خلفها، وسطر الملف تحتها.
+ * بطاقة طفل: الرسم (لا صورة حقيقية على الموقع العام)، ثم الاسم والعمر والمدينة،
+ * والحلم بسطر، والتمويل بشريط يمتلئ حين تظهر، وزرّ «اكفل» صريح.
+ * الاسم رابطٌ ممتد إلى ملفه فالبطاقة كلها تُضغط، والزرّ فوقه إلى الكفالة.
  */
-function meetPanel(o, i) {
+function kidCard(o, i) {
   const name = escapeHtml(o.name);
   const her = isGirl(o);
-  const program = programOf(o);
+  const funded = safeNumber(o.funded);
   const link = `orphan.html?id=${encodeURIComponent(o.id)}`;
 
   return `
-<article class="meet__panel${i === 0 ? ' is-active' : ''}" role="tabpanel" id="meetPanel${i}"
-         aria-labelledby="meetTab${i}"${i === 0 ? '' : ' aria-hidden="true" inert'}>
-  <figure class="meet__figure">
-    <a class="meet__photo" href="${link}" tabindex="-1" aria-hidden="true">${photo(o, 'meet__img')}</a>
-    <figcaption class="meet__file">
-      <span>ملف <b class="num">${escapeHtml(o.id)}</b></span>
-      <span><i class="fa-solid fa-circle-check" aria-hidden="true"></i> ${her ? 'زارها' : 'زاره'} مشرف ميداني</span>
-    </figcaption>
-  </figure>
-
-  <div class="meet__text">
-    <div class="meet__head">
-      <h3 class="meet__name">${name}</h3>
-      ${o.urgent ? '<span class="meet__urgent"><span class="pulse-dot"></span> حالة عاجلة</span>' : ''}
+<div class="col-sm-6 col-lg-3">
+  <article class="kid-card" data-reveal data-reveal-delay="${i * 90}">
+    <div class="kid-card__media">
+      ${o.photo
+        ? `<img src="${escapeHtml(o.photo)}" alt="" width="400" height="400" loading="lazy">`
+        : `<span class="kid-card__initial" aria-hidden="true">${escapeHtml(o.name.charAt(0))}</span>`}
+      ${o.urgent ? '<span class="kid-card__urgent"><span class="kid-card__dot" aria-hidden="true"></span> حالة عاجلة</span>' : ''}
+      <span class="kid-card__verified"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> ${her ? 'زارها' : 'زاره'} مشرف</span>
     </div>
-
-    <dl class="meet__facts">
-      <div><dt>العمر</dt><dd>${ageLabel(o.age)}</dd></div>
-      <div><dt>المدينة</dt><dd>${escapeHtml(o.city)}، ${escapeHtml(o.country)}</dd></div>
-      ${program ? `<div><dt>البرنامج</dt><dd>${escapeHtml(program.name)}</dd></div>` : ''}
-    </dl>
-
-    ${o.dream ? `<blockquote class="meet__dream">
-      <p>${escapeHtml(o.dream)}</p>
-      <footer>حلم ${name}</footer>
-    </blockquote>` : ''}
-
-    <p class="meet__story">${escapeHtml(o.story ?? '')}</p>
-
-    <div class="meet__fund">
-      <div class="meet__fund-head">
-        <span>${her ? 'تحتاج' : 'يحتاج'} <b class="num">${formatMoney(o.monthly)}</b> في الشهر</span>
-        <span>مكفول <b class="num">${safeNumber(o.funded)}٪</b> · يتبقى <b class="num">$${remainingOf(o)}</b></span>
+    <div class="kid-card__body">
+      <h3 class="kid-card__name"><a href="${link}">${name}</a><span>، ${ageLabel(o.age)}</span></h3>
+      <p class="kid-card__place"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> ${escapeHtml(o.city)}، ${escapeHtml(o.country)}</p>
+      ${o.dream ? `<p class="kid-card__dream"><span>${her ? 'حلمها' : 'حلمه'}:</span> ${escapeHtml(o.dream)}</p>` : ''}
+      <div class="kid-card__fund">
+        <div class="kid-card__fund-row">
+          <span>مكفول <b class="num">${funded}٪</b></span>
+          <span>يتبقى <b class="num">$${remainingOf(o)}</b></span>
+        </div>
+        <span class="kid-card__track" role="progressbar" aria-label="نسبة كفالة ${name}" aria-valuenow="${funded}" aria-valuemin="0" aria-valuemax="100"><span style="--v:${funded}%"></span></span>
       </div>
-      <span class="meet__track" style="--v:${safeNumber(o.funded)}%"><span></span></span>
+      <a class="btn btn-cta w-100 kid-card__cta" href="checkout.html?id=${encodeURIComponent(o.id)}">اكفل ${name}</a>
     </div>
-
-    <div class="meet__actions">
-      <a class="btn btn--cta" href="checkout.html?id=${encodeURIComponent(o.id)}">اكفل ${name}</a>
-      <a class="meet__more" href="${link}">${her ? 'اقرأ ملفها كاملاً' : 'اقرأ ملفه كاملاً'}</a>
-    </div>
-  </div>
-</article>`;
+  </article>
+</div>`;
 }
 
-/** وجه في الصف: زر تبويب يفتح لوحة الطفل. */
-function meetFace(o, i) {
-  return `
-<button class="meet__face" type="button" role="tab" id="meetTab${i}" aria-controls="meetPanel${i}"
-        aria-selected="${i === 0}" tabindex="${i === 0 ? 0 : -1}">
-  ${photo(o, 'meet__face-img')}
-  <span>${escapeHtml(o.name)}</span>
-</button>`;
-}
-
-/**
- * «تعرّف على طفل»: طفل واحد مفتوح، ووجوه الباقين تحته.
- *
- * ليس فهرساً (صفحة الأيتام فيها البحث والتصفية)، بل تعارف: اسم وحلم وقصة.
- * اللوحات مكدّسة في خلية واحدة فلا يتغيّر ارتفاع القسم عند التبديل.
- */
+/** «أطفالنا ينتظرون كافلاً»: العاجلون أولاً، ثم الأقل تمويلاً. */
 function renderHomeOrphans() {
   const host = $('#homeOrphans');
   if (!host) return;
@@ -119,61 +78,10 @@ function renderHomeOrphans() {
   if (!ORPHANS.length) return;
 
   const kids = [...ORPHANS]
-    .sort((a, b) => Boolean(b.photo) - Boolean(a.photo)
-      || Number(b.urgent) - Number(a.urgent) || a.funded - b.funded)
-    .slice(0, MEET_COUNT);
+    .sort((a, b) => Number(b.urgent) - Number(a.urgent) || a.funded - b.funded)
+    .slice(0, KIDS_COUNT);
 
-  const others = Math.max(0, ORPHANS.length - kids.length);
-
-  host.innerHTML = `
-<div class="meet">
-  <div class="meet__stage">${kids.map(meetPanel).join('')}</div>
-
-  <div class="meet__faces">
-    <p class="meet__faces-title">تعرّف على غيرهم</p>
-    <div class="meet__row" role="tablist" aria-label="أطفال ينتظرون كافلاً">
-      ${kids.map(meetFace).join('')}
-      <a class="meet__all" href="orphans.html">
-        <span>${others ? `<b class="num">+${others}</b>` : '<i class="fa-solid fa-arrow-left" aria-hidden="true"></i>'}</span>
-        كل الأطفال
-      </a>
-    </div>
-  </div>
-</div>`;
-
-  const tabs = $$('.meet__face', host);
-  const panels = $$('.meet__panel', host);
-  let current = 0;
-
-  const select = (index, focus = false) => {
-    current = index;
-    tabs.forEach((t, i) => {
-      t.setAttribute('aria-selected', String(i === index));
-      t.tabIndex = i === index ? 0 : -1;
-    });
-    panels.forEach((p, i) => {
-      p.classList.toggle('is-active', i === index);
-      p.toggleAttribute('inert', i !== index);
-      if (i === index) p.removeAttribute('aria-hidden');
-      else p.setAttribute('aria-hidden', 'true');
-    });
-    if (focus) tabs[index].focus();
-  };
-
-  tabs.forEach((tab, i) => {
-    tab.addEventListener('click', () => select(i));
-    tab.addEventListener('keydown', (e) => {
-      if (e.key === 'Home' || e.key === 'End') {
-        e.preventDefault();
-        select(e.key === 'Home' ? 0 : tabs.length - 1, true);
-        return;
-      }
-      const step = { ArrowLeft: 1, ArrowRight: -1 }[e.key];
-      if (step === undefined) return;
-      e.preventDefault();
-      select((current + step + tabs.length) % tabs.length, true);
-    });
-  });
+  host.innerHTML = kids.map(kidCard).join('');
 }
 
 /**

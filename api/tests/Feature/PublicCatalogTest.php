@@ -40,3 +40,17 @@ it('يصفّح كل الأطفال العامّين، ويفلتر بالعمر 
     $this->getJson('/api/v1/public/orphans?age=99')->assertUnprocessable();
     $this->getJson('/api/v1/public/orphans?sort=monthly_desc')->assertOk();
 });
+
+it('لا تخرج صورة الطفل الحقيقية إلى الموقع العام: رسمٌ ثابت بحسب جنسه بدلها', function () {
+    $girl = publicChild(['gender' => 'female', 'photo_path' => 'orphans/real-girl.jpg']);
+    $boy = publicChild(['gender' => 'male', 'photo_path' => 'orphans/real-boy.jpg']);
+
+    $list = collect($this->getJson('/api/v1/public/orphans?per_page=10')->assertOk()->json('data'))->keyBy('id');
+    $one = $this->getJson('/api/v1/public/orphans/'.$girl->reference_code)->assertOk()->json('data.photo');
+
+    expect($list[$girl->reference_code]['photo'])->toMatch('#/assets/img/kids/girl-\d{2}\.svg$#')
+        ->and($list[$boy->reference_code]['photo'])->toMatch('#/assets/img/kids/boy-\d{2}\.svg$#')
+        // ثابت بين الطلبات، وصفحة الطفل الواحد تعطي الرسم نفسه
+        ->and($one)->toBe($list[$girl->reference_code]['photo'])
+        ->and(json_encode($list))->not->toContain('real-girl')->not->toContain('storage/orphans');
+});
