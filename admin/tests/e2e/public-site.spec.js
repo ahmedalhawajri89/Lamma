@@ -225,25 +225,25 @@ test.describe('المدونة وصفحة المقال', () => {
     const title = (await first.textContent()).trim()
     await first.click()
 
-    // `aria-busy` يسقط حين يكتمل العرض — أدقّ من انتظار محدّد بعينه
-    await expect(page.locator('#postDetail')).not.toHaveAttribute('aria-busy', 'true', { timeout: 20_000 })
-    await expect(page.locator('h1')).toHaveText(title)
+    // المقال يرسمه الخادم: العنوان في الصفحة نفسها لا بعد طلبٍ ثانٍ
+    await expect(page.locator('#postTitle')).toHaveText(title, { timeout: 20_000 })
 
     /**
      * أكثر من فقرة: البذرة كانت تنسخ المقتطف في `body`، فكان «المقال»
      * جملةً واحدة. فقرة واحدة هنا تعني أن العيب عاد.
      */
-    expect(await page.locator('.prose p').count()).toBeGreaterThan(2)
+    expect(await page.locator('.post-body p').count()).toBeGreaterThan(2)
 
-    // أرقام هندية في النثر العربي، وصيغة جمع صحيحة
-    const meta = await page.locator('.page-hero__inner .cluster').innerText()
-    expect(meta).not.toMatch(/[0-9]/)
-    expect(meta).not.toMatch(/\bدقيقتان دقائق|١ دقائق|٢ دقائق/)
+    // صيغة جمع صحيحة لزمن القراءة (والأرقام لاتينية كبقية الموقع)
+    const meta = await page.locator('.post-meta').innerText()
+    expect(meta).toMatch(/قراءة/)
+    expect(meta).not.toMatch(/دقيقتان دقائق|1 دقائق|2 دقائق/)
   })
 
   test('slug مجهول يعرض رسالة لا صفحة فارغة', async ({ page }) => {
-    await page.goto(`${WEB}/post?slug=${encodeURIComponent('لا-يوجد-هذا')}`)
-    await expect(page.locator('#postDetail h1')).toHaveText('لم نجد هذا المقال', { timeout: 20_000 })
+    const res = await page.goto(`${WEB}/post?slug=${encodeURIComponent('لا-يوجد-هذا')}`)
+    expect(res.status()).toBe(404)
+    await expect(page.locator('h1')).toHaveText('لم نجد هذا المقال')
   })
 
   test('التصنيف والبحث في الرابط، والمميّز لا يتكرر، والصفحات تنتقل', async ({ page }) => {
@@ -256,7 +256,7 @@ test.describe('المدونة وصفحة المقال', () => {
 
     // تصنيف: في الرابط، والمميّز يختفي، وعدد البطاقات = عدد التصنيف
     const cat = page.locator('#blogCats [data-cat]:not([data-cat=""])').first()
-    const n = Number(await cat.locator('.seg__count').innerText())
+    const n = Number(await cat.locator('.num').innerText())
     await cat.click()
     await expect(page).toHaveURL(/cat=/)
     await expect(page.locator('#blogFeatured .feature')).toHaveCount(0)

@@ -1,12 +1,11 @@
 /**
  * المميزات التفاعلية الخاصة بالمشروع:
- * حاسبة الأثر، وفلترة الأيتام، وصفحة تفاصيل اليتيم.
+ * حاسبة الأثر، والاحتفال، واستعادة كلمة المرور. صفحتا الطفل والمقال
+ * يرسمهما الخادم الآن (OrphanPageController وPostPageController).
  */
 
-import { $, $$, formatNumber, escapeHtml, arabicDigits, readingTime } from './utils.js';
+import { $, formatNumber, escapeHtml } from './utils.js';
 import { IMPACT_TIERS, PROGRAMS } from './data.js';
-import { fetchPost, lastReadFailure } from './api.js';
-import { initReveal } from './motion.js';
 
 /* =========================================================================
    1. حاسبة الأثر
@@ -88,123 +87,8 @@ export function launchConfetti() {
 
 
 /* =========================================================================
-   6. صفحة المقال
+   6. صفحة المقال: يرسمها الخادم الآن (PostPageController)
    ========================================================================= */
-
-/**
- * يعرض مقالاً واحداً حسب `?slug=` في العنوان.
- *
- * المدونة كانت تعرض البطاقات بروابط `href="#"` — تُقرأ عناوينها ولا يُقرأ
- * شيء منها. وهذه الصفحة تكمل الدائرة.
- *
- * والنصّ يأتي من نقطة المقال الواحد لا من القائمة: `PostResource` لا يُرجع
- * `body` في القوائم عمداً، فلا نُحمّل نصوص اثني عشر مقالاً لعرض بطاقاتها.
- */
-export async function initPostDetail() {
-  const host = $('#postDetail');
-  if (!host) return;
-
-  const slug = new URLSearchParams(window.location.search).get('slug');
-
-  if (!slug) {
-    window.location.replace('/blog');
-    return;
-  }
-
-  const post = await fetchPost(slug);
-
-  if (!post) {
-    const failed = lastReadFailure() === 'error';
-    host.innerHTML = `
-<section class="section section--tight">
-  <div class="container container--narrow empty-state">
-    ${failed ? `<h1>تعذّر تحميل المقال</h1>
-    <p class="muted">المشكلة في الاتصال لا في الرابط. تحقّق من اتصالك ثم أعد المحاولة.</p>
-    <button class="btn btn--primary" type="button" data-reload>أعد المحاولة</button>` : `<h1>لم نجد هذا المقال</h1>
-    <p class="muted">ربما حُذف أو تغيّر رابطه.</p>
-    <a class="btn btn--primary" href="/blog">العودة إلى المدونة</a>`}
-  </div>
-</section>`;
-    $('[data-reload]', host)?.addEventListener('click', () => window.location.reload());
-    document.title = `${failed ? 'تعذّر التحميل' : 'لم نجد هذا المقال'} | كفالة`;
-    host.removeAttribute('aria-busy');
-    return;
-  }
-
-  document.title = `${post.title} | كفالة`;
-
-  const cover = post.image
-    ? `<div class="frame" style="aspect-ratio:16/9;margin-block-end:var(--space-8)">
-         <img class="frame__img" src="${escapeHtml(post.image)}" alt="" width="1200" height="675">
-       </div>`
-    : '';
-
-  /*
-    النصّ المنسّق (HTML) يصل من المحرّر وقد نظّفه الخادم عند الحفظ
-    (App\Services\RichText: الوسوم المسموحة وحدها، بلا سكربت ولا سمات أحداث)،
-    فيُعرض كما هو. والنصّ القديم العادي يبقى بفقراته المهرَّبة.
-  */
-  const raw = String(post.body ?? '');
-  const isHtml = /^\s*<(p|h2|h3|ul|ol|blockquote|hr)\b/i.test(raw);
-
-  // النصّ العادي يصل فقرات مفصولة بأسطر فارغة؛ نحوّلها إلى <p> بعد التهريب
-  const body = isHtml ? raw : String(post.body ?? post.excerpt ?? '')
-    /*
-      الفاصل يحتمل CRLF: مربّع النصّ في المتصفح يُطبّع أسطره إلى \r\n،
-      فيصير فاصل الفقرات \r\n\r\n — ولا يطابقه /\n{2,}/ لأن السطرين فيه
-      غير متجاورين. فتنهار مقالة كاملة إلى فقرة واحدة طويلة بلا سبب ظاهر.
-    */
-    .split(/(?:\r?\n[ \t]*){2,}/)
-    .map((para) => para.trim())
-    .filter(Boolean)
-    .map((para) => `<p>${escapeHtml(para)}</p>`)
-    .join('');
-
-  host.innerHTML = `
-<section class="page-hero">
-  <div class="container">
-    <div class="page-hero__inner">
-      <nav aria-label="مسار التنقل">
-        <ol class="breadcrumb">
-          <li><a href="/">الرئيسية</a></li>
-          <li><a href="/blog">المدونة</a></li>
-          ${post.category ? `<li><span>${escapeHtml(post.category)}</span></li>` : ''}
-          <li><span aria-current="page">${escapeHtml(post.title)}</span></li>
-        </ol>
-      </nav>
-      <p class="meta-label">${escapeHtml(post.category ?? 'مقال')}</p>
-      <h1 class="page-hero__title">${escapeHtml(post.title)}</h1>
-      <p class="page-hero__lede">${escapeHtml(post.excerpt ?? '')}</p>
-
-      <div class="cluster" style="gap:var(--space-5);margin-block-start:var(--space-5)">
-        <time class="muted" datetime="${escapeHtml(post.date ?? '')}">
-          <i class="fa-regular fa-calendar" aria-hidden="true"></i> ${escapeHtml(arabicDigits(post.dateLabel ?? ''))}
-        </time>
-        <span class="muted">
-          <i class="fa-regular fa-clock" aria-hidden="true"></i> ${readingTime(post.readMin)} قراءة
-        </span>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section class="section section--tight">
-  <div class="container container--narrow">
-    ${cover}
-    <div class="prose">${body}</div>
-
-    <div class="cluster" style="margin-block-start:var(--space-10)">
-      <a class="btn btn--outline" href="/blog">
-        <i class="fa-solid fa-arrow-right" aria-hidden="true"></i> كل المقالات
-      </a>
-      <a class="btn btn--cta" href="/orphans">اكفل يتيماً</a>
-    </div>
-  </div>
-</section>`;
-
-  host.removeAttribute('aria-busy');
-  initReveal();
-}
 
 /* =========================================================================
    7. صفحات المدونة: انتقلت إلى blog.js (مجلة بتصنيفات وبحث وصفحات)

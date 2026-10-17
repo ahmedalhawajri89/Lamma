@@ -147,3 +147,50 @@ it('ترسم صفحة البرامج أسعارها وبنودها من جدول
         ->toContain('<b class="num">2</b> طفلان ينتظران')
         ->toContain('href="/orphans?program='.$program->slug.'"');
 });
+
+it('ترسم صفحة المقال من الخادم بعنوانها ووسوم مشاركتها ووصفٍ منظَّم، وتعدّ القراءة', function () {
+    $post = App\Models\Post::factory()->create([
+        'title' => 'كيف نتحقق من كل حالة', 'excerpt' => 'ثلاث مراحل قبل النشر.',
+        'body' => '<p>الأولى.</p><p>الثانية.</p>', 'cover_path' => 'posts/cover.webp',
+    ]);
+
+    $html = $this->get('/post?slug='.urlencode($post->slug))->assertOk()->getContent();
+
+    expect($html)
+        ->toContain('<title>كيف نتحقق من كل حالة | كفالة</title>')
+        ->toContain('<h1 class="post-title" id="postTitle">كيف نتحقق من كل حالة</h1>')
+        ->toContain('property="og:type" content="article"')
+        ->toContain('property="og:image" content="'.asset('storage/posts/cover.webp').'"')
+        ->toContain('"@type":"Article"')
+        ->toContain('<p>الثانية.</p>')
+        ->and($post->fresh()->views_count)->toBe($post->views_count + 1);
+});
+
+it('تُنظَّف نصوص المقال عند العرض ولو كُتبت في القاعدة من غير المحرّر', function () {
+    // صفٌّ لم يمرّ بـ RichText عند الحفظ (استيراد، أو بيانات قديمة)
+    $post = App\Models\Post::factory()->create(['body' => '<p>نصّ <script>alert(1)</script><a href="javascript:x" onclick="y()">رابط</a></p><p>ثانية</p>']);
+    App\Models\Post::whereKey($post->id)->update(['body' => '<p>نصّ <script>alert(1)</script><img src=x onerror="y()"><a href="javascript:x" onclick="y()">رابط</a></p><p>ثانية</p>']);
+
+    $html = $this->get('/post?slug='.urlencode($post->slug))->assertOk()->getContent();
+    $body = Illuminate\Support\Str::between($html, '<div class="post-body">', '</div>');
+
+    // الصورة مسموحة في المحرّر (src وalt وحدهما)، والسكربت والأحداث وروابط javascript لا
+    expect($body)->toContain('ثانية')->toContain('رابط')
+        ->not->toContain('<script')
+        ->not->toContain('onerror')
+        ->not->toContain('onclick')
+        ->not->toContain('javascript:');
+});
+
+it('«اقرأ أيضاً» من المنشور وحده بلا المقال نفسه، والمجهول والمسودة 404', function () {
+    $post = App\Models\Post::factory()->create(['title' => 'المقال']);
+    App\Models\Post::factory()->create(['title' => 'منشور آخر']);
+    $draft = App\Models\Post::factory()->draft()->create(['title' => 'مسودة سرّية']);
+
+    $related = Illuminate\Support\Str::after($this->get('/post?slug='.urlencode($post->slug))->getContent(), 'id="relatedTitle"');
+    expect($related)->toContain('منشور آخر')->not->toContain('مسودة سرّية')->not->toContain('>المقال<');
+
+    $this->get('/post?slug='.urlencode($draft->slug))->assertNotFound()->assertSee('لم نجد هذا المقال');
+    $this->get('/post?slug=nope')->assertNotFound();
+    $this->get('/post')->assertRedirect('/blog');
+});

@@ -12,7 +12,7 @@
  * بلا خادم: المقالات المضمَّنة في data.js تُفلتر وتُصفّح هنا.
  */
 
-import { $, $$, arabicDigits, debounce, escapeHtml, formatNumber, keepFocus, prefersReducedMotion, readingTime } from './utils.js';
+import { $, $$, debounce, escapeHtml, formatNumber, keepFocus, prefersReducedMotion, readingTime } from './utils.js';
 import { POSTS } from './data.js';
 import { apiEnabled, request } from './api.js';
 import { initReveal } from './motion.js';
@@ -119,7 +119,7 @@ export function initBlog() {
            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
            <h3>لا مقالات بهذا البحث</h3>
            <p>جرّب كلمة أخرى، أو تصفّح كل المقالات.</p>
-           <button type="button" class="btn btn--outline" data-blog-reset>كل المقالات</button>
+           <button type="button" class="btn btn-outline-primary" data-blog-reset>كل المقالات</button>
          </div>`;
     renderPager(meta);
     initReveal();
@@ -151,8 +151,8 @@ export function initBlog() {
     const host = $('#blogCats');
     if (!facets) return;
     const all = [['', 'الكل', facets.all_count ?? 0], ...(facets.categories ?? []).map((c) => [c.slug, c.name, c.count])];
-    host.innerHTML = all.map(([slug, name, n]) => `<button type="button" class="seg" data-cat="${escapeHtml(slug)}" aria-pressed="${(state.cat || '') === slug}">
-        ${escapeHtml(name)} <span class="seg__count num">${formatNumber(n)}</span></button>`).join('');
+    host.innerHTML = all.map(([slug, name, n]) => `<button type="button" class="blog-cat" data-cat="${escapeHtml(slug)}" aria-pressed="${(state.cat || '') === slug}">
+        ${escapeHtml(name)} <span class="num">${formatNumber(n)}</span></button>`).join('');
     $('#blogTotal').textContent = formatNumber(facets.all_count ?? 0);
   }
 
@@ -171,26 +171,27 @@ export function initBlog() {
     const cur = meta.current_page ?? 1;
     if (last <= 1) { nav.hidden = true; nav.innerHTML = ''; return; }
     const pages = [...Array(last).keys()].map((i) => i + 1).filter((p) => p === 1 || p === last || Math.abs(p - cur) <= 1);
-    let html = `<button type="button" class="pager__step" data-page="${cur - 1}" ${cur === 1 ? 'disabled' : ''}><i class="fa-solid fa-arrow-right" aria-hidden="true"></i> الأحدث</button><ol class="pager__pages">`;
+    let html = `<button type="button" class="blog-pager__step" data-page="${cur - 1}" ${cur === 1 ? 'disabled' : ''}><i class="fa-solid fa-arrow-right" aria-hidden="true"></i> الأحدث</button><ol class="blog-pager__pages">`;
     pages.forEach((p, i) => {
-      if (i && p - pages[i - 1] > 1) html += '<li class="pager__gap" aria-hidden="true">…</li>';
-      html += `<li><button type="button" class="pager__page num" data-page="${p}" ${p === cur ? 'aria-current="page"' : ''} aria-label="الصفحة ${p}">${p}</button></li>`;
+      if (i && p - pages[i - 1] > 1) html += '<li class="blog-pager__gap" aria-hidden="true">…</li>';
+      html += `<li><button type="button" class="blog-pager__page num" data-page="${p}" ${p === cur ? 'aria-current="page"' : ''} aria-label="الصفحة ${p}">${p}</button></li>`;
     });
-    html += `</ol><button type="button" class="pager__step" data-page="${cur + 1}" ${cur === last ? 'disabled' : ''}>الأقدم <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></button>`;
+    html += `</ol><button type="button" class="blog-pager__step" data-page="${cur + 1}" ${cur === last ? 'disabled' : ''}>الأقدم <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></button>`;
     nav.hidden = false;
     nav.innerHTML = html;
   }
 }
 
-/** التاريخ وزمن القراءة */
+/** التاريخ وزمن القراءة: بأرقام لاتينية كبقية الموقع وكصفحة المقال */
 function meta(post) {
-  return `<time datetime="${escapeHtml(post.date ?? '')}">${escapeHtml(arabicDigits(post.dateLabel ?? ''))}</time>
+  return `<time datetime="${escapeHtml(post.date ?? '')}">${escapeHtml(post.dateLabel ?? '')}</time>
     <span aria-hidden="true">·</span> <span>${readingTime(post.readMin)} قراءة</span>`;
 }
 
 /**
  * بطاقة مجلة: صورة 16:10 بشارة التصنيف، ثم العنوان والمقتطف بسطرين، والتاريخ
- * وزمن القراءة. البطاقة كلها تُضغط عبر رابط العنوان الممتد.
+ * وزمن القراءة. البطاقة كلها تُضغط عبر رابط العنوان الممتد. توأمها في Blade:
+ * site/partials/post-card.blade.php (مقالات «اقرأ أيضاً») بالأصناف نفسها.
  */
 function magCard(post, delay) {
   const href = post.slug ? `/post?slug=${encodeURIComponent(post.slug)}` : null;

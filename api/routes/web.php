@@ -26,7 +26,7 @@ Route::view('/', 'site.pages.home')->name('home');
 /** صفحات الموقع: العنوان هو اسم القالب في site/pages. */
 foreach ([
     'orphans', 'thank-you', 'transparency',
-    'blog', 'post', 'about', 'contact', 'faq',
+    'blog', 'about', 'contact', 'faq',
 ] as $page) {
     Route::view("/{$page}", "site.pages.{$page}")->name("site.{$page}");
 }
@@ -34,6 +34,9 @@ foreach ([
 /** صفحة الطفل وصفحة كفالته تُرسمان من الخادم: الاسم وحالة الكفالة ووسوم المشاركة */
 Route::get('/orphan', [App\Http\Controllers\Site\OrphanPageController::class, 'show'])->name('site.orphan');
 Route::get('/checkout', [App\Http\Controllers\Site\OrphanPageController::class, 'checkout'])->name('site.checkout');
+
+/** المقال من الخادم: عنوانه وصورته ونصّه ووسوم مشاركته */
+Route::get('/post', App\Http\Controllers\Site\PostPageController::class)->name('site.post');
 
 /** البرامج من جدولها: السعر والبنود من مصدرٍ واحد، ومع كلٍّ من ينتظر فيه */
 Route::get('/programs', App\Http\Controllers\Site\ProgramsPageController::class)->name('site.programs');
