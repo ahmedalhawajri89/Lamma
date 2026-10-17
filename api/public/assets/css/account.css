@@ -122,8 +122,11 @@
 .acc-tips { display: grid; gap: 0.6rem; margin: 1.5rem 0; padding: 1rem 1.1rem; border-radius: var(--radius-lg); background: var(--color-surface); list-style: none; font-size: 0.9rem; color: var(--color-text-muted); }
 .acc-tips i { inline-size: 1.1rem; margin-inline-end: 0.4rem; color: var(--color-brand); }
 
-/* ── اللوح الجانبي: بطاقةٌ فاتحة داخل الصفحة لا كتلةٌ داكنة ── */
-.acc-aside { padding: 1rem; }
+/* ── اللوح الجانبي: يذوب في أرضية الصفحة ──
+   طلب صاحب المشروع دمج اللونين بدل الحدّ الفاصل (استثناءٌ مقصود من قاعدة
+   «بلا تدرّجات»، كقناع صورة الهيرو): يبدأ بلون الأرضية عند حافة النموذج،
+   ويصير تركوازياً فاتحاً نحو الطرف، ومعه وهجان ناعمان للعمق. */
+.acc-aside { position: relative; }
 .acc-aside__inner {
   position: relative;
   display: flex;
@@ -131,9 +134,12 @@
   justify-content: center;
   block-size: 100%;
   overflow: hidden;
-  padding: clamp(2rem, 4vw, 3.5rem);
-  border-radius: 2rem;
-  background: var(--color-brand-soft);
+  padding: clamp(2.5rem, 5vw, 4.5rem);
+  background:
+    radial-gradient(38rem 32rem at 12% 18%, color-mix(in srgb, var(--color-brand) 16%, transparent), transparent 70%),
+    radial-gradient(30rem 26rem at 22% 92%, color-mix(in srgb, var(--color-cta) 14%, transparent), transparent 70%),
+    /* اليسار تركوازي، ويذوب نحو اليمين حيث النموذج حتى لون الأرضية تماماً */
+    linear-gradient(to right, var(--color-brand-soft) 0%, var(--color-brand-soft) 40%, var(--color-canvas) 100%);
 }
 /* حلقتان في الزاوية: صدى لخلفية الهاتف في الرئيسية */
 .acc-aside__inner::before,
