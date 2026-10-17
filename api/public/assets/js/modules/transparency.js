@@ -174,9 +174,9 @@ export function initTransparency() {
       <div class="tp-chart__tip" hidden></div>
       <details class="tp-chart__data">
         <summary>عرض الأرقام شهراً بشهر</summary>
-        <div class="table-wrap">
-          <table class="table">
-            <caption class="sr-only">الدخل والصرف في آخر ${months.length} شهراً</caption>
+        <div class="table-responsive tp-table">
+          <table class="table mb-0">
+            <caption class="visually-hidden">الدخل والصرف في آخر ${months.length} شهراً</caption>
             <thead><tr><th scope="col">الشهر</th><th scope="col">الدخل</th><th scope="col">الصرف على الأطفال</th></tr></thead>
             <tbody>${rows}</tbody>
           </table>
@@ -281,7 +281,7 @@ export function initTransparency() {
           ${d ? `<p class="tp-doc__meta">PDF · <span class="num">${size}</span> · نُشر ${dateFmt.format(new Date(d.published_at))}</p>` : ''}
         </div>
         ${d
-          ? `<a class="btn btn--primary tp-doc__cta" href="${escapeHtml(d.url)}" target="_blank" rel="noopener" download>
+          ? `<a class="btn btn-primary tp-doc__cta" href="${escapeHtml(d.url)}" target="_blank" rel="noopener" download>
                <i class="fa-solid fa-arrow-down" aria-hidden="true"></i> تحميل PDF</a>`
           : `<span class="tp-doc__pending">يُنشر بعد اعتماد المدقق · <a href="/contact">اطلب نسخة</a></span>`}
       </li>`;

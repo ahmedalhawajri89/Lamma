@@ -1,8 +1,12 @@
-@extends('site.layouts.legacy')
+@extends('site.layouts.app')
 
 @section('title')الشفافية والتقارير | كفالة@endsection
 @section('description')أين يذهب كل دولار؟ ميزانية مدقّقة، توزيع الإنفاق، سياسة حماية الطفل، وتقارير سنوية متاحة للجميع.@endsection
 @section('canonical', url('/transparency'))
+
+@push('styles')
+  <link rel="stylesheet" href="/assets/css/transparency.css">
+@endpush
 
 @section('content')
   <main id="main">
@@ -12,9 +16,9 @@
       <div class="container tp-hero__inner">
         <div class="tp-hero__text">
           <nav aria-label="مسار التنقل">
-            <ol class="breadcrumb breadcrumb--on-ink">
-              <li><a href="/">الرئيسية</a></li>
-              <li><span aria-current="page">الشفافية</span></li>
+            <ol class="breadcrumb tp-crumbs">
+              <li class="breadcrumb-item"><a href="/">الرئيسية</a></li>
+              <li class="breadcrumb-item active" aria-current="page">الشفافية</li>
             </ol>
           </nav>
           <h1 class="tp-hero__title" id="tpTitle">من كل دولار تتبرّع به، يصل الطفل</h1>
@@ -38,7 +42,7 @@
     </section>
 
     <!-- ══ أرقام السنة ══ -->
-    <section class="section tp-stats-wrap" aria-label="أرقام السنة">
+    <section class="tp-stats-wrap" aria-label="أرقام السنة">
       <div class="container">
         <dl class="tp-stats" id="tpStats">
           <div><dt>دخل <span data-tp-year></span></dt><dd class="num" data-tp-stat="income">$0</dd><dd class="tp-stats__note">من دفعات الكفلاء الناجحة</dd></div>
@@ -50,11 +54,11 @@
     </section>
 
     <!-- ══ شهراً بشهر ══ -->
-    <section class="section tp-section" id="tpMonthlySection" aria-labelledby="tpMonthlyTitle">
+    <section class="tp-section" id="tpMonthlySection" aria-labelledby="tpMonthlyTitle">
       <div class="container">
         <div class="tp-head">
           <div>
-            <p class="meta-label">آخر اثني عشر شهراً</p>
+            <p class="kf-eyebrow">آخر اثني عشر شهراً</p>
             <h2 id="tpMonthlyTitle">ما دخل وما صُرف، شهراً بشهر</h2>
           </div>
           <ul class="tp-key" aria-hidden="true">
@@ -68,10 +72,10 @@
     </section>
 
     <!-- ══ أين يذهب المال، والتشغيل ══ -->
-    <section class="section section--surface tp-section" aria-labelledby="tpWhereTitle">
+    <section class="tp-section kf-section--surface" aria-labelledby="tpWhereTitle">
       <div class="container tp-where">
         <div class="tp-where__main">
-          <p class="meta-label">السنة المالية <span data-tp-year></span></p>
+          <p class="kf-eyebrow">السنة المالية <span data-tp-year></span></p>
           <h2 id="tpWhereTitle">أين يذهب كل دولار</h2>
           <div class="tp-stack" id="tpStack" role="img" aria-label="توزيع الصرف على البنود"></div>
           <ul class="tp-legend" id="tpLegend" role="list"></ul>
@@ -81,11 +85,11 @@
     </section>
 
     <!-- ══ الوثائق ══ -->
-    <section class="section tp-section" id="reports" aria-labelledby="tpDocsTitle">
+    <section class="tp-section" id="reports" aria-labelledby="tpDocsTitle">
       <div class="container">
         <div class="tp-head">
           <div>
-            <p class="meta-label">متاحة للجميع</p>
+            <p class="kf-eyebrow">متاحة للجميع</p>
             <h2 id="tpDocsTitle">الوثائق</h2>
           </div>
           <p class="tp-head__aside">تُحدَّث سنوياً بعد اعتماد المدقق الخارجي.</p>
@@ -95,20 +99,20 @@
     </section>
 
     <!-- سياسة حماية الطفل -->
-    <section class="section section--surface" id="child-policy">
+    <section class="tp-section kf-section--surface" id="child-policy">
       <div class="container">
-        <div class="block-head">
-          <div class="block-head__text">
-            <p class="meta-label">سياسة حماية الطفل</p>
+        <header class="kf-head">
+          <div>
+            <p class="kf-eyebrow">سياسة حماية الطفل</p>
             <h2>قواعد نلتزم بها حتى حين تكلّفنا تبرعات</h2>
           </div>
-        </div>
+        </header>
 
         <div class="tp-policy">
           <div>
             <span class="tp-policy__icon" aria-hidden="true"><i class="fa-solid fa-camera"></i></span>
             <h3>في التصوير والنشر</h3>
-            <ul class="check-list" role="list">
+            <ul>
               <li>لا ننشر صورة طفل دون موافقة خطية من وصيّه القانوني.</li>
               <li>لا نصوّر أطفالاً باكين أو في وضع مُذِلّ، مهما كان أثر ذلك على التبرعات.</li>
               <li>لا نذكر العنوان التفصيلي أو اسم المدرسة في أي محتوى عام.</li>
@@ -119,7 +123,7 @@
           <div>
             <span class="tp-policy__icon" aria-hidden="true"><i class="fa-solid fa-envelope-open-text"></i></span>
             <h3>في التواصل بين الكافل والطفل</h3>
-            <ul class="check-list" role="list">
+            <ul>
               <li>كل رسالة تمرّ بمشرف ميداني قبل تسليمها.</li>
               <li>لا تُشارك بيانات اتصال مباشرة بين الطرفين.</li>
               <li>الزيارات الميدانية بترتيب مسبق وبحضور مشرف دائماً.</li>
@@ -130,7 +134,7 @@
           <div>
             <span class="tp-policy__icon" aria-hidden="true"><i class="fa-solid fa-shield-halved"></i></span>
             <h3>في حماية بياناتك أنت</h3>
-            <ul class="check-list" role="list">
+            <ul>
               <li>لا نبيع أو نشارك بياناتك مع أي جهة تسويقية.</li>
               <li>لا نحتفظ ببيانات بطاقتك على خوادمنا، فهي تُعالَج لدى بوابة الدفع مباشرة.</li>
               <li>يمكنك طلب حذف حسابك وبياناتك كاملةً في أي وقت.</li>
@@ -141,19 +145,14 @@
     </section>
 
     <!-- الخاتمة -->
-    <section class="closing" aria-labelledby="closingTitle">
+    <section class="tp-cta">
       <div class="container">
-        <div class="closing__inner closing__inner--solo">
-          <div class="closing__pitch">
-            <h2 id="closingTitle">لديك سؤال عن بند معيّن؟</h2>
-            <p class="closing__lede">اسأل عن أي رقم في أي تقرير. نلتزم بالرد خلال ٧٢ ساعة، وننشر الجواب إن كان يهم غيرك.</p>
-            <div class="closing__actions">
-              <a class="btn btn--cta btn--lg" href="/contact">
-                اطرح سؤالك
-                <i class="fa-solid fa-arrow-left btn__icon btn__icon--arrow" aria-hidden="true"></i>
-              </a>
-            </div>
+        <div class="tp-cta__card">
+          <div>
+            <h2>لديك سؤال عن بند معيّن؟</h2>
+            <p>اسأل عن أي رقم في أي تقرير. نلتزم بالرد خلال ٧٢ ساعة، وننشر الجواب إن كان يهم غيرك.</p>
           </div>
+          <a class="btn btn-cta btn-lg" href="/contact">اطرح سؤالك <i class="fa-solid fa-arrow-left ms-1" aria-hidden="true"></i></a>
         </div>
       </div>
     </section>
