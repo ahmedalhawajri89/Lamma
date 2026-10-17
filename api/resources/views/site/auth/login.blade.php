@@ -1,173 +1,154 @@
-@extends('site.layouts.legacy', ['chrome' => false])
+@extends('site.layouts.auth')
 
+{{--
+  تسجيل الدخول. النموذج يرسله forms.js (data-action="login") ثم ينتقل إلى
+  ?redirect= إن كانت على الموقع نفسه، وإلا إلى الحساب. واستعادة كلمة المرور
+  في البطاقة نفسها (signin.js) لا في نافذة: البريد ينتقل معها، ورجوعٌ بنقرة.
+
+  ما يطلبه الدخول المتاح (WCAG 2.2): مدير كلمات المرور يملأ الحقلين، واللصق
+  مسموح، وكلمة المرور تُظهَر بزرّ، والأخطاء تحت حقولها بـ aria-describedby.
+  ولا حدّ أدنى لطول كلمة المرور هنا: ذلك شرط التسجيل لا الدخول.
+--}}
 @section('title')تسجيل الدخول | كفالة@endsection
-@section('description')ادخل إلى لوحتك لمتابعة كفالاتك وتقاريرها.@endsection
+@section('description')ادخل إلى حسابك لمتابعة كفالاتك وتقاريرها.@endsection
 @section('canonical', url('/login'))
 
-@push('styles')
-  <link rel="stylesheet" href="/assets/css/auth.css">
-  <style>
-    @view-transition { navigation: auto; }
-    .auth__aside { view-transition-name: auth-aside; }
-    .auth__form { view-transition-name: auth-form; }
-  </style>
-@endpush
-
 @section('content')
-  <a class="skip-link" href="#main">تخطَّ إلى المحتوى الرئيسي</a>
+  <div class="acc">
 
-  <div class="auth">
-
-    <main class="auth__main" id="main">
-      <div class="auth__form">
-
-        <div class="auth__bar">
-          <a class="brand" href="/">
-            <img class="brand__mark" src="/assets/img/logo.svg" alt="" width="36" height="36">
-            <span class="brand__name">كفالة</span>
-          </a>
-          <div class="auth__tools" data-theme-slot>
-            <a class="auth__back" href="/">
-              العودة للرئيسية
-              <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
-            </a>
-          </div>
+    {{-- ══ النموذج ══ --}}
+    <main class="acc-main" id="main">
+      <div class="acc-bar">
+        <a class="kf-brand acc-brand" href="/">
+          <img src="/assets/img/logo.svg" alt="" width="40" height="40">
+          <span class="kf-brand__name"><span>كفالة</span><span class="kf-brand__tag">منصة كفالة الأيتام</span></span>
+        </a>
+        <div class="acc-bar__tools">
+          <button class="btn btn-icon btn-icon--plain" type="button" id="themeToggle" aria-pressed="false" aria-label="الوضع الليلي">
+            <i class="fa-solid fa-moon" aria-hidden="true"></i>
+            <i class="fa-solid fa-sun" aria-hidden="true"></i>
+          </button>
+          <a class="acc-back" href="/">الرئيسية <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
         </div>
+      </div>
 
-        <div class="auth__head">
-          <h1>أهلاً بعودتك</h1>
-          <p>ادخل لمتابعة كفالاتك وتقاريرها.</p>
-        </div>
+      <div class="acc-panel">
+        {{-- الدخول --}}
+        <section data-acc-view="login" aria-labelledby="loginTitle">
+          <h1 class="acc-title" id="loginTitle">أهلاً بعودتك</h1>
+          <p class="acc-lede">ادخل لتتابع كفالاتك، وتقرأ آخر تقاريرها.</p>
 
-
-        <form data-validate-form data-action="login" data-redirect="/dashboard" novalidate>
-
-          <div class="field">
-            <label class="field__label" for="email">البريد الإلكتروني</label>
-            <div class="field__control">
-              <i class="fa-regular fa-envelope field__icon" aria-hidden="true"></i>
-              <input class="input" type="email" id="email" name="email"
-                     autocomplete="email" inputmode="email"
-                     data-validate="required|email" aria-describedby="err-email">
+          <form class="acc-form" data-validate-form data-action="login" data-redirect="/dashboard" novalidate>
+            <div class="field">
+              <label class="form-label" for="email">البريد الإلكتروني</label>
+              <div class="acc-input">
+                <i class="fa-regular fa-envelope" aria-hidden="true"></i>
+                <input class="form-control form-control-lg" type="email" id="email" name="email" dir="ltr"
+                       autocomplete="username" inputmode="email" autocapitalize="off" spellcheck="false"
+                       data-validate="required|email" aria-describedby="err-email">
+              </div>
+              <p class="field__error" id="err-email" aria-live="polite"></p>
             </div>
-            <p class="field__error" id="err-email" aria-live="polite"></p>
-          </div>
 
-          <div class="field">
-            <label class="field__label" for="password">كلمة المرور</label>
-            <div class="field__control">
-              <i class="fa-solid fa-lock field__icon" aria-hidden="true"></i>
-              <input class="input" type="password" id="password" name="password"
-                     autocomplete="current-password"
-                     data-validate="required|minlength:8" aria-describedby="err-password">
-              <button class="field__action" type="button"
-                      data-password-toggle="password" aria-label="إظهار كلمة المرور" aria-pressed="false">
-                <i class="fa-regular fa-eye" aria-hidden="true"></i>
-              </button>
+            <div class="field">
+              <div class="acc-label-row">
+                <label class="form-label" for="password">كلمة المرور</label>
+                <button class="acc-link" type="button" data-acc-go="forgot">نسيت كلمة المرور؟</button>
+              </div>
+              <div class="acc-input">
+                <i class="fa-solid fa-lock" aria-hidden="true"></i>
+                <input class="form-control form-control-lg" type="password" id="password" name="password" dir="ltr"
+                       autocomplete="current-password" data-validate="required"
+                       aria-describedby="caps-password err-password">
+                <button class="acc-input__toggle" type="button" data-password-toggle="password" aria-label="إظهار كلمة المرور" aria-pressed="false">
+                  <i class="fa-regular fa-eye" aria-hidden="true"></i>
+                </button>
+              </div>
+              <p class="acc-caps" id="caps-password" data-caps-for="password" hidden><i class="fa-solid fa-arrow-up" aria-hidden="true"></i> مفتاح الأحرف الكبيرة (Caps Lock) مفعّل</p>
+              <p class="field__error" id="err-password" aria-live="polite"></p>
             </div>
-            <p class="field__error" id="err-password" aria-live="polite"></p>
+
+            <div class="form-check form-switch acc-remember">
+              <input class="form-check-input" type="checkbox" role="switch" id="remember" name="remember" checked>
+              <label class="form-check-label" for="remember">ابقني مسجّلاً على هذا الجهاز</label>
+            </div>
+
+            <button class="btn btn-primary btn-lg w-100" type="submit">تسجيل الدخول <i class="fa-solid fa-arrow-left acc-btn__arrow" aria-hidden="true"></i></button>
+          </form>
+
+          <p class="acc-secure"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> اتصالٌ مشفّر، ولا نشارك بريدك مع أي جهة.</p>
+
+          <div class="acc-switch">
+            <span>جديد على كفالة؟</span>
+            <a href="/register">أنشئ حساباً <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
           </div>
+        </section>
 
-          <div class="auth__meta">
-            <label class="checkbox">
-              <input type="checkbox" name="remember" checked>
-              <span>ابقني مسجّلاً</span>
-            </label>
-            <button class="link-button" type="button" data-modal-open="resetModal">نسيت كلمة المرور؟</button>
-          </div>
+        {{-- استعادة كلمة المرور: في البطاقة نفسها --}}
+        <section data-acc-view="forgot" aria-labelledby="forgotTitle" hidden>
+          <button class="acc-backlink" type="button" data-acc-go="login"><i class="fa-solid fa-arrow-right" aria-hidden="true"></i> العودة إلى الدخول</button>
+          <span class="acc-view-icon" aria-hidden="true"><i class="fa-solid fa-key"></i></span>
+          <h1 class="acc-title" id="forgotTitle">نسيت كلمة المرور؟</h1>
+          <p class="acc-lede">اكتب بريدك، ونرسل إليه رابطاً تعيّن منه كلمةً جديدة خلال دقائق.</p>
 
-          <button class="btn btn--primary btn--lg btn--block" type="submit">تسجيل الدخول</button>
-          <p class="auth__secure">
-            <i class="fa-solid fa-lock" aria-hidden="true"></i>
-            اتصال مشفّر، ولا نشارك بريدك مع أي جهة.
-          </p>
-        </form>
+          <form class="acc-form" data-validate-form data-action="forgot" novalidate>
+            <div class="field">
+              <label class="form-label" for="resetEmail">البريد الإلكتروني</label>
+              <div class="acc-input">
+                <i class="fa-regular fa-envelope" aria-hidden="true"></i>
+                <input class="form-control form-control-lg" type="email" id="resetEmail" name="email" dir="ltr"
+                       autocomplete="email" inputmode="email" autocapitalize="off" spellcheck="false"
+                       data-validate="required|email" aria-describedby="err-resetEmail">
+              </div>
+              <p class="field__error" id="err-resetEmail" aria-live="polite"></p>
+            </div>
+            <button class="btn btn-primary btn-lg w-100" type="submit">أرسل الرابط <i class="fa-regular fa-paper-plane acc-btn__arrow" aria-hidden="true"></i></button>
+          </form>
+        </section>
 
-        <div class="auth__switch">
-          <p>جديد على كفالة؟</p>
-          <a class="btn btn--outline btn--lg btn--block" href="/register">أنشئ حساباً جديداً</a>
-        </div>
-
+        {{-- بعد الإرسال: الجملة نفسها أكان البريد مسجّلاً أم لا، فلا تكشف الصفحة من له حساب --}}
+        <section data-acc-view="sent" aria-labelledby="sentTitle" hidden>
+          <span class="acc-view-icon acc-view-icon--ok" aria-hidden="true"><i class="fa-solid fa-envelope-circle-check"></i></span>
+          <h1 class="acc-title" id="sentTitle" tabindex="-1">تحقّق من بريدك</h1>
+          <p class="acc-lede">إن كان <b dir="ltr" data-acc-email></b> مسجّلاً لدينا، فسيصله رابط تعيين كلمة المرور خلال دقائق.</p>
+          <ul class="acc-tips">
+            <li><i class="fa-regular fa-folder-open" aria-hidden="true"></i> لم يصل؟ انظر في مجلد الرسائل غير المرغوب فيها.</li>
+            <li><i class="fa-regular fa-clock" aria-hidden="true"></i> الرابط صالحٌ ساعةً واحدة، فاستعمله قريباً.</li>
+          </ul>
+          <button class="btn btn-outline-primary btn-lg w-100" type="button" data-acc-go="login">العودة إلى الدخول</button>
+        </section>
       </div>
     </main>
 
-    <aside class="auth__aside" aria-label="ما ينتظرك في حسابك">
-      <div class="auth__aside-inner">
-        <p class="auth__kicker">ما ينتظرك في حسابك</p>
-        <h2>كل ثلاثة أشهر، يصلك تقرير كهذا عن طفلك.</h2>
+    {{-- ══ الجانب: ما ينتظرك في حسابك (توضيحي) ══ --}}
+    <aside class="acc-aside" aria-label="ما ينتظرك في حسابك">
+      <div class="acc-aside__inner">
+        <p class="acc-aside__kicker">ما ينتظرك في حسابك</p>
+        <h2 class="acc-aside__title">طفلك، وأخباره،<br>وأين ذهب كل دولار.</h2>
 
-        <article class="report-mock report-mock--mini" aria-label="نموذج توضيحي لتقرير ربعي">
-          <header class="report-mock__head">
-            <span class="avatar avatar--lg avatar--1" aria-hidden="true">أ</span>
-            <div>
-              <strong>أمنية، ٨ سنوات</strong>
-              <span>غزة · الكفالة التعليمية</span>
+        <div class="acc-mock" aria-hidden="true">
+          <div class="acc-mock__card acc-mock__card--main">
+            <div class="acc-mock__who">
+              <img src="/assets/img/kids/girl-08.svg" alt="" width="56" height="56">
+              <div><b>أمنية، 8 سنوات</b><span>الكفالة التعليمية</span></div>
+              <span class="acc-mock__tag">تقرير جديد</span>
             </div>
-            <span class="report-mock__tag">الربع الثالث</span>
-          </header>
-
-          <div class="report-mock__block">
-            <h3>الدراسة <span>الصف الثالث</span></h3>
-            <ul class="report-bars" role="list">
-              <li><span>اللغة العربية</span><span class="report-bars__track"><span style="--v:92%"></span></span><b class="num">92</b></li>
-              <li><span>الرياضيات</span><span class="report-bars__track"><span style="--v:85%"></span></span><b class="num">85</b></li>
-            </ul>
+            <div class="acc-mock__row"><span>اللغة العربية</span><span class="acc-mock__bar"><span style="--v:92%"></span></span><b>92</b></div>
+            <div class="acc-mock__row"><span>الرياضيات</span><span class="acc-mock__bar"><span style="--v:85%"></span></span><b>85</b></div>
+            <div class="acc-mock__split"><span style="--w:40%;--c:var(--color-brand)"></span><span style="--w:34%;--c:var(--color-cta)"></span><span style="--w:26%;--c:var(--color-brand-border)"></span></div>
+            <p class="acc-mock__note">كيف صُرفت كفالتك هذا الربع</p>
           </div>
-
-          <div class="report-mock__block">
-            <h3>كيف صُرفت كفالتك <span class="num">$35</span></h3>
-            <div class="report-split" role="img" aria-label="رسوم وقرطاسية 14 دولاراً، غذاء 12، صحة 5، أنشطة 4">
-              <span style="--w:40%; --c:var(--chart-1)"></span>
-              <span style="--w:34%; --c:var(--chart-4)"></span>
-              <span style="--w:14%; --c:var(--chart-2)"></span>
-              <span style="--w:12%; --c:var(--chart-5)"></span>
-            </div>
-          </div>
-
-          <footer class="report-mock__foot">
-            <span>زيارة ميدانية في ٢٤ سبتمبر</span>
-            <span>نموذج توضيحي</span>
-          </footer>
-        </article>
-
-        <dl class="auth__stats">
-          <div><dt>كافل يتابع أثره</dt><dd class="num">+1,500</dd></div>
-          <div><dt>دولة نعمل فيها</dt><dd class="num">12</dd></div>
-          <div><dt>يوماً بين كل تقرير</dt><dd class="num">90</dd></div>
-        </dl>
-      </div>
-    </aside>
-
-
-  </div>
-
-  <!-- استعادة كلمة المرور -->
-  <div class="modal" id="resetModal" role="dialog" aria-modal="true" aria-labelledby="resetTitle">
-    <div class="modal__backdrop"></div>
-    <div class="modal__panel">
-      <button class="modal__close" type="button" data-modal-close aria-label="إغلاق">
-        <i class="fa-solid fa-xmark" aria-hidden="true"></i>
-      </button>
-
-      <div class="modal__head">
-        <h2 id="resetTitle" style="font-size:var(--text-lg)">استعادة كلمة المرور</h2>
-        <p>أدخل بريدك وسنرسل لك رابط إعادة التعيين خلال دقائق.</p>
-      </div>
-
-      <form data-validate-form data-action="forgot" novalidate>
-        <div class="field">
-          <label class="field__label" for="resetEmail">البريد الإلكتروني</label>
-          <div class="field__control">
-            <i class="fa-regular fa-envelope field__icon" aria-hidden="true"></i>
-            <input class="input" type="email" id="resetEmail" name="email"
-                   autocomplete="email" data-autofocus
-                   data-validate="required|email" aria-describedby="err-resetEmail">
-          </div>
-          <p class="field__error" id="err-resetEmail" aria-live="polite"></p>
+          <div class="acc-mock__chip acc-mock__chip--a"><i class="fa-solid fa-house-user"></i><span><b>زيارة ميدانية</b>قبل 3 أيام</span></div>
+          <div class="acc-mock__chip acc-mock__chip--b"><i class="fa-solid fa-envelope-open-text"></i><span><b>رسالة من أمنية</b>راجعها المشرف</span></div>
         </div>
 
-        <button class="btn btn--primary btn--block" type="submit">أرسل الرابط</button>
-      </form>
-    </div>
+        <ul class="acc-aside__points">
+          <li><i class="fa-solid fa-file-lines" aria-hidden="true"></i> تقرير مصوّر كل ثلاثة أشهر</li>
+          <li><i class="fa-solid fa-receipt" aria-hidden="true"></i> إيصالات كل دفعاتك</li>
+          <li><i class="fa-solid fa-hand" aria-hidden="true"></i> إيقافٌ أو تعديلٌ بنقرة</li>
+        </ul>
+        <p class="acc-aside__demo">نموذجٌ توضيحي بأسماء غير حقيقية</p>
+      </div>
+    </aside>
   </div>
 @endsection

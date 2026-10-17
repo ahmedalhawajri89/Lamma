@@ -216,9 +216,17 @@ export function initForms() {
 
     // نتحقق عند الخروج من الحقل، ثم مباشرةً أثناء الكتابة بعد أول خطأ.
     // هذا يمنع إزعاج المستخدم بخطأ قبل أن ينتهي من الكتابة.
+    //
+    // وخطأ الخادم («بيانات الدخول غير صحيحة») يبقى حتى يُعدَّل الحقل: كان الخروج
+    // منه يمحوه لأن صيغته صحيحة، فتقفز الصفحة تحت المؤشر وتضيع نقرة «نسيت
+    // كلمة المرور؟»، وتختفي الرسالة قبل أن تُقرأ.
     inputs.forEach((input) => {
-      input.addEventListener('blur', () => validateInput(input));
+      input.addEventListener('blur', () => {
+        if (input.dataset.serverError === input.value) return;
+        validateInput(input);
+      });
       input.addEventListener('input', () => {
+        delete input.dataset.serverError;
         if (input.closest('.field')?.classList.contains('is-invalid')) validateInput(input);
       });
     });
@@ -336,7 +344,10 @@ async function submit(form, button, original) {
       restore();
       form.reset();
       $$('.field', form).forEach((fl) => fl.classList.remove('is-invalid'));
-      toast(message, 'success');
+
+      // صفحةٌ لها حالة «أُرسل» تعرضها (صفحة الدخول)، وإلا فإشعار
+      const sent = new CustomEvent('form:sent', { cancelable: true, detail: { email: values.email, message } });
+      if (form.dispatchEvent(sent)) toast(message, 'success');
 
       return;
     }
@@ -422,6 +433,7 @@ async function submit(form, button, original) {
       // setError لا كتابة النص وحده: يضبط aria-invalid والأيقونة كخطأ المتصفح تماماً
       if (errorEl && input.type !== 'hidden') {
         setError(input, messages[0]);
+        input.dataset.serverError = input.value;
       } else {
         orphaned.push(messages[0]);
       }

@@ -1,0 +1,187 @@
+/* =========================================================================
+   صفحات الحساب: النموذج في نصف، ولوحٌ فاتح في النصف الآخر يُري ما ينتظر
+   الكافل في حسابه. على الجوال النموذج وحده.
+   ========================================================================= */
+
+.acc-body { min-block-size: 100dvh; background: var(--color-canvas); }
+.acc { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); min-block-size: 100dvh; }
+
+/* ── النموذج ── */
+.acc-main { display: flex; flex-direction: column; padding: clamp(1.25rem, 3vw, 2rem) clamp(1.25rem, 5vw, 4rem); }
+.acc-bar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.acc-brand .kf-brand__name { font-size: 1.35rem; color: var(--color-brand); }
+.acc-bar__tools { display: flex; align-items: center; gap: 0.5rem; }
+.acc-back { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.9rem; font-weight: 600; color: var(--color-text-muted); text-decoration: none; }
+.acc-back:hover { color: var(--color-brand); }
+
+.acc-panel { flex: 1; display: grid; align-content: center; inline-size: min(100%, 27rem); margin-inline: auto; padding-block: clamp(2rem, 6vh, 4rem); }
+.acc-title { margin: 0; font-size: clamp(2rem, 4vw, 2.6rem); line-height: 1.2; color: var(--color-text); }
+.acc-title:focus { outline: none; }
+.acc-lede { margin: 0.6rem 0 0; font-size: 1.05rem; line-height: 1.8; color: var(--color-text-muted); }
+.acc-lede b { color: var(--color-text); }
+
+.acc-form { display: grid; gap: 1.1rem; margin-block-start: 2rem; }
+.acc-form .field { margin: 0; }
+.acc-form .form-label { margin-block-end: 0.4rem; font-weight: 600; }
+.acc-label-row { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
+.acc-link { padding: 0; border: 0; background: none; font-size: 0.875rem; font-weight: 600; color: var(--color-brand); }
+.acc-link:hover { text-decoration: underline; text-underline-offset: 0.25em; }
+.acc-link:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; border-radius: 0.25rem; }
+
+/* الحقل: أبيض بحدٍّ داخلي رقيق، والأيقونة في مربّعٍ صغير يتلوّن بلون الهوية
+   حين يُركَّز الحقل، وهالةٌ ناعمة بدل الإطار الأزرق الافتراضي */
+.acc-input { position: relative; }
+.acc-input > i {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 0.6rem;
+  translate: 0 -50%;
+  display: inline-grid;
+  place-items: center;
+  inline-size: 2.4rem;
+  block-size: 2.4rem;
+  border-radius: 0.75rem;
+  background: var(--color-surface-alt);
+  color: var(--color-text-muted);
+  pointer-events: none;
+  transition: background-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+}
+.acc-input:focus-within > i { background: var(--color-brand); color: var(--color-brand-contrast); }
+.acc-input .form-control {
+  min-block-size: 3.6rem;
+  padding-inline-start: 3.6rem;
+  border: 0;
+  border-radius: 1rem;
+  background: var(--color-surface);
+  box-shadow: inset 0 0 0 1px var(--color-border), 0 1px 2px rgb(15 40 40 / 0.04);
+  font-size: 1.05rem;
+  color: var(--color-text);
+  transition: box-shadow var(--dur-fast) var(--ease-out);
+}
+.acc-input .form-control[dir="ltr"] { text-align: left; }
+.acc-input .form-control:hover { box-shadow: inset 0 0 0 1px var(--color-brand-border), 0 1px 2px rgb(15 40 40 / 0.04); }
+.acc-input .form-control:focus { box-shadow: inset 0 0 0 1.5px var(--color-brand), 0 0 0 5px var(--color-brand-soft); }
+.acc-input:has(.acc-input__toggle) .form-control { padding-inline-end: 3.2rem; }
+.acc-input__toggle {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-end: 0.55rem;
+  translate: 0 -50%;
+  display: inline-grid;
+  place-items: center;
+  inline-size: 2.4rem;
+  block-size: 2.4rem;
+  border: 0;
+  border-radius: 0.75rem;
+  background: none;
+  color: var(--color-text-muted);
+}
+.acc-input__toggle:hover { background: var(--color-surface-alt); color: var(--color-brand); }
+.acc-input__toggle[aria-pressed="true"] { color: var(--color-brand); }
+.acc-input__toggle:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 1px; }
+.field.is-invalid .acc-input .form-control { box-shadow: inset 0 0 0 1.5px var(--color-urgent), 0 0 0 5px var(--color-urgent-soft); }
+.field.is-invalid .acc-input > i { background: var(--color-urgent-soft); color: var(--color-urgent); }
+
+.acc-caps { display: flex; align-items: center; gap: 0.4rem; margin: 0.45rem 0 0; font-size: 0.85rem; font-weight: 600; color: var(--color-cta-strong); }
+.acc-caps[hidden] { display: none; }
+
+.acc-remember { display: flex; align-items: center; gap: 0.6rem; margin: 0; padding: 0; }
+.acc-remember .form-check-input { flex-shrink: 0; margin: 0; inline-size: 2.4em; block-size: 1.3em; cursor: pointer; }
+.acc-remember .form-check-label { font-size: 0.925rem; color: var(--color-text-muted); cursor: pointer; }
+
+/* الزرّ: بزوايا الحقول نفسها، وظلٌّ بلون الهوية، وسهمٌ يتقدّم عند المرور */
+.acc-form .btn-lg,
+.acc-panel > section > .btn-lg {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  min-block-size: 3.6rem;
+  border-radius: 1rem;
+  font-weight: 700;
+  transition: translate var(--dur-fast) var(--ease-out), box-shadow var(--dur-normal) var(--ease-out), background-color var(--dur-fast);
+}
+.acc-form .btn-lg { margin-block-start: 0.35rem; }
+.acc-form .btn-primary { box-shadow: 0 10px 24px -12px rgb(15 92 92 / 0.6); }
+.acc-form .btn-primary:hover { translate: 0 -1px; box-shadow: 0 14px 28px -12px rgb(15 92 92 / 0.65); }
+.acc-form .btn-primary:active { translate: 0 0; box-shadow: 0 6px 14px -10px rgb(15 92 92 / 0.6); }
+.acc-btn__arrow { transition: translate var(--dur-fast) var(--ease-out); }
+.acc-form .btn:hover .acc-btn__arrow { translate: -0.3rem 0; }
+.acc-secure { display: flex; align-items: flex-start; gap: 0.5rem; margin: 1.1rem 0 0; font-size: 0.85rem; line-height: 1.7; color: var(--color-text-muted); }
+.acc-secure i { margin-block-start: 0.25rem; color: var(--color-success); }
+
+.acc-switch { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 0.5rem; margin-block-start: 2rem; padding-block-start: 1.5rem; border-block-start: 1px solid var(--color-border); font-size: 0.95rem; color: var(--color-text-muted); }
+.acc-switch a { display: inline-flex; align-items: center; gap: 0.35rem; font-weight: 700; color: var(--color-brand); text-decoration: none; }
+.acc-switch a:hover { text-decoration: underline; text-underline-offset: 0.25em; }
+
+/* الاستعادة وحالة الإرسال */
+.acc-backlink { display: inline-flex; align-items: center; gap: 0.45rem; margin-block-end: 1.5rem; padding: 0; border: 0; background: none; font-size: 0.9rem; font-weight: 600; color: var(--color-text-muted); }
+.acc-backlink:hover { color: var(--color-brand); }
+.acc-view-icon { display: inline-grid; place-items: center; inline-size: 3.5rem; block-size: 3.5rem; margin-block-end: 1.25rem; border-radius: var(--radius-lg); background: var(--color-brand-soft); color: var(--color-brand); font-size: 1.4rem; }
+.acc-view-icon--ok { background: var(--color-success-soft, var(--color-brand-soft)); color: var(--color-success, var(--color-brand)); }
+.acc-tips { display: grid; gap: 0.6rem; margin: 1.5rem 0; padding: 1rem 1.1rem; border-radius: var(--radius-lg); background: var(--color-surface); list-style: none; font-size: 0.9rem; color: var(--color-text-muted); }
+.acc-tips i { inline-size: 1.1rem; margin-inline-end: 0.4rem; color: var(--color-brand); }
+
+/* ── اللوح الجانبي: بطاقةٌ فاتحة داخل الصفحة لا كتلةٌ داكنة ── */
+.acc-aside { padding: 1rem; }
+.acc-aside__inner {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  block-size: 100%;
+  overflow: hidden;
+  padding: clamp(2rem, 4vw, 3.5rem);
+  border-radius: 2rem;
+  background: var(--color-brand-soft);
+}
+/* حلقتان في الزاوية: صدى لخلفية الهاتف في الرئيسية */
+.acc-aside__inner::before,
+.acc-aside__inner::after { content: ""; position: absolute; border-radius: 50%; border: 1.5px solid var(--color-brand-border); pointer-events: none; }
+.acc-aside__inner::before { inline-size: 26rem; block-size: 26rem; inset-block-start: -10rem; inset-inline-end: -9rem; }
+.acc-aside__inner::after { inline-size: 40rem; block-size: 40rem; inset-block-start: -17rem; inset-inline-end: -16rem; opacity: 0.6; }
+.acc-aside__inner > * { position: relative; }
+.acc-aside__kicker { margin: 0; font-family: var(--font-display); font-size: 0.9rem; font-weight: 700; color: var(--color-cta-strong); }
+.acc-aside__title { margin: 0.6rem 0 0; font-size: clamp(1.8rem, 3vw, 2.5rem); line-height: 1.3; color: var(--color-text); }
+
+.acc-mock { position: relative; max-inline-size: 26rem; margin: clamp(2rem, 4vw, 3rem) auto clamp(3.5rem, 6vw, 4.5rem); }
+.acc-mock__card { padding: 1.4rem; border-radius: var(--radius-xl); background: var(--color-surface); box-shadow: var(--shadow-lg); }
+.acc-mock__who { display: flex; align-items: center; gap: 0.75rem; margin-block-end: 1.1rem; }
+.acc-mock__who img { inline-size: 3.25rem; block-size: 3.25rem; border-radius: 50%; background: var(--color-surface-alt); }
+.acc-mock__who b { display: block; font-family: var(--font-display); color: var(--color-text); }
+.acc-mock__who span { font-size: 0.8rem; color: var(--color-text-muted); }
+.acc-mock__tag { margin-inline-start: auto; padding: 0.25rem 0.65rem; border-radius: var(--radius-pill); background: var(--color-cta-soft); font-size: 0.75rem; font-weight: 700; color: var(--color-cta-strong) !important; }
+.acc-mock__row { display: grid; grid-template-columns: 6.5rem minmax(0, 1fr) 2rem; align-items: center; gap: 0.75rem; margin-block-end: 0.6rem; font-size: 0.85rem; color: var(--color-text-muted); }
+.acc-mock__row b { font-family: var(--font-display); color: var(--color-text); text-align: end; }
+.acc-mock__bar { block-size: 0.45rem; overflow: hidden; border-radius: var(--radius-pill); background: var(--color-surface-alt); }
+.acc-mock__bar span { display: block; block-size: 100%; inline-size: var(--v); border-radius: inherit; background: var(--color-brand); }
+.acc-mock__split { display: flex; gap: 3px; block-size: 0.6rem; margin-block-start: 1.1rem; overflow: hidden; border-radius: var(--radius-pill); }
+.acc-mock__split span { inline-size: var(--w); background: var(--c); }
+.acc-mock__note { margin: 0.5rem 0 0; font-size: 0.8rem; color: var(--color-text-muted); }
+.acc-mock__chip { position: absolute; display: flex; align-items: center; gap: 0.6rem; padding: 0.65rem 0.9rem; border-radius: var(--radius-lg); background: var(--color-surface); box-shadow: var(--shadow-md); font-size: 0.75rem; color: var(--color-text-muted); }
+.acc-mock__chip i { display: inline-grid; place-items: center; inline-size: 2rem; block-size: 2rem; border-radius: 50%; background: var(--color-brand-soft); color: var(--color-brand); }
+.acc-mock__chip b { display: block; font-size: 0.85rem; color: var(--color-text); }
+/* البطاقتان على الطرف الآخر من اسم الطفل، فلا تغطيانه */
+.acc-mock__chip--a { inset-block-start: -1.75rem; inset-inline-end: -2.25rem; }
+.acc-mock__chip--b { inset-block-end: -3.25rem; inset-inline-start: -2rem; }
+.acc-mock__chip--b i { background: var(--color-cta-soft); color: var(--color-cta-strong); }
+
+/* تظهر البطاقتان العائمتان مرة واحدة */
+@media (prefers-reduced-motion: no-preference) {
+  .acc-mock__card { animation: acc-rise 0.7s var(--ease-out) 0.15s both; }
+  .acc-mock__chip--a { animation: acc-rise 0.6s var(--ease-out) 0.55s both; }
+  .acc-mock__chip--b { animation: acc-rise 0.6s var(--ease-out) 0.75s both; }
+}
+@keyframes acc-rise { from { opacity: 0; translate: 0 14px; } }
+
+.acc-aside__points { display: flex; flex-wrap: wrap; gap: 0.5rem 1.25rem; margin: 0; padding: 0; list-style: none; font-size: 0.9rem; font-weight: 600; color: var(--color-text); }
+.acc-aside__points i { margin-inline-end: 0.35rem; color: var(--color-brand); }
+.acc-aside__demo { margin: 1rem 0 0; font-size: 0.75rem; color: var(--color-text-muted); }
+
+@media (prefers-reduced-motion: reduce) {
+  .acc-input > i, .acc-input .form-control, .acc-form .btn-lg, .acc-btn__arrow { transition: none; }
+}
+@media (max-width: 61.98rem) {
+  .acc { grid-template-columns: minmax(0, 1fr); }
+  .acc-aside { display: none; }
+}

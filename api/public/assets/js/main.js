@@ -43,6 +43,7 @@ import { renderHomeSections } from './modules/home.js';
 import { initCatalog } from './modules/catalog.js';
 import { initProfile } from './modules/profile.js';
 import { initFaqPage } from './modules/faq.js';
+import { initSignin } from './modules/signin.js';
 import { initTransparency } from './modules/transparency.js';
 import { initBlog } from './modules/blog.js';
 import { initAbout } from './modules/about.js';
@@ -62,6 +63,7 @@ function boot() {
   initCatalog();
   initProfile();
   initFaqPage();
+  initSignin();
   initCheckout();
   initBlog();
   initResetPassword();

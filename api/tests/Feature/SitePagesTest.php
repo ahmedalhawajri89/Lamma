@@ -255,3 +255,18 @@ it('ترسم صفحة الأسئلة أجوبتها من الخادم بمراس
         ->not->toContain('{overhead}')
         ->not->toContain('{toChild}');
 });
+
+it('صفحة الدخول: مدير كلمات المرور يملأ حقليها، ولا شرط طولٍ على كلمة المرور، ولا أرقام بلا مصدر', function () {
+    $html = $this->get('/login')->assertOk()->getContent();
+
+    expect($html)
+        ->toContain('autocomplete="username"')
+        ->toContain('autocomplete="current-password"')
+        ->toMatch('/id="password"[^>]*data-validate="required"/')
+        ->not->toContain('minlength:8')
+        // كانت تعرض «+1,500 كافل» مكتوبةً باليد
+        ->not->toContain('1,500')
+        // الاستعادة في البطاقة نفسها لا في نافذة
+        ->toContain('data-acc-view="forgot"')
+        ->not->toContain('onpaste');
+});
