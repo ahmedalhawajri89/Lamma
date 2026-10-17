@@ -265,3 +265,17 @@ it('حجوزات التحويل البنكي من العنوان نفسه محد
     $hold(99)->assertStatus(429)->assertJsonPath('code', 'hold_limit');
     expect(User::where('email', 'hold99@example.com')->exists())->toBeFalse();
 });
+
+it('ردّ الكفالة يحمل رسم الطفل وجنسه لصفحة الشكر، لا صورته', function () {
+    $orphan = sponsorableOrphan();
+    $orphan->update(['gender' => 'female', 'photo_path' => 'orphans/real.webp']);
+
+    $res = $this->postJson('/api/v1/public/checkout', [
+        'orphan_reference' => $orphan->reference_code, 'interval_months' => 1, 'method' => 'bank_transfer',
+        'name' => 'متبرع', 'email' => 'thanks@example.com',
+    ])->assertCreated();
+
+    expect($res->json('data.orphan.female'))->toBeTrue()
+        ->and($res->json('data.orphan.photo'))->toContain('assets/img/kids/girl-')
+        ->and($res->json('data.orphan.photo'))->not->toContain('real.webp');
+});

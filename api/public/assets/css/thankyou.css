@@ -1,0 +1,130 @@
+/* =========================================================================
+   صفحة الشكر: تأكيدٌ واضح، وما بقي على الكافل (إن بقي شيء)، وماذا بعد
+   ========================================================================= */
+
+.thanks { position: relative; overflow: hidden; padding-block: clamp(2rem, 5vw, 3.5rem) clamp(3rem, 6vw, 5rem); background: var(--color-canvas); }
+
+.ty {
+  display: grid;
+  gap: clamp(1.25rem, 3vw, 1.75rem);
+  max-inline-size: 42rem;
+  margin-inline: auto;
+  padding: clamp(1.5rem, 4vw, 2.75rem);
+  border: 1px solid var(--color-border);
+  border-radius: 2rem;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-lg);
+}
+.ty--none { text-align: center; justify-items: center; }
+
+/* ── الرأس ── */
+.ty-head { display: grid; justify-items: center; gap: 0.75rem; text-align: center; }
+.ty-seal {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  inline-size: 5.5rem;
+  block-size: 5.5rem;
+  border-radius: 50%;
+  background: var(--color-brand);
+  color: var(--color-brand-contrast);
+  font-size: 2.2rem;
+  box-shadow: 0 0 0 0.6rem var(--color-brand-soft);
+}
+.ty-seal img { inline-size: 100%; block-size: 100%; border-radius: 50%; object-fit: cover; background: var(--color-surface-alt); }
+/* مع رسم الطفل: القلب شارةٌ صغيرة في زاويته */
+.ty-seal.has-photo i {
+  position: absolute;
+  inset-block-end: -0.2rem;
+  inset-inline-start: -0.2rem;
+  display: inline-grid;
+  place-items: center;
+  inline-size: 2rem;
+  block-size: 2rem;
+  border: 3px solid var(--color-surface);
+  border-radius: 50%;
+  background: var(--color-cta);
+  color: var(--color-cta-contrast);
+  font-size: 0.85rem;
+}
+.ty-seal--muted { background: var(--color-surface-alt); color: var(--color-text-muted); }
+
+.ty-demo { display: inline-flex; align-items: center; gap: 0.45rem; margin: 0; padding: 0.35rem 0.9rem; border-radius: var(--radius-pill); background: var(--color-cta-soft); font-size: 0.85rem; color: var(--color-cta-strong); }
+.ty-title { margin: 0.25rem 0 0; font-size: clamp(1.6rem, 3.6vw, 2.25rem); line-height: 1.35; color: var(--color-text); }
+.ty-lede { max-inline-size: 34rem; margin: 0.5rem auto 0; font-size: 1.05rem; line-height: 1.8; color: var(--color-text-muted); }
+.ty-h2 { margin: 0 0 1rem; font-size: 1.15rem; }
+
+/* ── الإيصال ── */
+.ty-receipt { padding: 1.25rem 1.4rem; border: 1px dashed var(--color-border-strong, var(--color-border)); border-radius: var(--radius-lg); background: var(--color-canvas); }
+.ty-receipt dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem 1.5rem; margin: 0; }
+.ty-receipt dt,
+.ty-bank__list dt { font-size: 0.8rem; font-weight: 500; color: var(--color-text-muted); }
+.ty-receipt dd { margin: 0.2rem 0 0; font-weight: 600; }
+.ty-receipt dd b { font-family: var(--font-display); font-size: 1.25rem; color: var(--color-brand); }
+.ty-receipt__mail { display: flex; align-items: center; gap: 0.5rem; margin: 1rem 0 0; padding-block-start: 1rem; border-block-start: 1px solid var(--color-border); font-size: 0.85rem; color: var(--color-text-muted); }
+
+/* ── التحويل ── */
+.ty-bank__steps { display: grid; gap: 0.5rem; margin: 0 0 1.25rem; padding-inline-start: 1.25rem; color: var(--color-text); }
+.ty-bank__steps li::marker { font-weight: 700; color: var(--color-brand); }
+.ty-bank__list { display: grid; margin: 0; border: 1px solid var(--color-border); border-radius: var(--radius-lg); }
+.ty-bank__list > div { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.25rem 1rem; padding: 0.85rem 1.1rem; border-block-start: 1px solid var(--color-border); }
+.ty-bank__list > div:first-child { border: 0; border-radius: var(--radius-lg) var(--radius-lg) 0 0; background: var(--color-brand-soft); }
+.ty-bank__list dd { display: flex; align-items: center; gap: 0.5rem; margin: 0; font-weight: 600; overflow-wrap: anywhere; }
+.ty-copy {
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  inline-size: 2.25rem;
+  block-size: 2.25rem;
+  border-radius: var(--radius-md);
+  color: var(--color-brand);
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+.ty-copy:hover { background: var(--color-brand-soft); }
+.ty-copy.is-copied { color: var(--color-success); }
+.ty-copy:focus-visible,
+.ty-share:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
+.ty-note { display: flex; gap: 0.5rem; margin: 1rem 0 0; font-size: 0.85rem; color: var(--color-text-muted); }
+.ty-note i { margin-block-start: 0.25rem; color: var(--color-brand); }
+
+.ty-account { display: flex; align-items: flex-start; gap: 0.75rem; margin: 0; padding: 1rem 1.1rem; border-radius: var(--radius-lg); background: var(--color-brand-soft); color: var(--color-text); }
+.ty-account i { margin-block-start: 0.25rem; color: var(--color-brand); }
+
+/* ── ماذا بعد: خطٌّ زمني من ثلاث محطات ── */
+.ty-next { padding-block-start: 0.5rem; border-block-start: 1px solid var(--color-border); }
+.ty-timeline { position: relative; display: grid; gap: 1.1rem; margin: 0; padding: 0; list-style: none; }
+.ty-timeline::before { content: ""; position: absolute; inset-block: 0.6rem; inset-inline-start: 0.4rem; border-inline-start: 2px dashed var(--color-brand-border); }
+.ty-timeline li { position: relative; display: grid; padding-inline-start: 1.75rem; }
+.ty-timeline li::before { content: ""; position: absolute; inset-block-start: 0.4rem; inset-inline-start: 0; inline-size: 0.9rem; block-size: 0.9rem; border-radius: 50%; background: var(--color-brand); box-shadow: 0 0 0 3px var(--color-surface); }
+.ty-timeline__when { font-size: 0.8rem; font-weight: 700; color: var(--color-cta-strong); }
+.ty-timeline strong { font-family: var(--font-display); color: var(--color-text); }
+.ty-timeline span:last-child { font-size: 0.9rem; color: var(--color-text-muted); }
+
+.ty-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.75rem; }
+.ty-actions .btn { flex: 1 1 12rem; }
+.ty-share { justify-self: center; display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.75rem; border-radius: var(--radius-md); font-weight: 600; color: var(--color-brand); }
+.ty-share:hover { text-decoration: underline; text-underline-offset: 0.25em; }
+
+/* ── الحركة: الختم يظهر مرة، والقصاصات تسقط مرة (للكفالة المدفوعة وحدها) ── */
+@media (prefers-reduced-motion: no-preference) {
+  .ty-seal { animation: ty-pop 0.7s var(--ease-out) both; }
+}
+@keyframes ty-pop { 0% { scale: 0.4; opacity: 0; } 60% { scale: 1.08; opacity: 1; } to { scale: 1; } }
+
+.confetti {
+  position: absolute;
+  inline-size: 0.6rem;
+  block-size: 0.6rem;
+  inset-block-start: -2rem;
+  border-radius: 2px;
+  pointer-events: none;
+  animation: confetti-fall linear forwards;
+}
+@keyframes confetti-fall {
+  0%   { transform: translateY(0) rotate(0); opacity: 1; }
+  100% { transform: translateY(105dvh) rotate(720deg); opacity: 0; }
+}
+
+@media (max-width: 35.98rem) {
+  .ty-receipt dl { grid-template-columns: minmax(0, 1fr); }
+}

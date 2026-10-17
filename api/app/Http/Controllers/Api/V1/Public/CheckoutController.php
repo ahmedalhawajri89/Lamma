@@ -203,7 +203,13 @@ class CheckoutController extends Controller
             'data' => [
                 'reference' => $sponsorship->reference_code,
                 'status' => $sponsorship->status->value,
-                'orphan' => ['reference' => $orphan->reference_code, 'name' => $orphan->first_name],
+                // الرسم لا الصورة، والجنس لصيغة الشكر («كفالتها»)
+                'orphan' => [
+                    'reference' => $orphan->reference_code,
+                    'name' => $orphan->first_name,
+                    'photo' => $orphan->illustrationUrl(),
+                    'female' => $orphan->gender === \App\Enums\Gender::Female,
+                ],
                 'monthly_amount' => (float) $sponsorship->monthly_amount,
                 'interval_months' => $sponsorship->interval_months,
                 'cycle_amount' => $sponsorship->cycleAmount(),

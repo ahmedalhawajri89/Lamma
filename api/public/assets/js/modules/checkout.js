@@ -14,6 +14,7 @@ import { $, $$, formatMoney } from './utils.js';
 import { fetchOrphan, fetchCheckoutConfig, submitCheckout } from './api.js';
 import { me, isSponsor, markSignedIn } from './auth.js';
 import { launchConfetti } from './features.js';
+import { toast } from './ui.js';
 
 const INTERVALS = { monthly: 1, quarterly: 3, yearly: 12 };
 const CYCLE_WORDS = { 1: 'شهرياً', 3: 'كل ثلاثة أشهر', 12: 'سنوياً' };
@@ -378,8 +379,19 @@ export function initThankYou() {
   set('ref', data.reference);
   set('amount', money(data.cycle_amount, data.currency));
   set('cycle', CYCLE_WORDS[data.interval_months] ?? 'شهرياً');
-  set('next', data.next_due_at ?? '');
+  set('next', longDate(data.next_due_at));
   set('receipt', data.receipt_number ?? '');
+
+  // صيغة جنس الطفل: data-g="مذكّر|مؤنّث"
+  $$('[data-g]').forEach((el) => { el.textContent = el.dataset.g.split('|')[data.orphan?.female ? 1 : 0]; });
+
+  // رسم الطفل في الختم بدل القلب وحده
+  const photo = $('[data-thanks-photo]');
+  if (photo && data.orphan?.photo) {
+    photo.src = data.orphan.photo;
+    photo.hidden = false;
+    photo.closest('.ty-seal')?.classList.add('has-photo');
+  }
 
   $$('[data-thanks-when="paid"]').forEach((el) => { el.hidden = !paid; });
   $$('[data-thanks-when="pending"]').forEach((el) => { el.hidden = paid; });
@@ -394,6 +406,29 @@ export function initThankYou() {
     set('bank-account', data.bank.account_name);
     set('bank-iban', data.bank.iban);
     set('bank-swift', data.bank.swift);
-    set('hold', data.hold_expires_at ?? '');
+    set('hold', longDate(data.hold_expires_at));
   }
+
+  // نسخ المرجع والحساب: أكثر ما يُخطئ فيه من يكتبه بيده
+  $$('[data-copy]').forEach((btn) => btn.addEventListener('click', async () => {
+    const value = $(`[data-thanks="${btn.dataset.copy}"]`)?.textContent.trim();
+    try {
+      await navigator.clipboard.writeText(value);
+      btn.classList.add('is-copied');
+      $('i', btn).className = 'fa-solid fa-check';
+      toast('نُسخ.');
+      setTimeout(() => { btn.classList.remove('is-copied'); $('i', btn).className = 'fa-regular fa-copy'; }, 1800);
+    } catch {
+      toast('تعذّر النسخ. حدّده وانسخه يدوياً.', 'error');
+    }
+  }));
+}
+
+/** «17 نوفمبر 2026» بأرقام لاتينية كبقية الموقع، لا «2026-11-17». */
+function longDate(iso) {
+  if (!iso) return '';
+  const date = new Date(`${iso}T00:00:00`);
+  return Number.isNaN(date.getTime())
+    ? iso
+    : new Intl.DateTimeFormat('ar-u-nu-latn', { day: 'numeric', month: 'long', year: 'numeric' }).format(date);
 }

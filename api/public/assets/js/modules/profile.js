@@ -53,14 +53,15 @@ function initShare() {
   if (!btn) return;
 
   btn.addEventListener('click', async () => {
-    const data = { title: btn.dataset.shareTitle, url: window.location.href };
+    // data-share-url لرابطٍ غير الصفحة نفسها (صفحة الشكر تدعو إلى الفهرس)
+    const data = { title: btn.dataset.shareTitle, url: new URL(btn.dataset.shareUrl ?? window.location.href, window.location.origin).href };
     if (navigator.share) {
       try { await navigator.share(data); } catch { /* أغلق اللوح: لا شيء */ }
       return;
     }
     try {
       await navigator.clipboard.writeText(data.url);
-      toast('نُسخ رابط الملف، أرسله لمن تحب.');
+      toast('نُسخ الرابط، أرسله لمن تحب.');
     } catch {
       toast('تعذّر نسخ الرابط. انسخه من شريط العنوان.', 'error');
     }

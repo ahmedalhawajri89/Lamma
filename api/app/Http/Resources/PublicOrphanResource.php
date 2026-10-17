@@ -35,7 +35,7 @@ class PublicOrphanResource extends JsonResource
                 fn () => (int) $this->sponsors_count,
             ),
             'urgent' => $this->is_urgent,
-            'photo' => $this->illustration(),
+            'photo' => $this->resource->illustrationUrl(),
             'grade' => $this->grade_level,
             'health' => $this->health_status,
             'dream' => $this->dream,
@@ -50,23 +50,6 @@ class PublicOrphanResource extends JsonResource
         ];
     }
 
-    /**
-     * رسمٌ توضيحي بدل صورة الطفل على الموقع العام.
-     *
-     * صورة طفل يتيم باسمه الأول ومدينته وقصته على صفحة عامة تجعله معروفاً
-     * لأي عابر، وسياسات حماية الطفل تمنع ذلك. فالصورة الحقيقية (يرفعها
-     * المشرف بموافقة الوصي) لا تخرج إلا للكافل في بوابته (SponsorshipResource)
-     * وللإدارة؛ وهنا رسمٌ بنمط Lorelei (رخصة CC0، assets/img/kids/LICENSE.md).
-     *
-     * الرسم ثابت لكل طفل: يُشتق من رمز ملفه، فلا يتبدّل بين زيارة وأخرى.
-     */
-    private function illustration(): string
-    {
-        $pool = $this->gender === \App\Enums\Gender::Female ? 'girl' : 'boy';
-        $n = crc32((string) $this->reference_code) % 12 + 1;
-
-        return asset(sprintf('assets/img/kids/%s-%02d.svg', $pool, $n));
-    }
 
     /** @return array<string, mixed> */
     private function checkoutFacts(): array
