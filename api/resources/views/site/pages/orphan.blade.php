@@ -90,7 +90,7 @@
             <!-- الصورة ولوحة الكفالة: تلتصقان أثناء القراءة -->
             <aside class="profile__aside" aria-label="الكفالة">
               <figure class="profile__media">
-                <img data-field="photo" src="/assets/img/orphan-omnia.webp" alt="" width="800" height="1000">
+                <img data-field="photo" src="/assets/img/kids/girl-02.svg" alt="" width="800" height="1000">
                 <figcaption>صورة توضيحية. لا ننشر صور الأطفال إلا لكافليهم.</figcaption>
               </figure>
 

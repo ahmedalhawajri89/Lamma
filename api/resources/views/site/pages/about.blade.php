@@ -29,7 +29,7 @@
           </div>
         </div>
         <figure class="ab-hero__media">
-          <img src="/assets/img/about-classroom.webp" alt="طفلة في فصلها الدراسي" width="560" height="700">
+          <img src="/assets/img/about-illustration.webp" alt="" width="560" height="700">
           <figcaption class="ab-hero__badge">
             <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
             <span><b class="num" data-ab="visits">0</b> زيارة ميدانية موثّقة</span>

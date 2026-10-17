@@ -26,7 +26,7 @@ it('تحمل الرئيسية عنوانها ووسوم مشاركتها برو�
     expect($html)
         ->toContain('<title>كفالة | اكفل يتيماً وتابع أثرك شهراً بشهر</title>')
         ->toContain('property="og:title" content="كفالة | اكفل يتيماً')
-        ->toContain('property="og:image" content="'.url('/assets/img/hero-wide-md.webp').'"')
+        ->toContain('property="og:image" content="'.url('/assets/img/og-image.jpg').'"')
         ->toContain('rel="canonical" href="'.url('/').'"');
 });
 

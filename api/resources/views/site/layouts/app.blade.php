@@ -11,7 +11,7 @@
   <meta property="og:title" content="@yield('og_title', View::yieldContent('title', $site['name']))">
   <meta property="og:description" content="@yield('og_description', View::yieldContent('description'))">
   <meta property="og:url" content="{{ url()->current() }}">
-  <meta property="og:image" content="@yield('og_image', asset('assets/img/hero-wide-md.webp'))">
+  <meta property="og:image" content="@yield('og_image', asset('assets/img/og-image.jpg'))">
   <meta name="twitter:card" content="summary_large_image">
 
   {{-- Bootstrap ثم رموز الهوية ثم جسرها إليه ثم أنماط الصفحة --}}

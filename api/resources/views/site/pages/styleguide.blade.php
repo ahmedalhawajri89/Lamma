@@ -165,7 +165,7 @@
       <div class="row g-4">
         <div class="col-md-6 col-lg-4" data-reveal>
           <article class="card h-100 sg-kid">
-            <img class="card-img-top" src="/assets/img/about-classroom.webp" alt="" width="560" height="420">
+            <img class="card-img-top" src="/assets/img/about-illustration.webp" alt="" width="560" height="420">
             <div class="card-body">
               <div class="d-flex justify-content-between align-items-start mb-2">
                 <h3 class="card-title h5 mb-0">يوسف، 7 سنوات</h3>
@@ -182,7 +182,7 @@
         </div>
         <div class="col-md-6 col-lg-4" data-reveal data-reveal-delay="90">
           <article class="card h-100">
-            <img class="card-img-top" src="/assets/img/about-classroom.webp" alt="" width="560" height="350">
+            <img class="card-img-top" src="/assets/img/about-illustration.webp" alt="" width="560" height="350">
             <div class="card-body">
               <span class="badge text-bg-light mb-2">شفافية</span>
               <h3 class="card-title h5">كيف نتحقق من كل حالة قبل نشرها؟</h3>
