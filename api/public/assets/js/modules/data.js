@@ -45,12 +45,12 @@ export let SITE = {
  * الشعار يكفي للعودة للرئيسية، والمدونة في الفوتر.
  */
 export const NAV_LINKS = [
-  { label: 'الأيتام', href: 'orphans.html' },
-  { label: 'برامج الكفالة', href: 'programs.html' },
-  { label: 'الشفافية', href: 'transparency.html' },
-  { label: 'المدونة', href: 'blog.html' },
-  { label: 'من نحن', href: 'about.html' },
-  { label: 'تواصل معنا', href: 'contact.html' },
+  { label: 'الأيتام', href: '/orphans' },
+  { label: 'برامج الكفالة', href: '/programs' },
+  { label: 'الشفافية', href: '/transparency' },
+  { label: 'المدونة', href: '/blog' },
+  { label: 'من نحن', href: '/about' },
+  { label: 'تواصل معنا', href: '/contact' },
 ];
 
 /** برامج الكفالة — المصدر الوحيد للأسعار في الموقع. */

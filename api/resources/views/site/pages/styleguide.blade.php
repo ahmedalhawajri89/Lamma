@@ -1,41 +1,9 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl" data-ui="bs">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+@extends('site.layouts.app')
 
-  <title>كفالة | دليل الواجهة</title>
-  <!-- صفحة داخلية لمعاينة هوية Bootstrap قبل نقل الصفحات إليها: لا تُفهرس ولا تظهر في القائمة -->
-  <meta name="robots" content="noindex, nofollow">
-  <meta name="theme-color" content="#0f5c5c">
+@section('title')كفالة | دليل الواجهة@endsection
+@section('robots', 'noindex, nofollow')
 
-  <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self';
-                 img-src 'self' data:;
-                 style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-                 font-src 'self' https://fonts.gstatic.com;
-                 script-src 'self';
-                 connect-src 'self';
-                 form-action 'self';
-                 base-uri 'self';
-                 object-src 'none'">
-  <meta name="api-base" content="">
-  <meta name="referrer" content="strict-origin-when-cross-origin">
-
-  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Aref+Ruqaa:wght@400;700&display=swap">
-
-  <script src="assets/js/theme-init.js"></script>
-
-  <link rel="stylesheet" href="assets/vendor/fontawesome/css/all.min.css">
-  <link rel="stylesheet" href="assets/vendor/bootstrap/css/bootstrap.rtl.min.css">
-  <link rel="stylesheet" href="assets/css/tokens.css">
-  <link rel="stylesheet" href="assets/css/theme.css">
-
-  <!-- تنسيق خاص بهذه الصفحة فقط: شبكة العيّنات وزر الوضع -->
+@push('styles')
   <style>
     .sg-section { padding-block: 3.5rem; border-block-end: 1px solid var(--color-border); }
     .sg-section:last-of-type { border-block-end: 0; }
@@ -47,10 +15,9 @@
     .sg-type > * { margin-block-end: .6rem; }
     .sg-kid img { aspect-ratio: 4 / 3; object-fit: cover; }
   </style>
-</head>
-<body>
-  <div data-layout="header"></div>
+@endpush
 
+@section('content')
   <main id="main" class="container">
 
     <header class="sg-section" data-reveal>
@@ -198,7 +165,7 @@
       <div class="row g-4">
         <div class="col-md-6 col-lg-4" data-reveal>
           <article class="card h-100 sg-kid">
-            <img class="card-img-top" src="assets/img/about-classroom.webp" alt="" width="560" height="420">
+            <img class="card-img-top" src="/assets/img/about-classroom.webp" alt="" width="560" height="420">
             <div class="card-body">
               <div class="d-flex justify-content-between align-items-start mb-2">
                 <h3 class="card-title h5 mb-0">يوسف، 7 سنوات</h3>
@@ -215,7 +182,7 @@
         </div>
         <div class="col-md-6 col-lg-4" data-reveal data-reveal-delay="90">
           <article class="card h-100">
-            <img class="card-img-top" src="assets/img/about-classroom.webp" alt="" width="560" height="350">
+            <img class="card-img-top" src="/assets/img/about-classroom.webp" alt="" width="560" height="350">
             <div class="card-body">
               <span class="badge text-bg-light mb-2">شفافية</span>
               <h3 class="card-title h5">كيف نتحقق من كل حالة قبل نشرها؟</h3>
@@ -322,9 +289,9 @@
       <p class="form-text mt-3 mb-0">القائمة الجانبية هي قائمة الموقع نفسها، وتظهر درجاً على الشاشات الصغيرة فقط. تُغلق بزر Escape، والتركيز يبقى داخلها ويعود للزر بعد الإغلاق.</p>
     </section>
   </main>
+@endsection
 
-  <div data-layout="footer"></div>
-
+@push('after-footer')
   <div class="modal fade" id="sgModal" tabindex="-1" aria-labelledby="sgModalTitle" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
@@ -342,8 +309,4 @@
       </div>
     </div>
   </div>
-
-  <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-  <script type="module" src="assets/js/main.js"></script>
-</body>
-</html>
+@endpush

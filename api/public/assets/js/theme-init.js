@@ -41,7 +41,7 @@
  * البداية حين لا تكون الوجهة صفحة حساب.
  */
 (function () {
-  var AUTH = /\/(login|register|reset-password)\.html$/;
+  var AUTH = /\/(login|register|reset-password)(\.html)?$/;
   window.addEventListener('pageswap', function (e) {
     var vt = e.viewTransition;
     if (!vt) return;

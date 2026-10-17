@@ -86,7 +86,7 @@ export async function initCheckout() {
 
   // «سجّل الدخول» يعيد إلى هذه الصفحة نفسها
   const login = $('[data-checkout="login-link"]');
-  if (login) login.href = `login.html?redirect=${encodeURIComponent(`checkout.html?id=${o.id}`)}`;
+  if (login) login.href = `/login?redirect=${encodeURIComponent(`/checkout?id=${o.id}`)}`;
 
   form.dataset.action = 'checkout';
 
@@ -321,12 +321,12 @@ export async function submitCheckoutForm(form) {
     } catch { /* صفحة الشكر تعرض ما تستطيع */ }
 
     if (data.account_created) markSignedIn();
-    window.location.href = `thank-you.html?ref=${encodeURIComponent(data.reference)}`;
+    window.location.href = `/thank-you?ref=${encodeURIComponent(data.reference)}`;
   } catch (error) {
     if (error.code === 'login_required') {
       saveDraft(form);
-      const back = `checkout.html?id=${encodeURIComponent(state.orphan.id)}`;
-      error.redirect = `login.html?redirect=${encodeURIComponent(back)}`;
+      const back = `/checkout?id=${encodeURIComponent(state.orphan.id)}`;
+      error.redirect = `/login?redirect=${encodeURIComponent(back)}`;
     }
 
     // أخطاء لا حقل لها في النموذج (الطفل اكتمل تمويله، رفض البنك) تظهر فوق الزر،

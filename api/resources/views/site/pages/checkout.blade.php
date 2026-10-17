@@ -1,56 +1,10 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+@extends('site.layouts.legacy')
 
-  <title>إتمام الكفالة | كفالة</title>
-  <meta name="description" content="خطوة أخيرة لتفعيل كفالتك. دفع مشفّر، ولا نحتفظ ببيانات بطاقتك.">
-  <meta name="theme-color" content="#0f5c5c">
+@section('title')إتمام الكفالة | كفالة@endsection
+@section('description')خطوة أخيرة لتفعيل كفالتك. دفع مشفّر، ولا نحتفظ ببيانات بطاقتك.@endsection
+@section('robots', 'noindex, nofollow')
 
-  <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self'; connect-src 'self'; form-action 'self'; base-uri 'self'; object-src 'none'">
-  <!-- الأصل نفسه. اضبطها على "off" ليعمل الموقع ساكناً بلا خادم. -->
-  <meta name="api-base" content="">
-
-  <meta name="referrer" content="strict-origin-when-cross-origin">
-  <meta name="robots" content="noindex, nofollow">
-
-  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Aref+Ruqaa:wght@400;700&display=swap">
-
-  <!-- السمة قبل أي رسم — يمنع وميض الوضع الفاتح لمن اختار الليلي -->
-  <script src="assets/js/theme-init.js"></script>
-
-  <!-- خط الأيقونات المصمتة في كل صفحة: يُطلب مع الأنماط لا بعدها، فلا تبقى الأيقونات فارغة -->
-  <link rel="preload" href="assets/vendor/fontawesome/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="assets/vendor/fontawesome/css/all.min.css">
-  <link rel="stylesheet" href="assets/css/tokens.css">
-  <link rel="stylesheet" href="assets/css/base.css">
-  <link rel="stylesheet" href="assets/css/layout.css">
-  <link rel="stylesheet" href="assets/css/site.css">
-  <link rel="stylesheet" href="assets/css/components.css">
-  <link rel="stylesheet" href="assets/css/sections.css">
-  <link rel="stylesheet" href="assets/css/pages.css">
-
-  <script type="module" src="assets/js/main.js"></script>
-</head>
-
-<body data-header="solid" class="page-body">
-  <div data-layout="header"></div>
-  <noscript>
-    <nav class="container" style="padding-block:1rem" aria-label="تنقل بديل">
-      <a href="/">الرئيسية</a> · <a href="about.html">من نحن</a> ·
-      <a href="programs.html">برامج الكفالة</a> · <a href="orphans.html">الأيتام</a> ·
-      <a href="transparency.html">الشفافية</a> · <a href="blog.html">المدونة</a> ·
-      <a href="contact.html">تواصل معنا</a>
-    </nav>
-  </noscript>
-
+@section('content')
   <main id="main">
     <section class="section">
       <div class="container">
@@ -92,7 +46,7 @@
               <!-- طفلٌ اكتمل تمويله أو رابطٌ لا يوجد: لا نموذج دفع -->
               <div data-checkout="blocked" hidden role="status" style="margin-block:var(--space-6)">
                 <p data-checkout="blocked-text" class="section-lede"></p>
-                <a class="btn btn--primary" href="orphans.html">اختر طفلاً آخر ينتظر كافلاً</a>
+                <a class="btn btn--primary" href="/orphans">اختر طفلاً آخر ينتظر كافلاً</a>
               </div>
 
               <!-- method=post: إن تعطّل JS لا تذهب الحقول في الرابط -->
@@ -143,7 +97,7 @@
                 <h2 style="font-size:var(--text-md);margin-block-end:var(--space-4)">بياناتك</h2>
                 <p class="field__hint" style="margin-block-end:var(--space-4)">
                   ننشئ لك حساباً بهذا البريد تتابع منه الكفالة، ونرسل إليه رابط تعيين كلمة المرور.
-                  لديك حساب؟ <a href="login.html" data-checkout="login-link">سجّل الدخول</a>.
+                  لديك حساب؟ <a href="/login" data-checkout="login-link">سجّل الدخول</a>.
                 </p>
 
                 <div class="grid grid--2" style="gap:var(--space-4);margin-block-end:var(--space-4)">
@@ -295,7 +249,7 @@
 
                 <p class="field__hint text-center" style="margin-block-start:var(--space-4)">
                   بالمتابعة أنت توافق على
-                  <a href="transparency.html#child-policy">شروط الكفالة وسياسة الخصوصية</a>.
+                  <a href="/transparency#child-policy">شروط الكفالة وسياسة الخصوصية</a>.
                   يمكنك الإيقاف في أي وقت بلا رسوم.
                 </p>
               </form>
@@ -347,10 +301,10 @@
 
             <div class="secure-note">
               <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
-              <span>ما يصل للطفل وما يُصرف على التشغيل منشورٌ كل شهر في <a href="transparency.html">تقارير الشفافية</a>.</span>
+              <span>ما يصل للطفل وما يُصرف على التشغيل منشورٌ كل شهر في <a href="/transparency">تقارير الشفافية</a>.</span>
             </div>
 
-            <a class="link-arrow" href="orphans.html">
+            <a class="link-arrow" href="/orphans">
               <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
               تغيير الطفل المختار
             </a>
@@ -360,7 +314,4 @@
       </div>
     </section>
   </main>
-
-  <div data-layout="footer"></div>
-</body>
-</html>
+@endsection

@@ -1,56 +1,10 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+@extends('site.layouts.legacy')
 
-  <title>تفاصيل الحالة | كفالة</title>
-  <meta name="description" content="ملف موثّق لحالة يتيم: قصته، ظروفه الدراسية والصحية، وما تغطيه كفالتك بالتفصيل.">
-  <meta name="theme-color" content="#0f5c5c">
+@section('title')تفاصيل الحالة | كفالة@endsection
+@section('description')ملف موثّق لحالة يتيم: قصته، ظروفه الدراسية والصحية، وما تغطيه كفالتك بالتفصيل.@endsection
+@section('robots', 'noindex')
 
-  <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self'; connect-src 'self'; form-action 'self'; base-uri 'self'; object-src 'none'">
-  <!-- الأصل نفسه. اضبطها على "off" ليعمل الموقع ساكناً بلا خادم. -->
-  <meta name="api-base" content="">
-
-  <meta name="referrer" content="strict-origin-when-cross-origin">
-  <meta name="robots" content="noindex">
-
-  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Aref+Ruqaa:wght@400;700&display=swap">
-
-  <!-- السمة قبل أي رسم — يمنع وميض الوضع الفاتح لمن اختار الليلي -->
-  <script src="assets/js/theme-init.js"></script>
-
-  <!-- خط الأيقونات المصمتة في كل صفحة: يُطلب مع الأنماط لا بعدها، فلا تبقى الأيقونات فارغة -->
-  <link rel="preload" href="assets/vendor/fontawesome/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="assets/vendor/fontawesome/css/all.min.css">
-  <link rel="stylesheet" href="assets/css/tokens.css">
-  <link rel="stylesheet" href="assets/css/base.css">
-  <link rel="stylesheet" href="assets/css/layout.css">
-  <link rel="stylesheet" href="assets/css/site.css">
-  <link rel="stylesheet" href="assets/css/components.css">
-  <link rel="stylesheet" href="assets/css/sections.css">
-  <link rel="stylesheet" href="assets/css/pages.css">
-
-  <script type="module" src="assets/js/main.js"></script>
-</head>
-
-<body data-header="solid" class="page-body">
-  <div data-layout="header"></div>
-  <noscript>
-    <nav class="container" style="padding-block:1rem" aria-label="تنقل بديل">
-      <a href="/">الرئيسية</a> · <a href="about.html">من نحن</a> ·
-      <a href="programs.html">برامج الكفالة</a> · <a href="orphans.html">الأيتام</a> ·
-      <a href="transparency.html">الشفافية</a> · <a href="blog.html">المدونة</a> ·
-      <a href="contact.html">تواصل معنا</a>
-    </nav>
-  </noscript>
-
+@section('content')
   <main id="main">
     <div id="orphanDetail" aria-busy="true">
 
@@ -59,7 +13,7 @@
           <nav aria-label="مسار التنقل" class="profile__crumbs">
             <ol class="breadcrumb">
               <li><a href="/">الرئيسية</a></li>
-              <li><a href="orphans.html">الأيتام</a></li>
+              <li><a href="/orphans">الأيتام</a></li>
               <li><span aria-current="page" data-field="name">…</span></li>
             </ol>
           </nav>
@@ -136,7 +90,7 @@
             <!-- الصورة ولوحة الكفالة: تلتصقان أثناء القراءة -->
             <aside class="profile__aside" aria-label="الكفالة">
               <figure class="profile__media">
-                <img data-field="photo" src="assets/img/orphan-omnia.webp" alt="" width="800" height="1000">
+                <img data-field="photo" src="/assets/img/orphan-omnia.webp" alt="" width="800" height="1000">
                 <figcaption>صورة توضيحية. لا ننشر صور الأطفال إلا لكافليهم.</figcaption>
               </figure>
 
@@ -151,7 +105,7 @@
                   <span>مكفول <b class="num" data-field="funded">0٪</b>، ويتبقى <b class="num" data-field="remaining">$0</b> في الشهر</span>
                 </div>
 
-                <a class="btn btn--cta btn--lg btn--block" data-sponsor-link href="checkout.html">
+                <a class="btn btn--cta btn--lg btn--block" data-sponsor-link href="/checkout">
                   اكفل <span data-field="name">…</span>
                   <i class="fa-solid fa-arrow-left btn__icon btn__icon--arrow" aria-hidden="true"></i>
                 </a>
@@ -196,19 +150,18 @@
 
     </div>
   </main>
+@endsection
 
-  <div data-layout="footer"></div>
-
+@push('after-footer')
   <div class="action-bar" id="actionBar">
     <div class="action-bar__info">
       <span data-field="name">…</span>
       <strong class="num" data-field="price">$0</strong>
     </div>
-    <a class="btn btn--cta" data-sponsor-link href="checkout.html">اكفل <span data-field="name">…</span></a>
+    <a class="btn btn--cta" data-sponsor-link href="/checkout">اكفل <span data-field="name">…</span></a>
   </div>
 
   <button class="to-top" type="button" id="toTop" aria-label="العودة إلى أعلى الصفحة">
     <i class="fa-solid fa-arrow-up" aria-hidden="true"></i>
   </button>
-</body>
-</html>
+@endpush

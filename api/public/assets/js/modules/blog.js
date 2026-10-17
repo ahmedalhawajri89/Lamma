@@ -132,7 +132,7 @@ export function initBlog() {
   function renderFeatured(post) {
     const host = $('#blogFeatured');
     if (!post) { host.innerHTML = ''; return; }
-    const href = post.slug ? `post.html?slug=${encodeURIComponent(post.slug)}` : null;
+    const href = post.slug ? `/post?slug=${encodeURIComponent(post.slug)}` : null;
     host.innerHTML = `
       <article class="feature" data-reveal>
         <div class="feature__media">${post.image ? `<img src="${escapeHtml(post.image)}" alt="" width="900" height="600">` : '<span class="feature__mark"></span>'}</div>
@@ -193,7 +193,7 @@ function meta(post) {
  * وزمن القراءة. البطاقة كلها تُضغط عبر رابط العنوان الممتد.
  */
 function magCard(post, delay) {
-  const href = post.slug ? `post.html?slug=${encodeURIComponent(post.slug)}` : null;
+  const href = post.slug ? `/post?slug=${encodeURIComponent(post.slug)}` : null;
   return `
 <article class="mag-card" data-reveal data-reveal-delay="${delay}">
   <div class="mag-card__media">

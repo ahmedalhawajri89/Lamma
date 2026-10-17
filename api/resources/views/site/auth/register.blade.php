@@ -1,54 +1,19 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+@extends('site.layouts.legacy', ['chrome' => false])
 
-  <title>إنشاء حساب | كفالة</title>
-  <meta name="description" content="أنشئ حسابك في دقيقة وابدأ كفالتك الأولى.">
-  <meta name="theme-color" content="#0f5c5c">
+@section('title')إنشاء حساب | كفالة@endsection
+@section('description')أنشئ حسابك في دقيقة وابدأ كفالتك الأولى.@endsection
+@section('canonical', url('/register'))
 
-  <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self'; connect-src 'self'; form-action 'self'; base-uri 'self'; object-src 'none'">
-  <!-- الأصل نفسه. اضبطها على "off" ليعمل الموقع ساكناً بلا خادم. -->
-  <meta name="api-base" content="">
-
-  <meta name="referrer" content="strict-origin-when-cross-origin">
-
-  <link rel="canonical" href="register.html">
-  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Aref+Ruqaa:wght@400;700&display=swap">
-
-  <!-- السمة قبل أي رسم — يمنع وميض الوضع الفاتح لمن اختار الليلي -->
-  <script src="assets/js/theme-init.js"></script>
-
-  <!-- خط الأيقونات المصمتة في كل صفحة: يُطلب مع الأنماط لا بعدها، فلا تبقى الأيقونات فارغة -->
-  <link rel="preload" href="assets/vendor/fontawesome/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="assets/vendor/fontawesome/css/all.min.css">
-  <link rel="stylesheet" href="assets/css/tokens.css">
-  <link rel="stylesheet" href="assets/css/base.css">
-  <link rel="stylesheet" href="assets/css/layout.css">
-  <link rel="stylesheet" href="assets/css/site.css">
-  <link rel="stylesheet" href="assets/css/components.css">
-  <link rel="stylesheet" href="assets/css/sections.css">
-  <link rel="stylesheet" href="assets/css/pages.css">
-  <link rel="stylesheet" href="assets/css/auth.css">
-  <!-- قبول الانتقال بين صفحات الحساب يُكتب هنا لا في ملف: يُقرأ مع الصفحة
-       فوراً، فلا يفوته المتصفح إن تأخر تحميل auth.css. التفاصيل في auth.css. -->
+@push('styles')
+  <link rel="stylesheet" href="/assets/css/auth.css">
   <style>
     @view-transition { navigation: auto; }
     .auth__aside { view-transition-name: auth-aside; }
     .auth__form { view-transition-name: auth-form; }
   </style>
+@endpush
 
-  <script type="module" src="assets/js/main.js"></script>
-</head>
-
-<body>
+@section('content')
   <a class="skip-link" href="#main">تخطَّ إلى المحتوى الرئيسي</a>
 
   <div class="auth auth--flip">
@@ -59,7 +24,7 @@
 
         <div class="auth__bar">
           <a class="brand" href="/">
-            <img class="brand__mark" src="assets/img/logo.svg" alt="" width="36" height="36">
+            <img class="brand__mark" src="/assets/img/logo.svg" alt="" width="36" height="36">
             <span class="brand__name">كفالة</span>
           </a>
           <div class="auth__tools" data-theme-slot>
@@ -76,7 +41,7 @@
         </div>
 
 
-        <form data-validate-form data-action="register" data-redirect="dashboard.html" novalidate>
+        <form data-validate-form data-action="register" data-redirect="/dashboard" novalidate>
 
           <div class="grid grid--2 auth__pair">
             <div class="field">
@@ -158,7 +123,7 @@
                      data-validate="required" data-required-message="يلزم الموافقة على الشروط لإنشاء الحساب"
                      aria-describedby="err-terms">
               <span>
-                أوافق على <a href="transparency.html#child-policy">شروط الاستخدام وسياسة الخصوصية</a>،
+                أوافق على <a href="/transparency#child-policy">شروط الاستخدام وسياسة الخصوصية</a>،
                 وأفهم أن بياناتي لن تُشارك مع أي جهة تسويقية.
               </span>
             </label>
@@ -170,7 +135,7 @@
 
         <div class="auth__switch">
           <p>لديك حساب بالفعل؟</p>
-          <a class="btn btn--outline btn--lg btn--block" href="login.html">تسجيل الدخول</a>
+          <a class="btn btn--outline btn--lg btn--block" href="/login">تسجيل الدخول</a>
         </div>
 
       </div>
@@ -197,5 +162,4 @@
 
 
   </div>
-</body>
-</html>
+@endsection

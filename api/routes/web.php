@@ -6,65 +6,44 @@ use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
-| مسارات الويب — الموقع العام ولوحة الإدارة
+| مسارات الويب: الموقع العام ولوحة الإدارة
 |--------------------------------------------------------------------------
 |
-| الموقع العام ملفات HTML ساكنة في `public/`، ولارافل لا يعرضها بل **يوجّه
-| إليها**. الفرق مهم: على خادم حقيقي (Nginx/Apache) يخدم `about.html` مباشرةً
-| بلا أن يلمس PHP إطلاقاً، ولا تصل هذه المسارات إلا لطلبٍ بلا امتداد.
+| الموقع العام قوالب Blade في `resources/views`:
 |
-| فما فائدتها إذن؟ **العناوين النظيفة**: `/about` بدل `/about.html`، وصفحة
-| ٤٠٤ الخاصة بالمشروع بدل صفحة لارافل.
+|   site/layouts/   app (Bootstrap، ترويسة وفوتر من الخادم) و legacy (التصميم القديم)
+|   site/partials/  الرأس المشترك والترويسة والفوتر
+|   site/pages/     صفحات الموقع
+|   site/auth/      الدخول والتسجيل واستعادة كلمة المرور
+|   site/portal/    لوحة الكافل
+|   errors/404      صفحة ٤٠٤
 |
-| والترتيب هنا ليس اعتباطياً: المسارات المحدّدة قبل الشامل، وإلا ابتلع
-| الشاملُ `/admin` وعرض عليه صفحة الموقع العام.
-|
+| والمحتوى الحيّ (الأطفال، المقالات، الأرقام) يملؤه JS من الـ API كما كان.
 */
 
-/**
- * يعرض ملف HTML من `public/`.
- *
- * لماذا `file_get_contents` لا `response()->file()`؟
- *
- * لأن `BinaryFileResponse` **لا يرسل محتوى الملف إطلاقاً مع حالة غير ناجحة**:
- * `sendContent()` فيه يفوّض إلى الأب حين `!isSuccessful()`، والأب يرسل خاصية
- * `content` الفارغة. فتخرج صفحة ٤٠٤ برأس صحيح وجسم فارغ — ٤٠٤ بيضاء لا يظهر
- * فيها خطأ ولا تكشف عن نفسها.
- *
- * والملفات هنا بضعة كيلوبايتات، فقراءتها إلى الذاكرة لا تكلّف شيئاً.
- *
- * وهي **إغلاق لا دالة عامة**: مجموعة الاختبارات تُقلع التطبيق مرة لكل اختبار،
- * فيُحمَّل ملف المسارات مراراً — ودالةٌ عامة تُلقي `Cannot redeclare` وتُسقط
- * الحزمة كلها بخطأ قاتل بعيدٍ كل البعد عن سببه.
- */
-$servePage = function (string $name, int $status = 200) {
-    $file = public_path("{$name}.html");
-
-    abort_unless(is_file($file), 404);
-
-    return response(file_get_contents($file), $status, [
-        'Content-Type' => 'text/html; charset=UTF-8',
-        // الصفحات تُبنى من الـ API في المتصفح، فتخزينها يعرض بياناتٍ قديمة
-        'Cache-Control' => 'no-cache, must-revalidate',
-    ]);
-};
-
-/*
-|--------------------------------------------------------------------------
-| صفحات Blade
-|--------------------------------------------------------------------------
-|
-| الموقع ينتقل من ملفات HTML ساكنة إلى قوالب Blade صفحةً صفحة: الترويسة
-| والفوتر والـ <head> في قالب واحد (`site.layouts.app`) بدل نسخةٍ في كل ملف،
-| والعنوان ووسوم المشاركة تخرج من الخادم. ما لم يُنقل بعد يبقى ملفاً في
-| `public/` يخدمه `$servePage` أدناه.
-*/
 Route::view('/', 'site.pages.home')->name('home');
 
+/** صفحات الموقع: العنوان هو اسم القالب في site/pages. */
+foreach ([
+    'orphans', 'orphan', 'checkout', 'thank-you', 'programs', 'transparency',
+    'blog', 'post', 'about', 'contact', 'faq',
+] as $page) {
+    Route::view("/{$page}", "site.pages.{$page}")->name("site.{$page}");
+}
+
+Route::view('/login', 'site.auth.login')->name('site.login');
+Route::view('/register', 'site.auth.register')->name('site.register');
+Route::view('/reset-password', 'site.auth.reset-password')->name('site.reset-password');
+Route::view('/dashboard', 'site.portal.dashboard')->name('site.dashboard');
+
+/** دليل الواجهة: مرجع للمطوّر لا صفحة للزائر، فلا يُسجَّل خارج التطوير. */
+if (app()->isLocal()) {
+    Route::view('/styleguide', 'site.pages.styleguide')->name('site.styleguide');
+}
+
 /**
- * الروابط القديمة بامتداد `.html` لصفحةٍ انتقلت إلى Blade: ملفها لم يعد في
- * `public/` فيصل الطلب إلى هنا، ويُحوَّل دائماً إلى العنوان النظيف مع
- * معاملاته، فلا ينكسر رابطٌ محفوظ أو مُشارك.
+ * الروابط القديمة بامتداد `.html` (المحفوظة والمُشاركة قبل الانتقال إلى
+ * Blade) تُحوَّل دائماً إلى العنوان النظيف مع معاملاتها، فلا ينكسر منها شيء.
  */
 Route::get('/{page}.html', function (string $page) {
     $query = request()->getQueryString();
@@ -107,17 +86,5 @@ $adminSpa = function () {
 Route::get('/admin', $adminSpa)->name('admin');
 Route::get('/admin/{path}', $adminSpa)->where('path', '.*')->name('admin.spa');
 
-/*
-|--------------------------------------------------------------------------
-| صفحات الموقع بعناوين نظيفة
-|--------------------------------------------------------------------------
-|
-| القيد `[a-z0-9\-]+` يمنع المقطع من احتواء `/` أو `.`، فلا يبتلع هذا المسار
-| `/storage/...` ولا `/assets/...` ولا أي مسار مركّب.
-*/
-Route::get('/{page}', fn (string $page) => $servePage($page))
-    ->where('page', '[a-z0-9\-]+')
-    ->name('page');
-
-/** صفحة ٤٠٤ الخاصة بالمشروع بدل صفحة لارافل الافتراضية. */
-Route::fallback(fn () => $servePage('404', 404));
+/** ما لم يطابق شيئاً: صفحة ٤٠٤ الخاصة بالمشروع (errors/404) لا صفحة لارافل. */
+Route::fallback(fn () => abort(404));

@@ -16,7 +16,7 @@ const SPONSOR = { email: 'sponsor@kafala.org', password: 'password' }
 
 test.describe('الموقع العام', () => {
   test('قائمة الأيتام تأتي من قاعدة البيانات لا من الملف', async ({ page }) => {
-    await page.goto(`${WEB}/orphans.html`)
+    await page.goto(`${WEB}/orphans`)
 
     /**
      * تأكيدٌ ينتظر لا `waitForResponse`.
@@ -58,7 +58,7 @@ test.describe('الموقع العام', () => {
     const errors = []
     page.on('pageerror', (e) => errors.push(e.message))
 
-    await page.goto(`${WEB}/orphans.html`)
+    await page.goto(`${WEB}/orphans`)
     await page.waitForTimeout(1500)
 
     // الفلاتر والصفحات نفسها على البيانات المضمَّنة، لا شاشة خطأ
@@ -68,7 +68,7 @@ test.describe('الموقع العام', () => {
   })
 
   test('حلقة الشفافية تعرض نسباً محسوبة', async ({ page }) => {
-    await page.goto(`${WEB}/transparency.html`)
+    await page.goto(`${WEB}/transparency`)
 
     await expect(page.locator('#tpLegend')).toContainText('مصاريف إدارية', {
       timeout: 20_000,
@@ -80,7 +80,7 @@ test.describe('نماذج الموقع', () => {
   test('رسالة التواصل تُرسَل فعلاً وتصل لوحة الإدارة', async ({ page }) => {
     const email = `visitor${Date.now()}@example.com`
 
-    await page.goto(`${WEB}/contact.html`)
+    await page.goto(`${WEB}/contact`)
     await page.waitForTimeout(1200)
 
     await page.fill('#contactName', 'زائر اختبار')
@@ -115,7 +115,7 @@ test.describe('نماذج الموقع', () => {
   })
 
   test('التحقق يمنع الإرسال قبل اكتمال الحقول', async ({ page }) => {
-    await page.goto(`${WEB}/contact.html`)
+    await page.goto(`${WEB}/contact`)
     await page.waitForTimeout(1200)
 
     let sent = false
@@ -162,7 +162,7 @@ test.describe('بوابة الكافل', () => {
 
   test('لوحة الكافل محروسة، وتُملأ بعد الدخول، ثم تُقفل بالخروج', async ({ page }) => {
     // ١) الحراسة
-    await page.goto(`${WEB}/dashboard.html`)
+    await page.goto(`${WEB}/dashboard`)
     await page.waitForURL(/\/login/, { timeout: 15_000 })
 
     // ٢) الدخول من نموذج الموقع نفسه
@@ -198,7 +198,7 @@ test.describe('بوابة الكافل', () => {
     await page.click('[data-portal-logout]')
     await page.waitForURL((url) => !url.pathname.includes('dashboard'), { timeout: 20_000 })
 
-    await page.goto(`${WEB}/dashboard.html`)
+    await page.goto(`${WEB}/dashboard`)
     await page.waitForURL(/\/login/, { timeout: 20_000 })
   })
 })
@@ -217,7 +217,7 @@ test.describe('المدونة وصفحة المقال', () => {
     await expect(first).toBeVisible({ timeout: 15_000 })
 
     // الرابط حقيقي لا مرساة فارغة
-    expect(await first.getAttribute('href')).toMatch(/^post\.html\?slug=.+/)
+    expect(await first.getAttribute('href')).toMatch(/^\/post\?slug=.+/)
 
     const title = (await first.textContent()).trim()
     await first.click()
@@ -239,7 +239,7 @@ test.describe('المدونة وصفحة المقال', () => {
   })
 
   test('slug مجهول يعرض رسالة لا صفحة فارغة', async ({ page }) => {
-    await page.goto(`${WEB}/post.html?slug=${encodeURIComponent('لا-يوجد-هذا')}`)
+    await page.goto(`${WEB}/post?slug=${encodeURIComponent('لا-يوجد-هذا')}`)
     await expect(page.locator('#postDetail h1')).toHaveText('لم نجد هذا المقال', { timeout: 20_000 })
   })
 
@@ -289,7 +289,7 @@ test.describe('دورية الكفالة', () => {
     // طفلٌ حقيقي يقبل كفالة: الصفحة بلا طفل لا تعرض نموذج دفع
     const res = await request.get(`${WEB}/api/v1/public/orphans?per_page=100`)
     const child = (await res.json()).data.find((o) => o.funded < 100)
-    await page.goto(`${WEB}/checkout.html?id=${child.id}`)
+    await page.goto(`${WEB}/checkout?id=${child.id}`)
 
     const monthly = page.locator('[data-checkout="price"]')
     const total = page.locator('[data-checkout="total"]')

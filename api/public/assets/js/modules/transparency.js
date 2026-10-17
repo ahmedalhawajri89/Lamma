@@ -283,7 +283,7 @@ export function initTransparency() {
         ${d
           ? `<a class="btn btn--primary tp-doc__cta" href="${escapeHtml(d.url)}" target="_blank" rel="noopener" download>
                <i class="fa-solid fa-arrow-down" aria-hidden="true"></i> تحميل PDF</a>`
-          : `<span class="tp-doc__pending">يُنشر بعد اعتماد المدقق · <a href="contact.html">اطلب نسخة</a></span>`}
+          : `<span class="tp-doc__pending">يُنشر بعد اعتماد المدقق · <a href="/contact">اطلب نسخة</a></span>`}
       </li>`;
     }).join('');
     // البطاقات تُكتب بعد الإقلاع: تُكشف هنا لا بانتظار initReveal

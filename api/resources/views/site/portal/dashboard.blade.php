@@ -1,47 +1,10 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+@extends('site.layouts.legacy', ['chrome' => false])
 
-  <title>لوحتي | كفالة</title>
-  <meta name="description" content="تابع كفالاتك وتقاريرها وسجل مدفوعاتك من مكان واحد.">
-  <meta name="theme-color" content="#0f5c5c">
+@section('title')لوحتي | كفالة@endsection
+@section('description')تابع كفالاتك وتقاريرها وسجل مدفوعاتك من مكان واحد.@endsection
+@section('robots', 'noindex, nofollow')
 
-  <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self'; connect-src 'self'; form-action 'self'; base-uri 'self'; object-src 'none'">
-
-  <!-- الأصل نفسه. اضبطها على "off" ليعمل الموقع ساكناً بلا خادم. -->
-  <meta name="api-base" content="">
-
-  <meta name="referrer" content="strict-origin-when-cross-origin">
-  <meta name="robots" content="noindex, nofollow">
-
-  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Aref+Ruqaa:wght@400;700&display=swap">
-
-  <!-- السمة قبل أي رسم — يمنع وميض الوضع الفاتح لمن اختار الليلي -->
-  <script src="assets/js/theme-init.js"></script>
-
-  <!-- خط الأيقونات المصمتة في كل صفحة: يُطلب مع الأنماط لا بعدها، فلا تبقى الأيقونات فارغة -->
-  <link rel="preload" href="assets/vendor/fontawesome/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="assets/vendor/fontawesome/css/all.min.css">
-  <link rel="stylesheet" href="assets/css/tokens.css">
-  <link rel="stylesheet" href="assets/css/base.css">
-  <link rel="stylesheet" href="assets/css/layout.css">
-  <link rel="stylesheet" href="assets/css/site.css">
-  <link rel="stylesheet" href="assets/css/components.css">
-  <link rel="stylesheet" href="assets/css/sections.css">
-  <link rel="stylesheet" href="assets/css/pages.css">
-
-  <script type="module" src="assets/js/main.js"></script>
-</head>
-
-<body>
+@section('content')
   <a class="skip-link" href="#main">تخطَّ إلى المحتوى الرئيسي</a>
 
   <!--
@@ -53,7 +16,7 @@
     <header class="portal-bar">
       <div class="container portal-bar__inner">
         <a class="brand" href="/">
-          <img class="brand__mark" src="assets/img/logo.svg" alt="" width="36" height="36">
+          <img class="brand__mark" src="/assets/img/logo.svg" alt="" width="36" height="36">
           <span class="brand__name">كفالة</span>
         </a>
 
@@ -90,7 +53,7 @@
               <h1 id="helloTitle" data-portal-greeting>أهلاً بك</h1>
               <p class="portal-hello__status" data-portal-subtitle>جارٍ تحميل لوحتك…</p>
             </div>
-            <a class="btn btn--cta" href="orphans.html">
+            <a class="btn btn--cta" href="/orphans">
               اكفل طفلاً آخر
               <i class="fa-solid fa-arrow-left btn__icon btn__icon--arrow" aria-hidden="true"></i>
             </a>
@@ -110,7 +73,7 @@
         <div class="container">
           <div class="portal-head">
             <h2 id="sponsorshipsTitle">كفالاتي</h2>
-            <a class="link-arrow" href="orphans.html">إضافة كفالة <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
+            <a class="link-arrow" href="/orphans">إضافة كفالة <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
           </div>
 
           <div class="pkids" data-portal-sponsorships>
@@ -310,6 +273,4 @@
       </dl>
     </div>
   </div>
-
-</body>
-</html>
+@endsection

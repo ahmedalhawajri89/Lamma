@@ -53,7 +53,7 @@ export function orphanCard(orphan, { delay = 0, spotlight = false } = {}) {
   <div class="kid__body">
     ${spotlight ? `<p class="kid__eyebrow">${orphan.urgent ? 'الأشد احتياجاً الآن' : 'ينتظر كافلاً'}</p>` : ''}
     <h3 class="kid__name">
-      <a href="orphan.html?id=${id}">${name}</a><span class="kid__age">${ageLabel}</span>
+      <a href="/orphan?id=${id}">${name}</a><span class="kid__age">${ageLabel}</span>
     </h3>
     <p class="kid__place"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> ${place}</p>
     ${orphan.photo && dream ? `<p class="kid__dream"><span>${her ? 'حلمها' : 'حلمه'}:</span> ${dream}</p>` : ''}
@@ -68,7 +68,7 @@ export function orphanCard(orphan, { delay = 0, spotlight = false } = {}) {
     </div>
 
     <div class="kid__foot">
-      <a class="btn btn--primary kid__cta" href="checkout.html?id=${id}">اكفل ${name}</a>
+      <a class="btn btn--primary kid__cta" href="/checkout?id=${id}">اكفل ${name}</a>
       <span class="kid__price"><strong class="num">${formatMoney(monthly)}</strong> شهرياً</span>
     </div>
   </div>
@@ -102,13 +102,13 @@ export function programCard(program, { delay = 0 } = {}) {
   </div>
 
   <a class="btn ${program.featured ? 'btn--cta' : 'btn--outline'} btn--block"
-     href="orphans.html?program=${encodeURIComponent(program.id)}">
+     href="/orphans?program=${encodeURIComponent(program.id)}">
     اكفل يتيماً
   </a>
 </article>`;
 }
 
-/** موضوع السؤال من كلماته: رابطٌ ثابت له (faq.html#zakat) وأيقونة. */
+/** موضوع السؤال من كلماته: رابطٌ ثابت له (/faq#zakat) وأيقونة. */
 const FAQ_TOPICS = [
   ['وصل', 'delivery', 'fa-circle-check'],
   ['الزكاة', 'zakat', 'fa-scale-balanced'],
@@ -155,7 +155,7 @@ export function homePosts(posts) {
   if (!posts.length) return '';
   const lead = posts.find((p) => p.featured) ?? posts[0];
   const rest = posts.filter((p) => p !== lead).slice(0, 3);
-  const href = (p) => (p.slug ? `post.html?slug=${encodeURIComponent(p.slug)}` : null);
+  const href = (p) => (p.slug ? `/post?slug=${encodeURIComponent(p.slug)}` : null);
   const title = (p) => (href(p) ? `<a href="${href(p)}">${escapeHtml(p.title)}</a>` : escapeHtml(p.title));
   const media = (p, w, h) => `<div class="bento__media">${p.image
     ? `<img src="${escapeHtml(p.image)}" alt="" loading="lazy" width="${w}" height="${h}">`

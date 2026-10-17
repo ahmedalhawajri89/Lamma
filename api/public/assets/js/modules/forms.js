@@ -19,7 +19,7 @@ import { submitCheckoutForm } from './checkout.js';
 /**
  * وجهة ما بعد الدخول من الرابط، على هذا الموقع وحده.
  *
- * كانت تُستعمل كما هي: `login.html?redirect=https://موقع-آخر` يرسل الكافل
+ * كانت تُستعمل كما هي: `/login?redirect=https://موقع-آخر` يرسل الكافل
  * بعد دخولٍ حقيقي إلى صفحة تصيّد تشبه الموقع. المقبول مسار نسبي على الأصل
  * نفسه، وما سواه يُتجاهل.
  */
@@ -352,7 +352,7 @@ async function submit(form, button, original) {
       toast(message, 'success');
 
       // مهلة قصيرة ليُقرأ التأكيد قبل أن تنتقل الصفحة
-      setTimeout(() => { window.location.href = 'login.html'; }, 1400);
+      setTimeout(() => { window.location.href = '/login'; }, 1400);
 
       return;
     }
@@ -391,7 +391,7 @@ async function submit(form, button, original) {
 
     // ?redirect= يعيد الكافل إلى الصفحة التي طُرد منها، لا إلى اللوحة دائماً
     const params = new URLSearchParams(window.location.search);
-    window.location.href = safeRedirect(params.get('redirect')) || form.dataset.redirect || 'dashboard.html';
+    window.location.href = safeRedirect(params.get('redirect')) || form.dataset.redirect || '/dashboard';
   } catch (error) {
     restore();
 

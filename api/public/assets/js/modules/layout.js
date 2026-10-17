@@ -2,7 +2,7 @@
  * الهيدر والفوتر — مصدر واحد لكل الصفحات.
  *
  * لماذا بناؤهما بـ JS بدل fetch لملف HTML؟
- * لأن fetch يفشل تحت بروتوكول file://، فيفتح أحدهم index.html بنقرة مزدوجة
+ * لأن fetch يفشل تحت بروتوكول file://، فيفتح أحدهم / بنقرة مزدوجة
  * فلا يرى قائمة ولا فوتر. البناء من قالب داخلي يعمل في كل الحالات،
  * ويبقي التعديل في مكان واحد بدل تكراره في ١٤ صفحة.
  *
@@ -21,14 +21,14 @@ const YEAR = new Date().getFullYear();
 
 /** روابط الفوتر المساعدة. */
 const FOOTER_HELP = [
-  { label: 'الأسئلة الشائعة', href: 'faq.html' },
-  { label: 'تقارير الشفافية', href: 'transparency.html' },
-  { label: 'سياسة حماية الطفل', href: 'transparency.html#child-policy' },
-  { label: 'حسابي', href: 'dashboard.html' },
+  { label: 'الأسئلة الشائعة', href: '/faq' },
+  { label: 'تقارير الشفافية', href: '/transparency' },
+  { label: 'سياسة حماية الطفل', href: '/transparency#child-policy' },
+  { label: 'حسابي', href: '/dashboard' },
 ];
 
 /** الصفحات العميقة تُبرز قسمها في التنقل: ملف الطفل والكفالة تحت «الأيتام»، والمقال تحت «المدونة». */
-const SECTION_OF = { 'orphan.html': 'orphans.html', 'checkout.html': 'orphans.html', 'post.html': 'blog.html' };
+const SECTION_OF = { '/orphan': '/orphans', '/checkout': '/orphans', '/post': '/blog' };
 
 function navMarkup(page) {
   return NAV_LINKS.map(({ label, href }) => {
@@ -52,8 +52,8 @@ function headerMarkup({ page }) {
       <nav class="nav" aria-label="التنقل الرئيسي">${navMarkup(page)}</nav>
 
       <div class="site-nav__buttons">
-        <a class="btn btn--ink-outline btn--lg" href="login.html" data-account-link>تسجيل الدخول</a>
-        <a class="btn btn--cta btn--lg" href="orphans.html">اكفل يتيماً</a>
+        <a class="btn btn--ink-outline btn--lg" href="/login" data-account-link>تسجيل الدخول</a>
+        <a class="btn btn--cta btn--lg" href="/orphans">اكفل يتيماً</a>
       </div>
     </div>
 
@@ -63,8 +63,8 @@ function headerMarkup({ page }) {
         <i class="fa-solid fa-moon" aria-hidden="true"></i>
         <i class="fa-solid fa-sun" aria-hidden="true"></i>
       </button>
-      <a class="header-login" href="login.html" data-account-link>تسجيل الدخول</a>
-      <a class="btn btn--cta btn--sm" href="orphans.html">اكفل يتيماً</a>
+      <a class="header-login" href="/login" data-account-link>تسجيل الدخول</a>
+      <a class="btn btn--cta btn--sm" href="/orphans">اكفل يتيماً</a>
       <button class="nav-toggle" type="button" id="navToggle"
               aria-expanded="false" aria-controls="siteNav" aria-label="فتح قائمة التنقل">
         <span class="nav-toggle__bars" aria-hidden="true"><span></span><span></span><span></span></span>
@@ -168,9 +168,9 @@ function footerMarkup() {
     <div class="footer-bottom">
       <p>© ${YEAR} منصة <span data-site="name">${escapeHtml(SITE.name)}</span>. جميع الحقوق محفوظة.</p>
       <nav aria-label="روابط قانونية">
-        <a href="transparency.html#child-policy">سياسة حماية الطفل</a>
-        <a href="transparency.html">الخصوصية</a>
-        <a href="faq.html">شروط الاستخدام</a>
+        <a href="/transparency#child-policy">سياسة حماية الطفل</a>
+        <a href="/transparency">الخصوصية</a>
+        <a href="/faq">شروط الاستخدام</a>
       </nav>
       <div class="payment-row" role="img" aria-label="وسائل الدفع المقبولة: فيزا، ماستركارد، Apple Pay، والتحويل البنكي">
         <i class="fa-brands fa-cc-visa" aria-hidden="true"></i>
@@ -220,18 +220,18 @@ function bsHeaderMarkup({ page }) {
         <div class="offcanvas-body">
           <ul class="navbar-nav mx-lg-auto">${bsNavMarkup(page)}</ul>
           <div class="d-grid gap-2 mt-4 d-lg-none">
-            <a class="btn btn-outline-primary btn-lg" href="login.html" data-account-link>تسجيل الدخول</a>
-            <a class="btn btn-cta btn-lg" href="orphans.html">اكفل يتيماً</a>
+            <a class="btn btn-outline-primary btn-lg" href="/login" data-account-link>تسجيل الدخول</a>
+            <a class="btn btn-cta btn-lg" href="/orphans">اكفل يتيماً</a>
           </div>
         </div>
       </div>
 
       <div class="kf-header__actions">
-        <a class="btn btn-outline-primary d-none d-lg-inline-flex" href="login.html" data-account-link>تسجيل الدخول</a>
-        <a class="btn btn-cta d-none d-sm-inline-flex" href="orphans.html">
+        <a class="btn btn-outline-primary d-none d-lg-inline-flex" href="/login" data-account-link>تسجيل الدخول</a>
+        <a class="btn btn-cta d-none d-sm-inline-flex" href="/orphans">
           <i class="fa-regular fa-heart" aria-hidden="true"></i> اكفل يتيماً
         </a>
-        <a class="btn btn-icon btn-icon--plain" href="orphans.html" aria-label="ابحث عن طفل" title="ابحث عن طفل">
+        <a class="btn btn-icon btn-icon--plain" href="/orphans" aria-label="ابحث عن طفل" title="ابحث عن طفل">
           <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
         </a>
         <button class="btn btn-icon btn-icon--plain" type="button" id="themeToggle" aria-pressed="false" aria-label="الوضع الليلي">
@@ -307,9 +307,9 @@ function bsFooterMarkup() {
     <div class="kf-footer__bottom">
       <p class="mb-0">© ${YEAR} منصة <span data-site="name">${escapeHtml(SITE.name)}</span>. جميع الحقوق محفوظة.</p>
       <nav class="d-flex flex-wrap gap-3" aria-label="روابط قانونية">
-        <a href="transparency.html#child-policy">سياسة حماية الطفل</a>
-        <a href="transparency.html">الخصوصية</a>
-        <a href="faq.html">شروط الاستخدام</a>
+        <a href="/transparency#child-policy">سياسة حماية الطفل</a>
+        <a href="/transparency">الخصوصية</a>
+        <a href="/faq">شروط الاستخدام</a>
       </nav>
       <div class="kf-footer__pay" role="img" aria-label="وسائل الدفع المقبولة: فيزا، ماستركارد، Apple Pay، والتحويل البنكي">
         <i class="fa-brands fa-cc-visa" aria-hidden="true"></i>
@@ -429,7 +429,7 @@ async function initAccountLink() {
   }
 
   $$('[data-account-link]').forEach((link) => {
-    link.href = 'dashboard.html';
+    link.href = '/dashboard';
     link.textContent = 'كفالاتي';
   });
 }

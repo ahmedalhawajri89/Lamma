@@ -1,5 +1,5 @@
 /**
- * بوابة الكافل: ما يبني `dashboard.html`.
+ * بوابة الكافل: ما يبني `/dashboard`.
  *
  * كل رقم وصفّ هنا من `/portal/*`، فيصدق مع كل كافل لا مع كافل وهمي.
  * والصفحة تُتيح فعلاً ما يعد به الموقع: قراءة التقرير، ومراسلة الطفل عبر
@@ -47,7 +47,7 @@ function setText(selector, value) {
 /** انتهت الجلسة أثناء التصفح: إلى الدخول ثم العودة إلى هنا. */
 function toLogin() {
   clearSignedIn();
-  window.location.replace(`login.html?redirect=${encodeURIComponent('dashboard.html')}`);
+  window.location.replace(`/login?redirect=${encodeURIComponent('/dashboard')}`);
 }
 
 /** خطأ طلبٍ في اللوحة: الجلسة المنتهية تُعيد للدخول، وغيرها يُقال. */
@@ -101,7 +101,7 @@ export async function initPortal() {
   if (!isSponsor(user)) {
     await logout().catch(() => {});
     clearSignedIn();
-    window.location.replace('login.html');
+    window.location.replace('/login');
     return;
   }
 
@@ -244,7 +244,7 @@ function renderSponsorships(items) {
     list.innerHTML = `
 <div class="portal-empty">
   <p>لا كفالات قائمة الآن.</p>
-  <a class="btn btn--cta" href="orphans.html">اختر طفلاً تقف معه</a>
+  <a class="btn btn--cta" href="/orphans">اختر طفلاً تقف معه</a>
 </div>`;
     return;
   }
@@ -266,7 +266,7 @@ function renderSponsorships(items) {
       ? `<button class="btn btn--primary btn--sm" type="button" data-bank-open="${s.id}">
           <i class="fa-solid fa-building-columns" aria-hidden="true"></i> بيانات التحويل
         </button>
-        <a class="link-arrow" href="orphan.html?id=${encodeURIComponent(orphan.reference_code ?? '')}">ملف ${name}</a>
+        <a class="link-arrow" href="/orphan?id=${encodeURIComponent(orphan.reference_code ?? '')}">ملف ${name}</a>
         <button class="pkid__stop" type="button" data-cancel-open="${s.id}">ألغِ الحجز</button>`
       : `<button class="btn btn--outline btn--sm" type="button" data-message-open="${s.id}">
           <i class="fa-regular fa-envelope" aria-hidden="true"></i> أرسل رسالة
@@ -274,7 +274,7 @@ function renderSponsorships(items) {
         ${paused ? `<button class="btn btn--primary btn--sm" type="button" data-resume="${s.id}">
           <i class="fa-solid fa-play" aria-hidden="true"></i> استأنف الكفالة
         </button>` : ''}
-        <a class="link-arrow" href="orphan.html?id=${encodeURIComponent(orphan.reference_code ?? '')}">ملف ${name}</a>
+        <a class="link-arrow" href="/orphan?id=${encodeURIComponent(orphan.reference_code ?? '')}">ملف ${name}</a>
         <button class="pkid__stop" type="button" data-cancel-open="${s.id}">${paused ? 'إنهاء الكفالة' : 'إيقاف أو إنهاء'}</button>`;
 
     // الصنف sponsor-row يبقى: يعتمد عليه اختبار e2e للوحة

@@ -87,10 +87,10 @@ export const escapeHtml = (value) =>
     "'": '&#39;',
   })[char]);
 
-/** اسم ملف الصفحة الحالية، مع اعتبار الجذر صفحةً رئيسية. */
+/** مسار الصفحة الحالية بصيغة روابط التنقل (`/orphans`)، والجذر `/`. الامتداد القديم يُسقط. */
 export function currentPage() {
-  const file = window.location.pathname.split('/').pop();
-  return !file || file === '' ? 'index.html' : file;
+  const file = window.location.pathname.split('/').pop().replace(/\.html$/, '');
+  return !file || file === 'index' ? '/' : `/${file}`;
 }
 
 /**

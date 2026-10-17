@@ -88,7 +88,7 @@ export function initOrphanDetail() {
       <i class="fa-solid fa-child" aria-hidden="true"></i>
       <h1>لم نجد هذا الطفل</h1>
       <p>ربما كُفل كاملاً أو تغيّر رابطه. الأطفال الذين ينتظرون كافلاً في صفحتهم.</p>
-      <a class="btn btn--primary" href="orphans.html">كل الأطفال</a></div></div>`;
+      <a class="btn btn--primary" href="/orphans">كل الأطفال</a></div></div>`;
     $('[data-reload]', root)?.addEventListener('click', () => window.location.reload());
     root.removeAttribute('aria-busy');
     document.title = `${DETAIL_FAILED ? 'تعذّر التحميل' : 'لم نجد هذا الطفل'} | كفالة`;
@@ -137,7 +137,7 @@ export function initOrphanDetail() {
   document.title = `${orphan.name} | كفالة`;
 
   $$('[data-sponsor-link]').forEach((link) => {
-    link.href = `checkout.html?id=${encodeURIComponent(orphan.id)}`;
+    link.href = `/checkout?id=${encodeURIComponent(orphan.id)}`;
   });
 
   const urgentSlot = $('#orphanUrgent');
@@ -200,7 +200,7 @@ export async function initPostDetail() {
   const slug = new URLSearchParams(window.location.search).get('slug');
 
   if (!slug) {
-    window.location.replace('blog.html');
+    window.location.replace('/blog');
     return;
   }
 
@@ -215,7 +215,7 @@ export async function initPostDetail() {
     <p class="muted">المشكلة في الاتصال لا في الرابط. تحقّق من اتصالك ثم أعد المحاولة.</p>
     <button class="btn btn--primary" type="button" data-reload>أعد المحاولة</button>` : `<h1>لم نجد هذا المقال</h1>
     <p class="muted">ربما حُذف أو تغيّر رابطه.</p>
-    <a class="btn btn--primary" href="blog.html">العودة إلى المدونة</a>`}
+    <a class="btn btn--primary" href="/blog">العودة إلى المدونة</a>`}
   </div>
 </section>`;
     $('[data-reload]', host)?.addEventListener('click', () => window.location.reload());
@@ -260,7 +260,7 @@ export async function initPostDetail() {
       <nav aria-label="مسار التنقل">
         <ol class="breadcrumb">
           <li><a href="/">الرئيسية</a></li>
-          <li><a href="blog.html">المدونة</a></li>
+          <li><a href="/blog">المدونة</a></li>
           ${post.category ? `<li><span>${escapeHtml(post.category)}</span></li>` : ''}
           <li><span aria-current="page">${escapeHtml(post.title)}</span></li>
         </ol>
@@ -287,10 +287,10 @@ export async function initPostDetail() {
     <div class="prose">${body}</div>
 
     <div class="cluster" style="margin-block-start:var(--space-10)">
-      <a class="btn btn--outline" href="blog.html">
+      <a class="btn btn--outline" href="/blog">
         <i class="fa-solid fa-arrow-right" aria-hidden="true"></i> كل المقالات
       </a>
-      <a class="btn btn--cta" href="orphans.html">اكفل يتيماً</a>
+      <a class="btn btn--cta" href="/orphans">اكفل يتيماً</a>
     </div>
   </div>
 </section>`;

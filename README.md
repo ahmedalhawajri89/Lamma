@@ -29,9 +29,9 @@ kafala-orphan-sponsorship/
 │
 ├── api/                    Laravel 12 · PHP 8.2 · MySQL · Sanctum
 │   ├── app/  database/     ١٢٬٤٠٠ سطر
-│   └── public/             ← الموقع العام: HTML و CSS و JS بلا إطار
-│       ├── index.html …    ١٧ صفحة · ١٠٬٩٠٠ سطر
-│       ├── assets/
+│   ├── resources/views/    ← الموقع العام: قوالب Blade (site/ و errors/)
+│   └── public/
+│       ├── assets/         CSS و JS والصور: الموقع يملأ محتواه الحيّ من الـ API
 │       └── admin-app/      ← ناتج بناء لوحة Vue (لا يُحفظ في المستودع)
 │
 └── admin/                  مصدر اللوحة: Vue 3 · Vite · Pinia · Chart.js
@@ -163,7 +163,7 @@ cd admin && npm run build                     # http://127.0.0.1:8000/admin
 | `admin@kafala.org` | مدير النظام — يرى كل شيء |
 | `accountant@kafala.org` | محاسب — المال وحده |
 | `supervisor0@kafala.org` | مشرف ميداني — أيتام بلده فقط |
-| `sponsor@kafala.org` | كافل — بوابته على `web/dashboard.html` |
+| `sponsor@kafala.org` | كافل — بوابته على `/dashboard` |
 
 ---
 

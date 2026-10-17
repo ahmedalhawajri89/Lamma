@@ -38,7 +38,7 @@ function kidCard(o, i) {
   const name = escapeHtml(o.name);
   const her = isGirl(o);
   const funded = safeNumber(o.funded);
-  const link = `orphan.html?id=${encodeURIComponent(o.id)}`;
+  const link = `/orphan?id=${encodeURIComponent(o.id)}`;
 
   return `
 <div class="col-sm-6 col-lg-3">
@@ -61,7 +61,7 @@ function kidCard(o, i) {
         </div>
         <span class="kid-card__track" role="progressbar" aria-label="نسبة كفالة ${name}" aria-valuenow="${funded}" aria-valuemin="0" aria-valuemax="100"><span style="--v:${funded}%"></span></span>
       </div>
-      <a class="btn btn-cta w-100 kid-card__cta" href="checkout.html?id=${encodeURIComponent(o.id)}">اكفل ${name}</a>
+      <a class="btn btn-cta w-100 kid-card__cta" href="/checkout?id=${encodeURIComponent(o.id)}">اكفل ${name}</a>
     </div>
   </article>
 </div>`;
@@ -93,7 +93,7 @@ function renderPlans() {
   <p class="plan__price"><strong class="num">${formatMoney(p.price)}</strong><span>في الشهر</span></p>
   <p class="plan__summary">${escapeHtml(p.summary)}</p>
   <a class="btn ${p.featured ? 'btn--cta' : 'btn--outline'} plan__cta"
-     href="orphans.html?program=${encodeURIComponent(p.id)}">اكفل يتيماً</a>
+     href="/orphans?program=${encodeURIComponent(p.id)}">اكفل يتيماً</a>
   <ul class="plan__features" role="list">
     ${(p.features ?? []).map((f) => `<li><i class="fa-solid fa-check" aria-hidden="true"></i>${escapeHtml(f)}</li>`).join('')}
   </ul>
