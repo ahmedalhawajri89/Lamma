@@ -565,6 +565,45 @@ button:focus-visible,
 .share__btn:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) { .share__btn { transition: none; } }
 
+/* ── 11د. الإشعارات (toast() في ui.js) ──
+   الصنف .toast نفسه في Bootstrap، وفيه .toast:not(.show) { display: none }،
+   فكانت إشعارات ui.js تُضاف ولا تُرى في كل صفحة منقولة. نعرّفها هنا
+   بمحدِّد أخصّ من قاعدته. */
+.toast-stack { position: fixed; inset-block-end: 1.5rem; inset-inline-end: 1.5rem; z-index: 1090; display: flex; flex-direction: column; gap: 0.75rem; pointer-events: none; }
+.toast-stack > .toast {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  inline-size: auto;
+  max-inline-size: 24rem;
+  padding: 0.9rem 1.1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-lg);
+  color: var(--color-text);
+  font-size: 0.925rem;
+  font-weight: 500;
+  pointer-events: auto;
+}
+.toast-stack .toast__icon { display: grid; place-items: center; flex-shrink: 0; inline-size: 1.9rem; block-size: 1.9rem; border-radius: 50%; font-size: 0.8rem; }
+.toast-stack .toast__text { flex: 1; }
+.toast-stack .toast__close { display: grid; place-items: center; flex-shrink: 0; inline-size: 2.5rem; block-size: 2.5rem; margin: -0.5rem; border-radius: 50%; color: var(--color-text-subtle); }
+.toast-stack .toast__close:hover { background: var(--color-surface-alt); color: var(--color-text); }
+.toast--success .toast__icon { background: var(--color-success-soft); color: var(--color-success); }
+.toast--error .toast__icon { background: var(--color-urgent-soft); color: var(--color-urgent); }
+.toast--info .toast__icon { background: var(--color-info-soft); color: var(--color-info); }
+@media (prefers-reduced-motion: no-preference) {
+  .toast-stack > .toast { animation: kf-toast-in 0.32s var(--ease-out) both; }
+  .toast-stack > .toast.is-leaving { animation: kf-toast-out 0.25s var(--ease-out) forwards; }
+}
+@keyframes kf-toast-in { from { opacity: 0; translate: 0 0.75rem; } }
+@keyframes kf-toast-out { to { opacity: 0; translate: 0 0.5rem; } }
+@media (max-width: 38rem) {
+  .toast-stack { inset-inline: 1rem; inset-block-end: 1rem; }
+  .toast-stack > .toast { max-inline-size: none; }
+}
+
 /* ── 12. الفوتر: في footer.css، يحمّله القالبان كلاهما ── */
 
 /* ── 13. أخطاء الحقول التي يكتبها forms.js (.field و.field__error) ── */

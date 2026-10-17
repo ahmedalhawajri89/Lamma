@@ -30,7 +30,7 @@ async function fillCard(page, number) {
 test.describe('الكفالة من الموقع', () => {
   test('زائر يكفل بالبطاقة سنوياً: حساب جديد، وصفحة شكر من بيانات الخادم', async ({ page, request }) => {
     const child = await sponsorableChild(request, 0)
-    await page.goto(`${SITE}/checkout.html?id=${child.id}`)
+    await page.goto(`${SITE}/checkout?id=${child.id}`)
 
     // الطفل نفسه من الخادم، ووضع البوابة التجريبية معلَن
     await expect(page.locator('[data-checkout="id"]').first()).toHaveText(child.id)
@@ -44,7 +44,7 @@ test.describe('الكفالة من الموقع', () => {
     await fillCard(page, '4242 4242 4242 4242')
     await page.locator('#checkoutSubmit').click()
 
-    await page.waitForURL(/thank-you\.html\?ref=KFS-/, { timeout: 25_000 })
+    await page.waitForURL(/thank-you\?ref=KFS-/, { timeout: 25_000 })
     await expect(page.locator('[data-thanks-when="paid"]').first()).toBeVisible()
     await expect(page.locator('[data-thanks="cycle"]').first()).toHaveText('سنوياً')
     // القيمة لا شكلها: formatMoney يكتب المبلغ الصحيح بلا كسور («$780» لا «780.00»)
@@ -54,7 +54,7 @@ test.describe('الكفالة من الموقع', () => {
     await expect(page.locator('[data-thanks-when="account"]')).toBeVisible()
 
     // والحساب الجديد داخلٌ يرى كفالته في لوحته
-    await page.goto(`${SITE}/dashboard.html`)
+    await page.goto(`${SITE}/dashboard#children`)
     const row = page.locator(`.sponsor-row[data-status="active"]`, { hasText: child.name })
     await expect(row).toBeVisible({ timeout: 20_000 })
     await expect(row).toContainText('سنوياً')
@@ -72,7 +72,7 @@ test.describe('الكفالة من الموقع', () => {
 
   test('رفض البطاقة يُقال فوق الزر، ولا تُحجز الكفالة', async ({ page, request }) => {
     const child = await sponsorableChild(request, 1)
-    await page.goto(`${SITE}/checkout.html?id=${child.id}`)
+    await page.goto(`${SITE}/checkout?id=${child.id}`)
     await expect(page.locator('#monthlyAmount')).not.toHaveValue('')
 
     await fillGuest(page, `declined${Date.now()}@example.com`)
@@ -80,16 +80,16 @@ test.describe('الكفالة من الموقع', () => {
     await page.locator('#checkoutSubmit').click()
 
     await expect(page.locator('[data-checkout="error"]')).toContainText('رفض البنك', { timeout: 20_000 })
-    await expect(page).toHaveURL(/checkout\.html/)
+    await expect(page).toHaveURL(/\/checkout\?id=/)
   })
 
   test('التحويل البنكي: لا حقول بطاقة، ثم حجزٌ ببيانات الحساب والمرجع', async ({ page, request }) => {
     const child = await sponsorableChild(request, 2)
-    await page.goto(`${SITE}/checkout.html?id=${child.id}`)
+    await page.goto(`${SITE}/checkout?id=${child.id}`)
     await expect(page.locator('#monthlyAmount')).not.toHaveValue('')
 
     // الزر الدائري مخفيّ خلف بطاقته المصمّمة، فيُضغط على البطاقة كما يفعل المستخدم
-    await page.locator('label.pay-method', { has: page.locator('input[value="bank_transfer"]') }).click()
+    await page.locator('label.co-method', { has: page.locator('input[value="bank_transfer"]') }).click()
     await expect(page.locator('input[name="method"][value="bank_transfer"]')).toBeChecked()
     await expect(page.locator('[data-checkout="card-fields"]')).toBeHidden()
     await expect(page.locator('[data-checkout="bank-note"]')).toBeVisible()
@@ -97,12 +97,12 @@ test.describe('الكفالة من الموقع', () => {
     await fillGuest(page, `bank${Date.now()}@example.com`)
     await page.locator('#checkoutSubmit').click()
 
-    await page.waitForURL(/thank-you\.html\?ref=KFS-/, { timeout: 25_000 })
-    await expect(page.locator('[data-thanks-when="pending"]')).toBeVisible()
+    await page.waitForURL(/thank-you\?ref=KFS-/, { timeout: 25_000 })
+    await expect(page.locator('[data-thanks-when="pending"]').first()).toBeVisible()
     await expect(page.locator('[data-thanks="bank-iban"]')).not.toHaveText('…')
 
     // في اللوحة: حجزٌ بانتظار التحويل، لا يُعدّ يتيماً مكفولاً، وبياناته في متناوله
-    await page.goto(`${SITE}/dashboard.html`)
+    await page.goto(`${SITE}/dashboard#children`)
     const row = page.locator('.sponsor-row[data-status="pending"]', { hasText: child.name })
     await expect(row).toBeVisible({ timeout: 20_000 })
     await expect(row).toContainText('بانتظار تحويلك')
@@ -110,11 +110,16 @@ test.describe('الكفالة من الموقع', () => {
     await expect(page.locator('[data-stat="orphans"]')).toHaveText('0')
     await expect(page.locator('[data-portal-subtitle]')).toContainText('بانتظار تحويلك')
 
+    // النافذة تُغلق بعد اكتمال ظهورها، كما ينقر الزائر: Bootstrap يتجاهل
+    // الإغلاق أثناء حركة الفتح
+    const shown = page.locator('#bankModal').evaluate((el) => new Promise((r) => el.addEventListener('shown.bs.modal', r, { once: true })))
     await row.locator('[data-bank-open]').click()
+    await shown
     await expect(page.locator('#bankModal [data-bank="reference"]')).toHaveText(/KFS-/)
 
     // إلغاء الحجز: بلا عرض استراحة ولا سؤال عن السبب
-    await page.locator('#bankModal [data-modal-close]').click()
+    await page.locator('#bankModal [data-bs-dismiss="modal"]').click()
+    await expect(page.locator('#bankModal')).toBeHidden()
     await row.locator('[data-cancel-open]').click()
     await expect(page.locator('[data-cancel-pause]')).toBeHidden()
     await page.locator('[data-cancel-submit]').click()
@@ -122,11 +127,13 @@ test.describe('الكفالة من الموقع', () => {
   })
 
   test('رابط بلا طفل، وصفحة شكر بلا كفالة، لا يدّعيان شيئاً', async ({ page }) => {
-    await page.goto(`${SITE}/checkout.html?id=KFL-0000`)
-    await expect(page.locator('[data-checkout="blocked"]')).toBeVisible({ timeout: 20_000 })
-    await expect(page.locator('#checkoutForm')).toBeHidden()
+    // الخادم يرسم الصفحة: طفلٌ مجهول يعني 404 برسالةٍ ورابطٍ إلى الأطفال، لا نموذج
+    const res = await page.goto(`${SITE}/checkout?id=KFL-0000`)
+    expect(res.status()).toBe(404)
+    await expect(page.locator('.co-blocked')).toBeVisible()
+    await expect(page.locator('#checkoutForm')).toHaveCount(0)
 
-    await page.goto(`${SITE}/thank-you.html?ref=KFS-2026-99999`)
+    await page.goto(`${SITE}/thank-you?ref=KFS-2026-99999`)
     await expect(page.locator('#thanksNone')).toBeVisible()
     await expect(page.locator('#thanksCard')).toBeHidden()
   })

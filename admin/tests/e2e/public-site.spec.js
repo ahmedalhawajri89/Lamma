@@ -184,9 +184,14 @@ test.describe('بوابة الكافل', () => {
     await expect(page.locator('[data-portal-greeting]')).toContainText('عبدالله', { timeout: 20_000 })
     await expect(page.locator('[data-stat="orphans"]')).not.toHaveText('…', { timeout: 15_000 })
     await expect(page.locator('[data-stat="given"]')).toContainText('$')
+    await expect(page.locator('[data-portal-kids] .pt-row').first()).toBeVisible()
+
+    // الأقسام تتبدّل من الشريط الجانبي: بطاقات الأطفال في «أطفالي»
+    await page.click('.pt-nav__link[href="#children"]')
     await expect(page.locator('[data-portal-sponsorships] .sponsor-row').first()).toBeVisible()
 
     // ٤) كشف الحساب — تأكيدٌ ينتظر، فالجدول آخر ما يصل
+    await page.click('.pt-nav__link[href="#payments"]')
     const rows = page.locator('[data-portal-payments] tr')
     await expect(rows.nth(1)).toBeVisible({ timeout: 15_000 })
     await expect(page.locator('[data-stat="payments-total"]')).toContainText('$')

@@ -24,7 +24,7 @@ class SponsorshipController extends Controller
         abort_if($sponsor === null, 403);
 
         $items = $sponsor->sponsorships()
-            ->with(['orphan:id,reference_code,first_name,photo_path,date_of_birth,funded_percent', 'program'])
+            ->with(['orphan:id,reference_code,first_name,gender,photo_path,date_of_birth,funded_percent', 'program'])
             ->withCount(['payments' => fn ($q) => $q->settled()])
             ->withSum(['payments' => fn ($q) => $q->settled()], 'amount_base')
             ->latest('started_at')

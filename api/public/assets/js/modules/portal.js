@@ -4,6 +4,10 @@
  * كل رقم وصفّ هنا من `/portal/*`، فيصدق مع كل كافل لا مع كافل وهمي.
  * والصفحة تُتيح فعلاً ما يعد به الموقع: قراءة التقرير، ومراسلة الطفل عبر
  * المشرف، والإيقاف المؤقت أو الإنهاء بلا اتصال ولا إحراج، وتعديل الحساب.
+ *
+ * خمسة أقسام يظهر منها واحد (#overview و#children و#reports و#payments
+ * و#account)، يتبع الرابط فيعمل زرّ الرجوع ويُفتح القسم من رابطٍ مباشر.
+ * والشريط الجانبي والنوافذ من Bootstrap (يحمّله القالب قبل هذه الوحدة).
  */
 
 import { $, $$, escapeHtml, formatMoney, formatNumber } from './utils.js';
@@ -12,10 +16,11 @@ import {
   portalMessages, sendPortalMessage, cancelSponsorship, setSponsorshipStatus, updateProfile, updatePassword, forgotPassword,
 } from './auth.js';
 import { fetchCheckoutConfig } from './api.js';
-import { toast, openModal, closeModal } from './ui.js';
+import { toast } from './ui.js';
 
 const dateFmt = new Intl.DateTimeFormat('ar', { day: 'numeric', month: 'long', year: 'numeric' });
 const shortFmt = new Intl.DateTimeFormat('ar', { day: 'numeric', month: 'long' });
+const todayFmt = new Intl.DateTimeFormat('ar', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 const fmtDate = (v) => (v ? dateFmt.format(new Date(v)) : 'غير محدد');
 const fmtShort = (v) => (v ? shortFmt.format(new Date(v)) : 'غير محدد');
 
@@ -25,6 +30,19 @@ function ageLabel(age) {
   if (age === 1) return 'سنة واحدة';
   if (age === 2) return 'سنتان';
   return `${age} ${age <= 10 ? 'سنوات' : 'سنة'}`;
+}
+
+/** «اليوم»، «غداً»، «بعد ٣ أيام»: أقرب إلى الكافل من تاريخٍ مجرّد. */
+function inDays(value) {
+  if (!value) return '';
+  const day = 86_400_000;
+  const start = new Date(); start.setHours(0, 0, 0, 0);
+  const n = Math.round((new Date(value).setHours(0, 0, 0, 0) - start) / day);
+  if (n < 0) return '';
+  if (n === 0) return 'اليوم';
+  if (n === 1) return 'غداً';
+  if (n === 2) return 'بعد يومين';
+  return `بعد ${n} ${n <= 10 ? 'أيام' : 'يوماً'}`;
 }
 
 const CYCLE = { 1: 'شهرياً', 3: 'كل ثلاثة أشهر', 12: 'سنوياً' };
@@ -38,11 +56,68 @@ const SPENDING = {
   overhead: { label: 'تشغيل', color: 'var(--chart-muted)' },
 };
 
-/** يملأ عنصراً بالنص، ويتجاهله بهدوء إن لم يكن في الصفحة. */
+const SECTIONS = { overview: 'نظرة عامة', children: 'أطفالي', reports: 'التقارير', payments: 'المدفوعات', account: 'حسابي' };
+
+/** يملأ كل عنصرٍ يطابق المحدِّد بالنص، ويتجاهله بهدوء إن لم يكن في الصفحة. */
 function setText(selector, value) {
-  const el = $(selector);
-  if (el) el.textContent = value;
+  $$(selector).forEach((el) => { el.textContent = value; });
 }
+
+/**
+ * صورة الطفل: الحقيقية لكافله وحده، وإلا رسمه الثابت. وإن تعذّر تحميلها
+ * يحلّ الرسم محلها (initImageFallback) فلا تبقى دائرةٌ فارغة.
+ */
+function kidImage(orphan, size, cls = '') {
+  const fallback = orphan?.illustration_url ?? '';
+  const src = orphan?.photo_url || fallback;
+  if (!src) return '';
+  return `<img class="${cls}" src="${escapeHtml(src)}" data-fallback="${escapeHtml(fallback)}" alt="" width="${size}" height="${size}" loading="lazy">`;
+}
+
+function initImageFallback() {
+  document.addEventListener('error', (e) => {
+    const img = e.target;
+    if (img instanceof HTMLImageElement && img.dataset.fallback && !img.src.endsWith(img.dataset.fallback)) {
+      img.src = img.dataset.fallback;
+    }
+  }, true);
+}
+
+/* -------------------------------------------------------------- النوافذ */
+
+const modalOf = (id) => {
+  const el = document.getElementById(id);
+  return el && window.bootstrap ? window.bootstrap.Modal.getOrCreateInstance(el) : null;
+};
+const openModal = (id) => modalOf(id)?.show();
+
+/**
+ * يغلق النافذة ويعود حين تكتمل، فيصحّ نقل التركيز بعدها لا قبلها.
+ *
+ * Bootstrap يتجاهل hide() أثناء حركة الفتح، فإجراءٌ سريع (نقرٌ على «أنهِ
+ * الكفالة» والنافذة ما زالت تظهر) كان يترك الوعد معلّقاً للأبد. ننتظر اكتمال
+ * الفتح أولاً ثم نغلق.
+ */
+function closeModal(id) {
+  const el = document.getElementById(id);
+  if (!el?.classList.contains('show')) return Promise.resolve();
+  return new Promise((resolve) => {
+    const hide = () => {
+      el.addEventListener('hidden.bs.modal', () => resolve(), { once: true });
+      modalOf(id)?.hide();
+    };
+    if (el.dataset.shown) hide();
+    else el.addEventListener('shown.bs.modal', hide, { once: true });
+  });
+}
+
+/** أيّ النوافذ اكتمل فتحها: يقرؤه closeModal. */
+function trackModals() {
+  document.addEventListener('shown.bs.modal', (e) => { e.target.dataset.shown = '1'; });
+  document.addEventListener('hide.bs.modal', (e) => { delete e.target.dataset.shown; });
+}
+
+/* --------------------------------------------------------------- الجلسة */
 
 /** انتهت الجلسة أثناء التصفح: إلى الدخول ثم العودة إلى هنا. */
 function toLogin() {
@@ -50,7 +125,7 @@ function toLogin() {
   window.location.replace(`/login?redirect=${encodeURIComponent('/dashboard')}`);
 }
 
-/** خطأ طلبٍ في اللوحة: الجلسة المنتهية تُعيد للدخول، وغيرها يُقال. */
+/** خطأ طلبٍ في البوابة: الجلسة المنتهية تُعيد للدخول، وغيرها يُقال. */
 function failed(error, fallback) {
   if (isAuthLoss(error)) {
     toLogin();
@@ -62,21 +137,29 @@ function failed(error, fallback) {
 
 /** حالة خطأ داخل القسم نفسه، بزرّ يعيد المحاولة. */
 const errorBlock = (text) => `
-<div class="portal-empty" role="alert">
+<div class="pt-empty" role="alert">
+  <i class="fa-solid fa-plug-circle-exclamation" aria-hidden="true"></i>
   <p>${escapeHtml(text)}</p>
-  <button class="btn btn--outline btn--sm" type="button" data-portal-retry>أعد المحاولة</button>
+  <button class="btn btn-outline-primary btn-sm" type="button" data-portal-retry>أعد المحاولة</button>
 </div>`;
 
 let sponsorships = [];
+let reports = [];
+let overview = null;
 
 export async function initPortal() {
   const root = $('[data-portal]');
   if (!root) return;
 
+  initViews();
+  initRail();
+  trackModals();
+  setText('[data-portal-today]', todayFmt.format(new Date()));
+
   /**
    * الحارس.
    *
-   * إخفاء اللوحة عن غير الداخل ليس أمناً، فالخادم يرفض `/portal/*` بلا جلسة
+   * إخفاء البوابة عن غير الداخل ليس أمناً، فالخادم يرفض `/portal/*` بلا جلسة
    * على أي حال. هذا لتفادي عرض صفحة تنتهي بخطأ.
    */
   let user;
@@ -84,9 +167,8 @@ export async function initPortal() {
     user = await me({ strict: true });
   } catch {
     // الخادم متعثّر لا الجلسة: لا نُخرج الكافل، نقول ما حدث
-    setText('[data-portal-subtitle]', 'تعذّر الوصول إلى الخادم الآن.');
-    const list = $('[data-portal-sponsorships]');
-    if (list) list.innerHTML = errorBlock('لم نستطع تحميل لوحتك. تحقّق من اتصالك ثم أعد المحاولة.');
+    attention('error', 'fa-plug-circle-exclamation', 'تعذّر الوصول إلى الخادم الآن.', 'تحقّق من اتصالك ثم أعد المحاولة.',
+      '<button class="btn btn-outline-primary btn-sm" type="button" data-portal-retry>أعد المحاولة</button>');
     $('[data-portal-retry]')?.addEventListener('click', () => window.location.reload());
     root.removeAttribute('data-portal-loading');
     return;
@@ -106,42 +188,59 @@ export async function initPortal() {
   }
 
   markSignedIn();
-  setText('[data-portal-name]', user.name);
-  setText('[data-portal-greeting]', `أهلاً ${user.name.split(' ')[0]}`);
-  setText('[data-portal-avatar]', user.name.charAt(0));
+  showUser(user);
   fillProfile(user);
 
-  $('[data-portal-logout]')?.addEventListener('click', async (e) => {
+  $$('[data-portal-logout], [data-logout]').forEach((button) => button.addEventListener('click', async (e) => {
     e.preventDefault();
+    busy(button, true, 'جارٍ الخروج…');
     await logout().catch(() => {});
     clearSignedIn();
     window.location.href = '/';
-  });
+  }));
 
   document.addEventListener('click', (e) => {
     if (e.target.closest('[data-portal-retry]')) loadOverview();
   });
 
-  initTabsSpy();
+  initImageFallback();
+  initStatusTabs();
+  initReports();
   initMessages();
   initStatusActions();
   initCancel();
   initBank();
   initAccount();
-  initPayments();
 
+  // الدفعات بعد الكفالات: صورة كل طفل في سطر دفعته تأتي من كفالته
   await loadOverview();
+  initPayments();
   root.removeAttribute('data-portal-loading');
+}
+
+/** الاسم في كل مكانٍ يظهر فيه، والتحية بحسب ساعة اليوم. */
+function showUser(user) {
+  const first = (user.name ?? '').split(' ')[0];
+  const hour = new Date().getHours();
+  setText('[data-portal-name]', user.name ?? '');
+  setText('[data-portal-greeting]', `${hour >= 4 && hour < 12 ? 'صباح الخير' : 'مساء الخير'}، ${first}`);
+  setText('[data-portal-avatar]', (user.name ?? '·').charAt(0));
+  setText('[data-portal-email]', user.email ?? '');
 }
 
 async function loadOverview() {
   try {
     const { data } = await portalOverview();
-    renderStats(data);
+    overview = data;
     sponsorships = data.sponsorships ?? [];
-    renderSponsorships(sponsorships);
+    reports = data.latest_reports ?? [];
+    renderStats(data);
+    renderKids();
+    renderSponsorships();
     renderPast(data.past_sponsorships ?? []);
-    renderReports(data.latest_reports ?? []);
+    renderReports();
+    renderLatest();
+    renderAttention();
   } catch (error) {
     if (isAuthLoss(error)) {
       toLogin();
@@ -150,37 +249,150 @@ async function loadOverview() {
 
     // لا أرقام وهمية ولا «لا كفالات» كاذبة: القسم يقول إنه لم يُحمَّل
     $$('[data-stat]').forEach((el) => { if (el.tagName === 'DD') el.textContent = '·'; });
-    setText('[data-portal-subtitle]', 'تعذّر تحميل لوحتك الآن.');
+    attention('error', 'fa-plug-circle-exclamation', 'تعذّر تحميل بوابتك الآن.', error?.message ?? '',
+      '<button class="btn btn-outline-primary btn-sm" type="button" data-portal-retry>أعد المحاولة</button>');
     const list = $('[data-portal-sponsorships]');
     if (list) list.innerHTML = errorBlock(error?.message ?? 'تعذّر تحميل كفالاتك.');
-    const reports = $('[data-portal-reports]');
-    if (reports) reports.innerHTML = '<li class="muted">لم تُحمَّل التقارير.</li>';
+    const kids = $('[data-portal-kids]');
+    if (kids) kids.innerHTML = '<li class="pt-empty"><p>لم يُحمَّل.</p></li>';
+    const host = $('[data-portal-reports]');
+    if (host) host.innerHTML = '<li class="pt-empty"><p>لم تُحمَّل التقارير.</p></li>';
+    const latest = $('[data-portal-latest]');
+    if (latest) latest.innerHTML = '<p class="pt-muted mb-0">لم يُحمَّل.</p>';
   }
 }
 
-/* ------------------------------------------------------------ التبويب النشط */
+/* -------------------------------------------------------------- الأقسام */
 
-/** التبويب النشط يتبع موضع القراءة، لا النقر وحده. */
-function initTabsSpy() {
-  const tabs = $$('.portal-tab');
-  const sections = tabs.map((t) => document.getElementById(t.hash.slice(1))).filter(Boolean);
-  if (!('IntersectionObserver' in window) || !sections.length) return;
+/**
+ * قسمٌ واحد ظاهر يتبع الرابط. التركيز ينتقل إلى عنوانه حين يبدّله الزائر
+ * (لا عند فتح الصفحة)، فيسمع قارئ الشاشة أين صار.
+ */
+function initViews() {
+  const views = $$('[data-pt-view]');
+  if (!views.length) return;
 
-  const setActive = (id) => tabs.forEach((t) => {
-    if (t.hash === `#${id}`) t.setAttribute('aria-current', 'true');
-    else t.removeAttribute('aria-current');
+  const show = (focus) => {
+    const id = location.hash.slice(1);
+    const view = views.find((v) => v.id === id) ?? views[0];
+    views.forEach((v) => { v.hidden = v !== view; });
+
+    $$('.pt-nav__link, .pt-tabbar__link').forEach((link) => {
+      if (link.hash === `#${view.id}`) link.setAttribute('aria-current', 'page');
+      else link.removeAttribute('aria-current');
+    });
+    document.title = `${SECTIONS[view.id] ?? 'بوابتي'} | كفالة`;
+    setText('[data-pt-title]', SECTIONS[view.id] ?? '');
+
+    if (focus) {
+      window.scrollTo({ top: 0 });
+      view.querySelector('h1')?.focus({ preventScroll: true });
+    }
+  };
+
+  // القسم في الرابط يمنع المتصفح من القفز إلى موضعه: نعرضه من أعلاه
+  if (location.hash) history.scrollRestoration = 'manual';
+  show(false);
+  window.addEventListener('hashchange', () => show(true));
+
+  // على الجوال الشريط درج: يُغلق حين يُختار منه قسم
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#ptSide a[href]')) return;
+    const side = document.getElementById('ptSide');
+    if (side?.classList.contains('show')) window.bootstrap?.Offcanvas.getInstance(side)?.hide();
   });
-
-  const observer = new IntersectionObserver((entries) => {
-    const visible = entries.filter((e) => e.isIntersecting)
-      .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
-    if (visible) setActive(visible.target.id);
-  }, { rootMargin: '-30% 0px -60% 0px' });
-
-  sections.forEach((s) => observer.observe(s));
 }
 
-/* ------------------------------------------------------------------ المؤشرات */
+/**
+ * طيّ الشريط إلى عمود أيقونات، كما في لوحة الإدارة. الاختيار يُحفظ في هذا
+ * المتصفح، وفي الوضع المطويّ يظهر اسم كل رابط عند المرور عليه أو التركيز.
+ */
+const RAIL_KEY = 'kafala-portal-rail';
+
+function initRail() {
+  const root = $('.pt');
+  const toggle = $('[data-rail-toggle]');
+  if (!root || !toggle) return;
+
+  const apply = (on) => {
+    root.classList.toggle('is-rail', on);
+    toggle.setAttribute('aria-expanded', String(!on));
+    toggle.setAttribute('aria-label', on ? 'توسيع القائمة' : 'طيّ القائمة');
+    toggle.title = on ? 'توسيع القائمة' : 'طيّ القائمة';
+  };
+
+  try { apply(localStorage.getItem(RAIL_KEY) === '1'); } catch { /* تخزين محجوب */ }
+
+  toggle.addEventListener('click', () => {
+    const on = !root.classList.contains('is-rail');
+    apply(on);
+    try { localStorage.setItem(RAIL_KEY, on ? '1' : '0'); } catch { /* تخزين محجوب */ }
+  });
+
+  const tip = $('[data-pt-tip]');
+  if (!tip) return;
+  const show = (e) => {
+    const link = e.target.closest?.('[data-tip]');
+    if (!link || !root.classList.contains('is-rail') || window.innerWidth < 992) return;
+    const r = link.getBoundingClientRect();
+    tip.textContent = link.dataset.tip;
+    tip.style.top = `${r.top + r.height / 2}px`;
+    tip.style.right = `${window.innerWidth - r.left + 10}px`;
+    tip.classList.add('is-shown');
+  };
+  const hide = () => tip.classList.remove('is-shown');
+  const side = $('#ptSide');
+  side?.addEventListener('mouseover', show);
+  side?.addEventListener('focusin', show);
+  side?.addEventListener('mouseout', hide);
+  side?.addEventListener('focusout', hide);
+  $('.pt-nav')?.addEventListener('scroll', hide);
+}
+
+/* ------------------------------------------------------- ما يحتاج انتباهك */
+
+function attention(tone, icon, title, text, action = '') {
+  const box = $('[data-portal-attention]');
+  if (!box) return;
+  box.dataset.tone = tone;
+  const i = $('[data-attention-icon]', box);
+  if (i) i.className = `fa-solid ${icon}`;
+  setText('[data-attention-title]', title);
+  setText('[data-portal-subtitle]', text);
+  const slot = $('[data-attention-action]', box);
+  if (slot) slot.innerHTML = action;
+}
+
+/** الأهم أولاً: حجزٌ يسقط إن لم يصل تحويله، ثم تقريرٌ لم يُقرأ، ثم الطمأنينة. */
+function renderAttention() {
+  const s = overview?.stats ?? {};
+  const next = overview?.next_payment;
+  const fresh = reports.filter((r) => r.is_new);
+  const pending = sponsorships.filter((x) => x.status === 'pending');
+
+  if (s.pending_count > 0 && pending.length) {
+    const p = pending[0];
+    attention('wait', 'fa-building-columns', 'حوّل قسطك الأول', s.pending_count === 1
+      ? `كفالة ${p.orphan?.name ?? 'الطفل'} محجوزة بانتظار تحويلك حتى ${fmtShort(p.hold_expires_at)}.`
+      : `لديك ${formatNumber(s.pending_count)} كفالات محجوزة بانتظار تحويلك.`,
+    `<button class="btn btn-cta btn-sm" type="button" data-bank-open="${p.id}">بيانات التحويل</button>`);
+    return;
+  }
+
+  if (fresh.length) {
+    attention('report', 'fa-file-lines', fresh.length === 1 ? 'تقريرٌ جديد لم تقرأه' : `${formatNumber(fresh.length)} تقارير جديدة`, fresh.length === 1
+      ? `زيارة ${fresh[0].orphan?.name ?? ''} الميدانية عن ${fresh[0].period_label}.`
+      : 'زياراتٌ ميدانية لأطفالك لم تقرأ تقاريرها بعد.',
+    `<button class="btn btn-primary btn-sm" type="button" data-report-open="${fresh[0].id}">اقرأ التقرير</button>`);
+    return;
+  }
+
+  attention('calm', 'fa-check', 'لا شيء ينتظرك اليوم', next
+    ? `قرأت كل التقارير، وقسطك القادم ${fmtShort(next.due_at)} يُخصم تلقائياً.`
+    : 'قرأت كل التقارير، وستظهر هنا أي مهمة جديدة.');
+}
+
+/* ------------------------------------------------------------- المؤشرات */
 
 function renderStats(data) {
   const s = data.stats ?? {};
@@ -188,47 +400,55 @@ function renderStats(data) {
   setText('[data-stat="orphans"]', formatNumber(s.orphans_sponsored ?? 0));
   setText('[data-stat="given"]', formatMoney(s.total_given ?? 0));
   setText('[data-stat="commitment"]', formatMoney(s.monthly_commitment ?? 0));
+  setText('[data-stat="payments-count"]', formatNumber(s.payments_count ?? 0));
 
   const next = data.next_payment;
   setText('[data-stat="next"]', next ? fmtShort(next.due_at) : 'لا أقساط');
+  setText('[data-stat="payments-next"]', next ? fmtShort(next.due_at) : 'لا أقساط');
   setText('[data-stat="next-hint"]', next
-    ? `القسط القادم، ${formatMoney(next.amount, next.currency)}${next.interval_months > 1 ? ` ${CYCLE[next.interval_months] ?? ''}` : ''}`
-    : 'القسط القادم');
+    ? `${formatMoney(next.amount, next.currency)}${next.interval_months > 1 ? ` ${CYCLE[next.interval_months] ?? ''}` : ''} · ${inDays(next.due_at)}`
+    : '');
+
+  setText('[data-stat="orphans-hint"]', s.pending_count > 0 ? `و${formatNumber(s.pending_count)} بانتظار التحويل` : 'كفالات نشطة');
+  setText('[data-stat="given-hint"]', `في ${formatNumber(s.payments_count ?? 0)} دفعة`);
 
   const since = data.sponsor?.since;
-  setText('[data-portal-since]', since ? `كافل منذ ${new Date(since).getFullYear()}` : '');
+  setText('[data-portal-since]', since ? `كافلٌ منذ ${new Date(since).getFullYear()}` : '');
+  const chip = $('[data-portal-since-chip]');
+  if (chip && since) { chip.hidden = false; chip.textContent = `كافلٌ منذ ${fmtDate(since)}`; }
+  $$('[data-pending-count]').forEach((el) => { el.hidden = !(s.pending_count > 0); el.textContent = formatNumber(s.pending_count ?? 0); });
+  setText('[data-portal-code]', data.sponsor?.code ?? '');
 
-  // نقطة «جديد» على تبويب التقارير: رقم حقيقي لا ثابت
-  const badge = $('[data-portal-reports-badge]');
-  if (badge) badge.hidden = !(s.new_reports > 0);
-
-  // الأهم أولاً: حجزٌ ينتظر تحويلك يسقط إن لم يصل
-  const status = s.pending_count > 0
-    ? (s.pending_count === 1
-      ? 'لديك كفالة محجوزة بانتظار تحويلك. تفاصيل التحويل في «كفالاتي».'
-      : `لديك ${formatNumber(s.pending_count)} كفالات محجوزة بانتظار تحويلك.`)
-    : s.new_reports > 0
-      ? (s.new_reports === 1
-        ? 'لديك تقرير جديد لم تقرأه بعد.'
-        : `لديك ${formatNumber(s.new_reports)} من التقارير الجديدة لم تقرأها بعد.`)
-      : next
-        ? `كل التقارير مقروءة. قسطك القادم ${fmtShort(next.due_at)}.`
-        : 'كل التقارير مقروءة.';
-  setText('[data-portal-subtitle]', status);
+  syncReportBadges();
 }
 
-/* ----------------------------------------------------------------- الكفالات */
+/** عدد التقارير غير المقروءة في الشريط الجانبي والجرس وشريط التبويب. */
+function syncReportBadges() {
+  const fresh = reports.filter((r) => r.is_new).length;
+  $$('[data-reports-count]').forEach((el) => {
+    el.hidden = fresh === 0;
+    if (el.classList.contains('pt-count')) el.textContent = formatNumber(fresh);
+  });
+}
 
-/** شارة الحالة وما يعنيه كل منها للكافل. */
+/* ------------------------------------------------------------- الكفالات */
+
+const STATUS_CHIP = {
+  active: '<span class="pt-chip pt-chip--ok">نشطة</span>',
+  paused: '<span class="pt-chip">موقوفة مؤقتاً</span>',
+  pending: '<span class="pt-chip pt-chip--wait">بانتظار التحويل</span>',
+};
+
+/** ما تعنيه الحالة للكافل، حين تحتاج شرحاً. */
 function statusLine(s) {
   if (s.status === 'pending') {
-    return `<p class="pkid__state pkid__state--wait">
+    return `<p class="pt-kid__state pt-kid__state--wait">
       <i class="fa-regular fa-clock" aria-hidden="true"></i>
       <span><b>بانتظار تحويلك.</b> نحجز الطفل لك حتى ${fmtShort(s.hold_expires_at)}، وتبدأ الكفالة حين يصل التحويل.</span>
     </p>`;
   }
   if (s.status === 'paused') {
-    return `<p class="pkid__state pkid__state--paused">
+    return `<p class="pt-kid__state">
       <i class="fa-solid fa-pause" aria-hidden="true"></i>
       <span><b>موقوفة مؤقتاً${s.paused_at ? ` منذ ${fmtShort(s.paused_at)}` : ''}.</b> لا خصم الآن، والطفل محجوز لك.</span>
     </p>`;
@@ -236,15 +456,76 @@ function statusLine(s) {
   return '';
 }
 
-function renderSponsorships(items) {
+/** أطفالك في الرئيسية: صفٌّ لكلٍّ بحالته وقسطه، والتفاصيل في «أطفالي». */
+function renderKids() {
+  const host = $('[data-portal-kids]');
+  if (!host) return;
+  if (!sponsorships.length) {
+    host.innerHTML = `<li class="pt-empty">
+      <i class="fa-solid fa-hand-holding-heart" aria-hidden="true"></i>
+      <p>لا كفالات قائمة الآن. طفلٌ واحد يكفي لتبدأ.</p>
+      <a class="btn btn-cta btn-sm" href="/orphans">اختر طفلاً تقف معه</a>
+    </li>`;
+    return;
+  }
+  host.innerHTML = sponsorships.map((s) => {
+    const o = s.orphan ?? {};
+    const funded = Math.min(100, Math.max(0, Number(o.funded_percent ?? 0)));
+    const interval = Number(s.interval_months ?? 1);
+    return `
+<li><a class="pt-row" href="#children" data-pt-link>
+  ${kidImage(o, 44)}
+  <span class="pt-row__who"><b>${escapeHtml(o.name ?? '')}${o.age ? `، ${ageLabel(o.age)}` : ''}</b><span>${escapeHtml(s.program?.name ?? '')}</span></span>
+  ${s.status === 'pending' ? '' : `<span class="pt-row__fund"><span>مغطّاة <b class="num">${funded}٪</b></span><span class="pt-bar"><span style="--v:${funded}%"></span></span></span>`}
+  <span class="pt-row__end">
+    <span class="num">${formatMoney(interval > 1 ? s.cycle_amount : s.monthly_amount, s.currency)}</span>
+    ${STATUS_CHIP[s.status] ?? ''}
+  </span>
+</a></li>`;
+  }).join('');
+}
+
+const STATUS_TABS = [['all', 'الكل'], ['active', 'نشطة'], ['paused', 'موقوفة مؤقتاً'], ['pending', 'بانتظار التحويل']];
+let statusFilter = 'all';
+
+/** تبويبات الحالة في «أطفالي»: لا تظهر إلا حين تختلف الحالات فعلاً. */
+function renderStatusTabs() {
+  const tabs = $('[data-status-tabs]');
+  if (!tabs) return;
+  const count = (k) => sponsorships.filter((x) => k === 'all' || x.status === k).length;
+  const kinds = new Set(sponsorships.map((x) => x.status));
+  if (statusFilter !== 'all' && !kinds.has(statusFilter)) statusFilter = 'all';
+  tabs.hidden = kinds.size < 2;
+  tabs.innerHTML = STATUS_TABS.filter(([k]) => k === 'all' || kinds.has(k)).map(([k, label]) =>
+    `<button type="button" data-status="${k}" aria-pressed="${statusFilter === k}">${label} <span class="num">${formatNumber(count(k))}</span></button>`).join('');
+
+  const active = sponsorships.filter((x) => x.status === 'active').length;
+  setText('[data-children-sub]', sponsorships.length
+    ? `${formatNumber(sponsorships.length)} ${sponsorships.length === 1 ? 'كفالة' : 'كفالات'}${active && active !== sponsorships.length ? `، ${formatNumber(active)} منها نشطة` : ''}. راسل الطفل، أو أوقف كفالته مؤقتاً، من بطاقته.`
+    : '');
+}
+
+function initStatusTabs() {
+  $('[data-status-tabs]')?.addEventListener('click', (e) => {
+    const button = e.target.closest('[data-status]');
+    if (!button) return;
+    statusFilter = button.dataset.status;
+    renderSponsorships();
+  });
+}
+
+function renderSponsorships() {
   const list = $('[data-portal-sponsorships]');
   if (!list) return;
+  renderStatusTabs();
+  const items = sponsorships.filter((x) => statusFilter === 'all' || x.status === statusFilter);
 
-  if (!items.length) {
+  if (!sponsorships.length) {
     list.innerHTML = `
-<div class="portal-empty">
-  <p>لا كفالات قائمة الآن.</p>
-  <a class="btn btn--cta" href="/orphans">اختر طفلاً تقف معه</a>
+<div class="pt-empty">
+  <i class="fa-solid fa-hand-holding-heart" aria-hidden="true"></i>
+  <p>لا كفالات قائمة الآن. طفلٌ واحد يكفي لتبدأ.</p>
+  <a class="btn btn-cta" href="/orphans">اختر طفلاً تقف معه</a>
 </div>`;
     return;
   }
@@ -252,58 +533,58 @@ function renderSponsorships(items) {
   list.innerHTML = items.map((s) => {
     const orphan = s.orphan ?? {};
     const name = escapeHtml(orphan.name ?? 'غير معروف');
-    const funded = Number(orphan.funded_percent ?? 0);
+    const funded = Math.min(100, Math.max(0, Number(orphan.funded_percent ?? 0)));
     const interval = Number(s.interval_months ?? 1);
-    const media = orphan.photo_url
-      ? `<img src="${escapeHtml(orphan.photo_url)}" alt="" loading="lazy" width="320" height="240">`
-      : `<span class="pkid__empty" aria-hidden="true">${escapeHtml((orphan.name ?? '؟').charAt(0))}</span>`;
-
     const pending = s.status === 'pending';
     const paused = s.status === 'paused';
+    const profile = `/orphan?id=${encodeURIComponent(orphan.reference_code ?? '')}`;
+    const latest = reports.find((r) => r.orphan?.id === orphan.id);
 
     // ما يظهر من الإجراءات يتبع الحالة: الحجز يُستكمل أو يُلغى، والموقوفة تُستأنف
     const actions = pending
-      ? `<button class="btn btn--primary btn--sm" type="button" data-bank-open="${s.id}">
+      ? `<button class="btn btn-cta btn-sm" type="button" data-bank-open="${s.id}">
           <i class="fa-solid fa-building-columns" aria-hidden="true"></i> بيانات التحويل
         </button>
-        <a class="link-arrow" href="/orphan?id=${encodeURIComponent(orphan.reference_code ?? '')}">ملف ${name}</a>
-        <button class="pkid__stop" type="button" data-cancel-open="${s.id}">ألغِ الحجز</button>`
-      : `<button class="btn btn--outline btn--sm" type="button" data-message-open="${s.id}">
-          <i class="fa-regular fa-envelope" aria-hidden="true"></i> أرسل رسالة
-        </button>
-        ${paused ? `<button class="btn btn--primary btn--sm" type="button" data-resume="${s.id}">
-          <i class="fa-solid fa-play" aria-hidden="true"></i> استأنف الكفالة
+        <a class="btn btn-soft btn-sm" href="${profile}">ملفه</a>
+        <button class="pt-kid__stop" type="button" data-cancel-open="${s.id}">ألغِ الحجز</button>`
+      : `${paused ? `<button class="btn btn-primary btn-sm" type="button" data-resume="${s.id}">
+          <i class="fa-solid fa-play" aria-hidden="true"></i> استأنف
         </button>` : ''}
-        <a class="link-arrow" href="/orphan?id=${encodeURIComponent(orphan.reference_code ?? '')}">ملف ${name}</a>
-        <button class="pkid__stop" type="button" data-cancel-open="${s.id}">${paused ? 'إنهاء الكفالة' : 'إيقاف أو إنهاء'}</button>`;
+        <button class="btn ${paused ? 'btn-soft' : 'btn-primary'} btn-sm" type="button" data-message-open="${s.id}">
+          <i class="fa-regular fa-envelope" aria-hidden="true"></i> رسالة
+        </button>
+        ${latest ? `<button class="btn btn-soft btn-sm" type="button" data-report-open="${latest.id}">
+          <i class="fa-regular fa-file-lines" aria-hidden="true"></i> آخر تقرير
+        </button>` : `<a class="btn btn-soft btn-sm" href="${profile}">ملفه</a>`}
+        <button class="pt-kid__stop" type="button" data-cancel-open="${s.id}">${paused ? 'إنهاء' : 'إيقاف أو إنهاء'}</button>`;
 
-    // الصنف sponsor-row يبقى: يعتمد عليه اختبار e2e للوحة
+    // الصنف sponsor-row يبقى: يعتمد عليه اختبار e2e للبوابة
     return `
-<article class="pkid sponsor-row" data-sponsorship="${s.id}" data-status="${escapeHtml(s.status)}">
-  <div class="pkid__media">${media}</div>
-
-  <div class="pkid__body">
-    <div class="pkid__head">
-      <h3>${name}<span>${orphan.age ? `، ${ageLabel(orphan.age)}` : ''}</span></h3>
-      <p>${escapeHtml(s.program?.name ?? '')}${s.is_zakat ? ' <span class="pkid__tag">من الزكاة</span>' : ''}</p>
+<article class="pt-kid sponsor-row" data-sponsorship="${s.id}" data-status="${escapeHtml(s.status)}">
+  <div class="pt-kid__head">
+    ${kidImage(orphan, 60, 'pt-kid__photo')}
+    <div class="pt-kid__who">
+      <h3>${name}${orphan.age ? `<span>، ${ageLabel(orphan.age)}</span>` : ''}</h3>
+      <p>${escapeHtml(s.program?.name ?? '')}${s.is_zakat ? '<span class="pt-tag">من الزكاة</span>' : ''}</p>
     </div>
-
-    ${statusLine(s)}
-
-    <dl class="pkid__facts">
-      <div><dt>${interval > 1 ? `${CYCLE[interval]} (${formatMoney(s.monthly_amount, s.currency)} شهرياً)` : 'شهرياً'}</dt>
-        <dd class="num">${formatMoney(interval > 1 ? s.cycle_amount : s.monthly_amount, s.currency)}</dd></div>
-      <div><dt>${pending ? 'أول دفعة' : 'القسط القادم'}</dt><dd>${pending ? 'عند وصول التحويل' : paused ? 'بعد الاستئناف' : fmtShort(s.next_due_at)}</dd></div>
-      <div><dt>ما قدّمته له</dt><dd class="num">${formatMoney(s.total_paid ?? 0, s.currency)}</dd></div>
-    </dl>
-
-    ${pending ? '' : `<div class="pkid__fund">
-      <span class="kid__track" style="--v:${funded}%"><span></span></span>
-      <span>كفالته مغطّاة بنسبة <b class="num">${funded}٪</b></span>
-    </div>`}
-
-    <div class="pkid__actions">${actions}</div>
+    ${STATUS_CHIP[s.status] ?? ''}
   </div>
+
+  ${statusLine(s)}
+
+  <dl class="pt-kid__facts">
+    <div><dt>${interval > 1 ? CYCLE[interval] : 'شهرياً'}</dt>
+      <dd class="num">${formatMoney(interval > 1 ? s.cycle_amount : s.monthly_amount, s.currency)}</dd></div>
+    <div><dt>${pending ? 'أول دفعة' : 'القسط القادم'}</dt><dd>${pending ? 'عند التحويل' : paused ? 'بعد الاستئناف' : fmtShort(s.next_due_at)}</dd></div>
+    <div><dt>قدّمتَ له</dt><dd class="num">${formatMoney(s.total_paid ?? 0, s.currency)}</dd></div>
+  </dl>
+
+  ${pending ? '' : `<div class="pt-kid__fund">
+    <span>كفالته مغطّاة بنسبة <b class="num">${funded}٪</b></span>
+    <span class="pt-bar" role="img" aria-label="مغطّاة ${funded}٪"><span style="--v:${funded}%"></span></span>
+  </div>`}
+
+  <div class="pt-kid__actions">${actions}</div>
 </article>`;
   }).join('');
 }
@@ -319,118 +600,191 @@ function renderPast(items) {
   setText('[data-portal-past-count]', formatNumber(items.length));
   const list = $('[data-portal-past-list]');
   list.innerHTML = items.map((s) => `
-<li class="ppast">
+<li>
   <strong>${escapeHtml(s.orphan?.name ?? 'غير معروف')}</strong>
   <span>${escapeHtml(s.status_label ?? '')}${s.ended_at ? ` في ${fmtDate(s.ended_at)}` : ''}</span>
-  <span>قدّمت له <b class="num">${formatMoney(s.total_paid ?? 0, s.currency)}</b></span>
+  <span>قدّمتَ له <b class="num">${formatMoney(s.total_paid ?? 0, s.currency)}</b></span>
 </li>`).join('');
 }
 
-/* ----------------------------------------------------------------- التقارير */
+/* -------------------------------------------------------------- التقارير */
 
-function renderReports(items) {
-  const list = $('[data-portal-reports]');
-  if (!list) return;
+const NEW_CHIP = '<span class="pt-chip pt-chip--new">جديد</span>';
 
-  if (!items.length) {
-    list.innerHTML = '<li class="portal-empty"><p>لا تقارير منشورة بعد. يصلك أول تقرير بعد ثلاثة أشهر من بدء الكفالة.</p></li>';
+/** شريط «كيف صُرفت الكفالة» ومفتاحه، من نسب الخادم. */
+/** legend=false في البطاقات المتكررة: المفتاح نفسه تحت كل شريط ضجيجٌ لا معلومة. */
+function spendBar(report, legend = true) {
+  const parts = Object.entries(report.spending_breakdown ?? {})
+    .filter(([key, v]) => SPENDING[key] && Number(v) > 0);
+  if (!parts.length) return '';
+  return `
+<div class="pt-split" role="img" aria-label="${parts.map(([k, v]) => `${SPENDING[k].label} ${v}٪`).join('، ')}">
+  ${parts.map(([k, v]) => `<span style="--w:${Number(v)}%; --c:${SPENDING[k].color}"></span>`).join('')}
+</div>
+${legend ? `<ul class="pt-legend" aria-hidden="true">
+  ${parts.map(([k, v]) => `<li><i style="--c:${SPENDING[k].color}"></i>${SPENDING[k].label} <b class="num">${Number(v)}٪</b></li>`).join('')}
+</ul>` : ''}`;
+}
+
+/** أحدث تقرير في الرئيسية: من زار الطفل ومتى، وخلاصته، وكيف صُرفت كفالته. */
+function renderLatest() {
+  const host = $('[data-portal-latest]');
+  if (!host) return;
+  const r = reports.find((x) => x.is_new) ?? reports[0];
+
+  if (!r) {
+    host.innerHTML = '<p class="pt-muted mb-0">يصلك أول تقرير بعد ثلاثة أشهر من بدء الكفالة، بعد زيارةٍ ميدانية للطفل.</p>';
     return;
   }
 
-  list.innerHTML = items.map((r) => `
-<li class="preport${r.is_new ? ' is-new' : ''}" data-report="${r.id}">
-  <span class="preport__dot" aria-hidden="true"></span>
-  <div class="preport__text">
-    <strong>تقرير ${escapeHtml(r.orphan?.name ?? '')}</strong>
-    <span>${escapeHtml(r.period_label)}${r.is_new ? ' · <b>جديد</b>' : ''}</span>
+  host.innerHTML = `
+<div class="pt-latest" data-report="${r.id}">
+  <div class="pt-who">
+    ${kidImage(r.orphan, 44)}
+    <div><b>${escapeHtml(r.orphan?.name ?? '')}</b><span>${escapeHtml(r.period_label ?? '')} · زيارة ${fmtShort(r.visit_date)}</span></div>
+    ${r.is_new ? NEW_CHIP : ''}
   </div>
-  <button class="btn btn--ghost btn--sm" type="button" data-report-open="${r.id}">
+  ${r.summary ? `<p class="pt-latest__summary">${escapeHtml(r.summary)}</p>` : ''}
+  ${spendBar(r)}
+  <button class="btn btn-soft btn-sm w-100" type="button" data-report-open="${r.id}">اقرأ التقرير كاملاً</button>
+</div>`;
+}
+
+let reportFilter = 'all';
+
+function renderReports() {
+  const list = $('[data-portal-reports]');
+  if (!list) return;
+
+  if (!reports.length) {
+    list.innerHTML = `<li class="pt-empty">
+      <i class="fa-regular fa-file-lines" aria-hidden="true"></i>
+      <p>لا تقارير منشورة بعد. يصلك أول تقرير بعد ثلاثة أشهر من بدء الكفالة.</p>
+    </li>`;
+    return;
+  }
+
+  const fresh = reports.filter((r) => r.is_new).length;
+  setText('[data-reports-sub]', `${formatNumber(reports.length)} ${reports.length === 1 ? 'تقرير' : 'تقارير'}${fresh ? `، ${formatNumber(fresh)} منها ${fresh === 1 ? 'جديد' : 'جديدة'}` : ''}. زيارةٌ ميدانية لكل طفل كل ثلاثة أشهر.`);
+
+  // تصفية بالطفل حين يكفل أكثر من واحد
+  const kids = [...new Map(reports.map((r) => [r.orphan?.id, r.orphan])).values()].filter(Boolean);
+  const filter = $('[data-report-filter]');
+  if (filter) {
+    filter.hidden = kids.length < 2;
+    if (!kids.some((k) => String(k.id) === reportFilter)) reportFilter = 'all';
+    filter.innerHTML = kids.length < 2 ? '' : [
+      `<button type="button" data-filter="all" aria-pressed="${reportFilter === 'all'}">الكل <span class="num">${formatNumber(reports.length)}</span></button>`,
+      ...kids.map((k) => `<button type="button" data-filter="${k.id}" aria-pressed="${reportFilter === String(k.id)}">${kidImage(k, 26)}${escapeHtml(k.name ?? '')} <span class="num">${formatNumber(reports.filter((r) => r.orphan?.id === k.id).length)}</span></button>`),
+    ].join('');
+  }
+
+  list.innerHTML = reports.map((r) => `
+<li class="pt-report${r.is_new ? ' is-new' : ''}" data-report="${r.id}" data-orphan="${r.orphan?.id ?? ''}"${reportFilter !== 'all' && String(r.orphan?.id) !== reportFilter ? ' hidden' : ''}>
+  <div class="pt-who">
+    ${kidImage(r.orphan, 44)}
+    <div><b>${escapeHtml(r.orphan?.name ?? '')}</b><span>زيارة ${fmtDate(r.visit_date)}</span></div>
+    ${r.is_new ? NEW_CHIP : ''}
+  </div>
+  <h3>${escapeHtml(r.period_label ?? r.title ?? '')}</h3>
+  ${r.summary ? `<p class="pt-report__summary">${escapeHtml(r.summary)}</p>` : ''}
+  ${spendBar(r, false)}
+  <button class="btn ${r.is_new ? 'btn-primary' : 'btn-soft'} btn-sm" type="button" data-report-open="${r.id}">
     اقرأ التقرير <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
   </button>
 </li>`).join('');
+}
+
+function initReports() {
+  $('[data-report-filter]')?.addEventListener('click', (e) => {
+    const button = e.target.closest('[data-filter]');
+    if (!button) return;
+    reportFilter = button.dataset.filter;
+    $$('[data-filter]').forEach((b) => b.setAttribute('aria-pressed', String(b === button)));
+    $$('[data-portal-reports] [data-report]').forEach((li) => {
+      li.hidden = reportFilter !== 'all' && li.dataset.orphan !== reportFilter;
+    });
+  });
 
   /**
    * فتح التقرير يسجّل القراءة على الخادم، فتُطفأ علامة «جديد» عند الجميع،
-   * لا في هذا المتصفح وحده.
+   * لا في هذا المتصفح وحده. والزرّ قد يكون في أي قسم (البطاقة، والرئيسية،
+   * والتقارير، وما يحتاج انتباهك)، فالالتقاط على مستوى المستند.
    */
-  $$('[data-report-open]', list).forEach((button) => {
-    button.addEventListener('click', async () => {
-      const id = button.dataset.reportOpen;
-      button.disabled = true;
+  document.addEventListener('click', async (e) => {
+    const button = e.target.closest('[data-report-open]');
+    if (!button) return;
+    const id = Number(button.dataset.reportOpen);
+    button.disabled = true;
 
-      try {
-        const { data } = await markReportSeen(id);
-        openReportModal(data);
-        const row = $(`[data-report="${id}"]`);
-        row?.classList.remove('is-new');
-        row?.querySelector('.preport__text b')?.remove();
-        if (!$('.preport.is-new')) $('[data-portal-reports-badge]')?.setAttribute('hidden', '');
-      } catch (error) {
-        failed(error, 'تعذّر فتح التقرير.');
-      } finally {
-        button.disabled = false;
+    try {
+      const { data } = await markReportSeen(id);
+      openReportModal(data);
+      const cached = reports.find((r) => r.id === id);
+      if (cached?.is_new) {
+        cached.is_new = false;
+        renderReports();
+        renderLatest();
+        renderAttention();
+        syncReportBadges();
       }
-    });
+    } catch (error) {
+      failed(error, 'تعذّر فتح التقرير.');
+    } finally {
+      if (button.isConnected) button.disabled = false;
+    }
   });
 }
 
-/** التقرير بشكل «نموذج التقرير» في الرئيسية: ملخص، ملاحظات، وكيف صُرفت الكفالة. */
+/** التقرير كما يُقرأ: من زاره ومتى، وخلاصته، وملاحظاته، وكيف صُرفت الكفالة. */
 function openReportModal(report) {
   const host = $('[data-report-content]');
   if (!host) return;
 
   const notes = [
-    ['الدراسة', report.academic_note],
-    ['الصحة', report.health_note],
-    ['الحالة النفسية', report.psychosocial_note],
-  ].filter(([, v]) => v);
-
-  const breakdown = Object.entries(report.spending_breakdown ?? {})
-    .filter(([key, v]) => SPENDING[key] && Number(v) > 0);
+    ['الدراسة', 'fa-book-open', report.academic_note],
+    ['الصحة', 'fa-heart-pulse', report.health_note],
+    ['الحال النفسية', 'fa-face-smile', report.psychosocial_note],
+  ].filter(([, , v]) => v);
 
   const photo = report.media?.find((m) => m.type === 'image') ?? null;
+  const breakdown = spendBar(report);
 
   host.innerHTML = `
-<header class="preport-modal__head">
-  <p class="meta-label">${escapeHtml(report.period_label ?? '')}</p>
-  <h2 id="reportModalTitle">${escapeHtml(report.title)}</h2>
-  <p>${escapeHtml(report.orphan?.name ?? '')} · زيارة ميدانية في ${fmtDate(report.visit_date)}${report.supervisor ? ` مع ${escapeHtml(report.supervisor)}` : ''}</p>
+<header class="pt-rep__head">
+  ${kidImage(report.orphan, 56)}
+  <div>
+    <p>${escapeHtml(report.period_label ?? '')} · زيارة ميدانية ${fmtDate(report.visit_date)}${report.supervisor ? ` مع ${escapeHtml(report.supervisor)}` : ''}</p>
+    <h2 id="reportModalTitle">${escapeHtml(report.orphan?.name ? `تقرير ${report.orphan.name}` : report.title)}</h2>
+  </div>
 </header>
 
-${report.summary ? `<p class="preport-modal__summary">${escapeHtml(report.summary)}</p>` : ''}
+${report.summary ? `<p class="pt-rep__summary">${escapeHtml(report.summary)}</p>` : ''}
 
-${photo ? `<figure class="preport-modal__photo"><img src="${escapeHtml(photo.url)}" alt="${escapeHtml(photo.caption ?? '')}" loading="lazy"></figure>` : ''}
+${photo ? `<figure class="pt-rep__photo"><img src="${escapeHtml(photo.url)}" alt="${escapeHtml(photo.caption ?? '')}" loading="lazy"></figure>` : ''}
 
-${notes.length ? `<dl class="preport-modal__notes">
-  ${notes.map(([label, value]) => `<div><dt>${label}</dt><dd>${escapeHtml(value)}</dd></div>`).join('')}
+${notes.length ? `<dl class="pt-rep__notes">
+  ${notes.map(([label, icon, value]) => `<div><dt><i class="fa-solid ${icon}" aria-hidden="true"></i>${label}</dt><dd>${escapeHtml(value)}</dd></div>`).join('')}
 </dl>` : ''}
 
-${breakdown.length ? `<div class="preport-modal__spend">
-  <h3>كيف صُرفت الكفالة</h3>
-  <div class="report-split" role="img" aria-label="${breakdown.map(([k, v]) => `${SPENDING[k].label} ${v}٪`).join('، ')}">
-    ${breakdown.map(([k, v]) => `<span style="--w:${Number(v)}%; --c:${SPENDING[k].color}"></span>`).join('')}
-  </div>
-  <ul class="report-legend" role="list">
-    ${breakdown.map(([k, v]) => `<li><i style="--c:${SPENDING[k].color}"></i>${SPENDING[k].label} <b class="num">${Number(v)}٪</b></li>`).join('')}
-  </ul>
-</div>` : ''}
+${breakdown ? `<div class="pt-rep__spend"><h3>كيف صُرفت الكفالة</h3>${breakdown}</div>` : ''}
 
-<p class="preport-modal__private">
+<p class="pt-rep__private">
   <i class="fa-solid fa-lock" aria-hidden="true"></i>
-  هذا التقرير خاص بك ككافل. نرجو ألا تنشر صور الطفل أو تفاصيله خارج المنصة.
+  <span>هذا التقرير خاصٌّ بك ككافل. نرجو ألا تنشر صور الطفل أو تفاصيله خارج المنصة.</span>
 </p>`;
 
   openModal('reportModal');
 }
 
-/* ------------------------------------------------------------------ الرسائل */
+/* --------------------------------------------------------------- الرسائل */
 
 let messagesFor = null;
 
 /** «وافق المشرف» لا تعني «وصلت»: التسليم خطوة لاحقة يسجّلها المشرف. */
 const MESSAGE_STATUS = {
   pending_review: 'بانتظار مراجعة المشرف',
-  approved: 'وافق عليها المشرف، وتصل الطفل في الزيارة القادمة',
+  approved: 'وافق عليها المشرف، وتصل في الزيارة القادمة',
   delivered: 'وصلت للطفل',
   rejected: 'لم تُسلَّم',
 };
@@ -442,10 +796,21 @@ function initMessages() {
     openMessages(Number(trigger.dataset.messageOpen));
   });
 
+  $('#messagesModal')?.addEventListener('shown.bs.modal', () => $('#messageBody')?.focus());
+
   const form = $('[data-messages-form]');
+  const field = form?.elements.body;
+
+  // Enter يرسل، وShift+Enter سطرٌ جديد: كما في أي محادثة
+  field?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) {
+      e.preventDefault();
+      form.requestSubmit();
+    }
+  });
+
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const field = form.elements.body;
     const body = field.value.trim();
     if (body.length < 2) {
       toast('اكتب رسالتك أولاً.', 'error');
@@ -474,6 +839,11 @@ async function openMessages(id) {
   messagesFor = id;
   const s = sponsorships.find((x) => x.id === id);
   setText('#messagesTitle', `رسائلك إلى ${s?.orphan?.name ?? 'الطفل'}`);
+  const avatar = $('[data-messages-avatar]');
+  if (avatar && s?.orphan) {
+    avatar.dataset.fallback = s.orphan.illustration_url ?? '';
+    avatar.src = s.orphan.photo_url || s.orphan.illustration_url || '';
+  }
   openModal('messagesModal');
   await renderMessages(id);
 }
@@ -481,7 +851,7 @@ async function openMessages(id) {
 async function renderMessages(id) {
   const list = $('[data-messages-list]');
   if (!list) return;
-  list.innerHTML = '<li class="muted">جارٍ التحميل…</li>';
+  list.innerHTML = '<li class="pt-muted">جارٍ التحميل…</li>';
 
   try {
     const { data } = await portalMessages(id);
@@ -490,23 +860,30 @@ async function renderMessages(id) {
     const items = [...(data ?? [])].reverse();
 
     list.innerHTML = items.length
-      ? items.map((m) => `
-<li class="pmessage pmessage--${m.sender_type === 'sponsor' ? 'me' : 'them'}">
+      ? items.map((m) => {
+        const mine = m.sender_type === 'sponsor';
+        return `
+<li class="pt-msg pt-msg--${mine ? 'me' : 'them'}">
   <p>${escapeHtml(m.body ?? '')}</p>
-  <span>${fmtDate(m.created_at)}${m.sender_type === 'sponsor' ? ` · ${MESSAGE_STATUS[m.status] ?? escapeHtml(m.status_label ?? '')}` : ''}</span>
-  ${m.status === 'rejected' && m.rejection_reason ? `<span class="pmessage__why">${escapeHtml(m.rejection_reason)}</span>` : ''}
-</li>`).join('')
-      : '<li class="portal-empty"><p>لا رسائل بعد. كلمة قصيرة منك تعني له الكثير.</p></li>';
+  <small>${fmtDate(m.created_at)}${mine ? ` · ${MESSAGE_STATUS[m.status] ?? escapeHtml(m.status_label ?? '')}` : ''}</small>
+  ${m.status === 'rejected' && m.rejection_reason ? `<span class="pt-msg__why">${escapeHtml(m.rejection_reason)}</span>` : ''}
+</li>`;
+      }).join('')
+      : `<li class="pt-empty">
+          <i class="fa-regular fa-comment-dots" aria-hidden="true"></i>
+          <p>لا رسائل بعد. كلمةٌ قصيرة منك تعني له الكثير.</p>
+        </li>`;
 
-    list.scrollTop = list.scrollHeight;
+    const body = list.closest('.modal-body');
+    if (body) body.scrollTop = body.scrollHeight;
   } catch (error) {
     if (messagesFor !== id) return;
     if (isAuthLoss(error)) { toLogin(); return; }
-    list.innerHTML = `<li class="muted">${escapeHtml(error.message ?? 'تعذّر تحميل الرسائل.')}</li>`;
+    list.innerHTML = `<li class="pt-muted">${escapeHtml(error.message ?? 'تعذّر تحميل الرسائل.')}</li>`;
   }
 }
 
-/* ------------------------------------------------- الإيقاف المؤقت والاستئناف */
+/* -------------------------------------------- الإيقاف المؤقت والاستئناف */
 
 /**
  * بعد إعادة رسم القائمة: الزر الذي ضُغط (أو فُتحت منه النافذة) لم يعد موجوداً،
@@ -514,8 +891,7 @@ async function renderMessages(id) {
  * عنوان القائمة إن اختفت البطاقة (كفالة أُنهيت).
  */
 function refocusSponsorship(id) {
-  const target = $(`[data-sponsorship="${id}"] h3`)
-    ?? $('[data-portal-sponsorships]')?.closest('section')?.querySelector('h2');
+  const target = $(`[data-sponsorship="${id}"] h3`) ?? $('#childrenTitle');
   if (!target) return;
   target.tabIndex = -1;
   target.focus();
@@ -527,11 +903,10 @@ async function changeStatus(id, status, button) {
     const res = await setSponsorshipStatus(id, status);
     toast(res.message ?? 'حُفظ.');
     await loadOverview();
-    refocusSponsorship(id);
     return true;
   } catch (error) {
     failed(error, 'تعذّر تغيير حالة الكفالة.');
-    // 409: الحالة تغيّرت من مكان آخر، فاللوحة تعرض الحالة الحقيقية
+    // 409: الحالة تغيّرت من مكان آخر، فالبوابة تعرض الحالة الحقيقية
     if (error?.status === 409) await loadOverview();
     return false;
   } finally {
@@ -540,13 +915,15 @@ async function changeStatus(id, status, button) {
 }
 
 function initStatusActions() {
-  document.addEventListener('click', (e) => {
+  document.addEventListener('click', async (e) => {
     const trigger = e.target.closest('[data-resume]');
-    if (trigger) changeStatus(Number(trigger.dataset.resume), 'active', trigger);
+    if (!trigger) return;
+    const id = Number(trigger.dataset.resume);
+    if (await changeStatus(id, 'active', trigger)) refocusSponsorship(id);
   });
 }
 
-/* ------------------------------------------------- الإنهاء (والإيقاف بدلاً منه) */
+/* ------------------------------------------ الإنهاء (والإيقاف بدلاً منه) */
 
 let cancelFor = null;
 
@@ -577,7 +954,7 @@ function initCancel() {
     const id = cancelFor;
     const ok = await changeStatus(id, 'paused', e.currentTarget);
     if (ok) {
-      closeModal($('#cancelModal'));
+      await closeModal('cancelModal');
       refocusSponsorship(id);
     }
   });
@@ -585,13 +962,13 @@ function initCancel() {
   const form = $('[data-cancel-form]');
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const button = form.querySelector('[type="submit"]');
+    const button = $('[data-cancel-submit]');
     busy(button, true, 'جارٍ التنفيذ…');
 
     try {
       const id = cancelFor;
       const res = await cancelSponsorship(id, form.elements.reason.value.trim());
-      closeModal($('#cancelModal'));
+      await closeModal('cancelModal');
       form.reset();
       toast(res.message ?? 'أُنهيت الكفالة.');
       await loadOverview();
@@ -604,7 +981,7 @@ function initCancel() {
   });
 }
 
-/* ------------------------------------------------------------ بيانات التحويل */
+/* ------------------------------------------------------- بيانات التحويل */
 
 let bankConfig = null;
 
@@ -635,9 +1012,23 @@ function initBank() {
     setText('[data-bank="until"]', fmtDate(s.hold_expires_at));
     openModal('bankModal');
   });
+
+  // المرجع والـ IBAN يُنسخان بنقرة: كتابتهما يدوياً أكثر أسباب ضياع التحويل
+  document.addEventListener('click', async (e) => {
+    const button = e.target.closest('[data-copy]');
+    if (!button) return;
+    const value = $(`[data-bank="${button.dataset.copy}"]`)?.textContent.trim();
+    if (!value) return;
+    try {
+      await navigator.clipboard.writeText(value);
+      toast('نُسخ.', 'info', 2000);
+    } catch {
+      toast('تعذّر النسخ. حدّد النص وانسخه يدوياً.', 'error');
+    }
+  });
 }
 
-/* -------------------------------------------------------------------- الحساب */
+/* ---------------------------------------------------------------- الحساب */
 
 function fillProfile(user) {
   const form = $('[data-portal-profile]');
@@ -663,6 +1054,7 @@ const firstError = (error, fallback) =>
 function clearFieldErrors(form) {
   $$('[aria-invalid="true"]', form).forEach((input) => input.setAttribute('aria-invalid', 'false'));
   $$('.field.is-invalid', form).forEach((field) => field.classList.remove('is-invalid'));
+  $$('.field__error', form).forEach((box) => { box.textContent = ''; });
 }
 
 function showFieldError(input, message) {
@@ -697,6 +1089,7 @@ function showFormErrors(form, error, fallback) {
 
 /** زرّ ينتظر الخادم: معطّل، ويقول ذلك نصّاً لا بالتعطيل وحده. */
 function busy(button, on, label = 'جارٍ الحفظ…') {
+  if (!button) return;
   if (on) {
     button.dataset.label = button.innerHTML;
     button.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i> ${label}`;
@@ -734,10 +1127,7 @@ function initAccount() {
 
     try {
       const res = await updateProfile(payload);
-      const name = res.data?.name ?? payload.name;
-      setText('[data-portal-name]', name);
-      setText('[data-portal-greeting]', `أهلاً ${name.split(' ')[0]}`);
-      setText('[data-portal-avatar]', name.charAt(0));
+      showUser({ name: res.data?.name ?? payload.name, email: res.data?.email ?? payload.email });
       profile.dataset.email = res.data?.email ?? payload.email;
       if (profile.elements.current_password) profile.elements.current_password.value = '';
       if (confirmBox) confirmBox.hidden = true;
@@ -794,14 +1184,35 @@ function initAccount() {
   });
 }
 
-/* ---------------------------------------------------------------- المدفوعات */
+/* ------------------------------------------------------------ المدفوعات */
 
-const PAY_CLASS = { succeeded: 'ok', failed: 'warn', pending: 'wait', refunded: 'muted' };
+const PAY_CHIP = { succeeded: 'pt-chip--ok', failed: 'pt-chip--wait', pending: 'pt-chip--wait', refunded: '' };
+const PAY_ICON = { succeeded: ['', 'fa-check'], failed: ['--warn', 'fa-xmark'], pending: ['--wait', 'fa-clock'], refunded: ['--wait', 'fa-rotate-left'] };
 let paymentsPage = 0;
 
 function initPayments() {
   $('[data-payments-more]')?.addEventListener('click', () => loadPayments(paymentsPage + 1));
   loadPayments(1);
+}
+
+/** صورة الطفل في سطر الدفعة: من كفالته في البوابة إن كانت قائمة. */
+const orphanOf = (p) => sponsorships.find((s) => s.id === p.sponsorship?.id)?.orphan ?? p.sponsorship?.orphan;
+
+/** آخر ثلاث دفعات في الرئيسية: أكانت قد وصلت؟ */
+function renderRecent(items) {
+  const host = $('[data-portal-recent]');
+  if (!host) return;
+  host.innerHTML = items.length
+    ? items.slice(0, 3).map((p) => {
+      const [tone, icon] = PAY_ICON[p.status] ?? PAY_ICON.pending;
+      return `
+<li>
+  <span class="pt-recent__icon pt-recent__icon${tone}" aria-hidden="true"><i class="fa-solid ${icon}"></i></span>
+  <span class="pt-recent__text"><b>${escapeHtml(p.sponsorship?.orphan?.name ?? 'كفالة')}</b><span>${fmtShort(p.paid_at ?? p.created_at)} · ${escapeHtml(p.status_label ?? '')}</span></span>
+  <span class="num">${formatMoney(p.amount, p.currency)}</span>
+</li>`;
+    }).join('')
+    : '<li class="pt-muted">لا مدفوعات بعد.</li>';
 }
 
 /** صفحة بعد صفحة: كان السجل يقف عند آخر عشر دفعات بلا طريق لما قبلها. */
@@ -816,31 +1227,39 @@ async function loadPayments(page) {
     paymentsPage = meta?.current_page ?? page;
 
     setText('[data-stat="payments-total"]', formatMoney(meta?.total_given ?? 0));
+    if (page === 1) renderRecent(data);
 
     if (page === 1 && !data.length) {
-      body.innerHTML = '<tr><td colspan="6" class="muted">لا مدفوعات بعد.</td></tr>';
+      body.innerHTML = '<tr><td colspan="6" class="pt-table__empty">لا مدفوعات بعد.</td></tr>';
     } else {
       const rows = data.map((p) => `
 <tr>
-  <td>${fmtDate(p.paid_at ?? p.created_at)}</td>
-  <td>${escapeHtml(p.sponsorship?.orphan?.name ?? 'غير معروف')}</td>
-  <td class="num">${formatMoney(p.amount, p.currency)}</td>
-  <td>${escapeHtml(p.card ?? p.method_label ?? '')}</td>
-  <td>
-    <span class="pstatus pstatus--${PAY_CLASS[p.status] ?? 'muted'}">${escapeHtml(p.status_label ?? '')}</span>
-    ${p.status === 'failed' && p.failure_reason ? `<span class="pstatus__why">${escapeHtml(p.failure_reason)}</span>` : ''}
+  <td data-label="التاريخ">${fmtDate(p.paid_at ?? p.created_at)}</td>
+  <td data-label="الطفل"><span class="pt-table__kid">${kidImage(orphanOf(p), 30)}${escapeHtml(p.sponsorship?.orphan?.name ?? 'غير معروف')}</span></td>
+  <td data-label="المبلغ" class="num">${formatMoney(p.amount, p.currency)}</td>
+  <td data-label="الوسيلة">${escapeHtml(p.card ?? p.method_label ?? '')}</td>
+  <td data-label="الحالة">
+    <span class="pt-chip ${PAY_CHIP[p.status] ?? ''}">${escapeHtml(p.status_label ?? '')}</span>
+    ${p.status === 'failed' && p.failure_reason ? `<span class="pt-why">${escapeHtml(p.failure_reason)}</span>` : ''}
   </td>
-  <td>${p.receipt_number ? `<span class="num muted">${escapeHtml(p.receipt_number)}</span>` : '<span class="muted">لا يوجد</span>'}</td>
+  <td data-label="الإيصال">${p.receipt_number ? `<span class="num pt-receipt">${escapeHtml(p.receipt_number)}</span>` : '<span class="pt-receipt">لا يوجد</span>'}</td>
 </tr>`).join('');
       if (page === 1) body.innerHTML = rows;
       else body.insertAdjacentHTML('beforeend', rows);
     }
 
     if (more) more.hidden = !(meta && meta.current_page < meta.last_page);
+    const foot = $('[data-payments-foot]');
+    if (foot) foot.hidden = page === 1 && !data.length;
+    setText('[data-payments-shown]', meta?.total
+      ? `عرض ${formatNumber(body.querySelectorAll('tr').length)} من ${formatNumber(meta.total)}`
+      : '');
   } catch (error) {
     if (isAuthLoss(error)) { toLogin(); return; }
-    if (page === 1) body.innerHTML = '<tr><td colspan="6" class="muted">تعذّر تحميل سجل المدفوعات.</td></tr>';
-    else toast(error?.message ?? 'تعذّر تحميل المزيد.', 'error');
+    if (page === 1) {
+      body.innerHTML = '<tr><td colspan="6" class="pt-table__empty">تعذّر تحميل سجل المدفوعات.</td></tr>';
+      renderRecent([]);
+    } else toast(error?.message ?? 'تعذّر تحميل المزيد.', 'error');
   } finally {
     if (more) more.disabled = false;
   }

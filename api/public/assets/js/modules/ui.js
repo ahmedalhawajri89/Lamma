@@ -130,7 +130,8 @@ export function initModals() {
     });
   });
 
-  $$('.modal').forEach((modal) => {
+  // نوافذ Bootstrap (.modal-dialog) تدير تركيزها وإغلاقها بنفسها
+  $$('.modal').filter((m) => !m.querySelector('.modal-dialog')).forEach((modal) => {
     modal.setAttribute('aria-hidden', 'true');
 
     $$('[data-modal-close]', modal).forEach((btn) => {
@@ -211,6 +212,11 @@ export function toast(message, type = 'success', duration = type === 'error' ? 8
   const dismiss = () => {
     clearTimeout(timer);
     el.classList.add('is-leaving');
+    // بلا حركة خروج (تقليل الحركة) لا يأتي animationend أبداً، فيُزال فوراً
+    if (!el.getAnimations().length) {
+      el.remove();
+      return;
+    }
     el.addEventListener('animationend', () => el.remove(), { once: true });
   };
   close.addEventListener('click', dismiss);

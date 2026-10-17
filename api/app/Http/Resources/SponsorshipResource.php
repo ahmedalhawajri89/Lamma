@@ -51,6 +51,12 @@ class SponsorshipResource extends JsonResource
                 'photo_url' => $this->orphan->photo_path
                     ? asset('storage/'.$this->orphan->photo_path)
                     : null,
+                // بديلٌ ثابت حين لا صورة: الرسم نفسه الذي يراه الموقع العام. يُحسب من
+                // الجنس، فلا يظهر حيث جُلب الطفل بأعمدةٍ لا تشمله
+                'illustration_url' => $this->when(
+                    array_key_exists('gender', $this->orphan->getAttributes()),
+                    fn () => $this->orphan->illustrationUrl(),
+                ),
                 'funded_percent' => $this->orphan->funded_percent,
             ]),
             'sponsor' => new SponsorResource($this->whenLoaded('sponsor')),
