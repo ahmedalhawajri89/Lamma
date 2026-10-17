@@ -139,13 +139,23 @@ function setupAmount() {
   input.dataset.validate = `required|range:${input.min}:${o.remaining}`;
 
   const hint = $('#hint-amount');
+  const her = ['أنثى', 'female'].includes(o.gender);
   if (hint) {
     hint.textContent = o.remaining < (o.monthly ?? o.remaining)
-      ? `تبقّى من حاجة ${o.name} الشهرية ${money(o.remaining, o.currency)}، فكفالتك لا تتجاوزه.`
-      : `حاجته الشهرية ${money(o.remaining, o.currency)}. يمكنك كفالتها كاملة أو جزءاً منها.`;
+      ? `بدأ غيرك كفالة ${o.name}، وتبقّى ${money(o.remaining, o.currency)} في الشهر تكملها أنت أو جزءاً منها.`
+      : `يمكنك كفالة ${o.name} كاملة أو جزءاً من ${her ? 'حاجتها' : 'حاجته'}، ويكمل غيرك الباقي.`;
   }
 
-  input.addEventListener('input', renderTotals);
+  // المبالغ الجاهزة تكتب في الحقل، والحقل يعلّم الجاهز المطابق له
+  const presets = $$('[data-amount]');
+  const sync = () => presets.forEach((b) => b.setAttribute('aria-pressed', String(Number(b.dataset.amount) === Number(input.value))));
+  presets.forEach((b) => b.addEventListener('click', () => {
+    input.value = b.dataset.amount;
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  }));
+
+  input.addEventListener('input', () => { sync(); renderTotals(); });
+  sync();
 }
 
 /** الكافل الداخل لا يكتب اسمه وبريده من جديد */
@@ -217,6 +227,8 @@ function renderTotals() {
 
   $$('[data-checkout="price"]').forEach((el) => { el.textContent = money(amount, o.currency); });
   $$('[data-checkout="total"]').forEach((el) => { el.textContent = money(total, o.currency); });
+  // على كل خيار دورية مجموعه، فيُرى الفرق قبل الاختيار
+  $$('[data-cycle-sum]').forEach((el) => { el.textContent = amount ? money(amount * Number(el.dataset.cycleSum), o.currency) : ''; });
   $$('[data-checkout="cycle"]').forEach((el) => {
     el.textContent = state.interval === 1 ? '' : `عن ${state.interval === 3 ? 'ثلاثة أشهر' : 'سنة'}`;
   });

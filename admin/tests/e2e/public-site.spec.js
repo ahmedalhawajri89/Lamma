@@ -305,11 +305,12 @@ test.describe('دورية الكفالة', () => {
     // شهرية: الإجمالي = المبلغ الشهري
     expect(await value(total)).toBeCloseTo(amount, 2)
 
-    await page.getByRole('button', { name: 'كل ٣ أشهر' }).click()
+    // على كل خيارٍ مجموعه: «كل 3 أشهر $105»
+    await page.getByRole('button', { name: 'كل 3 أشهر' }).click()
     await expect.poll(() => value(total)).toBeCloseTo(amount * 3, 2)
     await expect(page.locator('[data-checkout="cycle"]')).toHaveText('عن ثلاثة أشهر')
 
-    await page.getByRole('button', { name: 'سنوية' }).click()
+    await page.getByRole('button', { name: 'سنوياً' }).click()
     await expect.poll(() => value(total)).toBeCloseTo(amount * 12, 2)
 
     // والسطر الشهري لا يتحرّك: هو ما يُخصم كل شهر لا ما يُدفع الآن

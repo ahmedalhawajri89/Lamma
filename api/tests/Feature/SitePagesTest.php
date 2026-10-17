@@ -98,3 +98,32 @@ it('رمزٌ لا طفل له يعطي 404 بصفحة تقول ذلك، وبلا
     $this->get('/orphan?id=NOPE')->assertNotFound();
     $this->get('/orphan')->assertRedirect('/orphans');
 });
+
+it('ترسم صفحة الكفالة ملخص الطفل من الخادم، وحقول البطاقة بلا name فلا تُرسل', function () {
+    $kid = profileChild();
+    App\Models\Sponsorship::factory()->for($kid)->create(['monthly_amount' => 45.5]);
+
+    $html = $this->get("/checkout?id={$kid->reference_code}")->assertOk()->getContent();
+
+    expect($html)
+        ->toContain('أكمل كفالة سارة')
+        ->toContain('المتبقي $4.50 كاملاً')
+        ->toContain('data-checkout="remaining">$4.50<')
+        ->not->toContain('المصري');
+
+    // رقم البطاقة ورمزها وتاريخها حقولٌ بلا name: لا تدخل FormData أبداً
+    foreach (['cardNumber', 'cardCvc', 'cardExpiry', 'cardHolder'] as $id) {
+        expect($html)->toMatch('/<input[^>]*id="'.$id.'"(?![^>]*\sname=)[^>]*>/');
+    }
+});
+
+it('صفحة الكفالة لطفلٍ مكتمل بلا نموذج دفع، ولرمزٍ مجهول 404', function () {
+    $kid = profileChild();
+    App\Models\Sponsorship::factory()->for($kid)->create(['monthly_amount' => 50]);
+
+    $this->get("/checkout?id={$kid->reference_code}")->assertOk()
+        ->assertSee('اكتملت كفالة سارة')
+        ->assertDontSee('id="checkoutForm"', false);
+    $this->get('/checkout?id=NOPE')->assertNotFound();
+    $this->get('/checkout')->assertRedirect('/orphans');
+});

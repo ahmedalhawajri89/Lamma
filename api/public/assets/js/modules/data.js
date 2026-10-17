@@ -435,7 +435,8 @@ export async function hydrate() {
 
   // صفحة الأيتام (#catalogGrid) تطلب صفحتها بنفسها من الخادم، فلا تحتاج القائمة هنا
   const needsOrphans = has([
-    '#homeOrphans', '#checkoutSummary',
+    // صفحة الكفالة تطلب طفلها برمزه (checkout.js)
+    '#homeOrphans',
   ]);
   // #heroStats و#moneyDonut في الرئيسية: أرقام الهيرو والحلقة من الشفافية نفسها
   const needsTransparency = has(['#spendingDonut', '#spendingLegend', '#proofBoard', '#heroStats', '#moneyDonut']);

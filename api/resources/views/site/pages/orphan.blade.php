@@ -12,7 +12,7 @@
       $ageLabel = $age.' '.($age >= 3 && $age <= 10 ? 'سنوات' : 'سنة');
       $funded = (int) $kid['funded'];
       $sponsors = (int) ($kid['sponsors'] ?? 0);
-      $money = fn ($v) => '$'.rtrim(rtrim(number_format((float) $v, 2, '.', ','), '0'), '.');
+      $money = fn ($v) => \App\Support\PublicChild::money($v);
       $sponsorsLabel = match (true) {
           $sponsors === 1 => 'شخص واحد',
           $sponsors === 2 => 'شخصان',

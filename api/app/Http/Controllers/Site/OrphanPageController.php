@@ -5,25 +5,21 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Site;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\PublicOrphanResource;
-use App\Models\Orphan;
+use App\Support\PublicChild;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
 /**
- * صفحة الطفل، مرسومةً من الخادم.
+ * صفحة الطفل وصفحة كفالته، مرسومتين من الخادم.
  *
- * كانت قالباً فارغاً يملؤه JS بعد طلبٍ ثانٍ، فيرى الزائر نقاطاً «…» لحظة،
- * ورابطها المُشارك على واتساب بلا اسم ولا وصف. الآن تصل بالاسم والحلم
- * والقصة وحالة الكفالة، وعنوانها ووسوم مشاركتها باسم الطفل.
- *
- * البيانات نفسها التي يراها الـ API العام (PublicOrphanResource): الاسم الأول
- * والرسم لا الصورة، ولا عائلة ولا عنوان.
+ * كانتا قالبين فارغين يملؤهما JS بعد طلبٍ ثانٍ، فيرى الزائر نقاطاً «…» لحظة،
+ * ورابط الطفل المُشارك على واتساب بلا اسم ولا وصف. الآن تصلان بالاسم وحالة
+ * الكفالة، وعنوانهما ووسوم مشاركتهما باسم الطفل.
  */
 class OrphanPageController extends Controller
 {
-    public function __invoke(Request $request): Response|RedirectResponse
+    public function show(Request $request): Response|RedirectResponse
     {
         $reference = $request->string('id')->trim()->toString();
 
@@ -32,33 +28,25 @@ class OrphanPageController extends Controller
             return redirect('/orphans');
         }
 
-        // public لا seekingSponsor: طفلٌ اكتملت كفالته تفتح صفحته وتقول ذلك
-        $orphan = Orphan::query()
-            ->public()
-            ->withSponsorCount()
-            ->with([
-                'program:id,slug,name_ar,monthly_price,currency',
-                'family:id,country_id,city_id',
-                'family.country:id,name_ar',
-                'family.city:id,name_ar',
-            ])
-            ->where('reference_code', $reference)
-            ->first();
+        $kid = PublicChild::find($reference, $request);
 
-        if ($orphan === null) {
-            return response()->view('site.pages.orphan', ['kid' => null], 404);
+        return response()->view('site.pages.orphan', ['kid' => $kid], $kid ? 200 : 404);
+    }
+
+    /**
+     * صفحة الكفالة: الملخص من الخادم، والنموذج يكمله checkout.js (المبلغ
+     * والدورية والدفع). طفلٌ لا يقبل كفالة يصل وصفحته تقول ذلك بلا نموذج.
+     */
+    public function checkout(Request $request): Response|RedirectResponse
+    {
+        $reference = $request->string('id')->trim()->toString();
+
+        if ($reference === '') {
+            return redirect('/orphans');
         }
 
-        $remaining = $orphan->remainingNeed();
+        $kid = PublicChild::find($reference, $request);
 
-        $kid = [
-            ...(new PublicOrphanResource($orphan))->resolve($request),
-            'her' => $orphan->gender === \App\Enums\Gender::Female,
-            'remaining' => $remaining,
-            'accepting' => $orphan->status->acceptsSponsorship() && $remaining > 0,
-            'program_name' => $orphan->program?->name_ar,
-        ];
-
-        return response()->view('site.pages.orphan', ['kid' => $kid]);
+        return response()->view('site.pages.checkout', ['kid' => $kid], $kid ? 200 : 404);
     }
 }

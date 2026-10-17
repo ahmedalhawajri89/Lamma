@@ -233,3 +233,35 @@ it('لوحة الكافل: الحجز لا يُعدّ يتيماً مكفولا�
         ->and($data['past_sponsorships'])->toHaveCount(1)
         ->and($data['past_sponsorships'][0]['total_paid'])->toEqual(30);
 });
+
+it('كفالةٌ مرفوضة لا تترك حساباً ولا جلسة للزائر', function () {
+    // اكتمل تمويله: CreateSponsorship يرفض، والحساب كان يُنشأ قبلها ويدخل صاحبه
+    $orphan = sponsorableOrphan(50);
+    Sponsorship::factory()->for($orphan)->create(['monthly_amount' => 50]);
+
+    $this->postJson('/api/v1/public/checkout', [
+        'orphan_reference' => $orphan->reference_code, 'interval_months' => 1,
+        'method' => 'card', 'name' => 'زائر جديد', 'email' => 'late@example.com', 'card_token' => 'tok_demo_ok',
+    ])->assertUnprocessable()->assertJsonValidationErrors('orphan_reference');
+
+    expect(User::where('email', 'late@example.com')->exists())->toBeFalse();
+    $this->assertGuest();
+});
+
+it('حجوزات التحويل البنكي من العنوان نفسه محدودة في اليوم أياً كان الحساب', function () {
+    // زائرٌ جديد في كل مرة: لا جلسة الحجز السابق
+    $hold = fn (int $i) => $this->flushSession()->postJson('/api/v1/public/checkout', [
+        'orphan_reference' => sponsorableOrphan()->reference_code, 'interval_months' => 1,
+        'method' => 'bank_transfer', 'name' => 'حاجز '.$i, 'email' => "hold{$i}@example.com",
+    ]);
+
+    // كل حجزٍ بحسابٍ جديد: حدّ «ثلاثة لكل كافل» لا يراها
+    foreach (range(1, App\Http\Controllers\Api\V1\Public\CheckoutController::DAILY_HOLDS_PER_IP) as $i) {
+        auth()->forgetGuards();
+        $hold($i)->assertCreated();
+    }
+
+    auth()->forgetGuards();
+    $hold(99)->assertStatus(429)->assertJsonPath('code', 'hold_limit');
+    expect(User::where('email', 'hold99@example.com')->exists())->toBeFalse();
+});

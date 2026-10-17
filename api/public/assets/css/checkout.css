@@ -1,0 +1,190 @@
+/* =========================================================================
+   صفحة الكفالة: أربع خطوات قصيرة، والملخص بجانبها يتبع كل اختيار
+   ========================================================================= */
+
+.co { padding-block: clamp(1.25rem, 3vw, 2rem) clamp(3rem, 6vw, 5rem); background: var(--color-canvas); }
+
+/* ── الرأس ── */
+.co-head { margin-block-end: clamp(1.5rem, 3vw, 2.25rem); }
+.co-back { display: inline-flex; align-items: center; gap: 0.45rem; font-size: 0.9rem; color: var(--color-text-muted); text-decoration: none; }
+.co-back:hover { color: var(--color-brand); }
+.co-head__title { margin: 0.75rem 0 0; font-size: clamp(1.9rem, 4vw, 2.75rem); color: var(--color-text); }
+
+.co-steps { display: flex; flex-wrap: wrap; gap: 0.5rem 1.75rem; margin: 1rem 0 0; padding: 0; list-style: none; font-size: 0.875rem; color: var(--color-text-muted); }
+.co-steps li { display: inline-flex; align-items: center; gap: 0.5rem; }
+.co-steps li > span {
+  display: inline-grid;
+  place-items: center;
+  inline-size: 1.6rem;
+  block-size: 1.6rem;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-border);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.co-steps .is-done > span { border-color: var(--color-success); background: var(--color-success); color: #fff; }
+.co-steps [aria-current="step"] { font-weight: 700; color: var(--color-text); }
+.co-steps [aria-current="step"] > span { border-color: var(--color-brand); background: var(--color-brand); color: var(--color-brand-contrast); }
+
+/* ── الخطوات: بطاقة لكلٍّ منها ── */
+.co-form { display: grid; gap: 1rem; }
+.co-card {
+  padding: clamp(1.25rem, 3vw, 1.75rem);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface);
+}
+.co-card__title { display: flex; align-items: center; gap: 0.65rem; margin: 0 0 1.25rem; font-size: 1.15rem; }
+.co-card__num {
+  display: inline-grid;
+  place-items: center;
+  inline-size: 1.85rem;
+  block-size: 1.85rem;
+  border-radius: 50%;
+  background: var(--color-brand-soft);
+  color: var(--color-brand);
+  font-size: 0.85rem;
+}
+.co-card__lede { margin: -0.5rem 0 1rem; font-size: 0.9rem; color: var(--color-text-muted); }
+.co .form-label { font-weight: 600; }
+.co .form-text { margin: 0.4rem 0 0; }
+.co .field__error:not(:empty) { margin-block-start: 0.4rem; }
+
+/* المبالغ الجاهزة: أزرار بقيمتها ومعناها */
+.co-presets { display: grid; grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr)); gap: 0.6rem; margin-block-end: 1.25rem; }
+.co-preset,
+.co-cycle {
+  display: grid;
+  gap: 0.15rem;
+  justify-items: start;
+  padding: 0.8rem 1rem;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  text-align: start;
+  transition: border-color var(--dur-fast) var(--ease-out), background-color var(--dur-fast) var(--ease-out);
+}
+.co-preset b { font-family: var(--font-display); font-size: 1.3rem; color: var(--color-text); }
+.co-preset span,
+.co-cycle span { font-size: 0.8rem; color: var(--color-text-muted); }
+.co-preset:hover,
+.co-cycle:hover { border-color: var(--color-brand-border); }
+.co-preset[aria-pressed="true"],
+.co-cycle[aria-pressed="true"] { border-color: var(--color-brand); background: var(--color-brand-soft); }
+.co-preset[aria-pressed="true"] b,
+.co-cycle[aria-pressed="true"] b { color: var(--color-brand); }
+.co-preset:focus-visible,
+.co-cycle:focus-visible,
+.co-method:has(input:focus-visible) { outline: 3px solid var(--color-focus); outline-offset: 2px; }
+
+.co-amount .form-control { font-family: var(--font-display); font-size: 1.35rem; font-weight: 700; }
+.co-amount .input-group-text { background: var(--color-surface-alt); color: var(--color-text-muted); }
+.field.is-invalid .co-amount .form-control { border-color: var(--color-urgent); }
+
+/* الدورية: ثلاثة خيارات، على كلٍّ مجموعه */
+.co-cycles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.6rem; }
+.co-cycle b { font-size: 1rem; color: var(--color-text); }
+
+.co-zakat { display: flex; gap: 0.85rem; margin: 1.25rem 0 0; padding: 1rem 1.1rem; padding-inline-start: 1.1rem; border-radius: var(--radius-lg); background: var(--color-canvas); }
+.co-zakat .form-check-input { flex-shrink: 0; margin: 0.2rem 0 0; inline-size: 2.6em; block-size: 1.4em; cursor: pointer; }
+.co-zakat .form-check-label { cursor: pointer; }
+.co-zakat strong { display: block; }
+.co-zakat span { font-size: 0.875rem; color: var(--color-text-muted); }
+
+.co-signed { display: flex; align-items: center; gap: 0.6rem; margin: 0; padding: 0.9rem 1rem; border-radius: var(--radius-lg); background: var(--color-brand-soft); color: var(--color-brand); }
+
+/* وسيلة الدفع: بلاطتان */
+.co-methods { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.6rem; margin: 0 0 1.25rem; padding: 0; border: 0; }
+.co-method {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.9rem 1rem;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease-out), background-color var(--dur-fast) var(--ease-out);
+}
+.co-method input { position: absolute; opacity: 0; pointer-events: none; }
+.co-method strong { display: block; }
+.co-method small { font-size: 0.8rem; color: var(--color-text-muted); }
+.co-method__icon { display: inline-grid; place-items: center; flex-shrink: 0; inline-size: 2.5rem; block-size: 2.5rem; border-radius: var(--radius-md); background: var(--color-surface-alt); color: var(--color-text-muted); font-size: 1.1rem; }
+.co-method:hover { border-color: var(--color-brand-border); }
+.co-method:has(input:checked) { border-color: var(--color-brand); background: var(--color-brand-soft); }
+.co-method:has(input:checked) .co-method__icon { background: var(--color-brand); color: var(--color-brand-contrast); }
+
+.co-cardnum { position: relative; }
+.co-cardnum .form-control { padding-inline-end: 5.5rem; letter-spacing: 0.04em; }
+/* الحقل باتجاه ltr: الشعارات في يمينه البصري */
+.co-cardnum__brands { position: absolute; inset-block: 0; right: 1rem; display: flex; align-items: center; gap: 0.4rem; font-size: 1.5rem; color: var(--color-text-muted); pointer-events: none; }
+.co [dir="ltr"].form-control { text-align: left; }
+
+.co-note,
+.co-secure,
+.co-demo { display: flex; align-items: flex-start; gap: 0.6rem; margin: 0; padding: 0.85rem 1rem; border-radius: var(--radius-lg); font-size: 0.875rem; line-height: 1.7; }
+.co-note { margin-block-end: 1.25rem; background: var(--color-brand-soft); color: var(--color-brand); }
+.co-secure { margin-block-start: 1.25rem; background: var(--color-canvas); color: var(--color-text-muted); }
+.co-secure i { margin-block-start: 0.2rem; color: var(--color-success); }
+.co-demo { margin-block-end: 1rem; border: 1px dashed var(--color-cta); background: var(--color-cta-soft); color: var(--color-text); }
+.co-demo i { margin-block-start: 0.25rem; color: var(--color-cta-strong); }
+.co-demo .num { white-space: nowrap; }
+
+/* الإرسال */
+.co-submit { padding: clamp(1.25rem, 3vw, 1.75rem); border-radius: var(--radius-xl); background: var(--color-surface); border: 1px solid var(--color-border); }
+.co-plan { margin: 0 0 1rem; font-weight: 600; line-height: 1.7; color: var(--color-text); }
+.co-plan:empty { display: none; }
+.co-error { margin: 0 0 1rem; padding: 0.85rem 1rem; border-radius: var(--radius-lg); background: var(--color-urgent-soft); font-weight: 600; color: var(--color-urgent); }
+.co-terms { margin: 0.9rem 0 0; font-size: 0.8rem; color: var(--color-text-muted); text-align: center; }
+
+/* ── الملخص: يلتصق بجانب النموذج ── */
+.co-summary {
+  position: sticky;
+  inset-block-start: calc(var(--kf-header-h, 5rem) + 1rem);
+  display: grid;
+  gap: 1.25rem;
+  padding: clamp(1.25rem, 3vw, 1.75rem);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-md);
+  transition: inset-block-start var(--dur-normal) var(--ease-out);
+}
+body:has(.kf-header.is-hidden) .co-summary { inset-block-start: 1rem; }
+.co-summary__child { display: flex; align-items: center; gap: 0.85rem; }
+.co-summary__child img { inline-size: 4rem; block-size: 4rem; border-radius: 50%; object-fit: cover; background: var(--color-surface-alt); }
+.co-summary__child strong { display: block; font-family: var(--font-display); font-size: 1.2rem; }
+.co-summary__child span { font-size: 0.85rem; color: var(--color-text-muted); }
+.co-summary__lines { display: grid; gap: 0.7rem; margin: 0; padding-block-start: 1.25rem; border-block-start: 1px solid var(--color-border); }
+.co-summary__lines > div { display: flex; justify-content: space-between; gap: 1rem; }
+.co-summary__lines dt { font-weight: 400; color: var(--color-text-muted); }
+.co-summary__lines dd { margin: 0; font-weight: 700; }
+.co-summary__free { color: var(--color-success); }
+.co-summary__total { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; padding-block-start: 1.25rem; border-block-start: 1px solid var(--color-border); }
+.co-summary__total span { font-weight: 600; }
+.co-summary__total small { display: block; font-weight: 400; color: var(--color-text-muted); }
+.co-summary__total strong { font-family: var(--font-display); font-size: 2rem; color: var(--color-brand); }
+.co-summary__trust { display: grid; gap: 0.55rem; margin: 0; padding: 1rem; border-radius: var(--radius-lg); background: var(--color-canvas); list-style: none; font-size: 0.85rem; color: var(--color-text-muted); }
+.co-summary__trust i { inline-size: 1.1rem; margin-inline-end: 0.35rem; color: var(--color-brand); }
+
+/* ── لا نموذج: اكتملت أو لا طفل ── */
+.co-blocked { max-inline-size: 34rem; margin: clamp(2rem, 6vw, 4rem) auto; text-align: center; }
+.co-blocked__icon { display: inline-grid; place-items: center; inline-size: 4rem; block-size: 4rem; margin-block-end: 1rem; border-radius: 50%; background: var(--color-brand-soft); color: var(--color-brand); font-size: 1.6rem; }
+.co-blocked h1 { margin: 0 0 0.5rem; font-size: clamp(1.8rem, 4vw, 2.4rem); }
+.co-blocked p { margin: 0 0 1.5rem; color: var(--color-text-muted); }
+.co-blocked--inline { margin: 0 0 1rem; padding: 1.5rem; border-radius: var(--radius-xl); background: var(--color-surface); }
+
+@media (max-width: 61.98rem) {
+  /* على الجوال: الملخص مختصراً فوق النموذج (الطفل والإجمالي) */
+  .co-summary { position: static; box-shadow: none; }
+  .co-summary__lines,
+  .co-summary__trust { display: none; }
+}
+@media (max-width: 35.98rem) {
+  .co-cycles { grid-template-columns: minmax(0, 1fr); }
+  .co-cycle { grid-auto-flow: column; justify-content: space-between; align-items: center; }
+  .co-methods { grid-template-columns: minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .co-preset, .co-cycle, .co-method, .co-summary { transition: none; }
+}

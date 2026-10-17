@@ -19,7 +19,9 @@ use App\Payments\PaymentGateway;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
@@ -38,6 +40,9 @@ use Illuminate\Validation\Rule;
  */
 class CheckoutController extends Controller
 {
+    /** حجوزات التحويل البنكي من العنوان نفسه في اليوم، أياً كان الحساب (فوق حدّ الكافل الواحد: 3) */
+    public const DAILY_HOLDS_PER_IP = 5;
+
     /** ما تحتاجه الصفحة قبل الدفع: وضع البوابة، وبيانات التحويل، والدورات */
     public function config(PaymentGateway $gateway): JsonResponse
     {
@@ -77,35 +82,62 @@ class CheckoutController extends Controller
             'card_token.required_if' => 'أكمل بيانات البطاقة.',
         ]);
 
-        // الزائر: حساب جديد، أو دخولٌ إن كان البريد مسجَّلاً
-        $created = false;
-        if ($user === null) {
-            if (User::where('email', $validated['email'])->exists()) {
-                return response()->json([
-                    'message' => 'لديك حساب بهذا البريد. سجّل الدخول لإكمال الكفالة، واختياراتك محفوظة.',
-                    'code' => 'login_required',
-                ], 409);
-            }
+        // الزائر وبريده مسجَّل: يدخل أولاً (لا تُنسب كفالة إلى حساب لم يُثبت صاحبه أنه هو)
+        if ($user === null && User::where('email', $validated['email'])->exists()) {
+            return response()->json([
+                'message' => 'لديك حساب بهذا البريد. سجّل الدخول لإكمال الكفالة، واختياراتك محفوظة.',
+                'code' => 'login_required',
+            ], 409);
+        }
 
-            $user = $register->handle($validated['name'], $validated['email'], $validated['phone'] ?? null);
+        /*
+         * حجز التحويل البنكي يُمسك حصة الطفل أيام السماح بلا مال، فيظهر مكتملاً
+         * ويختفي من الفهرس. وحسابٌ جديد ببريدٍ مختلَق لا يكلّف شيئاً، فحدّ
+         * «ثلاثة حجوزات لكل كافل» وحده لا يمنع من يفتح عشرة حسابات. لذا حدٌّ
+         * يومي للحجوزات من العنوان نفسه أياً كان الحساب. البطاقة لا تحتاجه:
+         * لا كفالة بلا خصمٍ ناجح.
+         */
+        $holdKey = 'checkout-hold:'.$request->ip();
+        if ($validated['method'] === PaymentMethod::BankTransfer->value
+            && RateLimiter::tooManyAttempts($holdKey, self::DAILY_HOLDS_PER_IP)) {
+            return response()->json([
+                'message' => 'وصلت إلى حدّ حجوزات التحويل البنكي اليوم. ادفع بالبطاقة، أو أكمل تحويل حجزٍ قائم من حسابك.',
+                'code' => 'hold_limit',
+            ], 429);
+        }
+
+        $orphan = Orphan::where('reference_code', $validated['orphan_reference'])->firstOrFail();
+
+        /*
+         * الحساب الجديد والكفالة معاً أو لا شيء: كان الحساب يُنشأ ويدخل صاحبه
+         * قبل فحص الكفالة، فإن رُفضت (اكتمل تمويل الطفل، مبلغ خارج الحدّ) بقي
+         * حسابٌ وجلسةٌ لكفالةٍ لم تقع. الدخول بعد نجاحها وحده.
+         */
+        $created = $user === null;
+        [$user, $sponsorship] = DB::transaction(function () use ($user, $validated, $register, $create, $orphan): array {
+            $user ??= $register->handle($validated['name'], $validated['email'], $validated['phone'] ?? null);
+
+            return [$user, $create->handle(
+                sponsor: $user->sponsor,
+                orphan: $orphan,
+                monthlyAmount: isset($validated['monthly_amount']) ? (float) $validated['monthly_amount'] : null,
+                isZakat: (bool) ($validated['is_zakat'] ?? false),
+                intervalMonths: (int) $validated['interval_months'],
+                paymentMethod: $validated['method'],
+            )];
+        });
+        $sponsor = $user->sponsor;
+
+        if ($created) {
             Auth::login($user);
             if ($request->hasSession()) {
                 $request->session()->regenerate();
             }
-            $created = true;
         }
 
-        $sponsor = $user->sponsor;
-        $orphan = Orphan::where('reference_code', $validated['orphan_reference'])->firstOrFail();
-
-        $sponsorship = $create->handle(
-            sponsor: $sponsor,
-            orphan: $orphan,
-            monthlyAmount: isset($validated['monthly_amount']) ? (float) $validated['monthly_amount'] : null,
-            isZakat: (bool) ($validated['is_zakat'] ?? false),
-            intervalMonths: (int) $validated['interval_months'],
-            paymentMethod: $validated['method'],
-        );
+        if ($validated['method'] === PaymentMethod::BankTransfer->value) {
+            RateLimiter::hit($holdKey, 86400);
+        }
 
         $payment = null;
 
