@@ -4,7 +4,7 @@
  * كانت الصفحة تكتب «المصاريف الإدارية ٧٪» بيدها والفعلي 6.9، وتعرض «0
  * ملاحظة من المدقق» و«أربع سنوات بتدقيق نظيف» بلا مصدر، وأربعة أزرار «تحميل
  * PDF» إلى `#`. هنا كل رقم من الخادم لحظة الفتح:
- *  1. من كل دولار كم يصل الطفل: رقمٌ يعدّ ومئة خانة تمتلئ.
+ *  1. من كل دولار كم يصل الطفل: رقمٌ يعدّ وحلقةٌ تمتلئ بقوسين.
  *  2. أرقام السنة المختارة: الدخل، والصرف، والمكفولون، والزيارات.
  *  3. الدخل والصرف شهراً بشهر: أعمدة SVG (لا مكتبة رسوم في الموقع).
  *  4. أين يذهب المال: شريط مكدّس، والمرور على بندٍ يبرزه.
@@ -31,7 +31,7 @@ const monthLong = new Intl.DateTimeFormat('ar-u-nu-latn', { month: 'long', year:
 const dateFmt = new Intl.DateTimeFormat('ar-u-nu-latn', { day: 'numeric', month: 'long', year: 'numeric' });
 
 export function initTransparency() {
-  const root = $('#tpCells');
+  const root = $('#tpRing');
   if (!root) return;
 
   let year = Number(new URLSearchParams(window.location.search).get('year')) || null;
@@ -97,14 +97,29 @@ export function initTransparency() {
     restoreFocus();
   }
 
-  /* ── من كل دولار: رقمٌ يعدّ ومئة خانة ── */
+  /*
+   * ── من كل دولار: رقمٌ يعدّ وحلقةٌ بقوسين ──
+   * كانت مئة مربع تحتاج مفتاحاً لتُفهم. القوس التركوازي ما يصل الطفل،
+   * والذهبي التشغيل، وكلٌّ يُقصَّر قليلاً عند طرفيه فلا تلتصق نهايتاهما
+   * المستديرتان. تمتلئ حين تظهر، وتغيّر السنة يحرّكها إلى نسبتها الجديدة.
+   */
   function renderCents(cents) {
+    const C = 2 * Math.PI * 100;
+    const GAP = 18;
+    const child = (C * cents) / 100;
+
     countUp($('#tpCents'), cents);
-    root.setAttribute('aria-label', `${cents} سنتاً من كل دولار تصل الطفل`);
+    countUp($('#tpRingNum'), cents);
+    root.setAttribute('aria-label', `من كل دولار ${cents} سنتاً تصل الطفل و${100 - cents} للتشغيل`);
     $('#tpKeyChild').textContent = String(cents);
     $('#tpKeyOps').textContent = String(100 - cents);
-    root.innerHTML = Array.from({ length: 100 }, (_, i) => `<span class="${i < cents ? 'is-child' : 'is-ops'}" style="--i:${i}"></span>`).join('');
-    requestAnimationFrame(() => root.classList.add('is-in'));
+
+    $('#tpRingChild').style.setProperty('--len', String(Math.max(0, child - GAP)));
+    const ops = $('#tpRingOps');
+    ops.style.setProperty('--len', String(Math.max(0, C - child - GAP)));
+    ops.style.strokeDashoffset = String(-child);
+
+    if (!root.classList.contains('is-in')) observeOnce([root], () => root.classList.add('is-in'), { threshold: 0.4 });
   }
 
   /* ── أرقام السنة ── */

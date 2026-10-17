@@ -11,45 +11,51 @@
 @section('content')
   <main id="main">
 
-    <!-- ══ الصدر: من كل دولار، كم يصل الطفل ══ -->
+    {{-- ══ الصدر: سؤالٌ واحد، وحلقةٌ تجيبه، وأرقام السنة تحته ══ --}}
     <section class="tp-hero" aria-labelledby="tpTitle">
-      <div class="container tp-hero__inner">
-        <div class="tp-hero__text">
-          <nav aria-label="مسار التنقل">
-            <ol class="breadcrumb tp-crumbs">
-              <li class="breadcrumb-item"><a href="/">الرئيسية</a></li>
-              <li class="breadcrumb-item active" aria-current="page">الشفافية</li>
-            </ol>
-          </nav>
-          <h1 class="tp-hero__title" id="tpTitle">من كل دولار تتبرّع به، يصل الطفل</h1>
-          <p class="tp-hero__cents"><span class="num" id="tpCents">0</span> <span>سنتاً</span></p>
-          <p class="tp-hero__lede">
-            والباقي تشغيلٌ نعلنه كما هو. كل رقم في هذه الصفحة محسوبٌ من سجلات الصرف المعتمدة
-            لحظة فتحها، لا مكتوبٌ باليد.
-          </p>
-          <div class="tp-years" role="group" aria-label="السنة المالية" id="tpYears"></div>
-        </div>
-        <!-- مئة خانة: كل خانة سنتٌ من الدولار، ومفتاحها تحتها -->
-        <figure class="tp-cents-wrap">
-          <div class="tp-cents" id="tpCells" role="img" aria-label="من كل مئة سنت"></div>
-          <figcaption class="tp-cents-key">
-            <span><i class="tp-cents-key__sw is-child" aria-hidden="true"></i>يصل الطفل <b class="num" id="tpKeyChild">93</b></span>
-            <span><i class="tp-cents-key__sw is-ops" aria-hidden="true"></i>تشغيل <b class="num" id="tpKeyOps">7</b></span>
-            <span class="tp-cents-key__note">كل مربع سنتٌ واحد من الدولار</span>
-          </figcaption>
-        </figure>
-      </div>
-    </section>
-
-    <!-- ══ أرقام السنة ══ -->
-    <section class="tp-stats-wrap" aria-label="أرقام السنة">
       <div class="container">
-        <dl class="tp-stats" id="tpStats">
-          <div><dt>دخل <span data-tp-year></span></dt><dd class="num" data-tp-stat="income">$0</dd><dd class="tp-stats__note">من دفعات الكفلاء الناجحة</dd></div>
-          <div><dt>صُرف على الأطفال</dt><dd class="num" data-tp-stat="spent">$0</dd><dd class="tp-stats__note">صرفٌ معتمد بإيصال</dd></div>
-          <div><dt>أطفال مكفولون الآن</dt><dd class="num" data-tp-stat="sponsored">0</dd><dd class="tp-stats__note">في <span class="num" data-tp-stat="countries">0</span> دولة</dd></div>
-          <div><dt>زيارات ميدانية</dt><dd class="num" data-tp-stat="visits">0</dd><dd class="tp-stats__note">زارها مشرفونا في البيوت</dd></div>
-        </dl>
+        <nav aria-label="مسار التنقل">
+          <ol class="breadcrumb tp-crumbs">
+            <li class="breadcrumb-item"><a href="/">الرئيسية</a></li>
+            <li class="breadcrumb-item active" aria-current="page">الشفافية</li>
+          </ol>
+        </nav>
+
+        <div class="row g-4 g-lg-5 align-items-center">
+          <div class="col-lg-7">
+            <h1 class="tp-hero__title" id="tpTitle">من كل دولار تتبرّع به،<br><em>يصل الطفل <span class="num" id="tpCents">93</span> سنتاً.</em></h1>
+            <p class="tp-hero__lede">والباقي تشغيلٌ نعلنه كما هو. كل رقمٍ في هذه الصفحة محسوبٌ من سجلات الصرف المعتمدة لحظة فتحها، لا مكتوبٌ باليد.</p>
+            <div class="tp-years" role="group" aria-label="السنة المالية" id="tpYears"></div>
+
+            <dl class="tp-stats" id="tpStats">
+              <div><dt>دخل <span data-tp-year></span></dt><dd class="num" data-tp-stat="income">$0</dd><dd class="tp-stats__note">من دفعات الكفلاء</dd></div>
+              <div><dt>صُرف على الأطفال</dt><dd class="num" data-tp-stat="spent">$0</dd><dd class="tp-stats__note">صرفٌ معتمد بإيصال</dd></div>
+              <div><dt>مكفولون الآن</dt><dd class="num" data-tp-stat="sponsored">0</dd><dd class="tp-stats__note">في <span class="num" data-tp-stat="countries">0</span> دولة</dd></div>
+              <div><dt>زيارات ميدانية</dt><dd class="num" data-tp-stat="visits">0</dd><dd class="tp-stats__note">في البيوت</dd></div>
+            </dl>
+          </div>
+
+          <div class="col-lg-5">
+            {{-- الحلقة: transparency.js يرسم القوسين بنسبتيهما ويملؤهما مرة --}}
+            <figure class="tp-ring" id="tpRing" role="img" aria-label="من كل دولار 93 سنتاً تصل الطفل و7 للتشغيل">
+              <div class="tp-ring__dial">
+                <svg viewBox="0 0 240 240" aria-hidden="true">
+                  <circle class="tp-ring__track" cx="120" cy="120" r="100"/>
+                  <circle class="tp-ring__arc tp-ring__arc--child" id="tpRingChild" cx="120" cy="120" r="100"/>
+                  <circle class="tp-ring__arc tp-ring__arc--ops" id="tpRingOps" cx="120" cy="120" r="100"/>
+                </svg>
+                <div class="tp-ring__center" aria-hidden="true">
+                  <span class="tp-ring__num num" id="tpRingNum">93</span>
+                  <span class="tp-ring__unit">سنتاً من كل دولار</span>
+                </div>
+              </div>
+              <ul class="tp-ring__legend">
+                <li class="tp-ring__chip tp-ring__chip--child"><span class="tp-ring__sw" aria-hidden="true"></span><span><b><span class="num" id="tpKeyChild">93</span>٪ يصل الطفل</b>غذاء وتعليم وصحة ودعم نفسي</span></li>
+                <li class="tp-ring__chip tp-ring__chip--ops"><span class="tp-ring__sw" aria-hidden="true"></span><span><b><span class="num" id="tpKeyOps">7</span>٪ تشغيل</b>المشرفون الميدانيون والنقل والمكتب</span></li>
+              </ul>
+            </figure>
+          </div>
+        </div>
       </div>
     </section>
 
