@@ -7,6 +7,51 @@
 
 import { escapeHtml, formatMoney, arabicDigits, readingTime, safeColor, safeNumber } from './utils.js';
 
+const isGirl = (o) => ['أنثى', 'female'].includes(o.gender);
+const ageLabel = (age) => `${age} ${age >= 3 && age <= 10 ? 'سنوات' : 'سنة'}`;
+
+/** كم يتبقى بالدولار لاكتمال كفالة الطفل هذا الشهر. */
+const remainingOf = (o) => Math.max(0, Math.round((o.monthly * (100 - o.funded)) / 100));
+
+/**
+ * بطاقة طفل: الرسم (لا صورة حقيقية على الموقع العام)، ثم الاسم والعمر والمدينة،
+ * والحلم بسطر، والتمويل بشريط يمتلئ حين تظهر، وزرّ «اكفل» صريح.
+ * الاسم رابطٌ ممتد إلى ملفه فالبطاقة كلها تُضغط، والزرّ فوقه إلى الكفالة.
+ * واحدة للرئيسية وصفحة الأيتام، وأنماطها في kids.css.
+ */
+export function kidCard(o, { delay = 0, cols = 'col-sm-6 col-lg-3' } = {}) {
+  const name = escapeHtml(o.name);
+  const her = isGirl(o);
+  const funded = safeNumber(o.funded);
+  const link = `/orphan?id=${encodeURIComponent(o.id)}`;
+
+  return `
+<div class="${cols}">
+  <article class="kid-card" data-reveal data-reveal-delay="${delay}">
+    <div class="kid-card__media">
+      ${o.photo
+        ? `<img src="${escapeHtml(o.photo)}" alt="" width="400" height="400" loading="lazy">`
+        : `<span class="kid-card__initial" aria-hidden="true">${escapeHtml(o.name.charAt(0))}</span>`}
+      ${o.urgent ? '<span class="kid-card__urgent"><span class="kid-card__dot" aria-hidden="true"></span> حالة عاجلة</span>' : ''}
+      <span class="kid-card__verified"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> ${her ? 'زارها' : 'زاره'} مشرف</span>
+    </div>
+    <div class="kid-card__body">
+      <h3 class="kid-card__name"><a href="${link}">${name}</a><span>، ${ageLabel(o.age)}</span></h3>
+      <p class="kid-card__place"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> ${escapeHtml(o.city)}، ${escapeHtml(o.country)}</p>
+      ${o.dream ? `<p class="kid-card__dream"><span>${her ? 'حلمها' : 'حلمه'}:</span> ${escapeHtml(o.dream)}</p>` : ''}
+      <div class="kid-card__fund">
+        <div class="kid-card__fund-row">
+          <span>مكفول <b class="num">${funded}٪</b></span>
+          <span>يتبقى <b class="num">$${remainingOf(o)}</b></span>
+        </div>
+        <span class="kid-card__track" role="progressbar" aria-label="نسبة كفالة ${name}" aria-valuenow="${funded}" aria-valuemin="0" aria-valuemax="100"><span style="--v:${funded}%"></span></span>
+      </div>
+      <a class="btn btn-cta w-100 kid-card__cta" href="/checkout?id=${encodeURIComponent(o.id)}">اكفل ${name}</a>
+    </div>
+  </article>
+</div>`;
+}
+
 /**
  * بطاقة يتيم: قصة قصيرة لا سطر في جدول.
  *

@@ -6,6 +6,7 @@
 @section('og_description', '٩٣٪ من كفالتك تصل للطفل مباشرة، وتقرير مصوّر كل ثلاثة أشهر.')
 
 @push('styles')
+  <link rel="stylesheet" href="/assets/css/kids.css">
   <link rel="stylesheet" href="/assets/css/home.css">
 @endpush
 

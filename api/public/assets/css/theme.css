@@ -466,6 +466,80 @@ button:focus-visible,
   .kf-header .offcanvas-header { display: none; }
 }
 
+/* حشوة الحاوية في Bootstrap نصف --bs-gutter-x (0.75rem)، لا --gutter القديم
+   (1.25rem): الصفوف التي تمتد لحافة الشاشة تُزاح بها وإلا فاضت أفقياً */
+:root { --kf-gutter: calc(var(--bs-gutter-x, 1.5rem) * 0.5); }
+
+/* ── 11ب. عناصر ثابتة في كل صفحة: شريط الإجراء على الجوال وزر العودة للأعلى ──
+   كانا في home.css فلم تجدهما الصفحات الأخرى، فظهر الزر بلا أنماط تحت الفوتر. */
+/* ==========================================================================
+   شريط الإجراء السفلي على الجوال — يبقي "اكفل الآن" في متناول الإبهام
+   ========================================================================== */
+.action-bar {
+  position: fixed;
+  inset-block-end: 0;
+  inset-inline: 0;
+  z-index: var(--z-sticky);
+  display: none;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--kf-gutter);
+  padding-block-end: max(var(--space-3), env(safe-area-inset-bottom));
+  /* خلفية شبه مصمتة بلا تمويه: الشريط ثابت فوق محتوى يتحرك، والتمويه
+     يُعاد رسمه مع كل إطار تمرير على الهواتف الضعيفة */
+  background: var(--glass-strong);
+  border-block-start: 1px solid var(--color-border);
+  transform: translateY(110%);
+  transition: transform var(--dur-normal) var(--ease-out);
+}
+
+.action-bar.is-visible { transform: translateY(0); }
+
+@media (max-width: 48rem) {
+  .action-bar { display: flex; }
+  /* الشريط ثابت فوق آخر الصفحة: مساحةٌ تحت الفوتر بقدره كي لا يغطي سطره الأخير */
+  body:has(.action-bar) .kf-footer { padding-block-end: 4.5rem; }
+}
+
+.action-bar__info { flex: 1; min-inline-size: 0; }
+.action-bar__info span { display: block; font-size: var(--text-2xs); color: var(--color-text-subtle); }
+.action-bar__info strong { font-family: var(--font-display); font-size: var(--text-sm); }
+
+/* ==========================================================================
+   زر العودة للأعلى
+   ========================================================================== */
+.to-top {
+  position: fixed;
+  inset-block-end: var(--space-6);
+  inset-inline-start: var(--space-6);
+  z-index: var(--z-sticky);
+  display: grid;
+  place-items: center;
+  inline-size: 3rem;
+  block-size: 3rem;
+  border-radius: 50%;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-brand);
+  box-shadow: var(--shadow-md);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(0.75rem);
+  transition: color var(--dur-normal) var(--ease-out),
+              background-color var(--dur-normal) var(--ease-out),
+              border-color var(--dur-normal) var(--ease-out),
+              transform var(--dur-normal) var(--ease-out),
+              box-shadow var(--dur-normal) var(--ease-out);
+}
+
+.to-top.is-visible { opacity: 1; visibility: visible; transform: translateY(0); }
+.to-top:hover { background: var(--color-brand); color: var(--color-brand-contrast); }
+
+/* على الجوال يكفي الشريط السفلي، وزر الصعود يغطي المحتوى ويزاحمه */
+@media (max-width: 48rem) {
+  .to-top { display: none; }
+}
+
 /* ── 12. الفوتر: في footer.css، يحمّله القالبان كلاهما ── */
 
 /* ── 13. أخطاء الحقول التي يكتبها forms.js (.field و.field__error) ── */

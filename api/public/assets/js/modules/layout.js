@@ -204,6 +204,11 @@ function initStickyHeader() {
   const nav = $('#siteNav');
   let lastY = window.scrollY;
 
+  // ارتفاعها لما يلصق تحتها (شريط فلاتر الأيتام)، ويتبعها إن تغيّر
+  const syncHeight = () => document.documentElement.style.setProperty('--kf-header-h', `${header.offsetHeight}px`);
+  syncHeight();
+  if ('ResizeObserver' in window) new ResizeObserver(syncHeight).observe(header);
+
   const update = rafThrottle(() => {
     const y = window.scrollY;
 

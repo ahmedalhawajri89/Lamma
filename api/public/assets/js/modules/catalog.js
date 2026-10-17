@@ -1,24 +1,27 @@
 /**
- * صفحة الأيتام: فهرسٌ يُصفّح ويُفلتر على الخادم.
+ * صفحة الأيتام: فهرسٌ يُفلتر ويُصفّح على الخادم.
  *
- * كانت الصفحة تطلب أول مئة طفل وتفلترهم في المتصفح، فمن بعد المئة لا يظهر
- * لأحد (137 طفلاً موثّقاً، 37 منهم بلا نافذة)، وتعرضهم كلهم في صفحة بطول
- * ثمانية عشر ألف بكسل. هنا الخادم يفلتر ويعدّ ويصفّح، والصفحة تعرض اثنتي
- * عشرة بطاقة، أولاها أعرض للأشد احتياجاً.
+ * الشريط يلصق تحت الترويسة: البرامج شرائح بأعدادها، والجنس والعمر والدولة
+ * قوائم منسدلة على الشاشة العريضة ولوحٌ من الأسفل على الجوال، و«عاجلة»
+ * والترتيب. النتائج دفعاتٌ من اثنتي عشرة بطاقة، و«عرض المزيد» يضيف الدفعة
+ * التالية تحت ما قرأه الزائر بدل أن يقلب الصفحة عليه.
  *
- * الاختيار شريطٌ أفقي فوق النتائج: البرامج أزرارٌ بأعدادها، والجنس والعمر
- * والدولة أزرارٌ تفتح قوائم صغيرة (من الأسفل على الجوال)، و«عاجلة»، والبحث
- * والترتيب. وكل فلتر وصفحة في الرابط: يُشارَك ويُرجَع إليه بزرّ الرجوع.
+ * وكل فلتر في الرابط، ومعه عدد الدفعات المعروضة (`page`): الرابط المُشارك
+ * أو زرّ الرجوع يعيدان القائمة كما كانت، بطولها.
  */
 
 import { $, $$, countUp, escapeHtml, debounce, formatNumber, keepFocus, prefersReducedMotion } from './utils.js';
 import { ORPHANS, PROGRAMS } from './data.js';
-import { orphanCard } from './render.js';
+import { kidCard } from './render.js';
 import { apiEnabled, request } from './api.js';
 import { initReveal } from './motion.js';
 
 const PER_PAGE = 12;
+/** أقصى ما يُطلب دفعةً واحدة حين يُفتح رابطٌ بعدة دفعات (حدّ الخادم 100). */
+const MAX_BATCHES = 8;
+const COLS = 'col-sm-6 col-lg-4 col-xl-3';
 const KEYS = ['q', 'program', 'country', 'gender', 'age', 'urgent', 'sort', 'page'];
+const FILTER_KEYS = ['q', 'program', 'country', 'gender', 'age', 'urgent'];
 const GENDERS = [{ value: 'male', label: 'ولد' }, { value: 'female', label: 'بنت' }];
 const AGES = [{ value: '0-5', label: 'حتى 5 سنوات' }, { value: '6-10', label: 'من 6 إلى 10' }, { value: '11-18', label: '11 سنة فأكبر' }];
 const SORTS = [
@@ -29,7 +32,10 @@ const SORTS = [
   { value: 'age_asc', label: 'الأصغر سناً' },
   { value: 'newest', label: 'الأحدث إضافة' },
 ];
-const MENU_TITLES = { gender: 'الجنس', age: 'العمر', country: 'الدولة' };
+const TITLES = { gender: 'الجنس', age: 'العمر', country: 'الدولة' };
+
+/** «طفل، طفلان، 3 أطفال، 11 طفلاً» */
+const kids = (n) => `${formatNumber(n)} ${n === 1 ? 'طفل' : n === 2 ? 'طفلان' : n >= 3 && n <= 10 ? 'أطفال' : 'طفلاً'}`;
 
 export function initCatalog() {
   const grid = $('#catalogGrid');
@@ -38,200 +44,212 @@ export function initCatalog() {
   const state = readUrl();
   let facets = null;
   let sequence = 0;
-  let openMenu = null;
+  let loaded = 0;
+  let total = 0;
 
   const sortSelect = $('#catalogSort');
   const search = $('[data-filter-search]');
-  const menu = $('#filterMenu');
+  const more = $('#catalogMore');
+  const moreBtn = $('[data-load-more]');
 
-  if (sortSelect) {
-    sortSelect.innerHTML = SORTS.map((s) => `<option value="${s.value}">${s.label}</option>`).join('');
-    sortSelect.value = state.sort || 'urgent';
-    sortSelect.addEventListener('change', () => update({ sort: sortSelect.value === 'urgent' ? '' : sortSelect.value }));
-  }
-  if (search) {
-    search.value = state.q || '';
-    search.addEventListener('input', debounce(() => update({ q: search.value.trim() }), 300));
-  }
+  sortSelect.innerHTML = SORTS.map((s) => `<option value="${s.value}">${s.label}</option>`).join('');
+  sortSelect.value = state.sort || 'urgent';
+  sortSelect.addEventListener('change', () => update({ sort: sortSelect.value === 'urgent' ? '' : sortSelect.value }));
 
-  /* ── النقرات: خيار، إزالة، صفحة، قائمة ──────────────────────────────── */
+  search.value = state.q || '';
+  search.addEventListener('input', debounce(() => update({ q: search.value.trim() }, { push: false }), 350));
+  $('[data-catalog-search]').addEventListener('submit', (e) => {
+    e.preventDefault();
+    update({ q: search.value.trim() }, { scroll: true });
+  });
+
+  /* ── النقرات: خيار، إزالة، مسح، المزيد ─────────────────────────────── */
   document.addEventListener('click', (e) => {
-    const pill = e.target.closest('[data-menu]');
-    if (pill) { toggleMenu(pill); return; }
-
+    const inSheet = Boolean(e.target.closest('#filterSheet'));
     const opt = e.target.closest('[data-filter]');
     if (opt) {
       const { filter, value } = opt.dataset;
-      closeMenu();
-      update({ [filter]: state[filter] === value ? '' : value });
+      update({ [filter]: state[filter] === value ? '' : value }, { scroll: !inSheet });
       return;
     }
     const remove = e.target.closest('[data-remove]');
-    if (remove) { closeMenu(); update({ [remove.dataset.remove]: '' }); return; }
+    if (remove) { update({ [remove.dataset.remove]: '' }, { scroll: !inSheet }); return; }
     if (e.target.closest('[data-reset]')) {
-      if (search) search.value = '';
-      if (sortSelect) sortSelect.value = 'urgent';
-      update(Object.fromEntries(KEYS.map((k) => [k, ''])));
+      search.value = '';
+      sortSelect.value = 'urgent';
+      update(Object.fromEntries(KEYS.map((k) => [k, ''])), { scroll: !inSheet });
       return;
     }
-    const page = e.target.closest('[data-page]');
-    if (page && !page.disabled) {
-      state.page = page.dataset.page === '1' ? '' : page.dataset.page;
-      writeUrl(state, true);
-      load({ scroll: true });
-      return;
-    }
-    if (openMenu && !e.target.closest('#filterMenu')) closeMenu();
-  });
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && openMenu) { const p = openMenu; closeMenu(); p.focus(); }
+    if (e.target.closest('[data-load-more]')) loadMore();
   });
 
-  // الخروج من القائمة بـ Tab يغلقها، فلا تبقى مفتوحةً فوق ما انتقل إليه التركيز
-  menu.addEventListener('focusout', (e) => {
-    if (openMenu && e.relatedTarget && !menu.contains(e.relatedTarget) && e.relatedTarget !== openMenu) closeMenu();
-  });
+  // يُغلق اللوح فتعود إلى أول النتائج التي اخترتها
+  $('#filterSheet')?.addEventListener('hidden.bs.offcanvas', scrollToResults);
 
   window.addEventListener('popstate', () => {
     Object.assign(state, readUrl());
-    if (search) search.value = state.q || '';
-    if (sortSelect) sortSelect.value = state.sort || 'urgent';
+    search.value = state.q || '';
+    sortSelect.value = state.sort || 'urgent';
     load();
   });
 
-  function update(patch) {
+  function update(patch, { scroll = false, push = true } = {}) {
     Object.assign(state, patch, { page: '' });
-    writeUrl(state, false);
-    load();
+    writeUrl(state, push);
+    load().then(() => { if (scroll) scrollToResults(); });
   }
 
-  /* ── قائمة الجنس والعمر والدولة ─────────────────────────────────────── */
-  function toggleMenu(pill) {
-    if (openMenu === pill) { closeMenu(); return; }
-    closeMenu();
-    const key = pill.dataset.menu;
-    const options = key === 'gender' ? GENDERS.map((g) => [g.value, g.label, facets?.gender?.[g.value]])
-      : key === 'age' ? AGES.map((a) => [a.value, a.label, facets?.age?.[a.value]])
-        : Object.entries(facets?.country ?? {}).map(([c, n]) => [c, c, n]);
-
-    menu.innerHTML = `<p class="fmenu__title">${MENU_TITLES[key]}</p>
-      <ul class="fmenu__list">${options.map(([value, label, n]) => {
-        const on = state[key] === value;
-        return `<li><button type="button" class="fmenu__opt" data-filter="${key}" data-value="${escapeHtml(value)}" aria-pressed="${on}" ${!n && !on ? 'disabled' : ''}>
-          <span><i class="fa-solid fa-check" aria-hidden="true"></i>${escapeHtml(label)}</span><span class="num">${formatNumber(n ?? 0)}</span></button></li>`;
-      }).join('')}</ul>
-      ${state[key] ? `<button type="button" class="fmenu__clear" data-remove="${key}">إلغاء اختيار ${MENU_TITLES[key]}</button>` : ''}`;
-
-    // تحت زرّه، محاذاةً لبدايته (يمين الصفحة العربية)
-    const bar = pill.closest('.fbar').getBoundingClientRect();
-    const r = pill.getBoundingClientRect();
-    menu.style.setProperty('--menu-top', `${r.bottom - bar.top + 8}px`);
-    menu.style.setProperty('--menu-right', `${bar.right - r.right}px`);
-    menu.hidden = false;
-    menu.setAttribute('aria-label', MENU_TITLES[key]);
-    requestAnimationFrame(() => menu.classList.add('is-open'));
-    pill.setAttribute('aria-expanded', 'true');
-    openMenu = pill;
-    $('.fmenu__opt:not(:disabled)', menu)?.focus({ preventScroll: true });
+  /** إلى أول النتائج، إن كان الزائر قد نزل تحتها. */
+  function scrollToResults() {
+    const top = $('#catalogTop');
+    if (top && window.scrollY > top.offsetTop) {
+      top.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'start' });
+    }
   }
 
-  function closeMenu() {
-    if (!openMenu) return;
-    openMenu.setAttribute('aria-expanded', 'false');
-    openMenu = null;
-    menu.classList.remove('is-open');
-    menu.hidden = true;
-  }
-
-  /* ── الجلب والعرض ───────────────────────────────────────────────────── */
-  async function load({ scroll = false } = {}) {
-    const mine = ++sequence;
-    const restoreFocus = keepFocus();
-    grid.setAttribute('aria-busy', 'true');
-
-    const params = new URLSearchParams({ per_page: PER_PAGE, facets: 1, sort: state.sort || 'urgent' });
+  /* ── الجلب ───────────────────────────────────────────────────────────── */
+  async function fetchPage(page, perPage) {
+    const params = new URLSearchParams({ per_page: perPage, page, facets: 1, sort: state.sort || 'urgent' });
     for (const k of ['q', 'program', 'country', 'gender', 'age']) if (state[k]) params.set(k, state[k]);
     if (state.urgent) params.set('urgent', 1);
-    if (state.page) params.set('page', state.page);
-
-    let payload;
     try {
-      payload = apiEnabled() ? await request(`/public/orphans?${params}`) : null;
-    } catch {
-      payload = null;
-    }
+      if (apiEnabled()) return await request(`/public/orphans?${params}`);
+    } catch { /* الخادم متوقف: البيانات المضمَّنة بالفلاتر نفسها، لا شاشة خطأ */ }
+    return localQuery({ ...state, page }, perPage);
+  }
+
+  /** من الأول: كل الدفعات التي في الرابط بطلبٍ واحد. */
+  async function load() {
+    const mine = ++sequence;
+    const restoreFocus = keepFocus();
+    const batches = Math.min(MAX_BATCHES, Math.max(1, Number(state.page) || 1));
+    grid.setAttribute('aria-busy', 'true');
+    grid.classList.add('is-loading');
+
+    const { data = [], meta = {} } = await fetchPage(1, PER_PAGE * batches);
     if (mine !== sequence) return;
-    // الموقع ملفاتٌ ساكنة قد تُفتح والخادم متوقف: الفلاتر والصفحات نفسها على
-    // البيانات المضمَّنة، لا شاشة خطأ
-    if (!payload) payload = localQuery(state);
 
-    const { data = [], meta = {} } = payload;
     facets = meta.facets ?? facets;
+    total = meta.total ?? data.length;
+    loaded = data.length;
 
-    // صفحةٌ بعد آخر الصفحات (رابط قديم أو فلتر ضيّق): إلى الأخيرة
-    if (!data.length && meta.current_page > 1 && meta.last_page >= 1) {
-      state.page = meta.last_page > 1 ? String(meta.last_page) : '';
-      writeUrl(state, false);
-      load();
-      return;
-    }
-
-    // الأولى أعرض حين تُعرض الصفحة الأولى بالترتيب الافتراضي: الأشد احتياجاً
-    const spotlight = !state.page && !state.sort && data.length > 2;
+    grid.classList.remove('is-loading');
     grid.removeAttribute('aria-busy');
-    grid.classList.remove('is-swapping');
-    void grid.offsetWidth; // يعيد تشغيل الانتقال الهادئ بين النتائج
-    grid.classList.add('is-swapping');
     grid.innerHTML = data.length
-      // التأخير في الصفحة الواحدة وحدها، وبسقف: اثنتا عشرة بطاقة لا مئة
-      ? data.map((o, i) => orphanCard(o, { delay: Math.min(i, 8) * 55, spotlight: spotlight && i === 0 })).join('')
-      : `<div class="catalog-empty">
-           <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+      ? data.map((o, i) => kidCard(o, { delay: Math.min(i, 7) * 60, cols: COLS })).join('')
+      : `<div class="col-12"><div class="cat-empty">
+           <span class="cat-empty__icon" aria-hidden="true"><i class="fa-solid fa-magnifying-glass"></i></span>
            <h3>لا أطفال بهذه الفلاتر</h3>
            <p>جرّب دولة أخرى أو عمراً أوسع، أو أزل فلتراً.</p>
-           <button class="btn btn--outline" type="button" data-reset>أزل كل الفلاتر</button>
-         </div>`;
+           <button class="btn btn-outline-primary" type="button" data-reset>أزل كل الفلاتر</button>
+         </div></div>`;
 
-    renderSummary(meta);
-    renderBar();
-    renderChips();
-    renderPager(meta);
+    renderAll();
     initReveal();
-
-    if (scroll) $('#catalogTop')?.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'start' });
-    restoreFocus($('#catalogTop'), scroll);
+    restoreFocus($('#catalogTop'));
   }
 
-  function renderSummary(meta) {
-    const total = meta.total ?? 0;
-    const from = total ? (meta.current_page - 1) * meta.per_page + 1 : 0;
-    const to = Math.min(total, meta.current_page * meta.per_page);
-    $('#catalogCount').innerHTML = `<strong class="num">${formatNumber(total)}</strong> ${total === 1 ? 'طفل' : 'طفلاً'}`;
-    // «من 13 إلى 24» لا «13–24»: الشرطة بين رقمين تنقلب في سطرٍ عربي فتُقرأ «24–13»
-    $('#catalogRange').textContent = total > PER_PAGE ? `يُعرض من ${from} إلى ${to}` : '';
+  /** الدفعة التالية تُضاف تحت ما سبق، والتركيز على أول بطاقة جديدة. */
+  async function loadMore() {
+    if (loaded >= total) return;
+    const mine = ++sequence;
+    moreBtn.disabled = true;
+    moreBtn.innerHTML = '<span class="spinner-border spinner-border-sm" aria-hidden="true"></span> جارٍ التحميل';
+
+    const { data = [], meta = {} } = await fetchPage(Math.floor(loaded / PER_PAGE) + 1, PER_PAGE);
+    moreBtn.disabled = false;
+    moreBtn.textContent = 'عرض المزيد';
+    if (mine !== sequence) return;
+
+    total = meta.total ?? total;
+    const first = loaded;
+    grid.insertAdjacentHTML('beforeend', data.map((o, i) => kidCard(o, { delay: Math.min(i, 7) * 60, cols: COLS })).join(''));
+    loaded += data.length;
+    state.page = String(Math.ceil(loaded / PER_PAGE));
+    writeUrl(state, false);
+
+    renderMore();
+    initReveal();
+    $$('.kid-card__name a', grid)[first]?.focus({ preventScroll: true });
   }
 
-  /* ── الشريط: البرامج بأعدادها، وقيم الأزرار، و«عاجلة» ──────────────── */
-  function renderBar() {
+  /* ── العرض ───────────────────────────────────────────────────────────── */
+  function renderAll() {
+    const any = FILTER_KEYS.some((k) => state[k]);
+    $('#catalogCount').innerHTML = `<strong class="num">${formatNumber(total)}</strong> ${total === 1 ? 'طفل' : 'طفلاً'} ${any ? 'يطابقون اختيارك' : 'ينتظرون كافلاً'}`;
+    renderPrograms();
+    renderMenus();
+    renderSheet();
+    renderChips();
+    renderMore();
+  }
+
+  function renderPrograms() {
     if (!facets) return;
-    const programs = $('[data-group="program"]');
-    const allCount = Object.values(facets.program ?? {}).reduce((a, b) => a + b, 0);
-    programs.innerHTML = [['', 'كل البرامج', allCount], ...PROGRAMS.map((p) => [p.id, p.name, facets.program?.[p.id] ?? 0])]
+    const all = Object.values(facets.program ?? {}).reduce((a, b) => a + b, 0);
+    $('[data-group="program"]').innerHTML = [['', 'كل البرامج', all], ...PROGRAMS.map((p) => [p.id, p.name, facets.program?.[p.id] ?? 0])]
       .map(([value, label, n]) => {
         const on = (state.program || '') === value;
-        return `<button type="button" class="seg" ${value ? `data-filter="program" data-value="${escapeHtml(value)}"` : 'data-remove="program"'}
-          aria-pressed="${on}" ${!n && !on && value ? 'disabled' : ''}>${escapeHtml(label)} <span class="seg__count num">${formatNumber(n)}</span></button>`;
+        return `<button type="button" class="cat-program" ${value ? `data-filter="program" data-value="${escapeHtml(value)}"` : 'data-remove="program"'}
+          aria-pressed="${on}" ${!n && !on && value ? 'disabled' : ''}>${escapeHtml(label)} <span class="num">${formatNumber(n)}</span></button>`;
       }).join('');
+  }
 
-    const labelOf = { gender: GENDERS, age: AGES };
-    for (const key of ['gender', 'age', 'country']) {
-      const v = state[key];
-      const text = !v ? '' : key === 'country' ? v : labelOf[key].find((x) => x.value === v)?.label ?? v;
-      $(`[data-pill-value="${key}"]`).textContent = text ? `: ${text}` : '';
-      $(`[data-menu="${key}"]`).classList.toggle('is-set', Boolean(v));
+  function optionsOf(key) {
+    if (key === 'gender') return GENDERS.map((g) => [g.value, g.label, facets?.gender?.[g.value] ?? 0]);
+    if (key === 'age') return AGES.map((a) => [a.value, a.label, facets?.age?.[a.value] ?? 0]);
+    return Object.entries(facets?.country ?? {}).map(([c, n]) => [c, c, n]);
+  }
+
+  function labelOf(key, value) {
+    if (key === 'gender') return GENDERS.find((g) => g.value === value)?.label ?? value;
+    if (key === 'age') return AGES.find((a) => a.value === value)?.label ?? value;
+    return value;
+  }
+
+  /** القوائم المنسدلة: «الكل» ثم الخيارات بأعدادها، والمختار عليه علامة. */
+  function renderMenus() {
+    for (const key of Object.keys(TITLES)) {
+      const menu = $(`[data-menu-for="${key}"]`);
+      if (!menu) continue;
+      menu.innerHTML = `<button type="button" class="dropdown-item cat-menu__opt" data-remove="${key}" aria-pressed="${!state[key]}">
+          <i class="fa-solid fa-check" aria-hidden="true"></i><span>الكل</span></button>
+        ${optionsOf(key).map(([value, label, n]) => {
+          const on = state[key] === value;
+          return `<button type="button" class="dropdown-item cat-menu__opt" data-filter="${key}" data-value="${escapeHtml(value)}" aria-pressed="${on}" ${!n && !on ? 'disabled' : ''}>
+            <i class="fa-solid fa-check" aria-hidden="true"></i><span>${escapeHtml(label)}</span><span class="num">${formatNumber(n)}</span></button>`;
+        }).join('')}`;
+      $(`[data-pill-value="${key}"]`).textContent = state[key] ? labelOf(key, state[key]) : '';
+      $(`[data-pill="${key}"]`).classList.toggle('is-set', Boolean(state[key]));
     }
-    $('.pill--urgent')?.setAttribute('aria-pressed', String(Boolean(state.urgent)));
-    $('[data-urgent-count]').textContent = formatNumber(facets.urgent ?? 0);
+    $$('.cat-pill--urgent').forEach((b) => b.setAttribute('aria-pressed', String(Boolean(state.urgent))));
+    $$('[data-urgent-count]').forEach((el) => { el.textContent = formatNumber(facets?.urgent ?? 0); });
+  }
+
+  /** لوح الجوال: الخيارات شرائح تُضغط، والنتائج تتحدّث خلفه. */
+  function renderSheet() {
+    const body = $('[data-sheet]');
+    if (!body) return;
+    const restore = keepFocus();
+    const group = (key) => `<fieldset class="cat-sheet__group"><legend>${TITLES[key]}</legend><div class="cat-sheet__chips">
+        ${optionsOf(key).map(([value, label, n]) => {
+          const on = state[key] === value;
+          return `<button type="button" class="cat-program" data-filter="${key}" data-value="${escapeHtml(value)}" aria-pressed="${on}" ${!n && !on ? 'disabled' : ''}>
+            ${escapeHtml(label)} <span class="num">${formatNumber(n)}</span></button>`;
+        }).join('')}</div></fieldset>`;
+    body.innerHTML = `${group('gender')}${group('age')}${group('country')}
+      <fieldset class="cat-sheet__group"><legend>الحالة</legend><div class="cat-sheet__chips">
+        <button type="button" class="cat-pill cat-pill--urgent" data-filter="urgent" data-value="1" aria-pressed="${Boolean(state.urgent)}">
+          <span class="cat-pill__dot" aria-hidden="true"></span> عاجلة فقط <span class="num">${formatNumber(facets?.urgent ?? 0)}</span></button>
+      </div></fieldset>`;
+    restore();
+
+    const apply = $('[data-sheet-apply]');
+    if (apply) apply.textContent = total ? `اعرض ${kids(total)}` : 'لا نتائج';
+    const badge = $('[data-filter-count]');
+    const n = ['gender', 'age', 'country', 'urgent'].filter((k) => state[k]).length;
+    badge.hidden = !n;
+    badge.textContent = formatNumber(n);
   }
 
   function renderChips() {
@@ -239,170 +257,51 @@ export function initCatalog() {
     const chips = [
       state.q && ['q', `«${state.q}»`],
       state.program && ['program', programName(state.program)],
-      state.gender && ['gender', GENDERS.find((g) => g.value === state.gender)?.label],
-      state.age && ['age', AGES.find((a) => a.value === state.age)?.label],
+      state.gender && ['gender', labelOf('gender', state.gender)],
+      state.age && ['age', labelOf('age', state.age)],
       state.country && ['country', state.country],
       state.urgent && ['urgent', 'حالات عاجلة'],
     ].filter(Boolean);
 
     const box = $('#activeFilters');
     box.hidden = !chips.length;
-    box.innerHTML = chips.map(([k, label]) => `<button type="button" class="active-chip" data-remove="${k}" aria-label="إزالة فلتر ${escapeHtml(label)}">
+    box.innerHTML = chips.map(([k, label]) => `<button type="button" class="cat-chip" data-remove="${k}" aria-label="إزالة فلتر ${escapeHtml(label)}">
         ${escapeHtml(label)} <i class="fa-solid fa-xmark" aria-hidden="true"></i></button>`).join('')
-      + (chips.length > 1 ? '<button type="button" class="active-chip active-chip--clear" data-reset>مسح الكل</button>' : '');
+      + (chips.length > 1 ? '<button type="button" class="cat-chip cat-chip--clear" data-reset>مسح الكل</button>' : '');
   }
 
-  /* ── التصفيح: أرقام بفواصل، والسابقة والتالية ──────────────────────── */
-  function renderPager(meta) {
-    const nav = $('#catalogPager');
-    const last = meta.last_page ?? 1;
-    const cur = meta.current_page ?? 1;
-    if (last <= 1) { nav.hidden = true; nav.innerHTML = ''; return; }
-
-    const pages = new Set([1, last, cur, cur - 1, cur + 1]);
-    if (cur <= 3) [2, 3, 4].forEach((p) => pages.add(p));
-    if (cur >= last - 2) [last - 1, last - 2, last - 3].forEach((p) => pages.add(p));
-    const list = [...pages].filter((p) => p >= 1 && p <= last).sort((a, b) => a - b);
-
-    let html = `<button type="button" class="pager__step" data-page="${cur - 1}" ${cur === 1 ? 'disabled' : ''}>
-      <i class="fa-solid fa-arrow-right" aria-hidden="true"></i> السابقة</button><ol class="pager__pages">`;
-    list.forEach((p, i) => {
-      if (i && p - list[i - 1] > 1) html += '<li class="pager__gap" aria-hidden="true">…</li>';
-      html += `<li><button type="button" class="pager__page num" data-page="${p}" ${p === cur ? 'aria-current="page"' : ''}
-        aria-label="الصفحة ${p}">${p}</button></li>`;
-    });
-    html += `</ol><button type="button" class="pager__step" data-page="${cur + 1}" ${cur === last ? 'disabled' : ''}>
-      التالية <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></button>`;
-
-    nav.hidden = false;
-    nav.innerHTML = html;
+  /** «عرضنا 24 من 137» بشريط يمتلئ، والزرّ يختفي حين لا يبقى شيء. */
+  function renderMore() {
+    more.hidden = loaded >= total && total <= PER_PAGE;
+    $('#catalogRange').textContent = `عرضنا ${formatNumber(loaded)} من ${kids(total)}`;
+    $('#catalogProgress').style.setProperty('--v', `${total ? Math.round((loaded / total) * 100) : 0}%`);
+    moreBtn.hidden = loaded >= total;
   }
 
   initHero();
   load();
 }
 
-/* ── الصدر: أرقامٌ تعدّ صعوداً، ووجوهٌ ممن لهم صور ───────────────────── */
+/* ── الصدر: أرقامٌ تعدّ صعوداً مرة واحدة ─────────────────────────────── */
 async function initHero() {
   const stats = $$('[data-hero-stat]');
-  const faces = $('#heroFaces');
   if (!stats.length) return;
 
-  let all; let photos = [];
+  let all;
   try {
     if (!apiEnabled()) throw new Error('offline');
-    [all, photos] = await Promise.all([
-      request('/public/orphans?per_page=1&facets=1'),
-      request('/public/orphans?per_page=8&photo=1').then((r) => r.data ?? []).catch(() => []),
-    ]);
+    all = await request('/public/orphans?per_page=1&facets=1');
   } catch {
     all = localQuery({});
-    photos = ORPHANS.filter((o) => o.photo).slice(0, 8);
   }
 
   const f = all.meta?.facets ?? {};
   const values = { all: f.all ?? all.meta?.total ?? 0, urgent: f.urgent ?? 0, countries: Object.keys(f.country ?? {}).length };
   stats.forEach((el) => countUp(el, values[el.dataset.heroStat] ?? 0));
-
-  if (faces && photos.length) {
-    mountMosaic(faces, photos);
-  } else if (faces) {
-    faces.remove();
-  }
-}
-
-/**
- * فسيفساء الصدر: صورةٌ كبيرة تعرض طفلاً واحداً بقصته (الاسم والعمر والمكان
- * وحلمه)، وتتبدّل بتلاشٍ هادئ كل خمس ثوانٍ بين من لهم صور، وبجانبها صورتان
- * ثابتتان. كانت أربع بطاقات مائلة متفرّقة لا يجمعها شيء.
- *
- * التبديل يتوقف عند المرور أو التركيز بداخلها وحين يُخفى التبويب، ولا يبدأ
- * أصلاً لمن طلب تقليل الحركة. وله زرّ إيقاف ظاهر (WCAG 2.2.2): ما يتحرك وحده
- * أكثر من خمس ثوانٍ يجب أن يُوقَف بيد الزائر، لا بالمرور فوقه فقط. والمؤشّرات
- * أزرار تصلها لوحة المفاتيح للتنقّل باليد.
- */
-function mountMosaic(host, photos) {
-  const tiles = photos.length >= 4 ? photos.slice(0, 2) : photos.length >= 2 ? photos.slice(0, 1) : [];
-  const pool = photos.slice(tiles.length);
-  const her = (o) => ['أنثى', 'female'].includes(o.gender);
-  const age = (o) => `${Number(o.age)} ${o.age >= 3 && o.age <= 10 ? 'سنوات' : 'سنة'}`;
-  const place = (o) => [o.city, o.country].filter(Boolean).map(escapeHtml).join('، ');
-
-  host.className = `mosaic mosaic--${tiles.length + 1}`;
-  host.innerHTML = `
-    <figure class="mosaic__main">
-      ${pool.map((o, i) => `<img src="${escapeHtml(o.photo)}" alt="" width="640" height="800" ${i ? 'loading="lazy"' : ''} class="${i ? '' : 'is-active'}">`).join('')}
-      <figcaption class="mosaic__caption">
-        <span class="mosaic__who"><b data-m="name"></b> <span data-m="age"></span></span>
-        <span class="mosaic__place"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> <span data-m="place"></span></span>
-        <span class="mosaic__dream" data-m="dream"></span>
-      </figcaption>
-      ${pool.length > 1 ? `<div class="mosaic__dots">${pool.map((_, i) => `<button type="button" data-i="${i}" class="${i ? '' : 'is-active'}" aria-label="عرض الطفل ${i + 1} من ${pool.length}"${i ? '' : ' aria-current="true"'}></button>`).join('')}</div>` : ''}
-      ${pool.length > 1 && !prefersReducedMotion() ? `<button class="mosaic__toggle" type="button" aria-pressed="false" aria-label="إيقاف التبديل التلقائي">
-        <i class="fa-solid fa-pause" aria-hidden="true"></i>
-      </button>` : ''}
-    </figure>
-    ${tiles.map((o) => `<figure class="mosaic__tile">
-        <img src="${escapeHtml(o.photo)}" alt="" width="320" height="320" loading="lazy">
-        <figcaption>${escapeHtml(o.name)}، <span class="num">${Number(o.age)}</span></figcaption>
-      </figure>`).join('')}
-    <p class="mosaic__badge"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> زارهم مشرفونا في بيوتهم</p>`;
-
-  const imgs = $$('.mosaic__main img', host);
-  const dots = $$('.mosaic__dots button', host);
-  const caption = $('.mosaic__caption', host);
-  let cur = 0;
-
-  const show = (i) => {
-    const o = pool[i];
-    imgs.forEach((img, k) => img.classList.toggle('is-active', k === i));
-    dots.forEach((d, k) => {
-      d.classList.toggle('is-active', k === i);
-      if (k === i) d.setAttribute('aria-current', 'true');
-      else d.removeAttribute('aria-current');
-    });
-    caption.classList.remove('is-in');
-    void caption.offsetWidth; // يعيد تشغيل دخول التعليق
-    $('[data-m="name"]', caption).textContent = o.name;
-    $('[data-m="age"]', caption).textContent = age(o);
-    $('[data-m="place"]', caption).innerHTML = place(o);
-    $('[data-m="dream"]', caption).textContent = o.dream ? `${her(o) ? 'حلمها' : 'حلمه'}: ${o.dream}` : '';
-    caption.classList.add('is-in');
-    cur = i;
-  };
-  show(0);
-  requestAnimationFrame(() => host.classList.add('is-in'));
-
-  // التبديل الآلي لمن لم يطلب تقليل الحركة، والضغط على مؤشّر يعيد عدّاده
-  const auto = pool.length > 1 && !prefersReducedMotion();
-  let timer = null;
-  let hovered = false;
-  let focused = false;
-  let stopped = false; // إيقاف الزائر بالزر، يبقى حتى يعيد تشغيله
-  const next = () => { if (!stopped && !hovered && !focused && !document.hidden) show((cur + 1) % pool.length); };
-  const restart = () => { if (!auto || stopped) return; clearInterval(timer); timer = setInterval(next, 5000); };
-
-  dots.forEach((d) => d.addEventListener('click', () => { show(Number(d.dataset.i)); restart(); }));
-  host.addEventListener('mouseenter', () => { hovered = true; });
-  host.addEventListener('mouseleave', () => { hovered = false; });
-  host.addEventListener('focusin', () => { focused = true; });
-  host.addEventListener('focusout', (e) => { if (!host.contains(e.relatedTarget)) focused = false; });
-
-  const toggle = $('.mosaic__toggle', host);
-  toggle?.addEventListener('click', () => {
-    stopped = !stopped;
-    toggle.setAttribute('aria-pressed', String(stopped));
-    toggle.setAttribute('aria-label', stopped ? 'تشغيل التبديل التلقائي' : 'إيقاف التبديل التلقائي');
-    $('i', toggle).className = `fa-solid ${stopped ? 'fa-play' : 'fa-pause'}`;
-    if (stopped) clearInterval(timer);
-    else restart();
-  });
-
-  restart();
 }
 
 /* ── بلا خادم: الاستعلام نفسه على البيانات المضمَّنة ───────────────────── */
-function localQuery(state) {
+function localQuery(state, perPage = PER_PAGE) {
   const genderOf = (o) => (['أنثى', 'female'].includes(o.gender) ? 'female' : 'male');
   const ageOf = (o) => (o.age <= 5 ? '0-5' : o.age <= 10 ? '6-10' : '11-18');
   const q = (state.q || '').toLowerCase();
@@ -425,13 +324,13 @@ function localQuery(state) {
     newest: () => 0,
   };
   const all = ORPHANS.filter((o) => match(o)).sort(SORT[state.sort] ?? SORT.urgent);
-  const last = Math.max(1, Math.ceil(all.length / PER_PAGE));
+  const last = Math.max(1, Math.ceil(all.length / perPage));
   const page = Math.min(last, Math.max(1, Number(state.page) || 1));
 
   return {
-    data: all.slice((page - 1) * PER_PAGE, page * PER_PAGE),
+    data: all.slice((page - 1) * perPage, page * perPage),
     meta: {
-      total: all.length, per_page: PER_PAGE, current_page: page, last_page: last,
+      total: all.length, per_page: perPage, current_page: page, last_page: last,
       facets: {
         program: tally('program', (o) => o.program),
         country: tally('country', (o) => o.country),
@@ -444,7 +343,7 @@ function localQuery(state) {
   };
 }
 
-/* ── الرابط: كل فلتر وصفحة فيه ───────────────────────────────────────── */
+/* ── الرابط: كل فلتر فيه، و`page` عدد الدفعات المعروضة ───────────────── */
 function readUrl() {
   const params = new URLSearchParams(window.location.search);
   return Object.fromEntries(KEYS.map((k) => [k, params.get(k) ?? '']));
@@ -454,6 +353,6 @@ function writeUrl(state, push) {
   const params = new URLSearchParams();
   for (const k of KEYS) if (state[k]) params.set(k, state[k]);
   const url = `${window.location.pathname}${params.toString() ? `?${params}` : ''}`;
-  // الصفحة تُضاف إلى السجل (زرّ الرجوع يعيد السابقة)، والفلتر يُستبدل
+  // الفلتر يُضاف إلى السجل (زرّ الرجوع يعيد ما قبله)، والبحث أثناء الكتابة و«المزيد» يُستبدلان
   history[push ? 'pushState' : 'replaceState'](null, '', url);
 }

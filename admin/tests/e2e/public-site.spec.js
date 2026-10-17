@@ -26,28 +26,31 @@ test.describe('الموقع العام', () => {
      * يتحقق، فلا يهمّ متى وصلت البيانات.
      *
      * البذرة ثمانية أيتام، فأي عدد أكبر يعني أن القائمة حيّة من قاعدة البيانات.
-     * والصفحة تعرض اثنتي عشرة بطاقة، والباقي في صفحاتٍ مرقّمة: كانت تطلب أول
-     * مئة طفل وتعرضهم كلهم، فمن بعد المئة لا يظهر لأحد.
+     * والصفحة تعرض اثنتي عشرة بطاقة، و«عرض المزيد» يضيف الدفعة التالية تحتها:
+     * كانت تطلب أول مئة طفل وتعرضهم كلهم، فمن بعد المئة لا يظهر لأحد.
      */
-    await expect(page.locator('#catalogGrid > .kid')).toHaveCount(12, { timeout: 20_000 })
+    const cards = page.locator('#catalogGrid .kid-card')
+    await expect(cards).toHaveCount(12, { timeout: 20_000 })
     const total = Number((await page.locator('#catalogCount strong').innerText()).replace(/\D/g, ''))
-    expect(total).toBeGreaterThan(8)
+    expect(total).toBeGreaterThan(12)
 
-    // الصفحة الأخيرة تُفتح، ورابطها في العنوان، وبطاقاتها ما بقي
-    const pager = page.locator('#catalogPager')
-    const last = Math.ceil(total / 12)
-    await pager.locator(`[data-page="${last}"]`).click()
-    await expect(page).toHaveURL(new RegExp(`page=${last}`))
-    await expect(page.locator('#catalogGrid > .kid')).toHaveCount(total - (last - 1) * 12)
+    // الدفعة الثانية تُضاف تحت الأولى، وعدد الدفعات في الرابط
+    await page.locator('[data-load-more]').click()
+    await expect(cards).toHaveCount(Math.min(24, total))
+    await expect(page).toHaveURL(/page=2/)
 
-    // فلترٌ بعدده من قائمة «الجنس»: «بنت (n)» تعرض n، وتعود للصفحة الأولى
-    await page.locator('[data-menu="gender"]').click()
-    const girls = page.locator('#filterMenu [data-filter="gender"][data-value="female"]')
+    // الرابط نفسه يعيد القائمة بطولها بعد التحديث
+    await page.reload()
+    await expect(cards).toHaveCount(Math.min(24, total), { timeout: 20_000 })
+
+    // فلترٌ بعدده من قائمة «الجنس»: «بنت (n)» تعرض n، وتعود للدفعة الأولى
+    await page.locator('[data-pill="gender"]').click()
+    const girls = page.locator('[data-menu-for="gender"] [data-filter="gender"][data-value="female"]')
     const n = Number(await girls.locator('.num').innerText())
     await girls.click()
-    await expect(page.locator('#filterMenu')).toBeHidden()
     await expect(page.locator('#catalogCount strong')).toHaveText(String(n))
     await expect(page).not.toHaveURL(/page=/)
+    await expect(cards).toHaveCount(Math.min(12, n))
   })
 
   test('الموقع يبقى صحيحاً حين يسقط الخادم', async ({ page }) => {
@@ -62,7 +65,7 @@ test.describe('الموقع العام', () => {
     await page.waitForTimeout(1500)
 
     // الفلاتر والصفحات نفسها على البيانات المضمَّنة، لا شاشة خطأ
-    await expect(page.locator('#catalogGrid > .kid')).toHaveCount(8)
+    await expect(page.locator('#catalogGrid .kid-card')).toHaveCount(8)
     await expect(page.locator('#catalogCount strong')).toHaveText('8')
     expect(errors).toEqual([])
   })
