@@ -1,0 +1,129 @@
+/* =========================================================================
+   «من نحن»: صدرٌ فاتح بأرقام حيّة، ثم القصة، والمبادئ، وخطٌّ زمني للتحقق
+   ========================================================================= */
+
+.ab-crumbs { margin: 0 0 clamp(1.25rem, 3vw, 2rem); font-size: 0.875rem; }
+.ab-crumbs a { color: var(--color-text-muted); text-decoration: none; }
+.ab-crumbs a:hover { color: var(--color-brand); }
+
+/* ── الصدر ── */
+.ab-hero { padding-block: clamp(1.25rem, 3vw, 2rem) clamp(2.5rem, 5vw, 3.5rem); background: var(--color-canvas); }
+.ab-eyebrow { display: inline-flex; align-items: center; gap: 0.6rem; }
+.ab-eyebrow::before { content: ""; inline-size: 2rem; block-size: 2px; background: var(--color-cta); }
+.ab-title { margin: 0; font-size: clamp(2.1rem, 4.6vw, 3.6rem); line-height: 1.2; color: var(--color-text); }
+.ab-title em { font-style: normal; color: var(--color-brand); }
+.ab-lede { max-inline-size: 36rem; margin: 1rem 0 0; font-size: 1.1rem; line-height: 1.8; color: var(--color-text-muted); }
+.ab-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 1.75rem; margin-block-start: 2rem; }
+
+.ab-art { position: relative; margin: 0; }
+.ab-art img { display: block; inline-size: 100%; block-size: auto; aspect-ratio: 4 / 4.4; object-fit: cover; border-radius: 2rem; }
+.ab-art__badge {
+  position: absolute;
+  inset-block-end: 1.5rem;
+  inset-inline-end: -1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-lg);
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+.ab-art__badge b { font-family: var(--font-display); font-size: 1.15rem; color: var(--color-text); }
+.ab-art__icon { display: inline-grid; place-items: center; inline-size: 2.4rem; block-size: 2.4rem; border-radius: 50%; background: var(--color-brand-soft); color: var(--color-brand); }
+
+/* الأرقام: أربعة بفواصل رفيعة تحت الصدر */
+.ab-figures { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem 0; margin: clamp(2rem, 4vw, 3rem) 0 0; padding-block-start: 1.75rem; border-block-start: 1px solid var(--color-border); }
+.ab-figures > div { display: flex; flex-direction: column; padding-inline: 1.5rem; border-inline-start: 1px solid var(--color-border); }
+.ab-figures > div:nth-child(odd) { padding-inline-start: 0; border: 0; }
+.ab-figures dt { order: 2; margin-block-start: 0.25rem; font-size: 0.9rem; font-weight: 500; color: var(--color-text-muted); }
+.ab-figures dd { order: 1; margin: 0; font-family: var(--font-display); font-size: clamp(2rem, 3.6vw, 2.75rem); font-weight: 700; line-height: 1.1; color: var(--color-brand); }
+@media (min-width: 48rem) {
+  .ab-figures { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .ab-figures > div:nth-child(odd) { padding-inline-start: 1.5rem; border-inline-start: 1px solid var(--color-border); }
+  .ab-figures > div:first-child { padding-inline-start: 0; border: 0; }
+}
+
+/* ── القصة ── */
+.ab-story { padding-block: clamp(3.5rem, 7vw, 5.5rem); border-block-start: 1px solid var(--color-border); background: var(--color-surface); }
+.ab-quote {
+  position: relative;
+  margin: 0;
+  padding: clamp(2rem, 4vw, 2.75rem);
+  border-radius: 2rem;
+  background: var(--color-ink);
+  color: var(--color-on-ink);
+}
+.ab-quote__mark { font-size: 2.25rem; color: var(--color-cta); }
+.ab-quote blockquote { margin: 1rem 0 0; }
+.ab-quote blockquote p { margin: 0; font-family: var(--font-display); font-size: clamp(2rem, 4vw, 2.75rem); font-weight: 700; line-height: 1.3; color: #fff; }
+.ab-quote figcaption { margin-block-start: 1.25rem; padding-block-start: 1.25rem; border-block-start: 1px solid rgb(255 255 255 / 0.15); line-height: 1.8; color: var(--color-on-ink-muted); }
+.ab-p { max-inline-size: 42rem; margin: 1rem 0 0; font-size: 1.05rem; line-height: 1.95; color: var(--color-text); }
+
+.ab-vm { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin-block-start: 2rem; }
+.ab-vm > div { padding: 1.25rem 1.35rem; border: 1px solid var(--color-border); border-radius: var(--radius-xl); background: var(--color-canvas); }
+.ab-vm__icon { display: inline-grid; place-items: center; inline-size: 2.5rem; block-size: 2.5rem; border-radius: var(--radius-md); background: var(--color-brand-soft); color: var(--color-brand); }
+.ab-vm h3 { margin: 0.85rem 0 0.35rem; font-size: 1.1rem; }
+.ab-vm p { margin: 0; font-size: 0.925rem; line-height: 1.75; color: var(--color-text-muted); }
+
+/* ── المبادئ ── */
+.ab-principles { padding-block: clamp(3.5rem, 7vw, 5.5rem); background: var(--color-canvas); }
+.ab-cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; margin: 0; padding: 0; list-style: none; }
+.ab-cards li {
+  position: relative;
+  padding: 1.5rem 1.4rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface);
+  transition: translate var(--dur-normal) var(--ease-out), box-shadow var(--dur-normal) var(--ease-out);
+}
+.ab-cards li:hover { translate: 0 -4px; box-shadow: var(--shadow-lg); }
+.ab-cards__icon { display: inline-grid; place-items: center; inline-size: 3rem; block-size: 3rem; border-radius: var(--radius-md); background: var(--color-cta-soft); color: var(--color-cta-strong); font-size: 1.2rem; }
+.ab-cards__top { display: flex; align-items: flex-start; justify-content: space-between; }
+.ab-cards__num { font-family: var(--font-display); font-size: 1.6rem; font-weight: 700; line-height: 1; color: var(--color-text-muted); opacity: 0.35; }
+.ab-cards h3 { margin: 1.1rem 0 0.5rem; font-size: 1.15rem; }
+.ab-cards p { margin: 0; font-size: 0.925rem; line-height: 1.8; color: var(--color-text-muted); }
+
+/* ── التحقق: خطٌّ زمني أفقي يصل النقاط ── */
+.ab-verify { padding-block: clamp(3.5rem, 7vw, 5.5rem); border-block-start: 1px solid var(--color-border); background: var(--color-surface); }
+.ab-verify__head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 1.25rem 2rem; margin-block-end: clamp(2rem, 4vw, 3rem); }
+.ab-verify__stat { display: flex; align-items: center; gap: 0.85rem; max-inline-size: 24rem; margin: 0; padding: 0.9rem 1.15rem; border-radius: var(--radius-lg); background: var(--color-brand-soft); font-size: 0.875rem; color: var(--color-text-muted); }
+.ab-verify__stat b { font-family: var(--font-display); font-size: 2.2rem; line-height: 1; color: var(--color-brand); }
+.ab-steps { position: relative; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1.5rem; margin: 0; padding: 0; list-style: none; }
+.ab-steps::before { content: ""; position: absolute; inset-block-start: 1.6rem; inset-inline: 1.6rem; border-block-start: 2px dashed var(--color-brand-border); }
+.ab-steps li { position: relative; }
+.ab-steps__dot { position: relative; display: inline-grid; place-items: center; inline-size: 3.2rem; block-size: 3.2rem; border-radius: 50%; background: var(--color-brand); color: var(--color-brand-contrast); font-size: 1.15rem; box-shadow: 0 0 0 6px var(--color-surface); }
+.ab-steps li:last-child .ab-steps__dot { background: var(--color-cta); color: var(--color-cta-contrast); }
+.ab-steps__when { margin: 1rem 0 0.25rem; font-size: 0.8rem; font-weight: 700; color: var(--color-cta-strong); }
+.ab-steps h3 { margin: 0 0 0.4rem; font-size: 1.1rem; }
+.ab-steps p:last-child { margin: 0; font-size: 0.925rem; line-height: 1.75; color: var(--color-text-muted); }
+
+/* ── الخاتمة ── */
+.ab-cta { padding-block: 0 clamp(3rem, 6vw, 5rem); background: var(--color-surface); }
+.ab-cta__card { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1.25rem 2rem; padding: clamp(1.75rem, 4vw, 2.75rem); border: 1px solid var(--color-brand-border); border-radius: 2rem; background: var(--color-brand-soft); }
+.ab-cta__card h2 { margin: 0; font-size: clamp(1.4rem, 2.6vw, 1.9rem); }
+.ab-cta__card p { margin: 0.4rem 0 0; color: var(--color-text-muted); }
+.ab-cta__actions { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+
+@media (max-width: 75rem) {
+  .ab-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 61.98rem) {
+  .ab-art { max-inline-size: 26rem; margin-inline: auto; }
+  .ab-art__badge { inset-inline-end: 0.75rem; }
+  .ab-steps { grid-template-columns: minmax(0, 1fr); gap: 1.75rem; }
+  /* على الشاشة الضيقة الخطّ عمودي يمرّ بالنقاط */
+  .ab-steps::before { inset-block: 1.6rem; inset-inline: 1.55rem auto; border-block-start: 0; border-inline-start: 2px dashed var(--color-brand-border); }
+  .ab-steps li { padding-inline-start: 4.25rem; }
+  .ab-steps__dot { position: absolute; inset-block-start: 0; inset-inline-start: 0; }
+  .ab-steps__when { margin-block-start: 0.35rem; }
+}
+@media (max-width: 35.98rem) {
+  .ab-cards, .ab-vm { grid-template-columns: minmax(0, 1fr); }
+  .ab-cta__actions, .ab-cta__actions .btn { inline-size: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ab-cards li { transition: none; }
+}
