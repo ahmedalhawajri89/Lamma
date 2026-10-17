@@ -7,6 +7,10 @@
  * ويبقي التعديل في مكان واحد بدل تكراره في ١٤ صفحة.
  *
  * ولمن لا يعمل لديه JS: كل صفحة تحوي <noscript> بروابط التنقل الأساسية.
+ *
+ * الصفحات المنقولة إلى Blade (resources/views/site) تصل وترويستها وفوترها
+ * مرسومان من الخادم، فلا مكان فيها لـ data-layout ولا يُبنى هنا شيء؛ يبقى
+ * السلوك وحده: الإخفاء عند التمرير ورابط الحساب.
  */
 
 import { SITE, NAV_LINKS } from './data.js';
@@ -39,7 +43,7 @@ function headerMarkup({ page }) {
 <a class="skip-link" href="${escapeHtml(window.location.pathname + window.location.search)}#main">تخطَّ إلى المحتوى الرئيسي</a>
 <header class="site-header" id="siteHeader">
   <div class="container header-row">
-    <a class="brand" href="index.html">
+    <a class="brand" href="/">
       <img class="brand__mark" src="assets/img/logo.svg" alt="" width="36" height="36">
       <span class="brand__name"><span data-site="name">${escapeHtml(SITE.name)}</span><span class="brand__tag" data-site="tagline">${escapeHtml(SITE.tagline)}</span></span>
     </a>
@@ -79,7 +83,7 @@ function footerMarkup() {
     .join('');
 
   const quickLinks = [
-    { label: 'الرئيسية', href: 'index.html' },
+    { label: 'الرئيسية', href: '/' },
     ...NAV_LINKS,
   ]
     .map(({ label, href }) => `<li><a href="${href}">${label}</a></li>`)
@@ -95,7 +99,7 @@ function footerMarkup() {
 
     <div class="footer-top">
       <div class="footer-intro">
-        <a class="brand" href="index.html">
+        <a class="brand" href="/">
           <img class="brand__mark" src="assets/img/logo.svg" alt="" width="38" height="38">
           <span class="brand__name"><span data-site="name">${escapeHtml(SITE.name)}</span><span class="brand__tag" data-site="tagline">${escapeHtml(SITE.tagline)}</span></span>
         </a>
@@ -206,7 +210,7 @@ function bsHeaderMarkup({ page }) {
 <header class="kf-header" id="siteHeader">
   <nav class="navbar navbar-expand-lg" aria-label="التنقل الرئيسي">
     <div class="container">
-      <a class="navbar-brand kf-brand" href="index.html">${brand(46)}</a>
+      <a class="navbar-brand kf-brand" href="/">${brand(46)}</a>
 
       <div class="offcanvas-lg offcanvas-end flex-lg-grow-1" tabindex="-1" id="siteNav" aria-labelledby="siteNavTitle">
         <div class="offcanvas-header">
@@ -275,7 +279,7 @@ function bsFooterMarkup() {
 
     <div class="row g-4 g-lg-5 kf-footer__grid">
       <div class="col-lg-4">
-        <a class="kf-brand kf-brand--on-ink" href="index.html">
+        <a class="kf-brand kf-brand--on-ink" href="/">
           <img src="assets/img/logo.svg" alt="" width="40" height="40">
           <span class="kf-brand__name"><span data-site="name">${escapeHtml(SITE.name)}</span><span class="kf-brand__tag" data-site="tagline">${escapeHtml(SITE.tagline)}</span></span>
         </a>
@@ -284,7 +288,7 @@ function bsFooterMarkup() {
       </div>
       <nav class="col-7 col-md-4 col-lg-3" aria-labelledby="footerNavHeading">
         <h2 class="kf-footer__heading" id="footerNavHeading">تصفّح</h2>
-        <ul class="kf-footer__links kf-footer__links--two">${links([{ label: 'الرئيسية', href: 'index.html' }, ...NAV_LINKS])}</ul>
+        <ul class="kf-footer__links kf-footer__links--two">${links([{ label: 'الرئيسية', href: '/' }, ...NAV_LINKS])}</ul>
       </nav>
       <nav class="col-5 col-md-4 col-lg-2" aria-labelledby="footerHelpHeading">
         <h2 class="kf-footer__heading" id="footerHelpHeading">مساعدة</h2>

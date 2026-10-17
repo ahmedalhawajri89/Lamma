@@ -259,7 +259,7 @@ export async function initPostDetail() {
     <div class="page-hero__inner">
       <nav aria-label="مسار التنقل">
         <ol class="breadcrumb">
-          <li><a href="index.html">الرئيسية</a></li>
+          <li><a href="/">الرئيسية</a></li>
           <li><a href="blog.html">المدونة</a></li>
           ${post.category ? `<li><span>${escapeHtml(post.category)}</span></li>` : ''}
           <li><span aria-current="page">${escapeHtml(post.title)}</span></li>

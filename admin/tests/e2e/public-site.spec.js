@@ -140,7 +140,7 @@ test.describe('نماذج الموقع', () => {
      */
     const email = `news${Date.now()}@example.com`
 
-    await page.goto(`${WEB}/index.html`)
+    await page.goto(`${WEB}/`)
     await page.waitForTimeout(1600)
     await page.fill('#footerNewsEmail', email)
 

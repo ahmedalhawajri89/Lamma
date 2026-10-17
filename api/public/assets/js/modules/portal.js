@@ -115,7 +115,7 @@ export async function initPortal() {
     e.preventDefault();
     await logout().catch(() => {});
     clearSignedIn();
-    window.location.href = 'index.html';
+    window.location.href = '/';
   });
 
   document.addEventListener('click', (e) => {

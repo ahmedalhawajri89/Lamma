@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -29,6 +30,12 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Sponsorship::observe(SponsorshipObserver::class);
+
+        // هوية الموقع وتنقّله لقوالب الموقع العام: الترويسة والفوتر يُرسمان من الخادم
+        View::composer('site.layouts.*', fn ($view) => $view->with([
+            'site' => \App\Support\SiteProfile::forViews(),
+            'nav' => \App\Support\SiteProfile::nav(request()->path()),
+        ]));
 
         /**
          * انضباط Eloquent — يحوّل ثلاثة أخطاء صامتة إلى استثناءات صريحة

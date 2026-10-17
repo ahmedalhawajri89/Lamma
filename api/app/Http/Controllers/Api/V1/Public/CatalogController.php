@@ -14,8 +14,8 @@ use App\Models\Country;
 use App\Models\Faq;
 use App\Models\Partner;
 use App\Models\Program;
-use App\Models\Setting;
 use App\Models\Testimonial;
+use App\Support\SiteProfile;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Cache;
 
@@ -33,7 +33,7 @@ class CatalogController extends Controller
     public function bootstrap(): JsonResponse
     {
         $data = Cache::remember('public.bootstrap', self::CACHE_TTL, fn (): array => [
-            'site' => $this->site(),
+            'site' => SiteProfile::site(),
             'programs' => ProgramResource::collection(
                 Program::active()->with('features')->get(),
             )->resolve(),
@@ -65,19 +65,5 @@ class CatalogController extends Controller
         return response()->json([
             'data' => FaqResource::collection(Faq::published()->get()),
         ]);
-    }
-
-    /** SITE في data.js — من جدول الإعدادات لا من ثابت في الكود. */
-    private function site(): array
-    {
-        $settings = Setting::cached();
-
-        return [
-            'name' => $settings['site.name'] ?? 'كفالة',
-            'tagline' => $settings['site.tagline'] ?? '',
-            'email' => $settings['site.email'] ?? '',
-            'phone' => $settings['site.phone'] ?? '',
-            'address' => $settings['site.address'] ?? '',
-        ];
     }
 }

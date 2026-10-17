@@ -1,74 +1,14 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl" data-ui="bs">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+@extends('site.layouts.app')
 
-  <title>كفالة | اكفل يتيماً وتابع أثرك شهراً بشهر</title>
-  <meta name="description" content="منصة كفالة تربطك بيتيم حقيقي وتُريك أين يذهب كل دولار. ٩٣٪ من كفالتك تصل للطفل مباشرة، وتقرير مصوّر كل ثلاثة أشهر.">
-  <meta name="theme-color" content="#0f5c5c">
+@section('title', 'كفالة | اكفل يتيماً وتابع أثرك شهراً بشهر')
+@section('description', 'منصة كفالة تربطك بيتيم حقيقي وتُريك أين يذهب كل دولار. ٩٣٪ من كفالتك تصل للطفل مباشرة، وتقرير مصوّر كل ثلاثة أشهر.')
+@section('og_description', '٩٣٪ من كفالتك تصل للطفل مباشرة، وتقرير مصوّر كل ثلاثة أشهر.')
 
-  <!-- سياسة أمان المحتوى: نسمح فقط بالمصادر التي نستخدمها فعلاً،
-       فلا يستطيع سكربت خارجي أو إطار مدسوس أن يعمل داخل الصفحة. -->
-  <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self';
-                 img-src 'self' data:;
-                 style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-                 font-src 'self' https://fonts.gstatic.com;
-                 script-src 'self';
-                 connect-src 'self';
-                 form-action 'self';
-                
-                 base-uri 'self';
-                 object-src 'none'">
-  <!-- الأصل نفسه. اضبطها على "off" ليعمل الموقع ساكناً بلا خادم. -->
-  <meta name="api-base" content="">
+@push('styles')
+  <link rel="stylesheet" href="/assets/css/home.css">
+@endpush
 
-  <meta name="referrer" content="strict-origin-when-cross-origin">
-
-  <!-- مشاركة اجتماعية -->
-  <meta property="og:type" content="website">
-  <meta property="og:locale" content="ar_AR">
-  <meta property="og:title" content="كفالة | اكفل يتيماً وتابع أثرك شهراً بشهر">
-  <meta property="og:description" content="٩٣٪ من كفالتك تصل للطفل مباشرة، وتقرير مصوّر كل ثلاثة أشهر.">
-  <meta property="og:image" content="assets/img/hero-wide-md.webp">
-  <meta name="twitter:card" content="summary_large_image">
-
-  <link rel="canonical" href="index.html">
-  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Aref+Ruqaa:wght@400;700&display=swap">
-
-  <!-- السمة قبل أي رسم — يمنع وميض الوضع الفاتح لمن اختار الليلي -->
-  <script src="assets/js/theme-init.js"></script>
-
-  <!-- خط الأيقونات المصمتة في كل صفحة: يُطلب مع الأنماط لا بعدها، فلا تبقى الأيقونات فارغة -->
-  <link rel="preload" href="assets/vendor/fontawesome/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="assets/vendor/fontawesome/css/all.min.css">
-  <!-- Bootstrap ثم رموز الهوية ثم جسرها إليه ثم أنماط هذه الصفحة -->
-  <link rel="stylesheet" href="assets/vendor/bootstrap/css/bootstrap.rtl.min.css">
-  <link rel="stylesheet" href="assets/css/tokens.css">
-  <link rel="stylesheet" href="assets/css/theme.css">
-  <link rel="stylesheet" href="assets/css/home.css">
-
-  <script type="module" src="assets/js/main.js"></script>
-</head>
-
-<body>
-  <div data-layout="header"></div>
-
-  <noscript>
-    <nav class="container py-3" aria-label="تنقل بديل">
-      <a href="index.html">الرئيسية</a> · <a href="about.html">من نحن</a> ·
-      <a href="programs.html">برامج الكفالة</a> · <a href="orphans.html">الأيتام</a> ·
-      <a href="transparency.html">الشفافية</a> · <a href="blog.html">المدونة</a> ·
-      <a href="contact.html">تواصل معنا</a>
-    </nav>
-  </noscript>
-
+@section('content')
   <main id="main">
 
     <!-- ══ الهيرو: الصورة تذوب في الأرضية من جهة النص، وحافة سفلية منحنية،
@@ -76,9 +16,9 @@
     <section class="hero" aria-labelledby="heroTitle">
       <figure class="hero__photo">
         <picture>
-          <source media="(max-width: 61.98rem)" srcset="assets/img/hero-girl-tall.webp">
-          <img src="assets/img/hero-girl.webp"
-               srcset="assets/img/hero-girl-md.webp 1100w, assets/img/hero-girl.webp 1672w"
+          <source media="(max-width: 61.98rem)" srcset="/assets/img/hero-girl-tall.webp">
+          <img src="/assets/img/hero-girl.webp"
+               srcset="/assets/img/hero-girl-md.webp 1100w, /assets/img/hero-girl.webp 1672w"
                sizes="(min-width: 62rem) 62vw, 100vw"
                alt="طفلة تحمل كتبها المدرسية وتبتسم أمام خيام المخيم"
                width="1672" height="941" fetchpriority="high">
@@ -115,7 +55,7 @@
             وتصلك تقارير مصوّرة عنه كل ثلاثة أشهر.
           </p>
           <div class="hero__actions">
-            <a class="btn btn-cta btn-lg" href="orphans.html">
+            <a class="btn btn-cta btn-lg" href="/orphans">
               اكفل يتيماً <i class="fa-solid fa-arrow-left btn__icon btn__icon--arrow" aria-hidden="true"></i>
             </a>
             <a class="hero__how" href="#how">
@@ -170,7 +110,7 @@
         </header>
         <div class="row g-4" id="homeOrphans" aria-busy="true"></div>
         <div class="kids__more" data-reveal>
-          <a class="btn btn-outline-primary btn-lg" href="orphans.html">
+          <a class="btn btn-outline-primary btn-lg" href="/orphans">
             تعرّف على كل الأطفال <i class="fa-solid fa-arrow-left btn__icon btn__icon--arrow" aria-hidden="true"></i>
           </a>
         </div>
@@ -229,7 +169,7 @@
               </div>
             </li>
             </ol>
-            <a class="btn btn-cta btn-lg how-cta" href="orphans.html">
+            <a class="btn btn-cta btn-lg how-cta" href="/orphans">
               ابدأ باختيار طفل <i class="fa-solid fa-arrow-left btn__icon btn__icon--arrow" aria-hidden="true"></i>
             </a>
           </div>
@@ -251,16 +191,16 @@
                 <div class="how-search"><i class="fa-solid fa-magnifying-glass"></i> ابحث بالاسم أو المدينة</div>
                 <ul class="how-kids">
                   <li class="is-picked">
-                    <img class="avatar" src="assets/img/kids/girl-02.svg" alt="" width="44" height="44">
+                    <img class="avatar" src="/assets/img/kids/girl-02.svg" alt="" width="44" height="44">
                     <span><strong>أمنية، 8 سنوات</strong><small>غزة · الكفالة التعليمية</small></span>
                     <span class="how-kids__pick"><i class="fa-solid fa-check"></i> اخترتها</span>
                   </li>
                   <li>
-                    <img class="avatar" src="assets/img/kids/boy-03.svg" alt="" width="44" height="44">
+                    <img class="avatar" src="/assets/img/kids/boy-03.svg" alt="" width="44" height="44">
                     <span><strong>يوسف، 7 سنوات</strong><small>الخليل · كفالة الأسرة</small></span>
                   </li>
                   <li>
-                    <img class="avatar" src="assets/img/kids/girl-08.svg" alt="" width="44" height="44">
+                    <img class="avatar" src="/assets/img/kids/girl-08.svg" alt="" width="44" height="44">
                     <span><strong>مريم، 12 سنة</strong><small>أم درمان · الكفالة التعليمية</small></span>
                   </li>
                 </ul>
@@ -323,7 +263,7 @@
             <ul class="money-list" id="moneyList" role="list"></ul>
             <div class="money__foot">
               <p><i class="fa-solid fa-file-shield" aria-hidden="true"></i> التقرير الكامل والوثائق منشورة للجميع، كفلاء وغير كفلاء.</p>
-              <a class="btn btn--ink-outline" href="transparency.html">
+              <a class="btn btn--ink-outline" href="/transparency">
                 اطّلع على تقرير الشفافية <i class="fa-solid fa-arrow-left btn__icon btn__icon--arrow" aria-hidden="true"></i>
               </a>
             </div>
@@ -368,7 +308,7 @@
             </ul>
             <div class="report__foot" data-reveal>
               <p class="report__stat"><b class="num">4</b><span>تقارير مصوّرة<br>كل سنة</span></p>
-              <a class="link-arrow" href="transparency.html">كيف نتحقق من كل حالة <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
+              <a class="link-arrow" href="/transparency">كيف نتحقق من كل حالة <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
             </div>
           </div>
 
@@ -377,7 +317,7 @@
               <p class="report-float report-float--visit" aria-hidden="true"><span class="report-float__icon"><i class="fa-solid fa-house-user"></i></span><span><strong>زيارة ميدانية</strong>24 سبتمبر</span></p>
               <article class="report-mock" id="reportMock" data-reveal="end" data-reveal-delay="120" aria-label="نموذج توضيحي لتقرير ربعي">
                 <header class="report-mock__head">
-                  <img class="avatar avatar--lg" src="assets/img/kids/girl-02.svg" alt="" width="48" height="48">
+                  <img class="avatar avatar--lg" src="/assets/img/kids/girl-02.svg" alt="" width="48" height="48">
                   <div>
                     <strong>أمنية، 8 سنوات</strong>
                     <span>غزة · الكفالة التعليمية</span>
@@ -437,7 +377,7 @@
         </header>
         <div class="plans" id="homePlans"></div>
         <div class="d-flex justify-content-center mt-4" data-reveal>
-          <a class="link-arrow" href="programs.html">قارن البرامج بالتفصيل <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
+          <a class="link-arrow" href="/programs">قارن البرامج بالتفصيل <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
         </div>
       </div>
     </section>
@@ -462,7 +402,7 @@
         </header>
         <div class="home-blog" id="postsGrid" data-limit="4"></div>
         <div class="d-flex justify-content-center mt-5" data-reveal>
-          <a class="btn btn-outline-primary btn-lg" href="blog.html">
+          <a class="btn btn-outline-primary btn-lg" href="/blog">
             كل المقالات <i class="fa-solid fa-arrow-left btn__icon btn__icon--arrow" aria-hidden="true"></i>
           </a>
         </div>
@@ -485,8 +425,8 @@
               <span class="faq-help__icon" aria-hidden="true"><i class="fa-solid fa-headset"></i></span>
               <h3 id="faqHelpTitle">لم تجد سؤالك؟</h3>
               <p>راسل الفريق، ونرد على كل رسالة خلال <b class="num">72</b> ساعة.</p>
-              <a class="btn btn-primary w-100" href="contact.html">راسل الفريق</a>
-              <a class="link-arrow" href="faq.html">كل الأسئلة الشائعة <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
+              <a class="btn btn-primary w-100" href="/contact">راسل الفريق</a>
+              <a class="link-arrow" href="/faq">كل الأسئلة الشائعة <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
             </aside>
           </div>
         </div>
@@ -503,21 +443,21 @@
               <h2 id="closingTitle" class="closing__title">ابدأ كفالة طفل هذا الشهر</h2>
               <p class="closing__lede">من <b class="num">$35</b> في الشهر، وتستطيع إيقافها متى شئت بلا رسوم ولا اتصال.</p>
               <div class="closing__actions">
-                <a class="btn btn-cta btn-lg" href="orphans.html">
+                <a class="btn btn-cta btn-lg" href="/orphans">
                   اكفل يتيماً <i class="fa-solid fa-arrow-left btn__icon btn__icon--arrow" aria-hidden="true"></i>
                 </a>
-                <a class="link-arrow" href="contact.html">تحدّث مع فريقنا</a>
+                <a class="link-arrow" href="/contact">تحدّث مع فريقنا</a>
               </div>
             </div>
             <div class="col-lg-5">
               <div class="closing-kids" aria-hidden="true">
                 <span class="closing-kids__ring"></span>
                 <span class="closing-kids__heart"><i class="fa-solid fa-heart"></i></span>
-                <img class="closing-kids__kid closing-kids__kid--1" src="assets/img/kids/girl-02.svg" alt="" width="96" height="96">
-                <img class="closing-kids__kid closing-kids__kid--2" src="assets/img/kids/boy-03.svg" alt="" width="96" height="96">
-                <img class="closing-kids__kid closing-kids__kid--3" src="assets/img/kids/girl-08.svg" alt="" width="96" height="96">
-                <img class="closing-kids__kid closing-kids__kid--4" src="assets/img/kids/boy-07.svg" alt="" width="96" height="96">
-                <img class="closing-kids__kid closing-kids__kid--5" src="assets/img/kids/girl-11.svg" alt="" width="96" height="96">
+                <img class="closing-kids__kid closing-kids__kid--1" src="/assets/img/kids/girl-02.svg" alt="" width="96" height="96">
+                <img class="closing-kids__kid closing-kids__kid--2" src="/assets/img/kids/boy-03.svg" alt="" width="96" height="96">
+                <img class="closing-kids__kid closing-kids__kid--3" src="/assets/img/kids/girl-08.svg" alt="" width="96" height="96">
+                <img class="closing-kids__kid closing-kids__kid--4" src="/assets/img/kids/boy-07.svg" alt="" width="96" height="96">
+                <img class="closing-kids__kid closing-kids__kid--5" src="/assets/img/kids/girl-11.svg" alt="" width="96" height="96">
               </div>
             </div>
           </div>
@@ -535,22 +475,19 @@
     </section>
 
   </main>
+@endsection
 
-  <div data-layout="footer"></div>
-
+@push('after-footer')
   <!-- شريط إجراء سفلي للجوال -->
   <div class="action-bar" id="actionBar">
     <div class="action-bar__info">
       <span>الكفالة تبدأ من</span>
       <strong><b class="num">$35</b> في الشهر</strong>
     </div>
-    <a class="btn btn-cta" href="orphans.html">اكفل يتيماً</a>
+    <a class="btn btn-cta" href="/orphans">اكفل يتيماً</a>
   </div>
 
   <button class="to-top" type="button" id="toTop" aria-label="العودة إلى أعلى الصفحة">
     <i class="fa-solid fa-arrow-up" aria-hidden="true"></i>
   </button>
-
-  <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+@endpush
