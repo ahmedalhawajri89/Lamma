@@ -131,26 +131,38 @@
   position: relative;
   display: flex;
   flex-direction: column;
+  align-items: center;
   justify-content: center;
   block-size: 100%;
   overflow: hidden;
   padding: clamp(2.5rem, 5vw, 4.5rem);
+  text-align: center;
   background:
     radial-gradient(38rem 32rem at 12% 18%, color-mix(in srgb, var(--color-brand) 16%, transparent), transparent 70%),
     radial-gradient(30rem 26rem at 22% 92%, color-mix(in srgb, var(--color-cta) 14%, transparent), transparent 70%),
     /* اليسار تركوازي، ويذوب نحو اليمين حيث النموذج حتى لون الأرضية تماماً */
     linear-gradient(to right, var(--color-brand-soft) 0%, var(--color-brand-soft) 40%, var(--color-canvas) 100%);
 }
-/* حلقتان في الزاوية: صدى لخلفية الهاتف في الرئيسية */
-.acc-aside__inner::before,
-.acc-aside__inner::after { content: ""; position: absolute; border-radius: 50%; border: 1.5px solid var(--color-brand-border); pointer-events: none; }
-.acc-aside__inner::before { inline-size: 26rem; block-size: 26rem; inset-block-start: -10rem; inset-inline-end: -9rem; }
-.acc-aside__inner::after { inline-size: 40rem; block-size: 40rem; inset-block-start: -17rem; inset-inline-end: -16rem; opacity: 0.6; }
-.acc-aside__inner > * { position: relative; }
+.acc-aside__inner > * { position: relative; max-inline-size: 32rem; }
 .acc-aside__kicker { margin: 0; font-family: var(--font-display); font-size: 0.9rem; font-weight: 700; color: var(--color-cta-strong); }
 .acc-aside__title { margin: 0.6rem 0 0; font-size: clamp(1.8rem, 3vw, 2.5rem); line-height: 1.3; color: var(--color-text); }
 
-.acc-mock { position: relative; max-inline-size: 26rem; margin: clamp(2rem, 4vw, 3rem) auto clamp(3.5rem, 6vw, 4.5rem); }
+.acc-mock { position: relative; z-index: 0; inline-size: min(100%, 24rem); margin: clamp(2.5rem, 5vw, 3.5rem) auto clamp(3.5rem, 6vw, 4.5rem); text-align: start; }
+/* حلقاتٌ متحدة المركز خلف البطاقة تربط التكوين، كخلفية الهاتف في الرئيسية */
+.acc-mock::before,
+.acc-mock::after {
+  content: "";
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  z-index: -1;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-brand-border);
+  translate: 50% -50%;
+  pointer-events: none;
+}
+.acc-mock::before { inline-size: 30rem; block-size: 30rem; }
+.acc-mock::after { inline-size: 44rem; block-size: 44rem; border-style: dashed; opacity: 0.6; }
 .acc-mock__card { padding: 1.4rem; border-radius: var(--radius-xl); background: var(--color-surface); box-shadow: var(--shadow-lg); }
 .acc-mock__who { display: flex; align-items: center; gap: 0.75rem; margin-block-end: 1.1rem; }
 .acc-mock__who img { inline-size: 3.25rem; block-size: 3.25rem; border-radius: 50%; background: var(--color-surface-alt); }
@@ -180,7 +192,9 @@
 }
 @keyframes acc-rise { from { opacity: 0; translate: 0 14px; } }
 
-.acc-aside__points { display: flex; flex-wrap: wrap; gap: 0.5rem 1.25rem; margin: 0; padding: 0; list-style: none; font-size: 0.9rem; font-weight: 600; color: var(--color-text); }
+.acc-aside__inner > .acc-aside__points { max-inline-size: 40rem; }
+.acc-aside__points { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem; margin: 0; padding: 0; list-style: none; font-size: 0.875rem; font-weight: 600; color: var(--color-text); }
+.acc-aside__points li { padding: 0.45rem 0.9rem; border-radius: var(--radius-pill); background: color-mix(in srgb, var(--color-surface) 75%, transparent); box-shadow: inset 0 0 0 1px var(--color-brand-border); }
 .acc-aside__points i { margin-inline-end: 0.35rem; color: var(--color-brand); }
 .acc-aside__demo { margin: 1rem 0 0; font-size: 0.75rem; color: var(--color-text-muted); }
 
