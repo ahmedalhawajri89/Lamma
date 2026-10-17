@@ -42,3 +42,59 @@ it('يُبرز في التنقل القسم الذي تقف فيه الصفحة 
         ->and($nav['/blog']['current'])->toBeNull()
         ->and(collect(App\Support\SiteProfile::nav('blog'))->firstWhere('href', '/blog')['current'])->toBe('page');
 });
+
+/** طفلٌ منشور موثّق، بحاجة 50 في الشهر. */
+function profileChild(array $attrs = []): App\Models\Orphan
+{
+    return App\Models\Orphan::factory()->create([
+        'status' => App\Enums\OrphanStatus::Active, 'verified_at' => now(), 'published_at' => now(),
+        'first_name' => 'سارة', 'last_name' => 'المصري', 'gender' => 'female', 'monthly_need' => 50,
+        'dream' => 'أن تكتب قصة', ...$attrs,
+    ]);
+}
+
+it('ترسم صفحة الطفل من الخادم: الاسم والحلم في العنوان ووسوم المشاركة، بلا اسم العائلة', function () {
+    $kid = profileChild();
+
+    $html = $this->get("/orphan?id={$kid->reference_code}")->assertOk()->getContent();
+
+    expect($html)
+        ->toContain('<title>سارة، ')
+        ->toContain('حلمها: أن تكتب قصة')
+        ->toContain('property="og:title" content="ساعد سارة')
+        ->toContain('<meta name="robots" content="noindex">')
+        ->toContain('href="/checkout?id='.$kid->reference_code.'"')
+        ->toContain('لم يكفلها أحد بعد')
+        ->not->toContain('المصري');
+});
+
+it('تقول صفحة الطفل المكفول جزئياً كم يكفله وكم بقي، وزرّها «أكمل كفالة»', function () {
+    $kid = profileChild();
+    App\Models\Sponsorship::factory()->for($kid)->create(['monthly_amount' => 20]);
+    App\Models\Sponsorship::factory()->for($kid)->create(['monthly_amount' => 10]);
+
+    $this->get("/orphan?id={$kid->reference_code}")
+        ->assertOk()
+        ->assertSee('يكفلها شخصان')
+        ->assertSee('$20')
+        ->assertSee('أكمل كفالة سارة');
+});
+
+it('تشكر صفحة من اكتملت كفالته كافليه بلا زرّ كفالة', function () {
+    $kid = profileChild();
+    App\Models\Sponsorship::factory()->for($kid)->create(['monthly_amount' => 50]);
+
+    $this->get("/orphan?id={$kid->reference_code}")
+        ->assertOk()
+        ->assertSee('اكتملت كفالتها')
+        ->assertSee('property="og:title" content="اكتملت كفالة سارة"', false)
+        ->assertDontSee('/checkout?id=', false);
+});
+
+it('رمزٌ لا طفل له يعطي 404 بصفحة تقول ذلك، وبلا رمز إلى الفهرس', function () {
+    App\Models\Orphan::factory()->create(['status' => App\Enums\OrphanStatus::Draft, 'reference_code' => 'KFL-9999']);
+
+    $this->get('/orphan?id=KFL-9999')->assertNotFound()->assertSee('لم نجد هذا الطفل');
+    $this->get('/orphan?id=NOPE')->assertNotFound();
+    $this->get('/orphan')->assertRedirect('/orphans');
+});

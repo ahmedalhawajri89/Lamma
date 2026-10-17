@@ -199,7 +199,8 @@ export function initActionBar() {
   const bar = $('#actionBar');
   if (!bar) return;
 
-  const zones = $$('.hero, .closing, .site-footer, .kf-footer');
+  // ومعها لوحة الكفالة في صفحة الطفل: زرّها ظاهر فلا يتكرر تحته
+  const zones = $$('.hero, .closing, .site-footer, .kf-footer, .kid-panel');
   const inView = new Set();
 
   const update = rafThrottle(() => {

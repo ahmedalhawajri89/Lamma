@@ -25,11 +25,14 @@ Route::view('/', 'site.pages.home')->name('home');
 
 /** صفحات الموقع: العنوان هو اسم القالب في site/pages. */
 foreach ([
-    'orphans', 'orphan', 'checkout', 'thank-you', 'programs', 'transparency',
+    'orphans', 'checkout', 'thank-you', 'programs', 'transparency',
     'blog', 'post', 'about', 'contact', 'faq',
 ] as $page) {
     Route::view("/{$page}", "site.pages.{$page}")->name("site.{$page}");
 }
+
+/** صفحة الطفل تُرسم من الخادم: الاسم والحلم وحالة الكفالة ووسوم المشاركة */
+Route::get('/orphan', App\Http\Controllers\Site\OrphanPageController::class)->name('site.orphan');
 
 Route::view('/login', 'site.auth.login')->name('site.login');
 Route::view('/register', 'site.auth.register')->name('site.register');

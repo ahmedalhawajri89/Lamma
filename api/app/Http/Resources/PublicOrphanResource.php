@@ -71,10 +71,7 @@ class PublicOrphanResource extends JsonResource
     /** @return array<string, mixed> */
     private function checkoutFacts(): array
     {
-        $covered = (float) $this->sponsorships()
-            ->whereIn('status', array_filter(\App\Enums\SponsorshipStatus::cases(), fn ($s) => $s->countsTowardFunding()))
-            ->sum('monthly_amount');
-        $remaining = max(0, round((float) $this->monthly_need - $covered, 2));
+        $remaining = $this->resource->remainingNeed();
 
         return [
             'remaining' => $remaining,

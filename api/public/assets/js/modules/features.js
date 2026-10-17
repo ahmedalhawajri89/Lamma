@@ -4,8 +4,7 @@
  */
 
 import { $, $$, formatNumber, escapeHtml, arabicDigits, readingTime } from './utils.js';
-import { ORPHANS, IMPACT_TIERS, PROGRAMS, getProgram, DETAIL_FAILED } from './data.js';
-import { orphanCard } from './render.js';
+import { IMPACT_TIERS, PROGRAMS } from './data.js';
 import { fetchPost, lastReadFailure } from './api.js';
 import { initReveal } from './motion.js';
 
@@ -62,116 +61,8 @@ export function initImpactCalculator() {
    ========================================================================= */
 
 /* =========================================================================
-   3. صفحة تفاصيل اليتيم
-   تقرأ المعرّف من الرابط وتملأ الصفحة.
-
-   كانت تبحث في الأطفال المحمَّلين مع الصفحة (أول مئة)، وإن لم تجد عرضت
-   **أول طفل** بصمت: رابطُ «سارة» يفتح ملف «كرم» ويُكفل كرم. الآن يُطلب من
-   الخادم برمزه قبل البناء إن لم يكن محمَّلاً، ورابطٌ لا طفل له يقول ذلك.
+   3. صفحة الطفل: يرسمها الخادم الآن (OrphanPageController)، وما بقي لها في profile.js
    ========================================================================= */
-export function initOrphanDetail() {
-  const root = $('#orphanDetail');
-  if (!root) return;
-
-  // إن لم يكن محمَّلاً طلبه hydrate() برمزه قبل البناء (data.js)
-  const id = new URLSearchParams(window.location.search).get('id');
-  // بلا رمز في الرابط: أول طفل (صفحة تجريبية تُفتح مباشرة)؛ ورمزٌ لا طفل له: «لم نجد»
-  const orphan = id ? ORPHANS.find((o) => o.id === id) : ORPHANS[0];
-  if (!orphan) {
-    root.innerHTML = DETAIL_FAILED
-      ? `<div class="container section"><div class="empty-state">
-      <i class="fa-solid fa-wifi" aria-hidden="true"></i>
-      <h1>تعذّر تحميل ملف الطفل</h1>
-      <p>المشكلة في الاتصال لا في الرابط. تحقّق من اتصالك ثم أعد المحاولة.</p>
-      <button class="btn btn--primary" type="button" data-reload>أعد المحاولة</button></div></div>`
-      : `<div class="container section"><div class="empty-state">
-      <i class="fa-solid fa-child" aria-hidden="true"></i>
-      <h1>لم نجد هذا الطفل</h1>
-      <p>ربما كُفل كاملاً أو تغيّر رابطه. الأطفال الذين ينتظرون كافلاً في صفحتهم.</p>
-      <a class="btn btn--primary" href="/orphans">كل الأطفال</a></div></div>`;
-    $('[data-reload]', root)?.addEventListener('click', () => window.location.reload());
-    root.removeAttribute('aria-busy');
-    document.title = `${DETAIL_FAILED ? 'تعذّر التحميل' : 'لم نجد هذا الطفل'} | كفالة`;
-    return;
-  }
-  root.removeAttribute('aria-busy');
-  const program = getProgram(orphan.program) ?? { name: '' };
-
-  /** يملأ كل عنصر يحمل data-field بالقيمة المناسبة — نصاً لا HTML. */
-  const age = Number(orphan.age);
-  const her = orphan.gender === 'أنثى';
-  const remaining = Math.max(0, Math.round((orphan.monthly * (100 - orphan.funded)) / 100));
-
-  const fields = {
-    name: orphan.name,
-    id: orphan.id,
-    age: `${age} ${age >= 3 && age <= 10 ? 'سنوات' : 'سنة'}`,
-    gender: orphan.gender,
-    location: `${orphan.city}، ${orphan.country}`,
-    grade: orphan.grade,
-    health: orphan.health,
-    dream: orphan.dream,
-    story: orphan.story,
-    program: program.name,
-    price: `$${orphan.monthly}`,
-    funded: `${orphan.funded}٪`,
-    remaining: `$${remaining}`,
-    'dream-label': her ? 'حلمها' : 'حلمه',
-  };
-
-  Object.entries(fields).forEach(([key, value]) => {
-    $$(`[data-field="${key}"]`).forEach((el) => { el.textContent = value; });
-  });
-
-  const photo = $('[data-field="photo"]');
-  if (photo) {
-    // بلا صورة تبقى الصورة الافتراضية في الصفحة؛ كان يُكتب src="null" فتنكسر
-    if (orphan.photo) photo.src = orphan.photo;
-    // الصور توضيحية بلا وجوه، فلا نصفها بأنها صورة الطفل نفسه
-    photo.alt = '';
-  }
-
-  const fund = $('#orphanFund');
-  if (fund) fund.style.setProperty('--v', `${Number(orphan.funded)}%`);
-
-  document.title = `${orphan.name} | كفالة`;
-
-  $$('[data-sponsor-link]').forEach((link) => {
-    link.href = `/checkout?id=${encodeURIComponent(orphan.id)}`;
-  });
-
-  /*
-   * اكتملت كفالته: الفهرس لا يعرضه، لكن رابطه القديم يصل هنا. لا زرّ «اكفل»
-   * يُرفض في آخر خطوة، بل شكرٌ لكافليه وطريقٌ إلى من ينتظر.
-   */
-  if (Number(orphan.funded) >= 100) {
-    const done = `<p class="sponsor-panel__done" role="status">
-        <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
-        <span>اكتملت ${her ? 'كفالتها' : 'كفالته'}، شكراً لكافلي${her ? 'ها' : 'ه'}.</span>
-      </p>
-      <a class="btn btn--outline btn--lg btn--block" href="/orphans">أطفال ينتظرون كافلاً
-        <i class="fa-solid fa-arrow-left btn__icon btn__icon--arrow" aria-hidden="true"></i></a>`;
-    $$('.sponsor-panel [data-sponsor-link]').forEach((link) => { link.outerHTML = done; });
-    $('.sponsor-panel__hint')?.remove();
-    $('#actionBar')?.remove();
-  }
-
-  const urgentSlot = $('#orphanUrgent');
-  if (urgentSlot && !orphan.urgent) urgentSlot.remove();
-
-  /* --- حالات مقترحة: نفس البرنامج، باستثناء الحالي --- */
-  const similar = ORPHANS
-    .filter((o) => o.id !== orphan.id && o.program === orphan.program)
-    .concat(ORPHANS.filter((o) => o.id !== orphan.id && o.program !== orphan.program))
-    .slice(0, 6);
-
-  const similarHost = $('#similarOrphans');
-  if (similarHost) {
-    similarHost.innerHTML = similar
-      .map((o) => `<div class="slider__slide">${orphanCard(o)}</div>`)
-      .join('');
-  }
-}
 
 /** قصاصات احتفال خفيفة — تُزال من DOM بعد انتهائها. */
 export function launchConfetti() {

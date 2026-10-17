@@ -1,0 +1,198 @@
+/* =========================================================================
+   صفحة الطفل: الملف يُقرأ، ولوحة الكفالة تلتصق بجانبه
+   ========================================================================= */
+
+.kid-profile { padding-block: clamp(1.25rem, 3vw, 2rem) clamp(3rem, 6vw, 5rem); background: var(--color-canvas); }
+.kid-profile__crumbs { margin-block-end: clamp(1.25rem, 3vw, 2rem); font-size: 0.875rem; }
+.kid-profile__crumbs a { color: var(--color-text-muted); text-decoration: none; }
+.kid-profile__crumbs a:hover { color: var(--color-brand); }
+
+.kid-h2 { margin: 0 0 1rem; font-size: clamp(1.3rem, 2.2vw, 1.6rem); }
+
+/* ── الرأس ── */
+.kid-head__tags { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-block-end: 1rem; }
+.kid-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.8rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.kid-tag--urgent { background: var(--color-urgent); color: var(--color-urgent-contrast); }
+.kid-tag__dot { inline-size: 0.4rem; block-size: 0.4rem; border-radius: 50%; background: currentColor; }
+.kid-tag--verified { border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text-muted); }
+.kid-tag--verified i { color: var(--color-success); }
+
+.kid-head__name { margin: 0; font-size: clamp(2.4rem, 5vw, 3.75rem); line-height: 1.15; color: var(--color-text); }
+.kid-head__name span { font-family: var(--font-body); font-size: 0.5em; font-weight: 400; color: var(--color-text-muted); }
+.kid-head__meta { display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; margin: 0.85rem 0 0; font-size: 0.925rem; color: var(--color-text-muted); }
+.kid-head__meta i { margin-inline-end: 0.3rem; color: var(--color-cta-strong); }
+
+/* ── الحلم: أول ما يُقرأ بعد الاسم ── */
+.kid-dream {
+  position: relative;
+  margin: clamp(1.75rem, 3vw, 2.5rem) 0 0;
+  padding: clamp(1.5rem, 3vw, 2.25rem);
+  padding-inline-start: clamp(4rem, 7vw, 5.5rem);
+  border-radius: var(--radius-xl);
+  background: var(--color-cta-soft);
+}
+.kid-dream__mark { position: absolute; inset-block-start: clamp(1.4rem, 3vw, 2rem); inset-inline-start: clamp(1.4rem, 3vw, 2rem); font-size: clamp(1.6rem, 3vw, 2.2rem); color: var(--color-cta); }
+.kid-dream__text { margin: 0; }
+.kid-dream__text p { margin: 0; font-family: var(--font-display); font-size: clamp(1.5rem, 3vw, 2.1rem); font-weight: 700; line-height: 1.35; color: var(--color-text); }
+.kid-dream figcaption { margin-block-start: 0.6rem; font-size: 0.875rem; color: var(--color-cta-strong); }
+
+.kid-story { margin-block-start: clamp(2rem, 4vw, 2.75rem); }
+.kid-story p { max-inline-size: 42rem; margin: 0; font-size: 1.1rem; line-height: 1.95; color: var(--color-text); }
+
+/* ── الحقائق: ثلاث بفواصل رفيعة ── */
+.kid-facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: clamp(1.75rem, 3vw, 2.5rem) 0 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}
+.kid-facts > div { padding: 1rem 1.25rem; border-inline-start: 1px solid var(--color-border); }
+.kid-facts > div:first-child { border: 0; }
+.kid-facts dt { display: flex; align-items: center; gap: 0.45rem; font-size: 0.8rem; font-weight: 500; color: var(--color-text-muted); }
+.kid-facts dt i { color: var(--color-brand); }
+.kid-facts dd { margin: 0.3rem 0 0; font-family: var(--font-display); font-weight: 600; color: var(--color-text); }
+
+.kid-block { margin-block-start: clamp(2.25rem, 4vw, 3rem); }
+
+/* ما تغطيه: أربعة بأيقوناتها في عمودين */
+.kid-covers { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem 2rem; margin: 0; padding: 0; list-style: none; }
+.kid-covers li { display: flex; align-items: flex-start; gap: 0.85rem; }
+.kid-covers i,
+.kid-after__num {
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  inline-size: 2.6rem;
+  block-size: 2.6rem;
+  border-radius: var(--radius-md);
+  background: var(--color-brand-soft);
+  color: var(--color-brand);
+}
+.kid-covers strong,
+.kid-after strong { display: block; font-family: var(--font-display); color: var(--color-text); }
+.kid-covers span,
+.kid-after span:not(.kid-after__num) { font-size: 0.925rem; line-height: 1.7; color: var(--color-text-muted); }
+
+/* ما يصلك: خطوات يصلها خطٌّ رفيع */
+.kid-after { position: relative; display: grid; gap: 1.25rem; margin: 0; padding: 0; list-style: none; }
+.kid-after::before { content: ""; position: absolute; inset-block: 1.3rem; inset-inline-start: 1.3rem; border-inline-start: 2px dashed var(--color-brand-border); }
+.kid-after li { position: relative; display: flex; align-items: flex-start; gap: 0.85rem; }
+.kid-after__num { border-radius: 50%; background: var(--color-brand); color: var(--color-brand-contrast); font-family: var(--font-display); font-weight: 700; }
+
+.kid-note { display: flex; align-items: center; gap: 0.5rem; margin: 1.25rem 0 0; font-size: 0.85rem; color: var(--color-text-muted); }
+
+/* ── الجانب: الرسم ولوحة الكفالة ── */
+.kid-aside { position: sticky; inset-block-start: calc(var(--kf-header-h, 5rem) + 1rem); display: grid; gap: 1rem; transition: inset-block-start var(--dur-normal) var(--ease-out); }
+body:has(.kf-header.is-hidden) .kid-aside { inset-block-start: 1rem; }
+
+.kid-art { position: relative; margin: 0; overflow: hidden; border-radius: var(--radius-xl); background: var(--color-surface-alt); }
+/* الرسم بأرضيته يملأ الإطار، والوجه في أعلاه */
+.kid-art img { display: block; inline-size: 100%; block-size: auto; aspect-ratio: 1 / 0.86; object-fit: cover; object-position: center 30%; }
+.kid-art figcaption {
+  position: absolute;
+  inset-block-end: 0.75rem;
+  inset-inline: 0.75rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-pill);
+  background: rgb(255 255 255 / 0.85);
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+[data-bs-theme="dark"] .kid-art figcaption { background: rgb(0 0 0 / 0.45); }
+
+.kid-panel {
+  display: grid;
+  gap: 1rem;
+  padding: clamp(1.25rem, 2.5vw, 1.75rem);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-md);
+}
+.kid-panel__price { display: flex; align-items: baseline; gap: 0.5rem; margin: 0; }
+.kid-panel__price strong { font-family: var(--font-display); font-size: clamp(2.2rem, 4vw, 2.75rem); line-height: 1; color: var(--color-text); }
+.kid-panel__price span { color: var(--color-text-muted); }
+
+.kid-panel__track { display: block; block-size: 0.55rem; overflow: hidden; border-radius: var(--radius-pill); background: var(--color-surface-alt); }
+.kid-panel__track span { display: block; block-size: 100%; inline-size: var(--v); border-radius: inherit; background: var(--color-brand); }
+.kid-panel--done .kid-panel__track span { background: var(--color-success); }
+.kid-panel__status { display: flex; justify-content: space-between; gap: 1rem; margin: 0.6rem 0 0; font-size: 0.9rem; color: var(--color-text-muted); }
+.kid-panel__status b { color: var(--color-text); }
+
+.kid-panel__share { margin: 0; padding: 0.7rem 0.9rem; border-radius: var(--radius-md); background: var(--color-brand-soft); font-size: 0.9rem; color: var(--color-brand); }
+.kid-panel__done {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius-md);
+  background: var(--color-success-soft, var(--color-brand-soft));
+  font-weight: 600;
+  color: var(--color-success, var(--color-brand));
+}
+
+.kid-panel__assure { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.4rem 1rem; margin: 0; padding: 0; list-style: none; font-size: 0.8rem; color: var(--color-text-muted); }
+.kid-panel__assure i { margin-inline-end: 0.25rem; color: var(--color-brand); }
+.kid-panel__assure a { color: inherit; text-decoration: underline; text-underline-offset: 0.2em; }
+.kid-panel__assure a:hover { color: var(--color-brand); }
+
+.kid-panel__sharebtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.65rem;
+  border-block-start: 1px solid var(--color-border) !important;
+  font-weight: 600;
+  color: var(--color-brand);
+}
+.kid-panel__sharebtn:hover { color: var(--color-brand-hover, var(--color-brand)); text-decoration: underline; text-underline-offset: 0.25em; }
+.kid-panel__sharebtn:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; border-radius: var(--radius-md); }
+
+/* ── أطفال آخرون ── */
+.kid-similar { padding-block: clamp(3rem, 6vw, 4.5rem); border-block-start: 1px solid var(--color-border); background: var(--color-surface); }
+.kid-similar__head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.5rem 1rem; margin-block-end: 1.5rem; }
+.kid-similar__head .kid-h2 { margin: 0; }
+
+/* ── رمزٌ لا طفل له ── */
+.kid-missing { padding-block: clamp(4rem, 10vw, 7rem); background: var(--color-canvas); text-align: center; }
+.kid-missing__icon { display: inline-grid; place-items: center; inline-size: 4rem; block-size: 4rem; margin-block-end: 1rem; border-radius: 50%; background: var(--color-brand-soft); color: var(--color-brand); font-size: 1.6rem; }
+.kid-missing h1 { margin: 0 0 0.5rem; font-size: clamp(1.8rem, 4vw, 2.5rem); }
+.kid-missing p { max-inline-size: 32rem; margin: 0 auto 1.5rem; color: var(--color-text-muted); }
+
+/* تحت lg: الاسم أولاً، ثم الرسم ولوحة الكفالة، ثم باقي الملف. عمود الملف
+   يذوب (contents) فتصير أقسامه عناصر في الصف نفسه، وتُرتَّب حوله */
+@media (max-width: 61.98rem) {
+  .kid-main { display: contents; }
+  /* هامشٌ خارجي لا حشوة: الحلم والحقائق صناديق، وحشوتها كانت تمدّها للحافة */
+  .kid-main > * { order: 3; flex: 0 0 calc(100% - var(--bs-gutter-x)); max-inline-size: calc(100% - var(--bs-gutter-x)); margin-inline: calc(var(--bs-gutter-x) * 0.5); }
+  /* الصف يسحب أعلاه بمقدار الفجوة لأعمدته، والرأس ليس عموداً فيُعاد إليه */
+  .kid-main > .kid-head { order: 1; margin-block-start: var(--bs-gutter-y); }
+  .kid-side { order: 2; }
+  .kid-aside { position: static; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr); align-items: start; }
+}
+@media (max-width: 47.98rem) {
+  .kid-aside { grid-template-columns: minmax(0, 1fr); }
+  .kid-dream { padding-inline-start: clamp(1.5rem, 3vw, 2.25rem); }
+  .kid-dream__mark { position: static; display: block; margin-block-end: 0.5rem; }
+  .kid-art img { aspect-ratio: 4 / 2.6; }
+  .kid-covers { grid-template-columns: minmax(0, 1fr); }
+  .kid-facts { grid-template-columns: minmax(0, 1fr); }
+  .kid-facts > div { border-inline-start: 0; border-block-start: 1px solid var(--color-border); }
+  .kid-facts > div:first-child { border-block-start: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .kid-aside { transition: none; }
+}

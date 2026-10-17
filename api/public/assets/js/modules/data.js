@@ -16,14 +16,10 @@
 
 import {
   fetchBootstrap,
-  fetchOrphan,
   fetchOrphans,
   fetchPosts,
   fetchTransparency,
 } from './api.js';
-
-/** صفحة الطفل: تعذّر جلبه (انقطاع أو عطل)، لا أنه غير موجود. */
-export let DETAIL_FAILED = false;
 
 export let SITE = {
   name: 'كفالة',
@@ -439,7 +435,7 @@ export async function hydrate() {
 
   // صفحة الأيتام (#catalogGrid) تطلب صفحتها بنفسها من الخادم، فلا تحتاج القائمة هنا
   const needsOrphans = has([
-    '#homeOrphans', '#orphanDetail', '#similarOrphans', '#checkoutSummary',
+    '#homeOrphans', '#checkoutSummary',
   ]);
   // #heroStats و#moneyDonut في الرئيسية: أرقام الهيرو والحلقة من الشفافية نفسها
   const needsTransparency = has(['#spendingDonut', '#spendingLegend', '#proofBoard', '#heroStats', '#moneyDonut']);
@@ -467,20 +463,6 @@ export async function hydrate() {
 
   if (orphans) ORPHANS = take(orphans, ORPHANS);
 
-  /**
-   * صفحة الطفل: إن لم يكن بين المحمَّلين (القائمة أول مئة، والفهرس يصفّح كل
-   * الأطفال) يُطلب برمزه قبل البناء. كانت الصفحة تعرض أول طفل مكانه بصمت.
-   */
-  const wanted = document.querySelector('#orphanDetail') && new URLSearchParams(window.location.search).get('id');
-  if (wanted && orphans && !ORPHANS.some((o) => o.id === wanted)) {
-    const one = await fetchOrphan(wanted).catch((error) => {
-      if (error?.status !== 404) DETAIL_FAILED = true;
-      return null;
-    });
-    if (one) ORPHANS = [...ORPHANS, one];
-  }
-  // القائمة نفسها لم تُحمَّل: غياب الطفل منها لا يعني أنه غير موجود
-  if (wanted && !orphans) DETAIL_FAILED = true;
   if (posts) POSTS = take(posts, POSTS);
 
   if (transparency) {

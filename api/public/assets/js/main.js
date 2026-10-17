@@ -36,12 +36,12 @@ import { initForms, initCardInput, initPasswordStrength } from './modules/forms.
 import { initCheckout, initThankYou } from './modules/checkout.js';
 import {
   initImpactCalculator,
-  initOrphanDetail,
   initPostDetail,
   initResetPassword,
 } from './modules/features.js';
 import { renderHomeSections } from './modules/home.js';
 import { initCatalog } from './modules/catalog.js';
+import { initProfile } from './modules/profile.js';
 import { initTransparency } from './modules/transparency.js';
 import { initBlog } from './modules/blog.js';
 import { initAbout } from './modules/about.js';
@@ -59,7 +59,7 @@ function boot() {
   initTransparency();
   initAbout();
   initCatalog();
-  initOrphanDetail();
+  initProfile();
   initCheckout();
   initPostDetail();
   initBlog();

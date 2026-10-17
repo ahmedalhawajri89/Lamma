@@ -294,6 +294,22 @@ class Orphan extends Model
     /* -------------------------------------------------------------------- سلوك */
 
     /**
+     * ما تبقّى من حاجته الشهرية بالمبالغ الفعلية لا بالنسبة المقرّبة: الحاجة
+     * ناقص مجموع الكفالات التي تُحسب في تمويله (القائمة والمعلّقة والمحجوزة).
+     */
+    public function remainingNeed(): float
+    {
+        $covered = (float) $this->sponsorships()
+            ->whereIn('status', array_filter(
+                SponsorshipStatus::cases(),
+                fn (SponsorshipStatus $s): bool => $s->countsTowardFunding(),
+            ))
+            ->sum('monthly_amount');
+
+        return max(0, round((float) $this->monthly_need - $covered, 2));
+    }
+
+    /**
      * إعادة حساب نسبة التمويل من الكفالات الحيّة.
      * يستدعيه SponsorshipObserver لا كود المتحكّم، فلا يمكن نسيانه.
      */
