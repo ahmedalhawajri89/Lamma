@@ -249,6 +249,23 @@ export function initChipGroups() {
 }
 
 /* =========================================================================
+   عدّاد أحرف الحقل النصي: [data-count] داخل وصف الحقل (aria-describedby)
+   يتبع طوله، فيعرف الكاتب كم بقي على الحدّ الأدنى قبل أن يُرفض.
+   ========================================================================= */
+export function initCharCounts() {
+  $$('textarea[aria-describedby]').forEach((field) => {
+    const out = field.getAttribute('aria-describedby').split(' ')
+      .map((id) => document.getElementById(id)?.querySelector('[data-count]'))
+      .find(Boolean);
+    if (!out) return;
+    const sync = () => { out.textContent = String(field.value.trim().length); };
+    field.addEventListener('input', sync);
+    field.form?.addEventListener('reset', () => requestAnimationFrame(sync));
+    sync();
+  });
+}
+
+/* =========================================================================
    إظهار/إخفاء كلمة المرور
    ========================================================================= */
 export function initPasswordToggles() {

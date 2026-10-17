@@ -30,6 +30,7 @@ import {
   initModals,
   initChipGroups,
   initPasswordToggles,
+  initCharCounts,
   initToastStack,
 } from './modules/ui.js';
 import { initForms, initCardInput, initPasswordStrength } from './modules/forms.js';
@@ -72,6 +73,7 @@ function boot() {
   initModals();
   initChipGroups();
   initPasswordToggles();
+  initCharCounts();
   initSliders();
 
   // ٤) النماذج

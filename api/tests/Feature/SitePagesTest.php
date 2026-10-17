@@ -222,3 +222,21 @@ it('أزرار المشاركة روابط المنصات برابط الصفح�
         ->toContain('rel="noopener noreferrer"')
         ->not->toMatch('#<script[^>]+src="https?://#');
 });
+
+it('تأخذ صفحة التواصل الهاتف والبريد من الإعدادات، وتعرض أكثر الأسئلة قبل النموذج', function () {
+    $this->seed(Database\Seeders\ContentSeeder::class);
+    Setting::query()->updateOrCreate(['group' => 'site', 'key' => 'phone'], ['value' => '+970 599 777 888', 'type' => 'string']);
+    Setting::query()->updateOrCreate(['group' => 'site', 'key' => 'email'], ['value' => 'help@kafala.test', 'type' => 'string']);
+    Cache::forget('settings');
+
+    $html = $this->get('/contact')->assertOk()->getContent();
+
+    expect($html)
+        ->toContain('href="https://wa.me/970599777888"')
+        ->toContain('href="tel:+970599777888"')
+        ->toContain('href="mailto:help@kafala.test"')
+        ->toContain('لعلّ جوابك هنا')
+        ->toContain(App\Models\Faq::published()->first()->question)
+        // المصيدة باقية للروبوتات
+        ->toContain('name="website"');
+});

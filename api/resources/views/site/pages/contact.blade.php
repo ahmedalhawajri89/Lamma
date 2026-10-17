@@ -1,145 +1,168 @@
-@extends('site.layouts.legacy')
+@extends('site.layouts.app')
+
+{{--
+  التواصل (ContactPageController): طرقٌ سريعة أولاً (واتساب واتصال وبريد)، ثم
+  أكثر الأسئلة شيوعاً، ثم النموذج. النموذج يرسله forms.js إلى /public/contact
+  (data-action="contact")، وفيه حقل مصيدة للروبوتات، والخادم يحدّه بست رسائل
+  في الدقيقة.
+--}}
+@php
+  $wa = 'https://wa.me/'.ltrim((string) $contact['phoneHref'], '+');
+  $topics = [
+      'general' => 'استفسار عام',
+      'sponsorship' => 'سؤال عن الكفالة',
+      'finance' => 'استفسار مالي',
+      'report' => 'مشكلة في تقرير',
+      'partner' => 'شراكة أو تطوّع',
+      'complaint' => 'شكوى',
+  ];
+@endphp
 
 @section('title')تواصل معنا | كفالة@endsection
-@section('description')اسألنا عن أي بند في أي تقرير. نلتزم بالرد خلال ٧٢ ساعة.@endsection
+@section('description')اسألنا عن أي بند في أي تقرير. نلتزم بالرد خلال 72 ساعة.@endsection
 @section('canonical', url('/contact'))
+
+@push('styles')
+  <link rel="stylesheet" href="/assets/css/contact.css">
+@endpush
 
 @section('content')
   <main id="main">
 
-    <section class="page-hero">
+    {{-- ══ الصدر وطرق التواصل السريعة ══ --}}
+    <section class="ct-hero" aria-labelledby="ctTitle">
       <div class="container">
-        <div class="page-hero__inner">
-          <nav aria-label="مسار التنقل">
-            <ol class="breadcrumb">
-              <li><a href="/">الرئيسية</a></li>
-              <li><span aria-current="page">تواصل معنا</span></li>
-            </ol>
-          </nav>
-          <h1 class="page-hero__title">اسأل عن أي شيء</h1>
-          <p class="page-hero__lede">
-            بما في ذلك الأسئلة الصعبة عن المال والمصاريف. نلتزم بالرد خلال ٧٢ ساعة.
-          </p>
-        </div>
+        <nav aria-label="مسار التنقل">
+          <ol class="breadcrumb ct-crumbs">
+            <li class="breadcrumb-item"><a href="/">الرئيسية</a></li>
+            <li class="breadcrumb-item active" aria-current="page">تواصل معنا</li>
+          </ol>
+        </nav>
+        <h1 class="ct-title" id="ctTitle">اسأل عن أي شيء،<br><em>حتى الأسئلة الصعبة عن المال.</em></h1>
+        <p class="ct-lede">نردّ على كل رسالة خلال 72 ساعة، وننشر الجواب إن كان يهمّ غيرك.</p>
+
+        <ul class="ct-quick">
+          <li>
+            <a class="ct-quick__item ct-quick__item--wa" href="{{ $wa }}" target="_blank" rel="noopener noreferrer">
+              <span class="ct-quick__icon" aria-hidden="true"><i class="fa-brands fa-whatsapp"></i></span>
+              <span><strong>واتساب</strong><span>أسرع ردّ في ساعات العمل</span></span>
+              <i class="fa-solid fa-arrow-left ct-quick__go" aria-hidden="true"></i>
+            </a>
+          </li>
+          <li>
+            <a class="ct-quick__item" href="tel:{{ $contact['phoneHref'] }}">
+              <span class="ct-quick__icon" aria-hidden="true"><i class="fa-solid fa-phone"></i></span>
+              <span><strong>اتصال</strong><span dir="ltr" class="num">{{ $contact['phone'] }}</span></span>
+              <i class="fa-solid fa-arrow-left ct-quick__go" aria-hidden="true"></i>
+            </a>
+          </li>
+          <li>
+            <a class="ct-quick__item" href="mailto:{{ $contact['email'] }}">
+              <span class="ct-quick__icon" aria-hidden="true"><i class="fa-regular fa-envelope"></i></span>
+              <span><strong>البريد</strong><span>{{ $contact['email'] }}</span></span>
+              <i class="fa-solid fa-arrow-left ct-quick__go" aria-hidden="true"></i>
+            </a>
+          </li>
+        </ul>
       </div>
     </section>
 
-    <section class="section">
+    <section class="ct-main">
       <div class="container">
-        <div class="split">
+        <div class="row g-4 g-xl-5">
 
-          <!-- بيانات التواصل -->
-          <div class="contact-info">
-            <h2>بيانات التواصل</h2>
+          {{-- ══ النموذج ══ --}}
+          <div class="col-lg-7">
+            <div class="ct-form-card">
+              <h2 class="ct-h2">أرسل لنا رسالة</h2>
+              <p class="ct-form-card__lede">يصلك ردّنا على بريدك خلال 72 ساعة.</p>
 
-            <ul class="contact-list" role="list">
-              <li>
-                <i class="fa-solid fa-phone" aria-hidden="true"></i>
-                <span>الهاتف وواتساب</span>
-                <strong><a href="tel:+970599000000" dir="ltr">+970 599 000 000</a></strong>
-              </li>
-              <li>
-                <i class="fa-regular fa-envelope" aria-hidden="true"></i>
-                <span>البريد الإلكتروني</span>
-                <strong><a href="mailto:info@kafala.org">info@kafala.org</a></strong>
-              </li>
-              <li>
-                <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
-                <span>المقر الرئيسي</span>
-                <strong>غزة، فلسطين</strong>
-              </li>
-              <li>
-                <i class="fa-regular fa-clock" aria-hidden="true"></i>
-                <span>ساعات العمل</span>
-                <strong>من الأحد إلى الخميس، ٩ صباحاً حتى ٥ مساءً</strong>
-              </li>
-            </ul>
+              <form id="contactForm" data-validate-form data-action="contact"
+                    data-success-message="وصلتنا رسالتك، سنرد خلال 72 ساعة بإذن الله" novalidate>
 
-            <div class="contact-note">
-              <h3>للاستفسارات المالية</h3>
-              <p>
-                إن كان سؤالك عن بند في الميزانية أو تقرير مالي، أرسله على
-                <a href="mailto:finance@kafala.org">finance@kafala.org</a>
-                ليصل مباشرة إلى الإدارة المالية دون وسيط.
-              </p>
+                <fieldset class="ct-topics">
+                  <legend class="form-label">موضوع الرسالة</legend>
+                  <div class="ct-topics__list">
+                    @foreach ($topics as $value => $label)
+                      <label class="ct-topic">
+                        <input type="radio" name="topic" value="{{ $value }}" @checked($loop->first)>
+                        <span>{{ $label }}</span>
+                      </label>
+                    @endforeach
+                  </div>
+                </fieldset>
+
+                <div class="row g-3">
+                  <div class="col-sm-6 field">
+                    <label class="form-label" for="contactName">الاسم</label>
+                    <input class="form-control form-control-lg" type="text" id="contactName" name="name"
+                           autocomplete="name" data-validate="required|minlength:3" aria-describedby="err-contactName">
+                    <p class="field__error" id="err-contactName" aria-live="polite"></p>
+                  </div>
+                  <div class="col-sm-6 field">
+                    <label class="form-label" for="contactEmail">البريد الإلكتروني</label>
+                    <input class="form-control form-control-lg" type="email" id="contactEmail" name="email" dir="ltr"
+                           autocomplete="email" inputmode="email" data-validate="required|email" aria-describedby="err-contactEmail">
+                    <p class="field__error" id="err-contactEmail" aria-live="polite"></p>
+                  </div>
+                  <div class="col-12 field">
+                    <label class="form-label" for="contactMessage">رسالتك</label>
+                    <textarea class="form-control" id="contactMessage" name="message" rows="6" maxlength="5000"
+                              placeholder="اكتب سؤالك بالتفصيل، وإن كان عن تقرير فاذكر شهره أو رقم الكفالة"
+                              data-validate="required|minlength:15" aria-describedby="hint-contactMessage err-contactMessage"></textarea>
+                    <p class="form-text ct-count" id="hint-contactMessage" aria-live="polite"><span class="num" data-count>0</span> حرفاً، والحدّ الأدنى 15</p>
+                    <p class="field__error" id="err-contactMessage" aria-live="polite"></p>
+                  </div>
+                </div>
+
+                {{-- مصيدة: مخفية عن البشر وعن قارئات الشاشة، والروبوت يملؤها --}}
+                <div class="visually-hidden" aria-hidden="true">
+                  <label for="contactWebsite">لا تملأ هذا الحقل</label>
+                  <input type="text" id="contactWebsite" name="website" tabindex="-1" autocomplete="off">
+                </div>
+
+                <div class="field ct-consent">
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="contactConsent" name="consent" required
+                           data-validate="required" data-required-message="يلزم الموافقة لنتمكّن من الرد عليك" aria-describedby="err-consent">
+                    <label class="form-check-label" for="contactConsent">أوافق على استخدام بياناتي للرد على استفساري فقط، ولن تُشارك مع أي جهة.</label>
+                  </div>
+                  <p class="field__error" id="err-consent" aria-live="polite"></p>
+                </div>
+
+                <button class="btn btn-primary btn-lg w-100" type="submit">إرسال الرسالة <i class="fa-regular fa-paper-plane ms-1" aria-hidden="true"></i></button>
+              </form>
             </div>
           </div>
 
-          <!-- النموذج -->
-          <div class="form-panel">
-            <h2>أرسل لنا رسالة</h2>
+          {{-- ══ الجانب: أسئلة شائعة وبيانات ══ --}}
+          <aside class="col-lg-5">
+            <div class="ct-aside">
+              @if ($faqs->isNotEmpty())
+                <section class="ct-card" aria-labelledby="ctFaqTitle">
+                  <h2 class="ct-card__title" id="ctFaqTitle">لعلّ جوابك هنا</h2>
+                  <div class="ct-faqs">
+                    @foreach ($faqs as $f)
+                      <details class="ct-faq">
+                        <summary>{{ $f['q'] }}</summary>
+                        <p>{{ $f['a'] }}</p>
+                      </details>
+                    @endforeach
+                  </div>
+                  <a class="link-arrow" href="/faq">كل الأسئلة الشائعة <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
+                </section>
+              @endif
 
-            <form data-validate-form data-action="contact"
-                  data-success-message="وصلتنا رسالتك، سنرد خلال ٧٢ ساعة بإذن الله" novalidate
-                  style="margin-block-start:var(--space-6)">
-
-              <div class="field" style="margin-block-end:var(--space-4)">
-                <label class="field__label" for="contactName">الاسم <span class="req" aria-hidden="true">*</span></label>
-                <div class="field__control">
-                  <i class="fa-regular fa-user field__icon" aria-hidden="true"></i>
-                  <input class="input" type="text" id="contactName" name="name"
-                         autocomplete="name" data-validate="required|minlength:3"
-                         aria-describedby="err-contactName">
-                </div>
-                <p class="field__error" id="err-contactName" aria-live="polite"></p>
-              </div>
-
-              <div class="field" style="margin-block-end:var(--space-4)">
-                <label class="field__label" for="contactEmail">البريد الإلكتروني <span class="req" aria-hidden="true">*</span></label>
-                <div class="field__control">
-                  <i class="fa-regular fa-envelope field__icon" aria-hidden="true"></i>
-                  <input class="input" type="email" id="contactEmail" name="email"
-                         autocomplete="email" inputmode="email" data-validate="required|email"
-                         aria-describedby="err-contactEmail">
-                </div>
-                <p class="field__error" id="err-contactEmail" aria-live="polite"></p>
-              </div>
-
-              <div class="field" style="margin-block-end:var(--space-4)">
-                <label class="field__label" for="contactTopic">موضوع الرسالة</label>
-                <select class="select" id="contactTopic" name="topic">
-                  <option value="general">استفسار عام</option>
-                  <option value="sponsorship">سؤال عن الكفالة</option>
-                  <option value="finance">استفسار مالي أو عن الميزانية</option>
-                  <option value="report">مشكلة في تقرير</option>
-                  <option value="partner">شراكة أو تطوّع</option>
-                  <option value="complaint">شكوى</option>
-                </select>
-              </div>
-
-              <div class="field" style="margin-block-end:var(--space-6)">
-                <label class="field__label" for="contactMessage">الرسالة <span class="req" aria-hidden="true">*</span></label>
-                <textarea class="textarea" id="contactMessage" name="message" rows="6"
-                          placeholder="اكتب سؤالك بالتفصيل…"
-                          data-validate="required|minlength:15"
-                          aria-describedby="err-contactMessage"></textarea>
-                <p class="field__error" id="err-contactMessage" aria-live="polite"></p>
-              </div>
-
-              <!-- مصيدة: مخفية عن البشر وعن قارئات الشاشة، والروبوت يملؤها. -->
-              <div class="sr-only" aria-hidden="true">
-                <label for="contactWebsite">لا تملأ هذا الحقل</label>
-                <input type="text" id="contactWebsite" name="website"
-                       tabindex="-1" autocomplete="off">
-              </div>
-
-              <div class="field" style="margin-block-end:var(--space-6)">
-                <label class="checkbox">
-                  <input type="checkbox" name="consent" required
-                         data-validate="required" data-required-message="يلزم الموافقة لنتمكّن من الرد عليك"
-                         aria-describedby="err-consent">
-                  <span>أوافق على استخدام بياناتي للرد على استفساري فقط، ولن تُشارك مع أي جهة أخرى.</span>
-                </label>
-                <p class="field__error" id="err-consent" aria-live="polite"></p>
-              </div>
-
-              <button class="btn btn--primary btn--lg btn--block" type="submit">
-                إرسال الرسالة
-                <i class="fa-regular fa-paper-plane btn__icon" aria-hidden="true"></i>
-              </button>
-            </form>
-          </div>
-
+              <section class="ct-card" aria-labelledby="ctInfoTitle">
+                <h2 class="ct-card__title" id="ctInfoTitle">بيانات التواصل</h2>
+                <ul class="ct-info">
+                  <li><i class="fa-solid fa-location-dot" aria-hidden="true"></i><span><b>المقر الرئيسي</b>{{ $contact['address'] }}</span></li>
+                  <li><i class="fa-regular fa-clock" aria-hidden="true"></i><span><b>ساعات العمل</b>من الأحد إلى الخميس، 9 صباحاً حتى 5 مساءً</span></li>
+                  <li><i class="fa-solid fa-scale-balanced" aria-hidden="true"></i><span><b>سؤالٌ مالي؟</b>اذكر البند أو الشهر في رسالتك، وراجع قبلها <a href="/transparency">صفحة الشفافية</a>: الأرقام فيها تتحدّث مع كل صرف.</span></li>
+                </ul>
+              </section>
+            </div>
+          </aside>
         </div>
       </div>
     </section>
