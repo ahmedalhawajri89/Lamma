@@ -540,6 +540,31 @@ button:focus-visible,
   .to-top { display: none; }
 }
 
+/* ── 11ج. أزرار المشاركة (partials/share): دوائر بلون المنصة عند المرور ── */
+.share { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+.share__btn {
+  display: inline-grid;
+  place-items: center;
+  inline-size: 2.6rem;
+  block-size: 2.6rem;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font-size: 1rem;
+  text-decoration: none;
+  transition: background-color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+}
+.share__btn:hover { --share: var(--color-brand); border-color: var(--share); background: var(--share); color: #fff; }
+.share__btn--whatsapp:hover { --share: #25d366; }
+.share__btn--x:hover { --share: #0f1419; }
+.share__btn--facebook:hover { --share: #1877f2; }
+.share__btn--telegram:hover { --share: #229ed9; }
+.share__btn--linkedin:hover { --share: #0a66c2; }
+.share__btn.is-copied { border-color: var(--color-success); color: var(--color-success); }
+.share__btn:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .share__btn { transition: none; } }
+
 /* ── 12. الفوتر: في footer.css، يحمّله القالبان كلاهما ── */
 
 /* ── 13. أخطاء الحقول التي يكتبها forms.js (.field و.field__error) ── */

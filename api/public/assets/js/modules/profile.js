@@ -3,7 +3,7 @@
  * للمتصفح: أطفالٌ آخرون ببطاقة الفهرس نفسها، وزرّ مشاركة الملف.
  */
 
-import { $ } from './utils.js';
+import { $, $$ } from './utils.js';
 import { kidCard } from './render.js';
 import { apiEnabled, request } from './api.js';
 import { initReveal } from './motion.js';
@@ -45,25 +45,37 @@ async function initSimilar() {
 }
 
 /**
- * مشاركة الملف: لوح المشاركة في الجوال (واتساب وغيره)، ونسخ الرابط حيث لا
- * يوجد. الرابط هو الصفحة نفسها، ووسوم مشاركتها باسم الطفل من الخادم.
+ * المشاركة: كل زرّ data-share يفتح لوح المشاركة الأصلي حيث يوجد (الجوال)،
+ * وينسخ الرابط حيث لا يوجد. وأزرار المنصات (partials/share) روابط عادية،
+ * ومعها data-copy-link للنسخ، وزرّ المشاركة الأصلي فيها يظهر حيث يُدعم وحده.
+ * كانت الدالة تربط أول زرٍّ في الصفحة فقط، وصفحة المقال فيها اثنان.
  */
 function initShare() {
-  const btn = $('[data-share]');
-  if (!btn) return;
+  const native = typeof navigator.share === 'function';
 
-  btn.addEventListener('click', async () => {
-    // data-share-url لرابطٍ غير الصفحة نفسها (صفحة الشكر تدعو إلى الفهرس)
-    const data = { title: btn.dataset.shareTitle, url: new URL(btn.dataset.shareUrl ?? window.location.href, window.location.origin).href };
-    if (navigator.share) {
-      try { await navigator.share(data); } catch { /* أغلق اللوح: لا شيء */ }
-      return;
-    }
-    try {
-      await navigator.clipboard.writeText(data.url);
-      toast('نُسخ الرابط، أرسله لمن تحب.');
-    } catch {
-      toast('تعذّر نسخ الرابط. انسخه من شريط العنوان.', 'error');
-    }
+  $$('[data-share]').forEach((btn) => {
+    if (btn.classList.contains('share__btn--native')) btn.hidden = !native;
+    btn.addEventListener('click', async () => {
+      // data-share-url لرابطٍ غير الصفحة نفسها (صفحة الشكر تدعو إلى الفهرس)
+      const data = { title: btn.dataset.shareTitle, url: new URL(btn.dataset.shareUrl ?? window.location.href, window.location.origin).href };
+      if (native) {
+        try { await navigator.share(data); } catch { /* أغلق اللوح: لا شيء */ }
+        return;
+      }
+      copy(data.url, btn);
+    });
   });
+
+  $$('[data-copy-link]').forEach((btn) => btn.addEventListener('click', () => copy(btn.dataset.copyLink, btn)));
+}
+
+async function copy(url, btn) {
+  try {
+    await navigator.clipboard.writeText(url);
+    toast('نُسخ الرابط، أرسله لمن تحب.');
+    btn.classList.add('is-copied');
+    setTimeout(() => btn.classList.remove('is-copied'), 1800);
+  } catch {
+    toast('تعذّر نسخ الرابط. انسخه من شريط العنوان.', 'error');
+  }
 }

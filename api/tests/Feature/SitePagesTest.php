@@ -209,3 +209,16 @@ it('يبني فهرس المقال من عناوينه الفرعية بمراس
         ->not->toContain('id="evil"')
         ->not->toContain('onclick');
 });
+
+it('أزرار المشاركة روابط المنصات برابط الصفحة المطلق مرمَّزاً، بلا سكربت من خارج الموقع', function () {
+    $post = App\Models\Post::factory()->create(['title' => 'عنوان & تجربة']);
+    $url = rawurlencode(url('/post?slug='.urlencode($post->slug)));
+
+    $html = $this->get('/post?slug='.urlencode($post->slug))->assertOk()->getContent();
+
+    expect($html)
+        ->toContain('href="https://wa.me/?text='.rawurlencode('عنوان & تجربة').'%20'.$url.'"')
+        ->toContain('href="https://www.facebook.com/sharer/sharer.php?u='.$url.'"')
+        ->toContain('rel="noopener noreferrer"')
+        ->not->toMatch('#<script[^>]+src="https?://#');
+});

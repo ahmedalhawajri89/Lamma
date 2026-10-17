@@ -104,9 +104,7 @@
 
             <footer class="post-end">
               <p>هل وجدت المقال مفيداً؟ أرسله لمن يهمّه.</p>
-              <button type="button" class="btn btn-outline-primary" data-share data-share-title="{{ $post->title }}">
-                <i class="fa-solid fa-share-nodes" aria-hidden="true"></i> شارك المقال
-              </button>
+              @include('site.partials.share', ['url' => $url, 'title' => $post->title, 'label' => 'شارك المقال'])
             </footer>
           </div>
 
@@ -136,9 +134,10 @@
                     <div><dt><i class="fa-regular fa-folder" aria-hidden="true"></i> التصنيف</dt><dd><a href="/blog?cat={{ urlencode($post->category->slug) }}">{{ $post->category->name_ar }}</a></dd></div>
                   @endif
                 </dl>
-                <button type="button" class="post-share" data-share data-share-title="{{ $post->title }}">
-                  <i class="fa-solid fa-share-nodes" aria-hidden="true"></i> شارك المقال
-                </button>
+                <div>
+                  <p class="post-card__title">شارك المقال</p>
+                  @include('site.partials.share', ['url' => $url, 'title' => $post->title, 'label' => 'شارك المقال'])
+                </div>
               </div>
 
               {{-- الدعوة بجانب القراءة لا بعدها وحدها --}}

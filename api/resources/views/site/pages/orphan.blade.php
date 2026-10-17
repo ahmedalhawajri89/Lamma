@@ -166,9 +166,14 @@
                   </ul>
                 @endif
 
-                <button class="kid-panel__sharebtn" type="button" data-share data-share-title="{{ $state === 'done' ? 'اكتملت كفالة '.$kid['name'] : 'ساعد '.$kid['name'].' على تحقيق '.($her ? 'حلمها' : 'حلمه') }}">
-                  <i class="fa-solid fa-share-nodes" aria-hidden="true"></i> <span data-share-label>شارك ملف {{ $kid['name'] }}</span>
-                </button>
+                <div class="kid-panel__sharebox">
+                  <p class="kid-panel__sharelabel">شارك ملف {{ $kid['name'] }}{{ $state === 'done' ? '' : '، لعلّ أحداً يكفل'.($her ? 'ها' : 'ه') }}</p>
+                  @include('site.partials.share', [
+                      'url' => url('/orphan?id='.urlencode($kid['id'])),
+                      'title' => $state === 'done' ? 'اكتملت كفالة '.$kid['name'] : 'ساعد '.$kid['name'].' على تحقيق '.($her ? 'حلمها' : 'حلمه'),
+                      'label' => 'شارك ملف '.$kid['name'],
+                  ])
+                </div>
               </div>
             </div>
           </aside>
