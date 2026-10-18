@@ -159,11 +159,11 @@ class ReferenceSeeder extends Seeder
     private function settings(): void
     {
         $rows = [
-            ['site', 'name', 'كفالة', 'string'],
-            ['site', 'tagline', 'منصة كفالة الأيتام', 'string'],
-            ['site', 'email', 'info@kafala.org', 'string'],
-            ['site', 'phone', '+970 599 000 000', 'string'],
-            ['site', 'address', 'غزة، فلسطين', 'string'],
+            ['site', 'name', 'لمّة', 'string'],
+            ['site', 'tagline', 'كل طفلٍ في لمّة أهله', 'string'],
+            ['site', 'email', 'hello@lamma.org', 'string'],
+            ['site', 'phone', '+44 20 4000 0000', 'string'],
+            ['site', 'address', 'لندن، المملكة المتحدة', 'string'],
             ['site', 'start_year', '2012', 'number'],
             ['finance', 'base_currency', 'USD', 'string'],
             ['finance', 'overhead_target_percent', '7', 'number'],

@@ -51,7 +51,7 @@ const TEMPLATES = {
   report: 'نعتذر عن المشكلة في التقرير. تابعناها مع المشرف الميداني، ',
   partner: 'شكراً لرغبتك في الشراكة أو التطوّع. ',
   complaint: 'نعتذر عمّا حدث، ونشكرك على إخبارنا. ',
-  general: 'شكراً لتواصلك مع كفالة. ',
+  general: 'شكراً لتواصلك معنا. ',
 }
 
 /* ── القائمة والمختارة ───────────────────────────────────────────────── */
@@ -273,7 +273,7 @@ async function setStatus(status) {
             <label class="sr-only" for="ctReply">ردّك</label>
             <textarea
               id="ctReply" ref="composer" v-model="draft" class="input" rows="3" maxlength="5000"
-              :placeholder="`ردّك على ${current.name}، يصله بالبريد من عنوان كفالة…`"
+              :placeholder="`ردّك على ${current.name}، يصله بالبريد من عنوان المنصة…`"
             />
             <div class="flex flex-wrap items-center gap-2">
               <button class="btn btn-primary" type="submit" :disabled="sending || !draft.trim()">

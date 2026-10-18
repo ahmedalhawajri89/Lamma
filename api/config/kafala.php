@@ -70,7 +70,7 @@ return [
     */
     'bank' => [
         'name' => env('KAFALA_BANK_NAME', 'بنك فلسطين'),
-        'account_name' => env('KAFALA_BANK_ACCOUNT_NAME', 'جمعية كفالة لرعاية الأيتام'),
+        'account_name' => env('KAFALA_BANK_ACCOUNT_NAME', 'مؤسسة لمّة لكفالة الأيتام'),
         'iban' => env('KAFALA_BANK_IBAN', 'PS92 PALS 0000 0000 0400 1234 5678 9'),
         'swift' => env('KAFALA_BANK_SWIFT', 'PALSPS22'),
     ],

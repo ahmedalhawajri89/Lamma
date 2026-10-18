@@ -281,7 +281,8 @@ function initViews() {
       if (link.hash === `#${view.id}`) link.setAttribute('aria-current', 'page');
       else link.removeAttribute('aria-current');
     });
-    document.title = `${SECTIONS[view.id] ?? 'بوابتي'} | كفالة`;
+    // الاسم من الإعدادات (head.blade يكتبه في application-name)، لا مكتوباً هنا
+    document.title = `${SECTIONS[view.id] ?? 'بوابتي'} | ${document.querySelector('meta[name="application-name"]')?.content ?? ''}`;
     setText('[data-pt-title]', SECTIONS[view.id] ?? '');
 
     if (focus) {

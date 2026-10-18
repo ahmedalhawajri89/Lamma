@@ -6,7 +6,7 @@ import { test, expect } from '@playwright/test'
  * الحالة صارت تبويبات بأعدادها، والقائمة تُصدَّر بفلاترها، والملف يقول
  * أين هو من مساره وما خطوته التالية، وله سجلّ بمن غيّر ماذا.
  */
-const ADMIN = { email: 'admin@kafala.org', password: 'password' }
+const ADMIN = { email: 'admin@lamma.org', password: 'password' }
 
 async function login(page) {
   await page.goto('/login')

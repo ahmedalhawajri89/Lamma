@@ -93,7 +93,17 @@ async function signOut() {
   router.push({ name: 'login' })
 }
 
-onMounted(() => auth.fetchUser())
+onMounted(() => {
+  auth.fetchUser()
+  ui.loadBrand()
+})
+
+// عنوان النافذة: اسم الشاشة ثم اسم المنصة من إعداداتها
+watch(
+  () => [route.meta.title, ui.brand],
+  ([title, brand]) => { document.title = title ? `${title} | لوحة ${brand}` : `لوحة ${brand}` },
+  { immediate: true },
+)
 </script>
 
 <template>
@@ -128,7 +138,7 @@ onMounted(() => auth.fetchUser())
       <div class="side__head p-4 border-b border-sand-200 flex items-center gap-2.5">
         <img src="/logo.svg" alt="" width="36" height="36" class="shrink-0" />
         <div class="side__label min-w-0">
-          <p class="font-semibold text-sand-900 leading-tight whitespace-nowrap">كفالة</p>
+          <p class="font-semibold text-sand-900 leading-tight whitespace-nowrap">{{ ui.brand }}</p>
           <p class="text-xs text-sand-500 whitespace-nowrap">لوحة الإدارة</p>
         </div>
 

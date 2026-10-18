@@ -103,7 +103,7 @@ class DemoSeeder extends Seeder
     {
         $palestine = Country::where('iso2', 'PS')->value('id');
 
-        $admin = User::updateOrCreate(['email' => 'admin@kafala.org'], [
+        $admin = User::updateOrCreate(['email' => 'admin@lamma.org'], [
             'name' => 'أحمد الحواجري',
             'password' => Hash::make('password'),
             'phone' => '+970599000001',
@@ -112,7 +112,7 @@ class DemoSeeder extends Seeder
         ]);
         $admin->syncRoles(UserRole::Admin->value);
 
-        $accountant = User::updateOrCreate(['email' => 'accountant@kafala.org'], [
+        $accountant = User::updateOrCreate(['email' => 'accountant@lamma.org'], [
             'name' => 'هدى النجار',
             'password' => Hash::make('password'),
             'status' => 'active',
@@ -127,7 +127,7 @@ class DemoSeeder extends Seeder
 
         $supervisors = [];
         foreach (Country::operational()->take(4)->get() as $i => $country) {
-            $user = User::updateOrCreate(['email' => "supervisor{$i}@kafala.org"], [
+            $user = User::updateOrCreate(['email' => "supervisor{$i}@lamma.org"], [
                 // اسمٌ لا مسمّى: البلد في ملف الموظف (المسمّى والبلد المُسنَد) لا في اسمه
                 'name' => self::FIRST_NAMES_MALE[$i + 4].' '.self::LAST_NAMES[$i],
                 'password' => Hash::make('password'),
@@ -361,7 +361,7 @@ class DemoSeeder extends Seeder
         $ids = [];
 
         // كافل تجريبي بحساب معروف — هو عبدالله المطيري في لوحة الكافل الحالية
-        $demo = User::updateOrCreate(['email' => 'sponsor@kafala.org'], [
+        $demo = User::updateOrCreate(['email' => 'sponsor@lamma.org'], [
             'name' => 'عبدالله المطيري',
             'password' => Hash::make('password'),
             'phone' => '+966500000001',

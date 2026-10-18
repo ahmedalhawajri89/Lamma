@@ -46,7 +46,9 @@ class PurgeTestData extends Command
 
         $orphans = Orphan::withTrashed()->whereRaw("first_name REGEXP '^ليان[0-9]+$'");
         $families = Family::whereHas('guardian', fn ($g) => $g->whereRaw("full_name REGEXP '^أم خالد [0-9]+'"));
-        $users = User::where('name', 'موظف اختباري')->where('email', 'like', 'staff%@kafala.org');
+        // النطاق القديم (قبل اسم «لمّة») والجديد: بقايا تشغيلاتٍ سابقة تُنظَّف أيضاً
+        $users = User::where('name', 'موظف اختباري')
+            ->where(fn ($q) => $q->where('email', 'like', 'staff%@lamma.org')->orWhere('email', 'like', 'staff%@kafala.org'));
         $posts = Post::where('title', 'like', 'مقال اختباري%');
         $disbursements = Disbursement::where('description', 'like', 'اختبار %');
         $reports = Report::where('title', 'like', 'تقرير اختباري%');

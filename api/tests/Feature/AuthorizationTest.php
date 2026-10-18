@@ -118,7 +118,7 @@ it('يخفي اسم الكافل وبريده عن المشرف الميداني
 });
 
 it('يمنع الحساب الموقوف من الدخول', function () {
-    $user = User::factory()->suspended()->create(['email' => 'stopped@kafala.org']);
+    $user = User::factory()->suspended()->create(['email' => 'stopped@lamma.org']);
 
     $this->postJson('/api/v1/auth/login', [
         'email' => $user->email,
@@ -130,13 +130,13 @@ it('يمنع الحساب الموقوف من الدخول', function () {
 
 it('يعطي رسالة واحدة للبريد الخاطئ ولكلمة المرور الخاطئة', function () {
     // وإلا صار النموذج أداةً لكشف البريد المسجَّل من غيره
-    User::factory()->create(['email' => 'real@kafala.org']);
+    User::factory()->create(['email' => 'real@lamma.org']);
 
     $wrongPassword = $this->postJson('/api/v1/auth/login', [
-        'email' => 'real@kafala.org', 'password' => 'nope-nope-nope',
+        'email' => 'real@lamma.org', 'password' => 'nope-nope-nope',
     ]);
     $wrongEmail = $this->postJson('/api/v1/auth/login', [
-        'email' => 'ghost@kafala.org', 'password' => 'nope-nope-nope',
+        'email' => 'ghost@lamma.org', 'password' => 'nope-nope-nope',
     ]);
 
     expect($wrongPassword->json('errors.email'))->toBe($wrongEmail->json('errors.email'));

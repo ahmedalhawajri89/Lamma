@@ -24,8 +24,9 @@ it('تحمل الرئيسية عنوانها ووسوم مشاركتها برو�
     $html = $this->get('/')->assertOk()->getContent();
 
     expect($html)
-        ->toContain('<title>كفالة | اكفل يتيماً وتابع أثرك شهراً بشهر</title>')
-        ->toContain('property="og:title" content="كفالة | اكفل يتيماً')
+        ->toContain('<title>اكفل يتيماً وهو في أسرته، وتابع أثرك شهراً بشهر | لمّة</title>')
+        ->toContain('property="og:title" content="اكفل يتيماً وهو في أسرته')
+        ->toContain('property="og:site_name" content="لمّة"')
         ->toContain('property="og:image" content="'.url('/assets/img/og-image.jpg').'"')
         ->toContain('rel="canonical" href="'.url('/').'"');
 });
@@ -157,7 +158,7 @@ it('ترسم صفحة المقال من الخادم بعنوانها ووسوم
     $html = $this->get('/post?slug='.urlencode($post->slug))->assertOk()->getContent();
 
     expect($html)
-        ->toContain('<title>كيف نتحقق من كل حالة | كفالة</title>')
+        ->toContain('<title>كيف نتحقق من كل حالة | لمّة</title>')
         ->toContain('<h1 class="post-title" id="postTitle">كيف نتحقق من كل حالة</h1>')
         ->toContain('property="og:type" content="article"')
         ->toContain('property="og:image" content="'.asset('storage/posts/cover.webp').'"')
@@ -269,4 +270,32 @@ it('صفحة الدخول: مدير كلمات المرور يملأ حقليه�
         // الاستعادة في البطاقة نفسها لا في نافذة
         ->toContain('data-acc-view="forgot"')
         ->not->toContain('onpaste');
+});
+
+/**
+ * الاسم من مكانٍ واحد: إعداد site.name.
+ *
+ * كان «كفالة» مكتوباً في نحو أربعين موضعاً (عناوين الصفحات، وكتل الهوية،
+ * والبريد، وJSON-LD)، فتغيير الاسم من الإعدادات يترك الصفحات على القديم.
+ */
+it('اسم المنصة يأتي من الإعدادات وحدها في كل صفحة وبريد', function () {
+    Setting::query()->updateOrCreate(['group' => 'site', 'key' => 'name'], ['value' => 'علامةاختبار', 'type' => 'string']);
+    Cache::forget('settings');
+
+    $post = App\Models\Post::factory()->create(['title' => 'مقال', 'body' => '<p>نص.</p>']);
+    $pages = ['/', '/orphans', '/programs', '/transparency', '/blog', '/about', '/contact', '/faq', '/login', '/register',
+        '/reset-password', '/thank-you', '/dashboard', '/post?slug='.urlencode($post->slug), '/no-such-page'];
+
+    foreach ($pages as $path) {
+        $html = $this->get($path)->getContent();
+        preg_match('#<title>(.*?)</title>#su', $html, $title);
+
+        expect($title[1] ?? '')->toEndWith('| علامةاختبار', $path)
+            // «كفالة» علامةً: بعد الفاصل، أو اسماً لفريقٍ أو منصة
+            ->and($html)->not->toMatch('/\| كفالة|فريق كفالة|منصة كفالة|على كفالة|"name":"كفالة"/u');
+    }
+
+    $user = App\Models\User::factory()->create();
+    $mail = (new App\Notifications\ResetPasswordNotification('t'))->toMail($user);
+    expect($mail->subject)->toContain('علامةاختبار')->and($mail->salutation)->toContain('علامةاختبار');
 });

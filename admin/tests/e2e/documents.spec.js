@@ -7,8 +7,8 @@ import path from 'node:path'
  * طابور التحقق: مستندٌ يرفعه المشرف، ويراجعه المدير بجانب بيانات الطفل،
  * فيرفضه بسبب يقرؤه المشرف في ملف الطفل.
  */
-const ADMIN = { email: 'admin@kafala.org', password: 'password' }
-const SUPERVISOR = { email: 'supervisor0@kafala.org', password: 'password' }
+const ADMIN = { email: 'admin@lamma.org', password: 'password' }
+const SUPERVISOR = { email: 'supervisor0@lamma.org', password: 'password' }
 
 async function login(page, user) {
   await page.goto('/login')

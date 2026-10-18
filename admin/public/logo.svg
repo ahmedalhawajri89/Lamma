@@ -1,16 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-label="شعار كفالة">
-  <title>كفالة</title>
-
-  <!-- الكفّ الأولى -->
-  <path d="M6.5 19.5C6.5 33.5 14 39.5 24 39.5"
-        fill="none" stroke="#0f5c5c" stroke-width="6.6" stroke-linecap="round"/>
-
-  <!-- الكفّ الثانية -->
-  <path d="M41.5 19.5C41.5 33.5 34 39.5 24 39.5"
-        fill="none" stroke="#1e8a7a" stroke-width="6.6" stroke-linecap="round"/>
-
-  <!-- الطفل المحتضَن: رأس وكتفان -->
-  <circle cx="24" cy="14.6" r="5.7" fill="#e0a63b"/>
-  <path d="M15.6 29.2C15.6 23 32.4 23 32.4 29.2"
-        fill="none" stroke="#e0a63b" stroke-width="5.7" stroke-linecap="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-label="شعار لمّة">
+  <title>لمّة</title>
+  <!-- «لمّة» الأسرة: ثلاثة أشخاص تتشابك أذرعهم حلقةً حول الطفل في الوسط -->
+  <path d="M28.88 15.99A12.5 12.5 0 0 1 36.41 29.02" fill="none" stroke="#1e8a7a" stroke-width="5.2" stroke-linecap="round"/>
+  <path d="M31.52 37.48A12.5 12.5 0 0 1 16.48 37.48" fill="none" stroke="#0f5c5c" stroke-width="5.2" stroke-linecap="round"/>
+  <path d="M11.59 29.02A12.5 12.5 0 0 1 19.12 15.99" fill="none" stroke="#2f9c88" stroke-width="5.2" stroke-linecap="round"/>
+  <circle cx="24.00" cy="7.30" r="3.9" fill="#1e8a7a"/>
+  <circle cx="41.49" cy="37.60" r="3.9" fill="#0f5c5c"/>
+  <circle cx="6.51" cy="37.60" r="3.9" fill="#2f9c88"/>
+  <circle cx="24" cy="27.5" r="5.4" fill="#e0a63b"/>
 </svg>

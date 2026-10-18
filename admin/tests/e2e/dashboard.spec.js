@@ -8,8 +8,8 @@ import { test, expect } from '@playwright/test'
  * Sanctum يعبر من 5173 إلى 8000 فعلاً.
  */
 
-const ADMIN = { email: 'admin@kafala.org', password: 'password' }
-const SUPERVISOR = { email: 'supervisor0@kafala.org', password: 'password' }
+const ADMIN = { email: 'admin@lamma.org', password: 'password' }
+const SUPERVISOR = { email: 'supervisor0@lamma.org', password: 'password' }
 
 async function login(page, user = ADMIN) {
   await page.goto('/login')
@@ -198,7 +198,7 @@ test('تسجيل الخروج ينهي الجلسة فعلاً', async ({ page }
 })
 
 test('المحاسب يرى لوحة المال: التحصيل، وما ينتظر استدراكاً، والأقساط القادمة', async ({ page }) => {
-  await login(page, { email: 'accountant@kafala.org', password: 'password' })
+  await login(page, { email: 'accountant@lamma.org', password: 'password' })
 
   await expect(page.getByRole('heading', { name: /^تحصيل / })).toBeVisible({ timeout: 20_000 })
   await expect(page.getByRole('heading', { name: 'دفعات تنتظر استدراكاً' })).toBeVisible()

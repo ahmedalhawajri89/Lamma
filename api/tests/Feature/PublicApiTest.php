@@ -66,7 +66,7 @@ it('يعيد ما كان في data.js من إعدادات وبرامج ومحت�
 
     expect($response->json('data.programs'))->toHaveCount(4)
         ->and($response->json('data.faqs'))->not->toBeEmpty()
-        ->and($response->json('data.site.name'))->toBe('كفالة');
+        ->and($response->json('data.site.name'))->toBe('لمّة');
 });
 
 it('يمنع السبام بحقل مصيدة صامت', function () {

@@ -4,7 +4,7 @@ import { test, expect } from '@playwright/test'
  * مراجعة الرسائل: الرسالة تُعرض في سياقها، والقرار بلوحة المفاتيح ينتقل
  * وحده إلى التالية، والرفض بسببٍ جاهز.
  */
-const ADMIN = { email: 'admin@kafala.org', password: 'password' }
+const ADMIN = { email: 'admin@lamma.org', password: 'password' }
 
 async function login(page) {
   await page.goto('/login')

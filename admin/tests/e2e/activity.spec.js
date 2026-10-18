@@ -4,7 +4,7 @@ import { test, expect } from '@playwright/test'
  * سجل النشاط: نظرة عامة يُختار منها يومٌ أو شخص، و«الحساسة» تعرض ما يستحق
  * نظرة ثانية وحده، والسجل مجمَّع بالأيام، والتصدير ينزّل CSV.
  */
-const ADMIN = { email: 'admin@kafala.org', password: 'password' }
+const ADMIN = { email: 'admin@lamma.org', password: 'password' }
 
 async function login(page) {
   await page.goto('/login')

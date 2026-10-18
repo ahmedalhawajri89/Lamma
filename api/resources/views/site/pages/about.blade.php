@@ -4,7 +4,7 @@
   «من نحن». الأرقام كلها من الخادم لحظة الفتح (about.js من /public/transparency):
   صفحة تقول «لا نُظهر ما لم نتحقق منه» لا تكتب أرقامها بيدها.
 --}}
-@section('title')من نحن | كفالة@endsection
+@section('title')من نحن@endsection
 @section('description')عملٌ موثّق منذ 2012. تعرّف على قصتنا، وقيمنا، وكيف نتحقق من كل حالة قبل نشرها.@endsection
 @section('canonical', url('/about'))
 

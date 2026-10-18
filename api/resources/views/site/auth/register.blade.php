@@ -10,7 +10,7 @@
   الزرّ. وشروط كلمة المرور تُرى وهي تتحقق (signin.js)، والخادم يرفض فوقها ما
   ظهر في تسريبٍ معروف (uncompromised) برسالةٍ عربية تحت الحقل.
 --}}
-@section('title')إنشاء حساب | كفالة@endsection
+@section('title')إنشاء حساب@endsection
 @section('description')أنشئ حسابك مجاناً لتكفل يتيماً وتتابع تقاريره.@endsection
 @section('canonical', url('/register'))
 
@@ -22,7 +22,7 @@
       <div class="acc-bar">
         <a class="kf-brand acc-brand" href="/">
           <img src="/assets/img/logo.svg" alt="" width="40" height="40">
-          <span class="kf-brand__name"><span>كفالة</span><span class="kf-brand__tag">منصة كفالة الأيتام</span></span>
+          <span class="kf-brand__name"><span>{{ $site['name'] }}</span><span class="kf-brand__tag">{{ $site['tagline'] }}</span></span>
         </a>
         <div class="acc-bar__tools">
           <button class="btn btn-icon btn-icon--plain" type="button" id="themeToggle" aria-pressed="false" aria-label="الوضع الليلي">

@@ -22,12 +22,12 @@ import {
 } from './api.js';
 
 export let SITE = {
-  name: 'كفالة',
-  tagline: 'منصة كفالة الأيتام',
-  email: 'info@kafala.org',
-  phone: '+970 599 000 000',
-  phoneHref: '+970599000000',
-  address: 'غزة، فلسطين',
+  name: 'لمّة',
+  tagline: 'كل طفلٍ في لمّة أهله',
+  email: 'hello@lamma.org',
+  phone: '+44 20 4000 0000',
+  phoneHref: '+442040000000',
+  address: 'لندن، المملكة المتحدة',
   social: [
     { label: 'إكس', icon: 'fa-x-twitter', url: '#' },
     { label: 'إنستغرام', icon: 'fa-instagram', url: '#' },

@@ -5,7 +5,7 @@
   مسدود: إجراءان واضحان (الأطفال، والرئيسية)، ثم أكثر ما يُقصد من الموقع.
   الرسم من مجموعة CC0 نفسها (assets/img/kids)، لا صورة طفلٍ حقيقي.
 --}}
-@section('title')الصفحة غير موجودة | كفالة@endsection
+@section('title')الصفحة غير موجودة@endsection
 @section('description')الصفحة التي تبحث عنها غير موجودة.@endsection
 @section('robots', 'noindex')
 

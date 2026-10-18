@@ -1,6 +1,6 @@
 @extends('site.layouts.app')
 
-@section('title')كفالة | دليل الواجهة@endsection
+@section('title')دليل الواجهة@endsection
 @section('robots', 'noindex, nofollow')
 
 @push('styles')

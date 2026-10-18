@@ -3,7 +3,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<title>@yield('title', $site['name'] ?? 'كفالة')</title>
+{{-- كل صفحة تكتب عنوانها وحده، والاسم يُلحق من الإعدادات: تغيير الاسم من مكانٍ واحد --}}
+<title>@hasSection('title')@yield('title') | {{ $site['name'] }}@else{{ $site['name'] }}@endif</title>
+<meta name="application-name" content="{{ $site['name'] }}">
 @hasSection('description')
 <meta name="description" content="@yield('description')">
 @endif

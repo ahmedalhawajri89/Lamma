@@ -17,7 +17,7 @@
   ];
 @endphp
 
-@section('title')برامج الكفالة | كفالة@endsection
+@section('title')برامج الكفالة@endsection
 @section('description')أربعة برامج كفالة: شاملة، تعليمية، صحية، وكفالة أسرة. ما يغطيه كل برنامج ومبلغه الشهري، وكم طفلاً ينتظر فيه.@endsection
 @section('canonical', url('/programs'))
 

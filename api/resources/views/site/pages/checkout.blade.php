@@ -23,7 +23,7 @@
   }
 @endphp
 
-@section('title'){{ $kid ? 'كفالة '.$kid['name'] : 'إتمام الكفالة' }} | كفالة@endsection
+@section('title'){{ $kid ? 'كفالة '.$kid['name'] : 'إتمام الكفالة' }}@endsection
 @section('description')خطوة أخيرة لتفعيل كفالتك. دفع مشفّر، ولا نحتفظ ببيانات بطاقتك.@endsection
 @section('robots', 'noindex, nofollow')
 

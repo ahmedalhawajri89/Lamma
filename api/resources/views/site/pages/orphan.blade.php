@@ -26,11 +26,11 @@
 @endphp
 
 @if ($kid)
-  @section('title'){{ $kid['name'] }}، {{ $ageLabel }} | كفالة@endsection
+  @section('title'){{ $kid['name'] }}، {{ $ageLabel }}@endsection
   @section('description'){{ $kid['dream'] ? ($her ? 'حلمها: ' : 'حلمه: ').$kid['dream'].'. ' : '' }}ملف موثّق من زيارة ميدانية في {{ $place }}. {{ $her ? 'كفالتها' : 'كفالته' }} {{ $money($kid['monthly']) }} في الشهر، وتصلك {{ $her ? 'أخبارها' : 'أخباره' }} كل ثلاثة أشهر.@endsection
   @section('og_title'){{ $state === 'done' ? 'اكتملت كفالة '.$kid['name'] : 'ساعد '.$kid['name'].'، '.$ageLabel.'، على تحقيق '.($her ? 'حلمها' : 'حلمه') }}@endsection
 @else
-  @section('title')لم نجد هذا الطفل | كفالة@endsection
+  @section('title')لم نجد هذا الطفل@endsection
 @endif
 {{-- ملفات الأطفال لا تُفهرس في محركات البحث: تُشارَك برابطها ولا يُعثر عليها بالاسم --}}
 @section('robots', 'noindex')

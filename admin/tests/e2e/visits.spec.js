@@ -4,7 +4,7 @@ import { test, expect } from '@playwright/test'
  * خطة الزيارات: طفلٌ لم يُزر قط يُزار من صفّه مباشرة، فيخرج من «لم يُزر قط».
  * وسجل الزيارات: الاحتياج المرصود يظهر فلتراً بعدد أطفاله.
  */
-const ADMIN = { email: 'admin@kafala.org', password: 'password' }
+const ADMIN = { email: 'admin@lamma.org', password: 'password' }
 
 async function login(page, user) {
   await page.goto('/login')

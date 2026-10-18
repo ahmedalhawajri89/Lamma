@@ -18,7 +18,7 @@
   ];
 @endphp
 
-@section('title')تواصل معنا | كفالة@endsection
+@section('title')تواصل معنا@endsection
 @section('description')اسألنا عن أي بند في أي تقرير. نلتزم بالرد خلال 72 ساعة.@endsection
 @section('canonical', url('/contact'))
 

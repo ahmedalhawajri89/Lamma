@@ -24,14 +24,14 @@
           'dateModified' => $post->updated_at?->toIso8601String(),
           'mainEntityOfPage' => $url,
           'image' => $cover ? [$cover] : null,
-          'author' => $post->author ? ['@type' => 'Person', 'name' => $post->author->name] : ['@type' => 'Organization', 'name' => 'كفالة'],
-          'publisher' => ['@type' => 'Organization', 'name' => 'كفالة', 'logo' => ['@type' => 'ImageObject', 'url' => asset('assets/img/logo.svg')]],
+          'author' => $post->author ? ['@type' => 'Person', 'name' => $post->author->name] : ['@type' => 'Organization', 'name' => $site['name']],
+          'publisher' => ['@type' => 'Organization', 'name' => $site['name'], 'logo' => ['@type' => 'ImageObject', 'url' => asset('assets/img/logo.svg')]],
       ];
   }
 @endphp
 
 @if ($post)
-  @section('title'){{ $post->title }} | كفالة@endsection
+  @section('title'){{ $post->title }}@endsection
   @section('description'){{ $post->excerpt }}@endsection
   @section('og_type', 'article')
   @section('og_title'){{ $post->title }}@endsection
@@ -40,7 +40,7 @@
   @endif
   @section('canonical', $url)
 @else
-  @section('title')لم نجد هذا المقال | كفالة@endsection
+  @section('title')لم نجد هذا المقال@endsection
   @section('robots', 'noindex')
 @endif
 
@@ -125,7 +125,7 @@
               <div class="post-card post-about">
                 <div class="post-meta__by">
                   <span class="post-meta__avatar" aria-hidden="true"><img src="/assets/img/logo.svg" alt="" width="40" height="40"></span>
-                  <span><b>{{ $post->author?->name ?? 'فريق كفالة' }}</b><span>من فريق المنصة</span></span>
+                  <span><b>{{ $post->author?->name ?? 'فريق '.$site['name'] }}</b><span>من فريق المنصة</span></span>
                 </div>
                 <dl class="post-facts">
                   <div><dt><i class="fa-regular fa-calendar" aria-hidden="true"></i> نُشر</dt><dd><time datetime="{{ $post->published_at?->toDateString() }}">{{ $post->published_at?->translatedFormat('j F Y') }}</time></dd></div>

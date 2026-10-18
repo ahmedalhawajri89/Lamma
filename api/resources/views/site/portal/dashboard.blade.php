@@ -8,7 +8,7 @@
   خمسة أقسام يظهر منها واحد، يتبع الرابط (#overview و#children و#reports
   و#payments و#account) فيعمل زرّ الرجوع. وكل رقم وصفّ من /api/v1/portal/*.
 --}}
-@section('title')بوابتي | كفالة@endsection
+@section('title')بوابتي@endsection
 @section('description')تابع كفالاتك وتقاريرها وسجل مدفوعاتك من مكان واحد.@endsection
 @section('robots', 'noindex, nofollow')
 
@@ -29,7 +29,7 @@
       <div class="pt-side__head">
         <a class="pt-side__brand" href="/" title="الموقع">
           <img src="/assets/img/logo.svg" alt="" width="36" height="36">
-          <span class="pt-label"><b id="ptSideTitle">كفالة</b><small>بوابة الكافل</small></span>
+          <span class="pt-label"><b id="ptSideTitle">{{ $site['name'] }}</b><small>بوابة الكافل</small></span>
         </a>
         <button class="pt-iconbtn pt-side__rail d-none d-lg-inline-grid" type="button" data-rail-toggle aria-expanded="true" aria-label="طيّ القائمة" title="طيّ القائمة">
           <i class="fa-solid fa-table-columns" aria-hidden="true"></i>
@@ -102,7 +102,7 @@
           <span class="pt-dot" data-reports-count hidden></span>
         </button>
         <span class="pt-top__title" data-pt-title>نظرة عامة</span>
-        <a class="pt-top__brand" href="/" aria-label="كفالة"><img src="/assets/img/logo.svg" alt="" width="30" height="30"></a>
+        <a class="pt-top__brand" href="/" aria-label="{{ $site['name'] }}"><img src="/assets/img/logo.svg" alt="" width="30" height="30"></a>
       </header>
 
       <main class="pt-content" id="main">

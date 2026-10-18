@@ -249,7 +249,7 @@ onBeforeUnmount(() => { window.removeEventListener('beforeunload', beforeUnload)
       <section class="rounded-2xl bg-[#0f5c5c] text-white p-6 lg:p-8" aria-labelledby="idName">
         <div class="flex flex-wrap items-start gap-5">
           <span class="size-16 shrink-0 rounded-2xl bg-[#E0A63B] text-[#0f5c5c] grid place-items-center text-3xl font-bold" aria-hidden="true">
-            {{ (view('site.name') || 'ك').trim().charAt(0) }}
+            {{ (view('site.name') || 'ل').trim().charAt(0) }}
           </span>
           <div class="flex-1 min-w-[14rem]">
             <p class="text-xs text-white/60">هوية المنصة كما يراها الزائر</p>

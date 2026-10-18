@@ -31,8 +31,9 @@ class AppServiceProvider extends ServiceProvider
     {
         Sponsorship::observe(SponsorshipObserver::class);
 
-        // هوية الموقع وتنقّله لقوالب الموقع العام: الترويسة والفوتر يُرسمان من الخادم
-        View::composer('site.layouts.*', fn ($view) => $view->with([
+        // هوية الموقع وتنقّله لقوالب الموقع العام: الترويسة والفوتر يُرسمان من الخادم.
+        // والصفحات نفسها تحتاج الاسم (وصفها وJSON-LD ونصوص المشاركة)، لا القالب وحده
+        View::composer(['site.layouts.*', 'site.pages.*', 'site.auth.*', 'site.portal.*', 'errors.*'], fn ($view) => $view->with([
             'site' => \App\Support\SiteProfile::forViews(),
             'nav' => \App\Support\SiteProfile::nav(request()->path()),
         ]));

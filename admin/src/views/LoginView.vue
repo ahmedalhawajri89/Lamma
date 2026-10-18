@@ -2,9 +2,11 @@
 import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useUiStore } from '@/stores/ui'
 import BaseIcon from '@/components/BaseIcon.vue'
 
 const auth = useAuthStore()
+const ui = useUiStore()
 const router = useRouter()
 const route = useRoute()
 
@@ -23,9 +25,9 @@ const siteLogin = import.meta.env.DEV ? 'http://127.0.0.1:8000/login.html' : '/l
 /** الحسابات التجريبية تظهر في التطوير وحده، ولا تصل إلى النسخة المنشورة أبداً. */
 const isDev = import.meta.env.DEV
 const demoAccounts = [
-  { email: 'admin@kafala.org', role: 'مدير' },
-  { email: 'accountant@kafala.org', role: 'محاسب' },
-  { email: 'supervisor0@kafala.org', role: 'مشرف ميداني' },
+  { email: 'admin@lamma.org', role: 'مدير' },
+  { email: 'accountant@lamma.org', role: 'محاسب' },
+  { email: 'supervisor0@lamma.org', role: 'مشرف ميداني' },
 ]
 
 function useDemo(email) {
@@ -71,7 +73,7 @@ async function submit() {
         بيئة التطوير
       </span>
       <a :href="siteHome" class="admin-login__site">
-        موقع كفالة
+        الموقع العام
         <BaseIcon name="external" :size="14" />
       </a>
     </header>
@@ -87,7 +89,7 @@ async function submit() {
       <div class="admin-login__brand">
         <span class="admin-login__mark"><img src="/logo.svg" alt="" width="34" height="34" /></span>
         <div>
-          <p class="font-display font-semibold text-xl text-sand-900 leading-tight">كفالة</p>
+          <p class="font-display font-semibold text-xl text-sand-900 leading-tight">{{ ui.brand }}</p>
           <p class="text-sm text-clay-600 leading-tight">لوحة الإدارة</p>
         </div>
       </div>
@@ -147,7 +149,7 @@ async function submit() {
             لا اتصال بالخادم الآن. تأكد من تشغيله ثم أعد المحاولة.
           </p>
           <p v-if="sponsorAccount" class="text-sm text-rose-700" role="alert">
-            هذا حساب كافل، والدخول به من موقع كفالة.
+            هذا حساب كافل، والدخول به من موقع الكفلاء.
             <a :href="siteLogin" class="font-semibold underline">افتح صفحة دخول الكفلاء</a>
           </p>
 

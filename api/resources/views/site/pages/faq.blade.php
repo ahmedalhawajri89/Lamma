@@ -18,7 +18,7 @@
   ];
 @endphp
 
-@section('title')الأسئلة الشائعة | كفالة@endsection
+@section('title')الأسئلة الشائعة@endsection
 @section('description')إجابات مباشرة عن الكفالة: كيف نتحقق، ما نسبة المصاريف الإدارية، هل تُحتسب من الزكاة، وكيف توقفها.@endsection
 @section('canonical', url('/faq'))
 

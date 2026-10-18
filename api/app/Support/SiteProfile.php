@@ -33,7 +33,7 @@ final class SiteProfile
         $settings = Setting::cached();
 
         return [
-            'name' => $settings['site.name'] ?? 'كفالة',
+            'name' => $settings['site.name'] ?? 'لمّة',
             'tagline' => $settings['site.tagline'] ?? '',
             'email' => $settings['site.email'] ?? '',
             'phone' => $settings['site.phone'] ?? '',

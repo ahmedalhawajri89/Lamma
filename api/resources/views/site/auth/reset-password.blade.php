@@ -9,7 +9,7 @@
   النموذج يرسله forms.js (data-action="reset")، وشروط كلمة المرور تُعلَّم وهي
   تتحقق (signin.js)، والخادم يرفض فوقها ما ظهر في تسريبٍ معروف.
 --}}
-@section('title')كلمة مرور جديدة | كفالة@endsection
+@section('title')كلمة مرور جديدة@endsection
 @section('description')عيّن كلمة مرور جديدة لحسابك في كفالة.@endsection
 @section('robots', 'noindex, nofollow')
 
@@ -21,7 +21,7 @@
       <div class="acc-bar">
         <a class="kf-brand acc-brand" href="/">
           <img src="/assets/img/logo.svg" alt="" width="40" height="40">
-          <span class="kf-brand__name"><span>كفالة</span><span class="kf-brand__tag">منصة كفالة الأيتام</span></span>
+          <span class="kf-brand__name"><span>{{ $site['name'] }}</span><span class="kf-brand__tag">{{ $site['tagline'] }}</span></span>
         </a>
         <div class="acc-bar__tools">
           <button class="btn btn-icon btn-icon--plain" type="button" id="themeToggle" aria-pressed="false" aria-label="الوضع الليلي">

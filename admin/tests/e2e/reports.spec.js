@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test'
 /**
  * التقارير: تغطية الربع، وطابور يُراجَع تقريراً بعد تقرير.
  */
-const ADMIN = { email: 'admin@kafala.org', password: 'password' }
+const ADMIN = { email: 'admin@lamma.org', password: 'password' }
 
 async function login(page) {
   await page.goto('/login')

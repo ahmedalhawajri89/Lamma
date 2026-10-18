@@ -9,7 +9,7 @@
   مسموح، وكلمة المرور تُظهَر بزرّ، والأخطاء تحت حقولها بـ aria-describedby.
   ولا حدّ أدنى لطول كلمة المرور هنا: ذلك شرط التسجيل لا الدخول.
 --}}
-@section('title')تسجيل الدخول | كفالة@endsection
+@section('title')تسجيل الدخول@endsection
 @section('description')ادخل إلى حسابك لمتابعة كفالاتك وتقاريرها.@endsection
 @section('canonical', url('/login'))
 
@@ -21,7 +21,7 @@
       <div class="acc-bar">
         <a class="kf-brand acc-brand" href="/">
           <img src="/assets/img/logo.svg" alt="" width="40" height="40">
-          <span class="kf-brand__name"><span>كفالة</span><span class="kf-brand__tag">منصة كفالة الأيتام</span></span>
+          <span class="kf-brand__name"><span>{{ $site['name'] }}</span><span class="kf-brand__tag">{{ $site['tagline'] }}</span></span>
         </a>
         <div class="acc-bar__tools">
           <button class="btn btn-icon btn-icon--plain" type="button" id="themeToggle" aria-pressed="false" aria-label="الوضع الليلي">
@@ -79,7 +79,7 @@
           <p class="acc-secure"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> اتصالٌ مشفّر، ولا نشارك بريدك مع أي جهة.</p>
 
           <div class="acc-switch">
-            <span>جديد على كفالة؟</span>
+            <span>جديد على {{ $site['name'] }}؟</span>
             <a href="/register">أنشئ حساباً <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
           </div>
         </section>

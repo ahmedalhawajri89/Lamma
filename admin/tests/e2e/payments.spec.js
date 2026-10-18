@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test'
 /**
  * المدفوعات: ملخّص الفترة، و«فشلت ولم تُستدرك» من الملخّص نفسه، والتصدير.
  */
-const ADMIN = { email: 'admin@kafala.org', password: 'password' }
+const ADMIN = { email: 'admin@lamma.org', password: 'password' }
 
 async function login(page) {
   await page.goto('/login')

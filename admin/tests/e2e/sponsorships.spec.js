@@ -4,7 +4,7 @@ import { test, expect } from '@playwright/test'
  * الكفالات: لا إلغاء من الصف؛ الكفالة تُفتح في درج بتفاصيلها ودفعاتها،
  * والإيقاف والاستئناف منه، والإنهاء في قسمٍ منفصل.
  */
-const ADMIN = { email: 'admin@kafala.org', password: 'password' }
+const ADMIN = { email: 'admin@lamma.org', password: 'password' }
 
 async function login(page) {
   await page.goto('/login')

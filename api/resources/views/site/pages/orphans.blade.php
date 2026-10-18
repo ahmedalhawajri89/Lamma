@@ -1,6 +1,6 @@
 @extends('site.layouts.app')
 
-@section('title')الأيتام بانتظار الكفالة | كفالة@endsection
+@section('title')الأيتام بانتظار الكفالة@endsection
 @section('description')تصفّح الحالات الموثّقة وابحث حسب البرنامج أو الدولة. كل حالة مزارة ميدانياً ومراجَعة من لجنة مستقلة.@endsection
 @section('canonical', url('/orphans'))
 

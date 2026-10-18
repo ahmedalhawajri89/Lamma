@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, watch } from 'vue'
+import { publicSite } from '@/api/endpoints'
 
 /** التنبيهات وحالة الشريط الجانبي. */
 export const useUiStore = defineStore('ui', () => {
@@ -22,6 +23,18 @@ export const useUiStore = defineStore('ui', () => {
   })
 
   const toggleSidebar = () => { sidebarCollapsed.value = !sidebarCollapsed.value }
+
+  /**
+   * اسم المنصة من إعداداتها (site.name)، لا مكتوباً في الواجهة: تغييره من
+   * صفحة الإعدادات يغيّره هنا أيضاً. والقيمة الأولى للحظة قبل وصول الطلب.
+   */
+  const brand = ref('لمّة')
+  async function loadBrand() {
+    try {
+      const { data } = await publicSite.bootstrap()
+      if (data?.data?.site?.name) brand.value = data.data.site.name
+    } catch { /* بلا خادم: يبقى الاسم الافتراضي */ }
+  }
   let seq = 0
 
   function toast(message, type = 'success', ms = 4000) {
@@ -37,5 +50,5 @@ export const useUiStore = defineStore('ui', () => {
   const success = (m) => toast(m, 'success')
   const error = (m) => toast(m, 'error', 6000)
 
-  return { toasts, sidebarOpen, sidebarCollapsed, toggleSidebar, toast, dismiss, success, error }
+  return { toasts, sidebarOpen, sidebarCollapsed, toggleSidebar, toast, dismiss, success, error, brand, loadBrand }
 })

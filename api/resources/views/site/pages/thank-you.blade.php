@@ -7,7 +7,7 @@
 
   `data-g="مذكّر|مؤنّث"`: نصٌّ يُكتب بصيغة جنس الطفل حين تُعرف.
 --}}
-@section('title')تمّت الكفالة | كفالة@endsection
+@section('title')تمّت الكفالة@endsection
 @section('description')تم تفعيل كفالتك بنجاح.@endsection
 @section('robots', 'noindex, nofollow')
 
@@ -88,7 +88,7 @@
           <a class="btn btn-primary btn-lg" href="/dashboard">افتح حسابي <i class="fa-solid fa-arrow-left ms-1" aria-hidden="true"></i></a>
           <a class="btn btn-outline-primary btn-lg" href="/orphans">اكفل طفلاً آخر</a>
         </div>
-        <button type="button" class="ty-share" data-share data-share-url="/orphans" data-share-title="أطفال ينتظرون من يكفلهم على منصة كفالة">
+        <button type="button" class="ty-share" data-share data-share-url="/orphans" data-share-title="أطفال ينتظرون من يكفلهم على {{ $site['name'] }}">
           <i class="fa-solid fa-share-nodes" aria-hidden="true"></i> ادعُ غيرك ليكفل طفلاً
         </button>
       </div>

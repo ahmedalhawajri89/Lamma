@@ -4,7 +4,7 @@ import { test, expect } from '@playwright/test'
  * الكفلاء: المراحل تبويباتٌ تُكتب في الرابط، وصفحة الكافل تجمع ما يحتاجه
  * من يتواصل معه، وملاحظة الإدارة تُحفظ وتبقى.
  */
-const ADMIN = { email: 'admin@kafala.org', password: 'password' }
+const ADMIN = { email: 'admin@lamma.org', password: 'password' }
 
 async function login(page) {
   await page.goto('/login')

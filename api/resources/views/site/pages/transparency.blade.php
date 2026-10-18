@@ -1,6 +1,6 @@
 @extends('site.layouts.app')
 
-@section('title')الشفافية والتقارير | كفالة@endsection
+@section('title')الشفافية والتقارير@endsection
 @section('description')أين يذهب كل دولار؟ ميزانية مدقّقة، توزيع الإنفاق، سياسة حماية الطفل، وتقارير سنوية متاحة للجميع.@endsection
 @section('canonical', url('/transparency'))
 

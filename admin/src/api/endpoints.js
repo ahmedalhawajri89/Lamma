@@ -39,6 +39,11 @@ function toFormData(payload, files = {}) {
   return body
 }
 
+/** ما يقرؤه الموقع العام: اسم المنصة وهويتها من الإعدادات */
+export const publicSite = {
+  bootstrap: () => client.get(`${v1}/public/bootstrap`),
+}
+
 export const auth = {
   csrf: () => client.get('/sanctum/csrf-cookie'),
   login: (payload) => client.post(`${v1}/auth/login`, payload),

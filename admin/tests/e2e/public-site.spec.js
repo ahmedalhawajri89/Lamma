@@ -12,7 +12,7 @@ import { test, expect } from '@playwright/test'
 // الموقع العام يُقدَّم من خادم لارافل نفسه بعد دمجه في public/
 const WEB = process.env.E2E_SITE ?? 'http://127.0.0.1:8000'
 const UI = process.env.E2E_UI ?? 'http://localhost:5173'
-const SPONSOR = { email: 'sponsor@kafala.org', password: 'password' }
+const SPONSOR = { email: 'sponsor@lamma.org', password: 'password' }
 
 test.describe('الموقع العام', () => {
   test('قائمة الأيتام تأتي من قاعدة البيانات لا من الملف', async ({ page }) => {
@@ -100,7 +100,7 @@ test.describe('نماذج الموقع', () => {
 
     // ثم نراها من الجهة الأخرى: لوحة الإدارة
     await page.goto(`${UI}/login`)
-    await page.getByLabel('البريد الإلكتروني').fill('admin@kafala.org')
+    await page.getByLabel('البريد الإلكتروني').fill('admin@lamma.org')
     await page.getByLabel('كلمة المرور', { exact: true }).fill('password')
     await page.getByRole('button', { name: 'دخول' }).click()
     await page.waitForURL('**/dashboard')

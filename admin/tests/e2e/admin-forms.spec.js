@@ -13,9 +13,9 @@ import os from 'node:os'
  * يصيب الـ API الحقيقي — محاكاة الاستجابات هنا تُلغي كل قيمته.
  */
 
-const ADMIN = { email: 'admin@kafala.org', password: 'password' }
-const ACCOUNTANT = { email: 'accountant@kafala.org', password: 'password' }
-const SUPERVISOR = { email: 'supervisor0@kafala.org', password: 'password' }
+const ADMIN = { email: 'admin@lamma.org', password: 'password' }
+const ACCOUNTANT = { email: 'accountant@lamma.org', password: 'password' }
+const SUPERVISOR = { email: 'supervisor0@lamma.org', password: 'password' }
 
 async function login(page, user = ADMIN) {
   await page.goto('/login')
@@ -635,7 +635,7 @@ test.describe('المستخدمون', () => {
     await expect(label('البلد المُسنَد')).toHaveCount(0)
 
     await fill(page, 'الاسم', 'موظف اختباري')
-    await fill(page, 'البريد', `staff${Date.now().toString().slice(-7)}@kafala.org`)
+    await fill(page, 'البريد', `staff${Date.now().toString().slice(-7)}@lamma.org`)
     await page.getByRole('button', { name: 'حفظ' }).click()
 
     await expect(page.getByRole('dialog', { name: 'موظف جديد' })).toBeHidden({ timeout: 25_000 })

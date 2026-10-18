@@ -29,7 +29,7 @@ class ActivityDemoSeeder extends Seeder
 {
     public function run(): void
     {
-        $admin = User::role(UserRole::Admin->value)->where('email', 'admin@kafala.org')->first();
+        $admin = User::role(UserRole::Admin->value)->where('email', 'admin@lamma.org')->first();
         $accountant = User::role(UserRole::Accountant->value)->first();
         $supervisors = User::role(UserRole::FieldSupervisor->value)->get();
         if (! $admin || ! $accountant || $supervisors->isEmpty()) {

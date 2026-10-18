@@ -5,7 +5,7 @@
   والتصنيف والبحث والصفحة في الرابط (?cat=&q=&page=).
   شريط النشرة الذي كان هنا حُذف: الفوتر تحته يحمل النموذج نفسه.
 --}}
-@section('title')المدونة | كفالة@endsection
+@section('title')المدونة@endsection
 @section('description')نكتب عن آلية عملنا وقراراتنا وأخطائنا: الشفافية، سياسات الحماية، قصص الأطفال، وتقارير الحملات.@endsection
 @section('canonical', url('/blog'))
 

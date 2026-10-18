@@ -50,7 +50,7 @@ it('لا يمسح تعديلُ هاتف المشرف بلده', function () {
 
 it('لا يُنشأ مشرف ميداني بلا بلد', function () {
     $this->actingAs(User::factory()->admin()->create())
-        ->postJson('/api/v1/admin/users', ['name' => 'مشرف جديد', 'email' => 'new-sup@kafala.org', 'role' => 'field_supervisor'])
+        ->postJson('/api/v1/admin/users', ['name' => 'مشرف جديد', 'email' => 'new-sup@lamma.org', 'role' => 'field_supervisor'])
         ->assertUnprocessable()->assertJsonValidationErrors('assigned_country_id');
 });
 
