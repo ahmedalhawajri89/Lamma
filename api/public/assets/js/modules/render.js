@@ -5,7 +5,7 @@
  * والمتغيّر الوحيد هو النص القادم من data.js، وهو مُهرَّب دائماً.
  */
 
-import { escapeHtml, formatMoney, arabicDigits, readingTime, safeColor, safeNumber } from './utils.js';
+import { escapeHtml, arabicDigits, readingTime, safeNumber } from './utils.js';
 
 const isGirl = (o) => ['أنثى', 'female'].includes(o.gender);
 const ageLabel = (age) => `${age} ${age >= 3 && age <= 10 ? 'سنوات' : 'سنة'}`;
@@ -63,39 +63,6 @@ export function kidCard(o, { delay = 0, cols = 'col-sm-6 col-lg-3' } = {}) {
     </div>
   </article>
 </div>`;
-}
-
-/** بطاقة برنامج كفالة. */
-export function programCard(program, { delay = 0 } = {}) {
-  const features = program.features
-    .map((f) => `<li>${escapeHtml(f)}</li>`)
-    .join('');
-
-  return `
-<article class="program-card${program.featured ? ' program-card--featured' : ''}"
-         style="--program-accent: ${safeColor(program.accent)}"
-         data-reveal data-reveal-delay="${delay}">
-  ${program.featured ? '<span class="badge badge--accent program-card__ribbon">الأكثر أثراً</span>' : ''}
-
-  <div class="icon-box icon-box--soft">
-    <i class="fa-solid ${escapeHtml(program.icon)}" aria-hidden="true"></i>
-  </div>
-
-  <h3 class="card__title">${escapeHtml(program.name)}</h3>
-  <p class="card__text">${escapeHtml(program.summary)}</p>
-
-  <ul class="check-list" role="list">${features}</ul>
-
-  <div class="program-card__price">
-    <strong class="num">${formatMoney(program.price)}</strong>
-    <span>/ شهرياً</span>
-  </div>
-
-  <a class="btn ${program.featured ? 'btn--cta' : 'btn--outline'} btn--block"
-     href="/orphans?program=${encodeURIComponent(program.id)}">
-    اكفل يتيماً
-  </a>
-</article>`;
 }
 
 /** موضوع السؤال من كلماته: رابطٌ ثابت له (/faq#zakat) وأيقونة. */
@@ -175,21 +142,3 @@ ${rest.map((p, i) => `
 </article>`).join('')}`;
 }
 
-
-
-/**
- * حقن قائمة عناصر في حاوية.
- * @param {string} selector محدد الحاوية
- * @param {Array} items
- * @param {(item, meta) => string} template
- */
-export function renderInto(selector, items, template) {
-  const host = document.querySelector(selector);
-  if (!host) return false;
-
-  host.innerHTML = items
-    .map((item, index) => template(item, { delay: index * 80, index }))
-    .join('');
-
-  return true;
-}

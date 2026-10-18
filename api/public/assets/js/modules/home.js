@@ -49,7 +49,7 @@ function renderPlans() {
   <h3 class="plan__name">${escapeHtml(p.name)}</h3>
   <p class="plan__price"><strong class="num">${formatMoney(p.price)}</strong><span>في الشهر</span></p>
   <p class="plan__summary">${escapeHtml(p.summary)}</p>
-  <a class="btn ${p.featured ? 'btn--cta' : 'btn--outline'} plan__cta"
+  <a class="btn ${p.featured ? 'btn-cta' : 'btn-outline-primary'} plan__cta"
      href="/orphans?program=${encodeURIComponent(p.id)}">اكفل يتيماً</a>
   <ul class="plan__features" role="list">
     ${(p.features ?? []).map((f) => `<li><i class="fa-solid fa-check" aria-hidden="true"></i>${escapeHtml(f)}</li>`).join('')}

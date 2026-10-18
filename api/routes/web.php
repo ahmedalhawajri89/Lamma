@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Route;
 |
 | الموقع العام قوالب Blade في `resources/views`:
 |
-|   site/layouts/   app (Bootstrap، ترويسة وفوتر من الخادم) و legacy (التصميم القديم)
+|   site/layouts/   app (ترويسة وفوتر من الخادم)، وauth (صفحات الحساب)، وportal (بوابة الكافل)
 |   site/partials/  الرأس المشترك والترويسة والفوتر
 |   site/pages/     صفحات الموقع
 |   site/auth/      الدخول والتسجيل واستعادة كلمة المرور

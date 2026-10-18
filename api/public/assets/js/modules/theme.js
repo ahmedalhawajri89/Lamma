@@ -53,31 +53,10 @@ function syncUi(button) {
   document.documentElement.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
 }
 
-/**
- * الصفحات التي لا هيدر لها: الزر يدخل خانة [data-theme-slot] إن وُجدت
- * (رأس البوابة)، وإلا يطفو في الزاوية (الدخول والشكر).
- */
-function createButton() {
-  const button = document.createElement('button');
-  button.type = 'button';
-  button.id = 'themeToggle';
-  button.className = 'theme-toggle';
-  button.innerHTML =
-    '<i class="fa-solid fa-moon" aria-hidden="true"></i>' +
-    '<i class="fa-solid fa-sun" aria-hidden="true"></i>';
-
-  const slot = $('[data-theme-slot]');
-  if (slot) {
-    slot.prepend(button);
-  } else {
-    button.classList.add('theme-toggle--floating');
-    document.body.append(button);
-  }
-  return button;
-}
-
 export function initThemeToggle() {
-  const button = $('#themeToggle') || createButton();
+  // كل قالب يرسم زرّه (#themeToggle): الترويسة، وصفحات الحساب، والبوابة
+  const button = $('#themeToggle');
+  if (!button) return;
 
   syncUi(button);
 

@@ -18,22 +18,17 @@ import {
   initProgressBars,
   initDonuts,
   initFooterMark,
-  initTilt,
-  initWordReveal,
   initToTop,
   initActionBar,
 } from './modules/motion.js';
-import { initSliders } from './modules/slider.js';
 import {
   initAccordions,
-  initTabs,
-  initModals,
   initChipGroups,
   initPasswordToggles,
   initCharCounts,
   initToastStack,
 } from './modules/ui.js';
-import { initForms, initCardInput, initPasswordStrength } from './modules/forms.js';
+import { initForms, initCardInput } from './modules/forms.js';
 import { initCheckout, initThankYou } from './modules/checkout.js';
 import { initImpactCalculator } from './modules/features.js';
 import { renderHomeSections } from './modules/home.js';
@@ -44,7 +39,7 @@ import { initSignin } from './modules/signin.js';
 import { initTransparency } from './modules/transparency.js';
 import { initBlog } from './modules/blog.js';
 import { initAbout } from './modules/about.js';
-import { initProofBoard, initCredentials } from './modules/proof.js';
+import { initCredentials } from './modules/proof.js';
 import { initPortal } from './modules/portal.js';
 
 function boot() {
@@ -53,7 +48,6 @@ function boot() {
 
   // ٢) المحتوى المُولَّد من البيانات قبل تشغيل الحركات عليه
   renderHomeSections();
-  initProofBoard();
   initCredentials();
   initTransparency();
   initAbout();
@@ -68,28 +62,22 @@ function boot() {
 
   // ٣) مكونات الواجهة
   initAccordions();
-  initTabs();
   initHowSteps();
-  initModals();
   initChipGroups();
   initPasswordToggles();
   initCharCounts();
-  initSliders();
 
   // ٤) النماذج
   initForms();
   initCardInput();
-  initPasswordStrength();
   initImpactCalculator();
 
   // ٥) الحركة أخيراً، بعد اكتمال DOM
-  initWordReveal();
   initReveal();
   initCounters();
   initProgressBars();
   initDonuts();
   initFooterMark();
-  initTilt();
   initToTop();
   initActionBar();
 }

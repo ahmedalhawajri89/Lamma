@@ -87,27 +87,6 @@ export const escapeHtml = (value) =>
     "'": '&#39;',
   })[char]);
 
-/** مسار الصفحة الحالية بصيغة روابط التنقل (`/orphans`)، والجذر `/`. الامتداد القديم يُسقط. */
-export function currentPage() {
-  const file = window.location.pathname.split('/').pop().replace(/\.html$/, '');
-  return !file || file === 'index' ? '/' : `/${file}`;
-}
-
-/**
- * قفل تمرير الصفحة لأكثر من طالب.
- *
- * النافذة المنبثقة والقائمة الجوالة كانتا تكتبان `body.style.overflow`
- * مباشرةً، فإغلاق إحداهما يفكّ القفل والأخرى ما زالت مفتوحة. كل طالب يقفل
- * باسمه، والتمرير يعود حين لا يبقى أحد.
- */
-const scrollLocks = new Set();
-
-export function lockScroll(owner, on) {
-  if (on) scrollLocks.add(owner);
-  else scrollLocks.delete(owner);
-  document.body.style.overflow = scrollLocks.size ? 'hidden' : '';
-}
-
 /**
  * لون من الـ API قبل أن يُكتب في style أو سمة SVG.
  *
@@ -230,7 +209,7 @@ export function presetCount(el, finalText) {
     vis.setAttribute('aria-hidden', 'true');
     vis.textContent = current;
     sr = document.createElement('span');
-    sr.className = 'sr-only count__sr';
+    sr.className = 'visually-hidden count__sr';
     el.append(vis, sr);
   }
   sr.textContent = finalText;

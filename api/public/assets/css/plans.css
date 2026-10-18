@@ -59,7 +59,7 @@
 }
 
 .plan__cta { inline-size: 100%; }
-.plan__cta.btn--cta { box-shadow: none; }
+.plan__cta.btn-cta { box-shadow: none; }
 
 .plan__features {
   display: flex;

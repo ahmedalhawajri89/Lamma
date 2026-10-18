@@ -13,7 +13,7 @@
 import { login, logout, register, forgotPassword, resetPassword, markSignedIn, isSponsor } from './auth.js';
 import { submitContact, subscribeNewsletter } from './api.js';
 import { toast } from './ui.js';
-import { $, $$, clamp, toLatinDigits } from './utils.js';
+import { $, $$, toLatinDigits } from './utils.js';
 import { submitCheckoutForm } from './checkout.js';
 
 /**
@@ -510,52 +510,4 @@ export function initCardInput() {
       previewHolder.textContent = holder.value.trim().toUpperCase() || 'الاسم على البطاقة';
     });
   }
-}
-
-/* =========================================================================
-   مقياس قوة كلمة المرور
-   ========================================================================= */
-const STRENGTH_LEVELS = [
-  { label: 'ضعيفة جداً', color: 'var(--color-urgent)' },
-  { label: 'ضعيفة',      color: 'var(--color-urgent)' },
-  { label: 'متوسطة',     color: 'var(--color-accent)' },
-  { label: 'جيدة',       color: 'var(--color-brand)' },
-  { label: 'قوية',       color: 'var(--color-success)' },
-];
-
-function scorePassword(value) {
-  let score = 0;
-  if (value.length >= 8) score += 1;
-  if (value.length >= 12) score += 1;
-  if (/[a-z]/.test(value) && /[A-Z]/.test(value)) score += 1;
-  if (/\d/.test(value)) score += 1;
-  if (/[^\w\s]/.test(value)) score += 1;
-  return clamp(score, 0, 4);
-}
-
-export function initPasswordStrength() {
-  const input = $('[data-strength-for]');
-  const meter = $('#passwordStrength');
-  if (!input || !meter) return;
-
-  const bars = $$('.strength__bar', meter);
-  const label = $('.strength__label', meter);
-
-  input.addEventListener('input', () => {
-    if (!input.value) {
-      bars.forEach((bar) => bar.classList.remove('is-on'));
-      label.textContent = 'استخدم ٨ أحرف على الأقل مع أرقام ورموز';
-      return;
-    }
-
-    const score = scorePassword(input.value);
-    const level = STRENGTH_LEVELS[score];
-
-    bars.forEach((bar, i) => {
-      bar.classList.toggle('is-on', i <= score);
-      bar.style.setProperty('--strength-color', level.color);
-    });
-
-    label.textContent = `قوة كلمة المرور: ${level.label}`;
-  });
 }

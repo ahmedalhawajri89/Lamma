@@ -266,7 +266,7 @@
             <ul class="money-list" id="moneyList" role="list"></ul>
             <div class="money__foot">
               <p><i class="fa-solid fa-file-shield" aria-hidden="true"></i> التقرير الكامل والوثائق منشورة للجميع، كفلاء وغير كفلاء.</p>
-              <a class="btn btn--ink-outline" href="/transparency">
+              <a class="btn btn-ink-outline" href="/transparency">
                 اطّلع على تقرير الشفافية <i class="fa-solid fa-arrow-left btn__icon btn__icon--arrow" aria-hidden="true"></i>
               </a>
             </div>

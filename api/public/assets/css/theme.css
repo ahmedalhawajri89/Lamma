@@ -631,25 +631,23 @@ button:focus-visible,
 :where(p) { text-wrap: pretty; }
 :where(a) { text-underline-offset: 0.22em; }
 
-/* ── 14. طبقة توافق: أصناف قديمة تولّدها وحدات JS المشتركة ──
-   الصفحات تنتقل واحدةً واحدة، والدوال التي تبني البطاقات تخدم الصفحات
-   القديمة والمنقولة معاً. فبدل نسختين من كل دالة، نعرّف هنا معنى أصنافها
-   القديمة بلغة Bootstrap. تُحذف حين تنتقل آخر صفحة. */
-.num, .u-tnum {
+/* ── 14. مكوّنات مشتركة لا مقابل لها في Bootstrap ──
+   كانت «طبقة توافق» تعرّف أصناف التصميم القديم بلغة Bootstrap ريثما تنتقل
+   الصفحات. انتقلت كلها، فبقي هنا ما هو مكوّنٌ حقيقي يُستعمل في كل مكان. */
+
+/* الأرقام: أرقام لاتينية بعرضٍ ثابت، واتجاهها من اليسار ولو في سطرٍ عربي */
+.num {
   font-family: var(--font-num);
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1;
   direction: ltr;
   unicode-bidi: isolate;
 }
-.sr-only { position: absolute !important; inline-size: 1px !important; block-size: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; border: 0 !important; }
 
-.btn--cta { --bs-btn-color: var(--color-cta-contrast); --bs-btn-bg: var(--color-cta); --bs-btn-border-color: var(--color-cta); --bs-btn-hover-color: var(--color-cta-contrast); --bs-btn-hover-bg: var(--color-cta-hover); --bs-btn-hover-border-color: var(--color-cta-hover); --bs-btn-active-color: var(--color-cta-contrast); --bs-btn-active-bg: var(--color-cta-hover); --bs-btn-active-border-color: var(--color-cta-hover); --bs-btn-focus-box-shadow: 0 0 0 3px rgba(224, 166, 59, 0.45); }
-.btn--primary { --bs-btn-color: var(--color-brand-contrast); --bs-btn-bg: var(--color-brand); --bs-btn-border-color: var(--color-brand); --bs-btn-hover-color: var(--color-brand-contrast); --bs-btn-hover-bg: var(--color-brand-hover); --bs-btn-hover-border-color: var(--color-brand-hover); --bs-btn-active-bg: var(--color-brand-hover); --bs-btn-active-color: var(--color-brand-contrast); }
-.btn--outline { --bs-btn-color: var(--color-brand); --bs-btn-border-color: var(--color-brand-border); --bs-btn-hover-color: var(--color-brand-contrast); --bs-btn-hover-bg: var(--color-brand); --bs-btn-hover-border-color: var(--color-brand); --bs-btn-active-color: var(--color-brand-contrast); --bs-btn-active-bg: var(--color-brand-hover); }
-.btn--ink-outline { --bs-btn-color: #fff; --bs-btn-border-color: rgb(255 255 255 / 0.4); --bs-btn-hover-color: var(--color-ink); --bs-btn-hover-bg: #fff; --bs-btn-hover-border-color: #fff; --bs-btn-active-color: var(--color-ink); --bs-btn-active-bg: #fff; }
-.btn--lg { --bs-btn-padding-y: 0.8rem; --bs-btn-padding-x: 1.75rem; --bs-btn-font-size: 1.05rem; min-block-size: 3.25rem; }
-.btn--sm { --bs-btn-padding-x: 1rem; min-block-size: 2.5rem; }
+/* زرٌّ بإطارٍ أبيض فوق خلفيةٍ داكنة (قسم الشفافية في الرئيسية) */
+.btn-ink-outline { --bs-btn-color: #fff; --bs-btn-border-color: rgb(255 255 255 / 0.4); --bs-btn-hover-color: var(--color-ink); --bs-btn-hover-bg: #fff; --bs-btn-hover-border-color: #fff; --bs-btn-active-color: var(--color-ink); --bs-btn-active-bg: #fff; }
+
+/* سهمٌ داخل الزرّ يتقدّم خطوةً عند المرور */
 .btn__icon { font-size: 0.85em; transition: translate var(--dur-fast) var(--ease-out); }
 .btn:hover .btn__icon--arrow { translate: -3px 0; }
 
