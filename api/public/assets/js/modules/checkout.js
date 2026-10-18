@@ -15,10 +15,10 @@ import { fetchOrphan, fetchCheckoutConfig, submitCheckout } from './api.js';
 import { me, isSponsor, markSignedIn } from './auth.js';
 import { launchConfetti } from './features.js';
 import { toast } from './ui.js';
-import { url } from './i18n.js';
+import { url, t, plural, intl } from './i18n.js';
 
 const INTERVALS = { monthly: 1, quarterly: 3, yearly: 12 };
-const CYCLE_WORDS = { 1: 'شهرياً', 3: 'كل ثلاثة أشهر', 12: 'سنوياً' };
+const CYCLE_WORDS = { 1: t('شهرياً'), 3: t('كل ثلاثة أشهر'), 12: t('سنوياً') };
 const RESULT_KEY = 'kafala.checkout.result';
 const DRAFT_KEY = 'kafala.checkout.draft';
 
@@ -52,7 +52,7 @@ export async function initCheckout() {
   const submitLabel = submit?.innerHTML;
   if (submit) {
     submit.disabled = true;
-    submit.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i> جارٍ تحميل بيانات الكفالة…';
+    submit.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i> ' + t('جارٍ تحميل بيانات الكفالة…');
   }
 
   try {
@@ -63,8 +63,8 @@ export async function initCheckout() {
     ]);
   } catch (error) {
     showBlocked(error?.status === 404
-      ? 'لم نجد هذه الحالة. ربما تغيّر رابطها أو أُغلق ملفها.'
-      : 'تعذّر تحميل بيانات الكفالة. أعد تحميل الصفحة بعد قليل.');
+      ? t('لم نجد هذه الحالة. ربما تغيّر رابطها أو أُغلق ملفها.')
+      : t('تعذّر تحميل بيانات الكفالة. أعد تحميل الصفحة بعد قليل.'));
     return;
   }
 
@@ -72,7 +72,7 @@ export async function initCheckout() {
 
   // مكتمل التمويل أو مغلق: لا نموذج دفع لطفلٍ لا يقبل كفالة
   if (!o.accepting) {
-    showBlocked(`اكتمل تمويل ${o.name} أو لم يعد ملفه يقبل كفالة جديدة. شكراً لك، وهناك أطفال آخرون ينتظرون.`);
+    showBlocked(t('اكتمل تمويل {name} أو لم يعد ملفه يقبل كفالة جديدة. شكراً لك، وهناك أطفال آخرون ينتظرون.', { name: o.name }));
     return;
   }
 
@@ -106,7 +106,7 @@ function showBlocked(message) {
     box.hidden = false;
     $('[data-checkout="blocked-text"]', box).textContent = message;
   }
-  $$('[data-checkout="name"]').forEach((el) => { el.textContent = state.orphan?.name ?? 'الحالة'; });
+  $$('[data-checkout="name"]').forEach((el) => { el.textContent = state.orphan?.name ?? t('الحالة'); });
 }
 
 function renderChild() {
@@ -144,8 +144,8 @@ function setupAmount() {
   const her = ['أنثى', 'female'].includes(o.gender);
   if (hint) {
     hint.textContent = o.remaining < (o.monthly ?? o.remaining)
-      ? `بدأ غيرك كفالة ${o.name}، وتبقّى ${money(o.remaining, o.currency)} في الشهر تكملها أنت أو جزءاً منها.`
-      : `يمكنك كفالة ${o.name} كاملة أو جزءاً من ${her ? 'حاجتها' : 'حاجته'}، ويكمل غيرك الباقي.`;
+      ? t('بدأ غيرك كفالة {name}، وتبقّى {amount} في الشهر تكملها أنت أو جزءاً منها.', { name: o.name, amount: money(o.remaining, o.currency) })
+      : t(her ? 'يمكنك كفالة {name} كاملة أو جزءاً من حاجتها، ويكمل غيرك الباقي.' : 'يمكنك كفالة {name} كاملة أو جزءاً من حاجته، ويكمل غيرك الباقي.', { name: o.name });
   }
 
   // المبالغ الجاهزة تكتب في الحقل، والحقل يعلّم الجاهز المطابق له
@@ -195,11 +195,11 @@ function setupMethods() {
     if (bankNote) {
       bankNote.hidden = card;
       const days = state.config?.grace_days ?? 5;
-      $('[data-checkout="grace"]', bankNote).textContent = `${days} أيام`;
+      $('[data-checkout="grace"]', bankNote).textContent = plural(days, { ar: { one: 'يوم واحد', two: 'يومان', few: '{n} أيام', other: '{n} يوماً' }, en: { one: '1 day', other: '{n} days' } });
     }
 
     const submit = $('#checkoutSubmit');
-    if (submit) submit.lastChild.textContent = card ? ' ادفع وفعّل الكفالة' : ' احجز الكفالة واعرض بيانات التحويل';
+    if (submit) submit.lastChild.textContent = ` ${t(card ? 'ادفع وفعّل الكفالة' : 'احجز الكفالة واعرض بيانات التحويل')}`;
     renderTotals();
   };
 
@@ -232,12 +232,12 @@ function renderTotals() {
   // على كل خيار دورية مجموعه، فيُرى الفرق قبل الاختيار
   $$('[data-cycle-sum]').forEach((el) => { el.textContent = amount ? money(amount * Number(el.dataset.cycleSum), o.currency) : ''; });
   $$('[data-checkout="cycle"]').forEach((el) => {
-    el.textContent = state.interval === 1 ? '' : `عن ${state.interval === 3 ? 'ثلاثة أشهر' : 'سنة'}`;
+    el.textContent = state.interval === 1 ? '' : t(state.interval === 3 ? 'عن ثلاثة أشهر' : 'عن سنة');
   });
 
   const plan = method === 'card'
-    ? `تُخصم ${money(total, o.currency)} اليوم، ثم ${CYCLE_WORDS[state.interval]} يوم ${Math.min(day, 28)} من الشهر. تستطيع الإيقاف متى شئت.`
-    : `بعد تحويلك ${money(total, o.currency)} تتفعّل الكفالة، ثم يتكرر التحويل ${CYCLE_WORDS[state.interval]}.`;
+    ? t('تُخصم {total} اليوم، ثم {cycle} يوم {day} من الشهر. تستطيع الإيقاف متى شئت.', { total: money(total, o.currency), cycle: CYCLE_WORDS[state.interval], day: Math.min(day, 28) })
+    : t('بعد تحويلك {total} تتفعّل الكفالة، ثم يتكرر التحويل {cycle}.', { total: money(total, o.currency), cycle: CYCLE_WORDS[state.interval] });
   $$('[data-checkout="plan"]').forEach((el) => { el.textContent = plan; });
 }
 
@@ -379,7 +379,7 @@ export function initThankYou() {
   set('name', data.orphan?.name ?? '');
   set('ref', data.reference);
   set('amount', money(data.cycle_amount, data.currency));
-  set('cycle', CYCLE_WORDS[data.interval_months] ?? 'شهرياً');
+  set('cycle', CYCLE_WORDS[data.interval_months] ?? CYCLE_WORDS[1]);
   set('next', longDate(data.next_due_at));
   set('receipt', data.receipt_number ?? '');
 
@@ -417,10 +417,10 @@ export function initThankYou() {
       await navigator.clipboard.writeText(value);
       btn.classList.add('is-copied');
       $('i', btn).className = 'fa-solid fa-check';
-      toast('نُسخ.');
+      toast(t('نُسخ.'));
       setTimeout(() => { btn.classList.remove('is-copied'); $('i', btn).className = 'fa-regular fa-copy'; }, 1800);
     } catch {
-      toast('تعذّر النسخ. حدّده وانسخه يدوياً.', 'error');
+      toast(t('تعذّر النسخ. حدّده وانسخه يدوياً.'), 'error');
     }
   }));
 }
@@ -431,5 +431,5 @@ function longDate(iso) {
   const date = new Date(`${iso}T00:00:00`);
   return Number.isNaN(date.getTime())
     ? iso
-    : new Intl.DateTimeFormat('ar-u-nu-latn', { day: 'numeric', month: 'long', year: 'numeric' }).format(date);
+    : new Intl.DateTimeFormat(intl, { day: 'numeric', month: 'long', year: 'numeric' }).format(date);
 }

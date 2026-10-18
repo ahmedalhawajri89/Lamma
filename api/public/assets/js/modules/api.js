@@ -25,7 +25,7 @@
  * والقراءة من وسم HTML لا من متغيّر بيئة مقصودة: هذا الجزء من المشروع بلا
  * خطوة بناء، فالتغيير عند النشر يجب أن يكون بتحرير ملف لا بإعادة تجميع.
  */
-import { locale } from './i18n.js';
+import { locale, t } from './i18n.js';
 
 const META = document.querySelector('meta[name="api-base"]')?.content?.trim() ?? '';
 const DISABLED = META === 'off';
@@ -92,7 +92,7 @@ function csrfToken() {
  */
 export async function request(path, { method = 'GET', body = null, headers: extra = {} } = {}) {
   if (DISABLED) {
-    throw { message: 'هذه النسخة ساكنة بلا خادم.', errors: {} };
+    throw { message: t('هذه النسخة ساكنة بلا خادم.'), errors: {} };
   }
 
   let response;
@@ -124,8 +124,8 @@ export async function request(path, { method = 'GET', body = null, headers: extr
       status: 0,
       code: timedOut ? 'timeout' : 'network',
       message: timedOut
-        ? 'لم يردّ الخادم في الوقت المحدد. تحقّق من اتصالك وحاول مجدداً.'
-        : 'تعذّر الاتصال بالخادم. تحقّق من اتصالك وحاول مجدداً.',
+        ? t('لم يردّ الخادم في الوقت المحدد. تحقّق من اتصالك وحاول مجدداً.')
+        : t('تعذّر الاتصال بالخادم. تحقّق من اتصالك وحاول مجدداً.'),
       errors: {},
     };
   }
@@ -155,11 +155,11 @@ export async function request(path, { method = 'GET', body = null, headers: extr
 function errorMessage(status, payload) {
   if (status >= 500) {
     return payload.reference
-      ? `${payload.message} (المرجع ${payload.reference})`
-      : 'تعذّر إتمام الطلب بسبب عطل في الخادم. حاول بعد قليل.';
+      ? t('{message} (المرجع {ref})', { message: payload.message, ref: payload.reference })
+      : t('تعذّر إتمام الطلب بسبب عطل في الخادم. حاول بعد قليل.');
   }
 
-  return payload.message ?? 'تعذّر إتمام الطلب.';
+  return payload.message ?? t('تعذّر إتمام الطلب.');
 }
 
 /**

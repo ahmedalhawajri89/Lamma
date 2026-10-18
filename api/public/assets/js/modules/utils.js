@@ -4,6 +4,8 @@
  * ولا يُستخدم innerHTML إلا مع قوالب ثابتة نكتبها نحن.
  */
 
+import { plural, locale } from './i18n.js';
+
 /** اختيار عنصر واحد. */
 export const $ = (selector, scope = document) => scope.querySelector(selector);
 
@@ -179,6 +181,7 @@ export const arabicDigits = (n) => String(n).replace(/\d/g, (d) => '٠١٢٣٤٥
  */
 export function readingTime(minutes) {
   const n = Number(minutes) || 0;
+  if (locale !== 'ar') return plural(n, { en: { one: '1 minute', other: '{n} minutes' } });
   if (n === 1) return 'دقيقة واحدة';
   if (n === 2) return 'دقيقتان';
   if (n <= 10) return `${arabicDigits(n)} دقائق`;

@@ -60,7 +60,7 @@ return Application::configure(basePath: dirname(__DIR__))
             }
 
             return response()->json([
-                'message' => 'تعذّر قبول البيانات المُرسلة.',
+                'message' => __('تعذّر قبول البيانات المُرسلة.'),
                 'errors' => $e->errors(),
             ], 422);
         });
@@ -70,7 +70,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 return null;
             }
 
-            return response()->json(['message' => 'يلزم تسجيل الدخول للمتابعة.'], 401);
+            return response()->json(['message' => __('يلزم تسجيل الدخول للمتابعة.')], 401);
         });
 
         /**
@@ -103,13 +103,13 @@ return Application::configure(basePath: dirname(__DIR__))
             }
 
             $messages = [
-                403 => 'لا تملك صلاحية تنفيذ هذا الإجراء.',
-                404 => 'العنصر المطلوب غير موجود.',
-                429 => 'محاولات كثيرة. أعد المحاولة بعد قليل.',
+                403 => __('لا تملك صلاحية تنفيذ هذا الإجراء.'),
+                404 => __('العنصر المطلوب غير موجود.'),
+                429 => __('محاولات كثيرة. أعد المحاولة بعد قليل.'),
             ];
 
             return response()->json([
-                'message' => $messages[$e->getStatusCode()] ?? ($e->getMessage() ?: 'حدث خطأ غير متوقع.'),
+                'message' => $messages[$e->getStatusCode()] ?? ($e->getMessage() ?: __('حدث خطأ غير متوقع.')),
             ], $e->getStatusCode());
         });
 
@@ -136,8 +136,8 @@ return Application::configure(basePath: dirname(__DIR__))
 
             return response()->json([
                 'message' => $unavailable
-                    ? 'الخدمة غير متاحة مؤقتاً. حاول بعد قليل.'
-                    : 'حدث خطأ غير متوقع. إن تكرّر فأبلغ الدعم برقم المرجع.',
+                    ? __('الخدمة غير متاحة مؤقتاً. حاول بعد قليل.')
+                    : __('حدث خطأ غير متوقع. إن تكرّر فأبلغ الدعم برقم المرجع.'),
                 'reference' => $reference,
             ], $unavailable ? 503 : 500);
         });

@@ -53,3 +53,70 @@ it('الـ API يردّ رسائل التحقق بلغة الصفحة (X-Locale)
     expect($en->json('errors.email.0'))->toBe('Email is required.')
         ->and($ar->json('errors.email.0'))->not->toContain('required');
 });
+
+/*
+ * تغطية الترجمة في رحلة الكافل: كل نصٍّ عربي يمرّ بـ __() في قوالبها وردود
+ * الـ API، وبـ t() في وحداتها، له مقابلٌ إنجليزي. نصٌّ جديد بلا ترجمة يُفشل
+ * الاختبار بدل أن يظهر عربياً وسط صفحةٍ إنجليزية.
+ */
+dataset('journey', [
+    'القوالب' => [[
+        'resources/views/site/partials/{header,footer,head,lang-switch,share}.blade.php',
+        'resources/views/site/layouts/*.blade.php',
+        'resources/views/site/auth/*.blade.php',
+        'resources/views/site/pages/{home,orphans,orphan,checkout,thank-you}.blade.php',
+        'resources/views/errors/404.blade.php',
+        'app/Enums/*.php',
+        'app/Http/Controllers/Api/V1/{Auth,Public}/*.php',
+        'app/Http/Requests/Auth/*.php',
+        'bootstrap/app.php',
+    ]],
+]);
+
+/** @return array<int, string> النصوص الحرفية في __('…') أو t('…') */
+function literalKeys(array $globs, string $fn): array
+{
+    $keys = [];
+    foreach ($globs as $glob) {
+        foreach (glob(base_path($glob), GLOB_BRACE) as $file) {
+            $str = "'((?:[^'\\\\]|\\\\.)*)'";
+            preg_match_all('/\b'.$fn.'\((?:[\w.!=?\s]+ \? )?'.$str.'(?: : '.$str.')?/u', file_get_contents($file), $m);
+            array_push($keys, ...array_filter([...$m[1], ...$m[2]]));
+        }
+    }
+
+    return array_values(array_unique(array_map(fn ($k) => stripcslashes($k), $keys)));
+}
+
+it('كل نصٍّ في قوالب رحلة الكافل وردودها له ترجمة إنجليزية', function (array $globs) {
+    $en = json_decode(file_get_contents(lang_path('en.json')), true);
+    $keys = array_filter(literalKeys($globs, '__'), fn ($k) => preg_match('/\p{Arabic}/u', $k));
+
+    expect($keys)->not->toBeEmpty()
+        ->and(array_values(array_diff($keys, array_keys($en))))->toBe([])
+        // ترجمةٌ فارغة يعاملها Laravel كالغائبة فيُظهر العربي
+        ->and(array_keys(array_filter($en, fn ($v) => trim((string) $v) === '')))->toBe([]);
+})->with('journey');
+
+it('كل نصٍّ في وحدات JS لرحلة الكافل له ترجمة إنجليزية', function () {
+    $en = require lang_path('en/js.php');
+    $keys = literalKeys(['public/assets/js/modules/{api,catalog,checkout,features,forms,home,layout,profile,proof,render,theme,ui,utils}.js'], 't');
+
+    expect($keys)->not->toBeEmpty()
+        ->and(array_values(array_diff($keys, array_keys($en))))->toBe([]);
+});
+
+it('المحتوى المترجم يصل بلغة الطلب، والعربي حين لا ترجمة', function () {
+    // الترجمة ليست في fillable: تكتبها البذرة اليوم، ولوحة الإدارة لاحقاً
+    (new \App\Models\Faq)->forceFill([
+        'question' => 'سؤال مترجم؟', 'answer' => 'جواب.', 'category' => 'عام', 'is_published' => true,
+        'translations' => ['en' => ['question' => 'A translated question?', 'answer' => 'An answer.']],
+    ])->save();
+    \App\Models\Faq::create(['question' => 'سؤال بلا ترجمة؟', 'answer' => 'جواب.', 'is_published' => true]);
+
+    $en = collect($this->getJson('/api/v1/public/bootstrap', ['X-Locale' => 'en'])->assertOk()->json('data.faqs'))->pluck('q');
+    $ar = collect($this->getJson('/api/v1/public/bootstrap')->assertOk()->json('data.faqs'))->pluck('q');
+
+    expect($en)->toContain('A translated question?')->toContain('سؤال بلا ترجمة؟')
+        ->and($ar)->toContain('سؤال مترجم؟');
+});

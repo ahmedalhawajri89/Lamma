@@ -15,7 +15,7 @@ import { submitContact, subscribeNewsletter } from './api.js';
 import { toast } from './ui.js';
 import { $, $$, toLatinDigits } from './utils.js';
 import { submitCheckoutForm } from './checkout.js';
-import { url } from './i18n.js';
+import { url, t } from './i18n.js';
 
 /**
  * وجهة ما بعد الدخول من الرابط، على هذا الموقع وحده.
@@ -40,41 +40,41 @@ export function safeRedirect(value) {
    قواعد التحقق
    ========================================================================= */
 const RULES = {
-  required: (value) => value.trim().length > 0 || 'هذا الحقل مطلوب',
+  required: (value) => value.trim().length > 0 || t('هذا الحقل مطلوب'),
 
   email: (value) =>
-    /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value.trim()) || 'صيغة البريد الإلكتروني غير صحيحة',
+    /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value.trim()) || t('صيغة البريد الإلكتروني غير صحيحة'),
 
   // يقبل الأرقام الدولية بصيغ شائعة، ٩ إلى ١٥ رقماً
   phone: (value) =>
-    /^\+?[\d\s-]{9,18}$/.test(value.trim()) || 'أدخل رقم هاتف صحيح',
+    /^\+?[\d\s-]{9,18}$/.test(value.trim()) || t('أدخل رقم هاتف صحيح'),
 
   minlength: (value, param) =>
-    value.trim().length >= Number(param) || `يجب ألا يقل عن ${param} أحرف`,
+    value.trim().length >= Number(param) || t('يجب ألا يقل عن {n} أحرف', { n: param }),
 
   // ما يشترطه الخادم بعينه (Password::letters()->numbers()): حرفٌ ورقم بأي لغة،
   // فيُعرف الرفض هنا قبل أن يُرسل النموذج ويعود
   lettersNumbers: (value) =>
-    (/\p{L}/u.test(value) && /\p{N}/u.test(value)) || 'يجب أن تحتوي حرفاً ورقماً على الأقل',
+    (/\p{L}/u.test(value) && /\p{N}/u.test(value)) || t('يجب أن تحتوي حرفاً ورقماً على الأقل'),
 
-  card: (value) => luhnCheck(value) || 'رقم البطاقة غير صحيح',
+  card: (value) => luhnCheck(value) || t('رقم البطاقة غير صحيح'),
 
-  expiry: (value) => validExpiry(value) || 'تاريخ الانتهاء غير صالح',
+  expiry: (value) => validExpiry(value) || t('تاريخ الانتهاء غير صالح'),
 
-  cvc: (value) => /^\d{3,4}$/.test(value.trim()) || 'رمز الأمان من ٣ أو ٤ أرقام',
+  cvc: (value) => /^\d{3,4}$/.test(value.trim()) || t('رمز الأمان من ٣ أو ٤ أرقام'),
 
   // مبلغ بين حدّين: `range:5:90`
   range: (value, param) => {
     const [min, max] = param.split(':').map(Number);
     const n = Number(value);
-    if (!Number.isFinite(n)) return 'اكتب مبلغاً بالأرقام';
-    if (n < min) return `أقل مبلغ ${min}`;
-    return n <= max || `أكثر ما يمكن ${max}، وهو المتبقي من حاجته`;
+    if (!Number.isFinite(n)) return t('اكتب مبلغاً بالأرقام');
+    if (n < min) return t('أقل مبلغ {min}', { min });
+    return n <= max || t('أكثر ما يمكن {max}، وهو المتبقي من حاجته', { max });
   },
 
   match: (value, param) => {
     const other = document.getElementById(param);
-    return (other && value === other.value) || 'القيمتان غير متطابقتين';
+    return (other && value === other.value) || t('القيمتان غير متطابقتين');
   },
 };
 
@@ -149,7 +149,7 @@ function validateInput(input) {
   // خانة الموافقة قيمتها «on» دائماً، فالعبرة بحالة التأشير لا بالقيمة
   if (input.type === 'checkbox') {
     const ok = !rules.includes('required') || input.checked;
-    setError(input, ok ? '' : (input.dataset.requiredMessage || 'يلزم التأشير على هذه الخانة للمتابعة'));
+    setError(input, ok ? '' : (input.dataset.requiredMessage || t('يلزم التأشير على هذه الخانة للمتابعة')));
     return ok;
   }
 
@@ -241,7 +241,7 @@ export function initForms() {
       if (firstInvalid) {
         firstInvalid.focus();
         firstInvalid.scrollIntoView({ block: 'center', behavior: 'smooth' });
-        toast('يرجى تصحيح الحقول المعلَّمة بالأحمر', 'error');
+        toast(t('يرجى تصحيح الحقول المعلَّمة بالأحمر'), 'error');
         return;
       }
 
@@ -250,7 +250,7 @@ export function initForms() {
 
       if (button) {
         button.disabled = true;
-        button.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i> جارٍ المعالجة…';
+        button.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i> ' + t('جارٍ المعالجة…');
       }
 
       submit(form, button, original);
@@ -377,7 +377,7 @@ async function submit(form, button, original) {
         await logout().catch(() => {});
         throw {
           staff: true,
-          errors: { email: ['هذا حساب فريق العمل، والدخول به من لوحة الإدارة.'] },
+          errors: { email: [t('هذا حساب فريق العمل، والدخول به من لوحة الإدارة.')] },
         };
       }
     } else if (action === 'register') {
@@ -451,7 +451,7 @@ async function submit(form, button, original) {
       if (errorEl) {
         const link = document.createElement('a');
         link.href = '/admin';
-        link.textContent = ' افتح لوحة الإدارة';
+        link.textContent = ` ${t('افتح لوحة الإدارة')}`;
         errorEl.append(link);
       }
     }
@@ -461,7 +461,7 @@ async function submit(form, button, original) {
     } else if (orphaned.length) {
       toast(orphaned[0], 'error');
     } else if (!Object.keys(fields).length) {
-      toast(error.message ?? 'تعذّر إتمام الطلب.', 'error');
+      toast(error.message ?? t('تعذّر إتمام الطلب.'), 'error');
     }
   }
 }
@@ -508,7 +508,7 @@ export function initCardInput() {
   if (holder && previewHolder) {
     holder.addEventListener('input', () => {
       // textContent يمنع أي حقن من مدخلات المستخدم
-      previewHolder.textContent = holder.value.trim().toUpperCase() || 'الاسم على البطاقة';
+      previewHolder.textContent = holder.value.trim().toUpperCase() || t('الاسم على البطاقة');
     });
   }
 }

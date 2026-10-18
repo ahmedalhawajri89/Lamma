@@ -20,7 +20,7 @@ import {
 } from './render.js';
 
 import { $, $$, countUp, escapeHtml, formatNumber, formatMoney, observeOnce, prefersReducedMotion, presetCount, safeColor, safeNumber } from './utils.js';
-import { url } from './i18n.js';
+import { url, t } from './i18n.js';
 
 /** عدد الأطفال في بطاقات الرئيسية: صفّ واحد على الشاشة العريضة. */
 const KIDS_COUNT = 4;
@@ -46,12 +46,12 @@ function renderHomeOrphans() {
 function renderPlans() {
   const html = PROGRAMS.map((p, i) => `
 <article class="plan${p.featured ? ' is-featured' : ''}" data-reveal data-reveal-delay="${i * 90}">
-  <p class="plan__flag">${p.featured ? 'الأكثر اختياراً' : ''}</p>
+  <p class="plan__flag">${p.featured ? t('الأكثر اختياراً') : ''}</p>
   <h3 class="plan__name">${escapeHtml(p.name)}</h3>
-  <p class="plan__price"><strong class="num">${formatMoney(p.price)}</strong><span>في الشهر</span></p>
+  <p class="plan__price"><strong class="num">${formatMoney(p.price)}</strong><span>${t('في الشهر')}</span></p>
   <p class="plan__summary">${escapeHtml(p.summary)}</p>
   <a class="btn ${p.featured ? 'btn-cta' : 'btn-outline-primary'} plan__cta"
-     href="${url(`/orphans?program=${encodeURIComponent(p.id)}`)}">اكفل يتيماً</a>
+     href="${url(`/orphans?program=${encodeURIComponent(p.id)}`)}">${t('اكفل يتيماً')}</a>
   <ul class="plan__features" role="list">
     ${(p.features ?? []).map((f) => `<li><i class="fa-solid fa-check" aria-hidden="true"></i>${escapeHtml(f)}</li>`).join('')}
   </ul>
@@ -121,11 +121,11 @@ function renderMoney() {
 
   const toChild = safeNumber(PROOF.toChild);
   donutHost.innerHTML = `
-<div class="money-donut__chart" role="img" aria-label="توزيع الإنفاق: ${escapeHtml(SPENDING.map((s) => `${s.label} ${safeNumber(s.value)}٪`).join('، '))}">
+<div class="money-donut__chart" role="img" aria-label="${escapeHtml(t('توزيع الإنفاق: {list}', { list: SPENDING.map((s) => `${s.label} ${safeNumber(s.value)}${t('٪')}`).join(t('، ')) }))}">
   <svg viewBox="0 0 200 200" aria-hidden="true"><circle class="money-donut__track" cx="100" cy="100" r="${R}"></circle>${arcs}</svg>
   <div class="money-donut__center" aria-hidden="true">
-    <strong class="num" data-money-value>${toChild}٪</strong>
-    <span data-money-label>من كفالتك تصل للطفل</span>
+    <strong class="num" data-money-value>${toChild}${t('٪')}</strong>
+    <span data-money-label>${t('من كفالتك تصل للطفل')}</span>
   </div>
 </div>`;
 
@@ -152,8 +152,8 @@ function renderMoney() {
     chart.classList.toggle('is-focused', i >= 0);
     $$('.money-donut__seg', chart).forEach((seg) => seg.classList.toggle('is-on', Number(seg.dataset.i) === i));
     rows.forEach((row, j) => row.classList.toggle('is-on', j === i));
-    if (i < 0) { valueEl.textContent = `${toChild}٪`; labelEl.textContent = 'من كفالتك تصل للطفل'; return; }
-    valueEl.textContent = `${formatNumber(safeNumber(SPENDING[i].value))}٪`;
+    if (i < 0) { valueEl.textContent = `${toChild}${t('٪')}`; labelEl.textContent = t('من كفالتك تصل للطفل'); return; }
+    valueEl.textContent = `${formatNumber(safeNumber(SPENDING[i].value))}${t('٪')}`;
     labelEl.textContent = SPENDING[i].label;
   };
 
@@ -178,9 +178,9 @@ function renderMoney() {
     const start = performance.now();
     const tick = (now) => {
       if (chart.classList.contains('is-focused')) return;
-      const t = Math.min(1, (now - start) / 1100);
-      valueEl.textContent = `${formatNumber(Math.round(toChild * (1 - (1 - t) ** 3)))}٪`;
-      if (t < 1) requestAnimationFrame(tick);
+      const k = Math.min(1, (now - start) / 1100);
+      valueEl.textContent = `${formatNumber(Math.round(toChild * (1 - (1 - k) ** 3)))}${t('٪')}`;
+      if (k < 1) requestAnimationFrame(tick);
     };
     requestAnimationFrame(tick);
   }, { threshold: 0.35 });
@@ -197,7 +197,7 @@ function renderHeroProof() {
 
   const stats = {
     sponsored: { value: PROOF.sponsored },
-    toChild: { value: PROOF.toChild, format: (n) => `${formatNumber(n)}٪` },
+    toChild: { value: PROOF.toChild, format: (n) => `${formatNumber(n)}${t('٪')}` },
     startYear: { value: PROOF.startYear, format: String, still: true },
     visits: { value: PROOF.visits },
   };

@@ -18,9 +18,9 @@ enum UserStatus: string
     public function label(): string
     {
         return match ($this) {
-            self::Pending => 'بانتظار التفعيل',
-            self::Active => 'نشط',
-            self::Suspended => 'موقوف',
+            self::Pending => __('بانتظار التفعيل'),
+            self::Active => __('نشط'),
+            self::Suspended => __('موقوف'),
         };
     }
 }

@@ -23,9 +23,9 @@ class FaqResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'q' => $this->question,
-            'a' => self::fill((string) $this->answer),
-            'category' => $this->category,
+            'q' => $this->resource->translated('question'),
+            'a' => self::fill((string) $this->resource->translated('answer')),
+            'category' => $this->resource->translated('category'),
             'sort_order' => $this->sort_order,
             'is_published' => $this->is_published,
         ];

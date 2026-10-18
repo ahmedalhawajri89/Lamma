@@ -11,6 +11,7 @@ use App\Models\Orphan;
 use App\Models\Setting;
 use App\Models\Sponsorship;
 use App\Models\TransparencyDocument;
+use App\Support\Locale;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
@@ -33,7 +34,8 @@ class TransparencyService
     {
         $year ??= (int) now()->year;
 
-        return Cache::remember("transparency.spending.{$year}", self::CACHE_TTL, function () use ($year): array {
+        // الأرقام مخزّنة مرةً لكل اللغات، والاسم يُختار بلغة الطلب بعدها
+        $rows = Cache::remember("transparency.spending.{$year}", self::CACHE_TTL, function () use ($year): array {
             $total = (float) Disbursement::approved()->inYear($year)->sum('amount_base');
 
             if ($total <= 0.0) {
@@ -45,17 +47,24 @@ class TransparencyService
                 ->inYear($year)
                 ->join('disbursement_categories as c', 'c.id', '=', 'disbursements.category_id')
                 ->toBase()
-                ->selectRaw('c.name_ar, c.color, c.sort_order, SUM(disbursements.amount_base) as total')
-                ->groupBy('c.id', 'c.name_ar', 'c.color', 'c.sort_order')
+                ->selectRaw('c.name_ar, c.name_en, c.color, c.sort_order, SUM(disbursements.amount_base) as total')
+                ->groupBy('c.id', 'c.name_ar', 'c.name_en', 'c.color', 'c.sort_order')
                 ->orderBy('c.sort_order')
                 ->get()
                 ->map(static fn ($row): array => [
                     'label' => $row->name_ar,
+                    'label_en' => $row->name_en,
                     'value' => round((float) $row->total * 100 / $total, 1),
                     'color' => $row->color,
                 ])
                 ->all();
         });
+
+        return array_map(static fn (array $row): array => [
+            'label' => Locale::pick($row['label'], $row['label_en'] ?? null),
+            'value' => $row['value'],
+            'color' => $row['color'],
+        ], $rows);
     }
 
     /** لوحة الثقة على الصفحة الرئيسية — PROOF في data.js. */

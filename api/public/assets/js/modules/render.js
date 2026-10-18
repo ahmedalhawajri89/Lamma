@@ -6,20 +6,25 @@
  */
 
 import { escapeHtml, arabicDigits, readingTime, safeNumber } from './utils.js';
-import { url } from './i18n.js';
+import { url, t, plural, locale } from './i18n.js';
 
-const isGirl = (o) => ['أنثى', 'female'].includes(o.gender);
-const ageLabel = (age) => `${age} ${age >= 3 && age <= 10 ? 'سنوات' : 'سنة'}`;
+const isGirl = (o) => (o.gender_code ?? o.gender) === 'female' || o.gender === 'أنثى';
+// «8 سنوات» و«11 سنة»، و«8 years old» بقواعد الجمع في كل لغة
+const ageLabel = (age) => plural(age, {
+  ar: { few: '{n} سنوات', other: '{n} سنة' },
+  en: { one: '{n} year old', other: '{n} years old' },
+});
 
 /** كم يتبقى بالدولار لاكتمال كفالة الطفل هذا الشهر. */
 const remainingOf = (o) => Math.max(0, Math.round((o.monthly * (100 - o.funded)) / 100));
 
 /** «يكفله شخص واحد، شخصان، 3 أشخاص، 11 شخصاً» بضمير الطفل. */
 function sponsorsLabel(n, her) {
-  const verb = her ? 'يكفلها' : 'يكفله';
-  if (n === 1) return `${verb} شخص واحد`;
-  if (n === 2) return `${verb} شخصان`;
-  return `${verb} <b class="num">${n}</b> ${n <= 10 ? 'أشخاص' : 'شخصاً'}`;
+  const who = plural(n, {
+    ar: { one: 'شخص واحد', two: 'شخصان', few: '<b class="num">{n}</b> أشخاص', other: '<b class="num">{n}</b> شخصاً' },
+    en: { one: 'one person', other: '<b class="num">{n}</b> people' },
+  });
+  return t(her ? 'يكفلها {who}' : 'يكفله {who}', { who });
 }
 
 /**
@@ -45,22 +50,22 @@ export function kidCard(o, { delay = 0, cols = 'col-sm-6 col-lg-3' } = {}) {
       ${o.photo
         ? `<img src="${escapeHtml(o.photo)}" alt="" width="400" height="400" loading="lazy">`
         : `<span class="kid-card__initial" aria-hidden="true">${escapeHtml(o.name.charAt(0))}</span>`}
-      ${o.urgent ? '<span class="kid-card__urgent"><span class="kid-card__dot" aria-hidden="true"></span> حالة عاجلة</span>' : ''}
-      <span class="kid-card__verified"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> ${her ? 'زارها' : 'زاره'} مشرف</span>
+      ${o.urgent ? '<span class="kid-card__urgent"><span class="kid-card__dot" aria-hidden="true"></span> ' + t('حالة عاجلة') + '</span>' : ''}
+      <span class="kid-card__verified"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> ${t(her ? 'زارها مشرف' : 'زاره مشرف')}</span>
     </div>
     <div class="kid-card__body">
-      <h3 class="kid-card__name"><a href="${link}">${name}</a><span>، ${ageLabel(o.age)}</span></h3>
-      <p class="kid-card__place"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> ${escapeHtml(o.city)}، ${escapeHtml(o.country)}</p>
-      ${o.dream ? `<p class="kid-card__dream"><span>${her ? 'حلمها' : 'حلمه'}:</span> ${escapeHtml(o.dream)}</p>` : ''}
+      <h3 class="kid-card__name"><a href="${link}">${name}</a><span>${t('، ')}${ageLabel(o.age)}</span></h3>
+      <p class="kid-card__place"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> ${escapeHtml(o.city)}${t('، ')}${escapeHtml(o.country)}</p>
+      ${o.dream ? `<p class="kid-card__dream"><span>${t(her ? 'حلمها:' : 'حلمه:')}</span> ${escapeHtml(o.dream)}</p>` : ''}
       <div class="kid-card__fund">
         <div class="kid-card__fund-row">
-          <span>${sponsors ? sponsorsLabel(sponsors, her) : `مكفول <b class="num">${funded}٪</b>`}</span>
-          <span>يتبقى <b class="num">$${remainingOf(o)}</b></span>
+          <span>${sponsors ? sponsorsLabel(sponsors, her) : t('مكفول {p}', { p: `<b class="num">${funded}${t('٪')}</b>` })}</span>
+          <span>${t('يتبقى {amount}', { amount: `<b class="num">$${remainingOf(o)}</b>` })}</span>
         </div>
-        <span class="kid-card__track" role="progressbar" aria-label="نسبة كفالة ${name}" aria-valuenow="${funded}" aria-valuemin="0" aria-valuemax="100"><span style="--v:${funded}%"></span></span>
-        ${shared ? `<p class="kid-card__share">شارك بأي مبلغ من <b class="num">$5</b> لإكمال ${her ? 'كفالتها' : 'كفالته'}</p>` : ''}
+        <span class="kid-card__track" role="progressbar" aria-label="${t('نسبة كفالة {name}', { name })}" aria-valuenow="${funded}" aria-valuemin="0" aria-valuemax="100"><span style="--v:${funded}%"></span></span>
+        ${shared ? `<p class="kid-card__share">${t(her ? 'شارك بأي مبلغ من {min} لإكمال كفالتها' : 'شارك بأي مبلغ من {min} لإكمال كفالته', { min: '<b class="num">$5</b>' })}</p>` : ''}
       </div>
-      <a class="btn btn-cta w-100 kid-card__cta" href="${url(`/checkout?id=${encodeURIComponent(o.id)}`)}">${shared ? 'أكمل كفالة' : 'اكفل'} ${name}</a>
+      <a class="btn btn-cta w-100 kid-card__cta" href="${url(`/checkout?id=${encodeURIComponent(o.id)}`)}">${t(shared ? 'أكمل كفالة {name}' : 'اكفل {name}', { name })}</a>
     </div>
   </article>
 </div>`;
@@ -118,7 +123,7 @@ export function homePosts(posts) {
   const media = (p, w, h) => `<div class="bento__media">${p.image
     ? `<img src="${escapeHtml(p.image)}" alt="" loading="lazy" width="${w}" height="${h}">`
     : '<span class="bento__mark"></span>'}</div>`;
-  const date = (p) => `<time datetime="${escapeHtml(p.date ?? '')}">${escapeHtml(arabicDigits(p.dateLabel ?? ''))}</time>`;
+  const date = (p) => `<time datetime="${escapeHtml(p.date ?? '')}">${escapeHtml(locale === 'ar' ? arabicDigits(p.dateLabel ?? '') : (p.dateLabel ?? ''))}</time>`;
   const tag = (p) => (p.category ? `<span class="bento__tag">${escapeHtml(p.category)}</span>` : '');
   const kinds = ['a', 'b', 'wide'];
 
@@ -126,10 +131,10 @@ export function homePosts(posts) {
 <article class="bento bento--lead" data-reveal>
   ${media(lead, 760, 900)}
   <div class="bento__panel">
-    <p class="bento__meta">${tag(lead)}<span>${readingTime(lead.readMin)} قراءة</span></p>
+    <p class="bento__meta">${tag(lead)}<span>${t('{time} قراءة', { time: readingTime(lead.readMin) })}</span></p>
     <h3 class="bento__title">${title(lead)}</h3>
     <p class="bento__excerpt">${escapeHtml(lead.excerpt ?? '')}</p>
-    ${href(lead) ? '<span class="bento__cta" aria-hidden="true">اقرأ المقال <i class="fa-solid fa-arrow-left"></i></span>' : ''}
+    ${href(lead) ? `<span class="bento__cta" aria-hidden="true">${t('اقرأ المقال')} <i class="fa-solid fa-arrow-left"></i></span>` : ''}
   </div>
 </article>
 ${rest.map((p, i) => `

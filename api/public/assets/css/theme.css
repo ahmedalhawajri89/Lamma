@@ -412,7 +412,16 @@ button:focus-visible,
 .kf-header .kf-brand__name { font-size: 1.5rem; color: var(--color-brand); }
 .kf-header .kf-brand__tag { font-size: 0.78rem; }
 .kf-header .navbar-nav .nav-link { font-size: 1rem; }
-@media (min-width: 992px) { .kf-header .navbar-nav { gap: 0.5rem; } }
+/* «Contact us» و«Sign in» لا تنكسر سطرين: الإنجليزية أطول من العربية */
+.kf-header .nav-link, .kf-header .btn { white-space: nowrap; }
+@media (min-width: 1200px) { .kf-header .navbar-nav { gap: 0.5rem; } }
+/* بين 1200 و1400 يضيق الشريط: الشعار اللفظي يُخفى والروابط تتقارب */
+@media (min-width: 1200px) and (max-width: 1399.98px) {
+  .kf-header .kf-brand__tag, .kf-header__search { display: none; }
+  .kf-header .navbar-nav { gap: 0; --bs-navbar-nav-link-padding-x: 0.65rem; }
+}
+/* الجوال: الشعار والأزرار الأربعة في سطرٍ واحد */
+@media (max-width: 575.98px) { .kf-header .kf-brand__tag { display: none; } }
 /* أيقونة بلا إطار (البحث والوضع الليلي) */
 .btn-icon--plain { --bs-btn-border-color: transparent; --bs-btn-hover-border-color: transparent; }
 
@@ -425,7 +434,7 @@ button:focus-visible,
 .kf-brand--on-ink .kf-brand__tag { color: var(--color-on-ink-muted); }
 
 .kf-header__actions { display: flex; align-items: center; gap: 0.5rem; margin-inline-start: auto; }
-@media (min-width: 992px) { .kf-header__actions { margin-inline-start: 0; } }
+@media (min-width: 1200px) { .kf-header__actions { margin-inline-start: 0; } }
 
 /* مبدّل اللغة: حبّةٌ صغيرة بجانب زرّ السمة، رمز اللغة الأخرى («EN» أو «ع») */
 .kf-lang { display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; min-block-size: 2.75rem; min-inline-size: 2.75rem; padding-inline: 0.75rem; border-radius: var(--radius-pill); font-family: var(--font-display); font-size: 0.875rem; font-weight: 600; color: var(--color-text-muted); text-decoration: none; transition: background-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out); }
@@ -459,8 +468,8 @@ button:focus-visible,
 .kf-header .navbar-toggler:focus { box-shadow: 0 0 0 3px var(--bs-focus-ring-color); }
 
 /* الدرج الجانبي على الجوال: بعرض مريح، والروابط أهداف لمس كاملة */
-@media (max-width: 991.98px) {
-  .kf-header .offcanvas-lg { --bs-offcanvas-width: min(20rem, 86vw); }
+@media (max-width: 1199.98px) {
+  .kf-header .offcanvas-xl { --bs-offcanvas-width: min(20rem, 86vw); }
   .kf-header .navbar-nav .nav-link {
     padding-block: 0.8rem;
     font-size: 1.05rem;
@@ -468,7 +477,7 @@ button:focus-visible,
   }
   .kf-header .navbar .nav-link.active { box-shadow: inset -3px 0 0 var(--color-cta); padding-inline-start: 0.75rem; }
 }
-@media (min-width: 992px) {
+@media (min-width: 1200px) {
   .kf-header .offcanvas-header { display: none; }
 }
 

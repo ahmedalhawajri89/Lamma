@@ -8,6 +8,7 @@ import { kidCard } from './render.js';
 import { apiEnabled, request } from './api.js';
 import { initReveal } from './motion.js';
 import { toast } from './ui.js';
+import { t } from './i18n.js';
 
 const SIMILAR = 4;
 
@@ -72,10 +73,10 @@ function initShare() {
 async function copy(url, btn) {
   try {
     await navigator.clipboard.writeText(url);
-    toast('نُسخ الرابط، أرسله لمن تحب.');
+    toast(t('نُسخ الرابط، أرسله لمن تحب.'));
     btn.classList.add('is-copied');
     setTimeout(() => btn.classList.remove('is-copied'), 1800);
   } catch {
-    toast('تعذّر نسخ الرابط. انسخه من شريط العنوان.', 'error');
+    toast(t('تعذّر نسخ الرابط. انسخه من شريط العنوان.'), 'error');
   }
 }

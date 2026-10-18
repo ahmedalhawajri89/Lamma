@@ -19,10 +19,10 @@ enum ReportStatus: string
     public function label(): string
     {
         return match ($this) {
-            self::Draft => 'مسوّدة',
-            self::Submitted => 'بانتظار المراجعة',
-            self::Approved => 'معتمَد',
-            self::Published => 'منشور للكافل',
+            self::Draft => __('مسوّدة'),
+            self::Submitted => __('بانتظار المراجعة'),
+            self::Approved => __('معتمَد'),
+            self::Published => __('منشور للكافل'),
         };
     }
 }

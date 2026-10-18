@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Models\Concerns\HasTranslations;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -12,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Testimonial extends Model
 {
     use HasFactory;
+    use HasTranslations;
 
     protected $fillable = ['sponsor_id', 'author_name', 'role', 'quote', 'is_published', 'sort_order'];
 

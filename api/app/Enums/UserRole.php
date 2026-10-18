@@ -19,10 +19,10 @@ enum UserRole: string
     public function label(): string
     {
         return match ($this) {
-            self::Admin => 'مدير النظام',
-            self::Accountant => 'محاسب',
-            self::FieldSupervisor => 'مشرف ميداني',
-            self::Sponsor => 'كافل',
+            self::Admin => __('مدير النظام'),
+            self::Accountant => __('محاسب'),
+            self::FieldSupervisor => __('مشرف ميداني'),
+            self::Sponsor => __('كافل'),
         };
     }
 

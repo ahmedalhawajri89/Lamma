@@ -9,6 +9,7 @@
  */
 
 import { $ } from './utils.js';
+import { t } from './i18n.js';
 
 const KEY = 'kafala-theme';
 const META_COLOR = { light: '#0f5c5c', dark: '#0d1617' };
@@ -42,8 +43,8 @@ function syncUi(button) {
 
   // الاسم ثابت والحالة في aria-pressed: «تفعيل الوضع الفاتح، مضغوط» كانت تُقرأ متناقضة
   button.setAttribute('aria-pressed', String(dark));
-  button.setAttribute('aria-label', 'الوضع الليلي');
-  button.title = dark ? 'الوضع الفاتح' : 'الوضع الليلي';
+  button.setAttribute('aria-label', t('الوضع الليلي'));
+  button.title = dark ? t('الوضع الفاتح') : t('الوضع الليلي');
 
   const meta = document.querySelector('meta[name="theme-color"]');
   if (meta) meta.content = META_COLOR[dark ? 'dark' : 'light'];

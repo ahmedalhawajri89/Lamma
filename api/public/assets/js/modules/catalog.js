@@ -15,6 +15,7 @@ import { ORPHANS, PROGRAMS } from './data.js';
 import { kidCard } from './render.js';
 import { apiEnabled, request } from './api.js';
 import { initReveal } from './motion.js';
+import { t, plural } from './i18n.js';
 
 const PER_PAGE = 12;
 /** أقصى ما يُطلب دفعةً واحدة حين يُفتح رابطٌ بعدة دفعات (حدّ الخادم 100). */
@@ -22,20 +23,24 @@ const MAX_BATCHES = 8;
 const COLS = 'col-sm-6 col-lg-4 col-xl-3';
 const KEYS = ['q', 'program', 'country', 'gender', 'age', 'urgent', 'sort', 'page'];
 const FILTER_KEYS = ['q', 'program', 'country', 'gender', 'age', 'urgent'];
-const GENDERS = [{ value: 'male', label: 'ولد' }, { value: 'female', label: 'بنت' }];
-const AGES = [{ value: '0-5', label: 'حتى 5 سنوات' }, { value: '6-10', label: 'من 6 إلى 10' }, { value: '11-18', label: '11 سنة فأكبر' }];
+const GENDERS = [{ value: 'male', label: t('ولد') }, { value: 'female', label: t('بنت') }];
+const AGES = [{ value: '0-5', label: t('حتى 5 سنوات') }, { value: '6-10', label: t('من 6 إلى 10') }, { value: '11-18', label: t('11 سنة فأكبر') }];
 const SORTS = [
-  { value: 'urgent', label: 'الأشد احتياجاً' },
-  { value: 'funded_asc', label: 'الأقل تغطية' },
-  { value: 'monthly_asc', label: 'الأقل مبلغاً' },
-  { value: 'monthly_desc', label: 'الأعلى مبلغاً' },
-  { value: 'age_asc', label: 'الأصغر سناً' },
-  { value: 'newest', label: 'الأحدث إضافة' },
+  { value: 'urgent', label: t('الأشد احتياجاً') },
+  { value: 'funded_asc', label: t('الأقل تغطية') },
+  { value: 'monthly_asc', label: t('الأقل مبلغاً') },
+  { value: 'monthly_desc', label: t('الأعلى مبلغاً') },
+  { value: 'age_asc', label: t('الأصغر سناً') },
+  { value: 'newest', label: t('الأحدث إضافة') },
 ];
-const TITLES = { gender: 'الجنس', age: 'العمر', country: 'الدولة' };
+const TITLES = { gender: t('الجنس'), age: t('العمر'), country: t('الدولة') };
 
-/** «طفل، طفلان، 3 أطفال، 11 طفلاً» */
-const kids = (n) => `${formatNumber(n)} ${n === 1 ? 'طفل' : n === 2 ? 'طفلان' : n >= 3 && n <= 10 ? 'أطفال' : 'طفلاً'}`;
+/** «1 طفل، 2 طفلان، 3 أطفال، 11 طفلاً» و«1 child، 3 children» */
+const KIDS = {
+  ar: { one: '{c} طفل', two: '{c} طفلان', few: '{c} أطفال', other: '{c} طفلاً' },
+  en: { one: '{c} child', other: '{c} children' },
+};
+const kids = (n, c = formatNumber(n)) => plural(n, KIDS).replace('{c}', c);
 
 export function initCatalog() {
   const grid = $('#catalogGrid');
@@ -140,9 +145,9 @@ export function initCatalog() {
       ? data.map((o, i) => kidCard(o, { delay: Math.min(i, 7) * 60, cols: COLS })).join('')
       : `<div class="col-12"><div class="cat-empty">
            <span class="cat-empty__icon" aria-hidden="true"><i class="fa-solid fa-magnifying-glass"></i></span>
-           <h3>لا أطفال بهذه الفلاتر</h3>
-           <p>جرّب دولة أخرى أو عمراً أوسع، أو أزل فلتراً.</p>
-           <button class="btn btn-outline-primary" type="button" data-reset>أزل كل الفلاتر</button>
+           <h3>${t('لا أطفال بهذه الفلاتر')}</h3>
+           <p>${t('جرّب دولة أخرى أو عمراً أوسع، أو أزل فلتراً.')}</p>
+           <button class="btn btn-outline-primary" type="button" data-reset>${t('أزل كل الفلاتر')}</button>
          </div></div>`;
 
     renderAll();
@@ -155,11 +160,11 @@ export function initCatalog() {
     if (loaded >= total) return;
     const mine = ++sequence;
     moreBtn.disabled = true;
-    moreBtn.innerHTML = '<span class="spinner-border spinner-border-sm" aria-hidden="true"></span> جارٍ التحميل';
+    moreBtn.innerHTML = '<span class="spinner-border spinner-border-sm" aria-hidden="true"></span> ' + t('جارٍ التحميل');
 
     const { data = [], meta = {} } = await fetchPage(Math.floor(loaded / PER_PAGE) + 1, PER_PAGE);
     moreBtn.disabled = false;
-    moreBtn.textContent = 'عرض المزيد';
+    moreBtn.textContent = t('عرض المزيد');
     if (mine !== sequence) return;
 
     total = meta.total ?? total;
@@ -177,7 +182,8 @@ export function initCatalog() {
   /* ── العرض ───────────────────────────────────────────────────────────── */
   function renderAll() {
     const any = FILTER_KEYS.some((k) => state[k]);
-    $('#catalogCount').innerHTML = `<strong class="num">${formatNumber(total)}</strong> ${total === 1 ? 'طفل' : 'طفلاً'} ${any ? 'يطابقون اختيارك' : 'ينتظرون كافلاً'}`;
+    const count = kids(total, `<strong class="num">${formatNumber(total)}</strong>`);
+    $('#catalogCount').innerHTML = t(any ? '{kids} يطابقون اختيارك' : '{kids} ينتظرون كافلاً', { kids: count });
     renderPrograms();
     renderMenus();
     renderSheet();
@@ -188,7 +194,7 @@ export function initCatalog() {
   function renderPrograms() {
     if (!facets) return;
     const all = Object.values(facets.program ?? {}).reduce((a, b) => a + b, 0);
-    $('[data-group="program"]').innerHTML = [['', 'كل البرامج', all], ...PROGRAMS.map((p) => [p.id, p.name, facets.program?.[p.id] ?? 0])]
+    $('[data-group="program"]').innerHTML = [['', t('كل البرامج'), all], ...PROGRAMS.map((p) => [p.id, p.name, facets.program?.[p.id] ?? 0])]
       .map(([value, label, n]) => {
         const on = (state.program || '') === value;
         return `<button type="button" class="cat-program" ${value ? `data-filter="program" data-value="${escapeHtml(value)}"` : 'data-remove="program"'}
@@ -199,13 +205,14 @@ export function initCatalog() {
   function optionsOf(key) {
     if (key === 'gender') return GENDERS.map((g) => [g.value, g.label, facets?.gender?.[g.value] ?? 0]);
     if (key === 'age') return AGES.map((a) => [a.value, a.label, facets?.age?.[a.value] ?? 0]);
-    return Object.entries(facets?.country ?? {}).map(([c, n]) => [c, c, n]);
+    // القيمة الاسم العربي (ثابتة في الرابط لكل اللغات)، والمعروض بلغة الصفحة
+    return Object.entries(facets?.country ?? {}).map(([c, n]) => [c, labelOf('country', c), n]);
   }
 
   function labelOf(key, value) {
     if (key === 'gender') return GENDERS.find((g) => g.value === value)?.label ?? value;
     if (key === 'age') return AGES.find((a) => a.value === value)?.label ?? value;
-    return value;
+    return facets?.country_labels?.[value] ?? value;
   }
 
   /** القوائم المنسدلة: «الكل» ثم الخيارات بأعدادها، والمختار عليه علامة. */
@@ -214,7 +221,7 @@ export function initCatalog() {
       const menu = $(`[data-menu-for="${key}"]`);
       if (!menu) continue;
       menu.innerHTML = `<button type="button" class="dropdown-item cat-menu__opt" data-remove="${key}" aria-pressed="${!state[key]}">
-          <i class="fa-solid fa-check" aria-hidden="true"></i><span>الكل</span></button>
+          <i class="fa-solid fa-check" aria-hidden="true"></i><span>${t('الكل')}</span></button>
         ${optionsOf(key).map(([value, label, n]) => {
           const on = state[key] === value;
           return `<button type="button" class="dropdown-item cat-menu__opt" data-filter="${key}" data-value="${escapeHtml(value)}" aria-pressed="${on}" ${!n && !on ? 'disabled' : ''}>
@@ -239,14 +246,14 @@ export function initCatalog() {
             ${escapeHtml(label)} <span class="num">${formatNumber(n)}</span></button>`;
         }).join('')}</div></fieldset>`;
     body.innerHTML = `${group('gender')}${group('age')}${group('country')}
-      <fieldset class="cat-sheet__group"><legend>الحالة</legend><div class="cat-sheet__chips">
+      <fieldset class="cat-sheet__group"><legend>${t('الحالة')}</legend><div class="cat-sheet__chips">
         <button type="button" class="cat-pill cat-pill--urgent" data-filter="urgent" data-value="1" aria-pressed="${Boolean(state.urgent)}">
-          <span class="cat-pill__dot" aria-hidden="true"></span> عاجلة فقط <span class="num">${formatNumber(facets?.urgent ?? 0)}</span></button>
+          <span class="cat-pill__dot" aria-hidden="true"></span> ${t('عاجلة فقط')} <span class="num">${formatNumber(facets?.urgent ?? 0)}</span></button>
       </div></fieldset>`;
     restore();
 
     const apply = $('[data-sheet-apply]');
-    if (apply) apply.textContent = total ? `اعرض ${kids(total)}` : 'لا نتائج';
+    if (apply) apply.textContent = total ? t('اعرض {kids}', { kids: kids(total) }) : t('لا نتائج');
     const badge = $('[data-filter-count]');
     const n = ['gender', 'age', 'country', 'urgent'].filter((k) => state[k]).length;
     badge.hidden = !n;
@@ -256,25 +263,25 @@ export function initCatalog() {
   function renderChips() {
     const programName = (slug) => PROGRAMS.find((p) => p.id === slug)?.name ?? slug;
     const chips = [
-      state.q && ['q', `«${state.q}»`],
+      state.q && ['q', t('«{q}»', { q: state.q })],
       state.program && ['program', programName(state.program)],
       state.gender && ['gender', labelOf('gender', state.gender)],
       state.age && ['age', labelOf('age', state.age)],
-      state.country && ['country', state.country],
-      state.urgent && ['urgent', 'حالات عاجلة'],
+      state.country && ['country', labelOf('country', state.country)],
+      state.urgent && ['urgent', t('حالات عاجلة')],
     ].filter(Boolean);
 
     const box = $('#activeFilters');
     box.hidden = !chips.length;
-    box.innerHTML = chips.map(([k, label]) => `<button type="button" class="cat-chip" data-remove="${k}" aria-label="إزالة فلتر ${escapeHtml(label)}">
+    box.innerHTML = chips.map(([k, label]) => `<button type="button" class="cat-chip" data-remove="${k}" aria-label="${escapeHtml(t('إزالة فلتر {label}', { label }))}">
         ${escapeHtml(label)} <i class="fa-solid fa-xmark" aria-hidden="true"></i></button>`).join('')
-      + (chips.length > 1 ? '<button type="button" class="cat-chip cat-chip--clear" data-reset>مسح الكل</button>' : '');
+      + (chips.length > 1 ? `<button type="button" class="cat-chip cat-chip--clear" data-reset>${t('مسح الكل')}</button>` : '');
   }
 
   /** «عرضنا 24 من 137» بشريط يمتلئ، والزرّ يختفي حين لا يبقى شيء. */
   function renderMore() {
     more.hidden = loaded >= total && total <= PER_PAGE;
-    $('#catalogRange').textContent = `عرضنا ${formatNumber(loaded)} من ${kids(total)}`;
+    $('#catalogRange').textContent = t('عرضنا {loaded} من {kids}', { loaded: formatNumber(loaded), kids: kids(total) });
     $('#catalogProgress').style.setProperty('--v', `${total ? Math.round((loaded / total) * 100) : 0}%`);
     moreBtn.hidden = loaded >= total;
   }

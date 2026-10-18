@@ -31,7 +31,7 @@
           <div class="col-lg-5">
             <dl class="cat-stats">
               <div><dt>{{ __('ينتظرون كافلاً') }}</dt><dd class="num" data-hero-stat="all">0</dd></div>
-              <div class="cat-stats__urgent"><dt>{{ __('حالة عاجلة') }}</dt><dd class="num" data-hero-stat="urgent">0</dd></div>
+              <div class="cat-stats__urgent"><dt>{{ __('حالات عاجلة') }}</dt><dd class="num" data-hero-stat="urgent">0</dd></div>
               <div><dt>{{ __('دولة') }}</dt><dd class="num" data-hero-stat="countries">0</dd></div>
             </dl>
           </div>

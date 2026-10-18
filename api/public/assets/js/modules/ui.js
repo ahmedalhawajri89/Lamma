@@ -6,6 +6,7 @@
  */
 
 import { $, $$ } from './utils.js';
+import { t } from './i18n.js';
 
 /* =========================================================================
    الأكورديون
@@ -88,7 +89,7 @@ export function toast(message, type = 'success', duration = type === 'error' ? 8
   const close = document.createElement('button');
   close.type = 'button';
   close.className = 'toast__close';
-  close.setAttribute('aria-label', 'إغلاق الإشعار');
+  close.setAttribute('aria-label', t('إغلاق الإشعار'));
   close.innerHTML = '<i class="fa-solid fa-xmark" aria-hidden="true"></i>';
 
   let timer = null;
@@ -166,7 +167,7 @@ export function initPasswordToggles() {
       // اسمٌ ثابت وحالة مضغوطة: تغيير الاسم والحالة معاً يُقرأ متناقضاً
       const revealing = input.type === 'password';
       input.type = revealing ? 'text' : 'password';
-      btn.setAttribute('aria-label', 'إظهار كلمة المرور');
+      btn.setAttribute('aria-label', t('إظهار كلمة المرور'));
       btn.setAttribute('aria-pressed', String(revealing));
       btn.innerHTML = `<i class="fa-regular ${revealing ? 'fa-eye-slash' : 'fa-eye'}" aria-hidden="true"></i>`;
     });

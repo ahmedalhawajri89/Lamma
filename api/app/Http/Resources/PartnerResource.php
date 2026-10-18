@@ -15,7 +15,7 @@ class PartnerResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'name' => $this->name,
+            'name' => $this->resource->translated('name'),
             'icon' => $this->icon,
             'logo' => $this->logo_path ? asset('storage/'.$this->logo_path) : null,
             'url' => $this->url,

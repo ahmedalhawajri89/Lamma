@@ -29,10 +29,10 @@ final class PublicChild
             ->public()
             ->withSponsorCount()
             ->with([
-                'program:id,slug,name_ar,monthly_price,currency',
+                'program:id,slug,name_ar,name_en,monthly_price,currency',
                 'family:id,country_id,city_id',
-                'family.country:id,name_ar',
-                'family.city:id,name_ar',
+                'family.country:id,name_ar,name_en',
+                'family.city:id,name_ar,name_en',
             ])
             ->where('reference_code', $reference)
             ->first();
@@ -48,7 +48,7 @@ final class PublicChild
             'her' => $orphan->gender === Gender::Female,
             'remaining' => $remaining,
             'accepting' => $orphan->status->acceptsSponsorship() && $remaining > 0,
-            'program_name' => $orphan->program?->name_ar,
+            'program_name' => $orphan->program ? Locale::pick($orphan->program->name_ar, $orphan->program->name_en) : null,
             'program_price' => $orphan->program ? (float) $orphan->program->monthly_price : null,
             'currency' => $orphan->program?->currency ?? config('kafala.base_currency'),
         ];

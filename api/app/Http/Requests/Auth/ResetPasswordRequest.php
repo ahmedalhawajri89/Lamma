@@ -32,9 +32,9 @@ class ResetPasswordRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'password.confirmed' => 'كلمتا المرور غير متطابقتين.',
+            'password.confirmed' => __('كلمتا المرور غير متطابقتين.'),
             // كما في التسجيل: كلمةٌ في تسريبٍ معروف تُجرَّب أولاً على أي حساب
-            'password.uncompromised' => 'هذه الكلمة ظهرت في تسريبات معروفة. اختر غيرها.',
+            'password.uncompromised' => __('هذه الكلمة ظهرت في تسريبات معروفة. اختر غيرها.'),
         ];
     }
 
@@ -42,8 +42,8 @@ class ResetPasswordRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'email' => 'البريد الإلكتروني',
-            'password' => 'كلمة المرور',
+            'email' => __('البريد الإلكتروني'),
+            'password' => __('كلمة المرور'),
         ];
     }
 }

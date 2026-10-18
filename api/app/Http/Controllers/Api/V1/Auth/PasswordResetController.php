@@ -40,12 +40,12 @@ class PasswordResetController extends Controller
         // وإلا ضغط الزرّ مراراً وهو يظن أن شيئاً يحدث
         if ($status === Password::RESET_THROTTLED) {
             throw ValidationException::withMessages([
-                'email' => 'أرسلنا رابطاً قبل قليل. انتظر دقيقة قبل المحاولة مجدداً.',
+                'email' => __('أرسلنا رابطاً قبل قليل. انتظر دقيقة قبل المحاولة مجدداً.'),
             ])->status(429);
         }
 
         return response()->json([
-            'message' => 'إن كان هذا البريد مسجّلاً لدينا فسيصلك رابط إعادة التعيين خلال دقائق.',
+            'message' => __('إن كان هذا البريد مسجّلاً لدينا فسيصلك رابط إعادة التعيين خلال دقائق.'),
         ]);
     }
 
@@ -80,12 +80,12 @@ class PasswordResetController extends Controller
 
         if ($status !== Password::PASSWORD_RESET) {
             throw ValidationException::withMessages([
-                'email' => 'الرابط منتهي الصلاحية أو مستعمل من قبل. اطلب رابطاً جديداً.',
+                'email' => __('الرابط منتهي الصلاحية أو مستعمل من قبل. اطلب رابطاً جديداً.'),
             ]);
         }
 
         return response()->json([
-            'message' => 'تم تغيير كلمة المرور. يمكنك الدخول الآن.',
+            'message' => __('تم تغيير كلمة المرور. يمكنك الدخول الآن.'),
         ]);
     }
 }

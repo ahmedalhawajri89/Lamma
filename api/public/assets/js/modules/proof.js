@@ -7,6 +7,7 @@
 
 import { $, escapeHtml } from './utils.js';
 import { PARTNERS } from './data.js';
+import { t } from './i18n.js';
 
 /** شريط الاعتمادات — ساكن ومقروء، بلا حركة. */
 export function initCredentials() {
@@ -18,7 +19,7 @@ export function initCredentials() {
   <span class="credential__icon"><i class="fa-solid ${escapeHtml(p.icon)}" aria-hidden="true"></i></span>
   <span class="credential__text">
     <strong>${escapeHtml(p.name)}</strong>
-    <span><i class="fa-solid fa-circle-check" aria-hidden="true"></i> موثّق</span>
+    <span><i class="fa-solid fa-circle-check" aria-hidden="true"></i> ${t('موثّق')}</span>
   </span>
 </div>`).join('');
 }

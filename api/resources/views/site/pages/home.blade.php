@@ -50,7 +50,7 @@
         <div class="hero__text">
           <p class="hero__kicker">{{ __('كفالةٌ تبقي الطفل في أسرته') }} <span class="hero__dot" aria-hidden="true"></span> {{ __('منذ') }} <span class="num">2012</span></p>
           <h1 class="hero__title" id="heroTitle">
-            <span class="hero__line">{{ __('اكفل') }} <mark class="hero__mark">{{ __('يتيماً') }}</mark>..</span>
+            <span class="hero__line">{{ __('اكفل') }} <mark class="hero__mark">{{ __('يتيماً') }}</mark>@if (\App\Support\Locale::isDefault())..@endif</span>
             <span class="hero__line hero__line--brand">{{ __('في لمّة أهله.') }}</span>
           </h1>
           <p class="hero__lede">
@@ -396,6 +396,8 @@
     </section>
 
     <!-- ══ من المدونة ══ -->
+    {{-- المقالات عربية حتى تُترجم (المرحلة 6)، فلا تظهر في الرئيسية بلغةٍ أخرى --}}
+    @if (\App\Support\Locale::isDefault())
     <section class="kf-section kf-section--surface" aria-labelledby="blogTitle">
       <div class="container">
         <header class="kf-head kf-head--center" data-reveal>
@@ -410,6 +412,7 @@
         </div>
       </div>
     </section>
+    @endif
 
     <!-- ══ أسئلة قبل أن تبدأ: الأسئلة بأيقونات موضوعها، وبطاقة تواصل بجانبها ══ -->
     <section class="kf-section faq" aria-labelledby="faqTitle">

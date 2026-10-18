@@ -54,7 +54,7 @@ class OrphanController extends Controller
 
         $query = $this->filtered($request)
             ->withSponsorCount()
-            ->with(['program:id,slug', 'family:id,country_id,city_id', 'family.country:id,name_ar', 'family.city:id,name_ar']);
+            ->with(['program:id,slug', 'family:id,country_id,city_id', 'family.country:id,name_ar,name_en', 'family.city:id,name_ar,name_en']);
 
         foreach (self::SORTS[$validated['sort'] ?? 'urgent'] as [$column, $direction]) {
             $query->orderBy($column, $direction);
@@ -135,6 +135,9 @@ class OrphanController extends Controller
         return [
             'program' => $programs,
             'country' => $countries,
+            // قيمة الفلتر الاسم العربي (ثابتة لكل اللغات)، والمعروض بلغة الصفحة
+            'country_labels' => \App\Models\Country::whereIn('name_ar', $countries->keys())->get(['name_ar', 'name_en'])
+                ->mapWithKeys(fn ($c) => [$c->name_ar => \App\Support\Locale::pick($c->name_ar, $c->name_en)]),
             'gender' => $genders,
             'age' => $ages,
             'urgent' => $this->filtered($request, ['urgent'])->where('is_urgent', true)->count(),
@@ -150,10 +153,10 @@ class OrphanController extends Controller
             ->public()
             ->withSponsorCount()
             ->with([
-                'program:id,slug,name_ar,monthly_price,icon,accent',
+                'program:id,slug,name_ar,name_en,monthly_price,icon,accent',
                 'family:id,country_id,city_id',
-                'family.country:id,name_ar',
-                'family.city:id,name_ar',
+                'family.country:id,name_ar,name_en',
+                'family.city:id,name_ar,name_en',
             ])
             ->where('reference_code', $reference)
             ->firstOrFail();

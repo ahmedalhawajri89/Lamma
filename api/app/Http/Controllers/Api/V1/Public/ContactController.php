@@ -35,14 +35,14 @@ class ContactController extends Controller
             // 422 فتخبر الروبوت أن الحقل فخّ. الفحص يقع بعد التحقق ويردّ
             // نجاحاً كاذباً.
         ], [
-            'name.required' => 'الاسم مطلوب.',
-            'email.email' => 'صيغة البريد غير صحيحة.',
-            'body.required' => 'الرسالة مطلوبة.',
-            'body.min' => 'الرسالة قصيرة جداً.',
+            'name.required' => __('الاسم مطلوب.'),
+            'email.email' => __('صيغة البريد غير صحيحة.'),
+            'body.required' => __('الرسالة مطلوبة.'),
+            'body.min' => __('الرسالة قصيرة جداً.'),
         ]);
 
         if ($request->filled('website')) {
-            return response()->json(['message' => 'وصلتنا رسالتك. سنردّ خلال يوم عمل.']);
+            return response()->json(['message' => __('وصلتنا رسالتك. سنردّ خلال يوم عمل.')]);
         }
 
         ContactMessage::create([
@@ -51,7 +51,7 @@ class ContactController extends Controller
         ]);
 
         return response()->json([
-            'message' => 'وصلتنا رسالتك. سنردّ خلال يوم عمل.',
+            'message' => __('وصلتنا رسالتك. سنردّ خلال يوم عمل.'),
         ], 201);
     }
 
@@ -65,8 +65,8 @@ class ContactController extends Controller
             'email' => ['required', 'email:rfc', 'max:180'],
             'source' => ['nullable', 'string', 'max:40'],
         ], [
-            'email.required' => 'البريد الإلكتروني مطلوب.',
-            'email.email' => 'صيغة البريد غير صحيحة.',
+            'email.required' => __('البريد الإلكتروني مطلوب.'),
+            'email.email' => __('صيغة البريد غير صحيحة.'),
         ]);
 
         $subscriber = NewsletterSubscriber::firstOrNew([
@@ -74,7 +74,7 @@ class ContactController extends Controller
         ]);
 
         if ($subscriber->exists && $subscriber->confirmed_at !== null && $subscriber->unsubscribed_at === null) {
-            return response()->json(['message' => 'أنت مشترك معنا بالفعل.']);
+            return response()->json(['message' => __('أنت مشترك معنا بالفعل.')]);
         }
 
         $subscriber->fill([
@@ -85,7 +85,7 @@ class ContactController extends Controller
         // TODO: إرسال بريد التأكيد عند ضبط بوابة البريد
 
         return response()->json([
-            'message' => 'أرسلنا رابط تأكيد إلى بريدك.',
+            'message' => __('أرسلنا رابط تأكيد إلى بريدك.'),
         ], 201);
     }
 }

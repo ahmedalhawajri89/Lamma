@@ -51,7 +51,8 @@ class CatalogController extends Controller
             'programs' => ProgramResource::collection(
                 Program::active()->with('features')->get(),
             )->resolve(),
-            'countries' => Country::operational()->pluck('name_ar')->all(),
+            'countries' => Country::operational()->get(['name_ar', 'name_en'])
+                ->map(fn ($c) => \App\Support\Locale::pick($c->name_ar, $c->name_en))->all(),
             'partners' => PartnerResource::collection(Partner::active()->get())->resolve(),
             'testimonials' => TestimonialResource::collection(Testimonial::published()->get())->resolve(),
             'faqs' => FaqResource::collection(Faq::published()->get())->resolve(),

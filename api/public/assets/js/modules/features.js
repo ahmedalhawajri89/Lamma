@@ -6,6 +6,7 @@
 
 import { $, formatNumber, escapeHtml } from './utils.js';
 import { IMPACT_TIERS, PROGRAMS } from './data.js';
+import { t } from './i18n.js';
 
 /* =========================================================================
    1. حاسبة الأثر
@@ -46,8 +47,8 @@ export function initImpactCalculator() {
     if (suggestion) {
       const match = [...PROGRAMS].reverse().find((p) => amount >= p.price);
       suggestion.textContent = match
-        ? `هذا المبلغ يغطي «${match.name}» بالكامل.`
-        : 'كل مبلغ يصنع فرقاً، مهما بدا صغيراً.';
+        ? t('هذا المبلغ يغطي «{name}» بالكامل.', { name: match.name })
+        : t('كل مبلغ يصنع فرقاً، مهما بدا صغيراً.');
     }
   };
 

@@ -38,13 +38,13 @@ class RegisterRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.required' => 'الاسم مطلوب.',
-            'name.min' => 'الاسم قصير جداً.',
-            'email.unique' => 'هذا البريد مسجَّل لدينا. جرّب تسجيل الدخول.',
-            'phone.regex' => 'صيغة رقم الهاتف غير صحيحة.',
-            'password.confirmed' => 'كلمتا المرور غير متطابقتين.',
-            'password.uncompromised' => 'هذه الكلمة ظهرت في تسريبات معروفة. اختر غيرها.',
-            'terms.accepted' => 'يلزم الموافقة على الشروط.',
+            'name.required' => __('الاسم مطلوب.'),
+            'name.min' => __('الاسم قصير جداً.'),
+            'email.unique' => __('هذا البريد مسجَّل لدينا. جرّب تسجيل الدخول.'),
+            'phone.regex' => __('صيغة رقم الهاتف غير صحيحة.'),
+            'password.confirmed' => __('كلمتا المرور غير متطابقتين.'),
+            'password.uncompromised' => __('هذه الكلمة ظهرت في تسريبات معروفة. اختر غيرها.'),
+            'terms.accepted' => __('يلزم الموافقة على الشروط.'),
         ];
     }
 

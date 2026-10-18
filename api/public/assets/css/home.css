@@ -46,11 +46,15 @@
   margin: 0;
   overflow: hidden;
   /* زاوية النهاية السفلية ربع دائرة: نصف القطر نفسه في الاتجاهين، لا قطع
-     ناقص مسطّح. (الموقع عربي فقط، فاليسار هو النهاية) */
-  border-bottom-left-radius: clamp(10rem, 22vw, 22rem);
+     ناقص مسطّح. منطقية: يسارٌ في العربية ويمينٌ في الإنجليزية */
+  border-end-end-radius: clamp(10rem, 22vw, 22rem);
   /* تذوب نحو النص: الطرف المجاور للعمود شفاف تدريجياً */
   -webkit-mask-image: linear-gradient(to right, #000 50%, transparent 97%);
           mask-image: linear-gradient(to right, #000 50%, transparent 97%);
+}
+[dir="ltr"] .hero__photo {
+  -webkit-mask-image: linear-gradient(to left, #000 50%, transparent 97%);
+          mask-image: linear-gradient(to left, #000 50%, transparent 97%);
 }
 .hero__photo img {
   display: block;

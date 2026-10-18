@@ -22,13 +22,13 @@ enum DocumentType: string
     public function label(): string
     {
         return match ($this) {
-            self::BirthCertificate => 'شهادة ميلاد',
-            self::DeathCertificate => 'شهادة وفاة الوالد',
-            self::MedicalReport => 'تقرير طبي',
-            self::SchoolRecord => 'سجل مدرسي',
-            self::GuardianshipProof => 'إثبات وصاية',
-            self::Photo => 'صورة',
-            self::Other => 'أخرى',
+            self::BirthCertificate => __('شهادة ميلاد'),
+            self::DeathCertificate => __('شهادة وفاة الوالد'),
+            self::MedicalReport => __('تقرير طبي'),
+            self::SchoolRecord => __('سجل مدرسي'),
+            self::GuardianshipProof => __('إثبات وصاية'),
+            self::Photo => __('صورة'),
+            self::Other => __('أخرى'),
         };
     }
 }

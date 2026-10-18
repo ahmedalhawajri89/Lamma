@@ -15,9 +15,9 @@ class TestimonialResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'quote' => $this->quote,
-            'name' => $this->author_name,
-            'role' => $this->role,
+            'quote' => $this->resource->translated('quote'),
+            'name' => $this->resource->translated('author_name'),
+            'role' => $this->resource->translated('role'),
             'sort_order' => $this->sort_order,
             'is_published' => $this->is_published,
         ];

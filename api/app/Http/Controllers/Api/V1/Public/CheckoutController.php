@@ -57,7 +57,7 @@ class CheckoutController extends Controller
     public function store(Request $request, CreateSponsorship $create, RecordPayment $record, PaymentGateway $gateway, RegisterSponsor $register): JsonResponse
     {
         $user = $request->user();
-        abort_if($user !== null && $user->sponsor === null, 403, 'هذا حساب فريق العمل. الكفالة من حساب كافل.');
+        abort_if($user !== null && $user->sponsor === null, 403, __('هذا حساب فريق العمل. الكفالة من حساب كافل.'));
 
         $validated = $request->validate([
             'orphan_reference' => ['required', 'string', 'exists:orphans,reference_code'],
@@ -76,16 +76,16 @@ class CheckoutController extends Controller
             'card_brand' => ['nullable', 'string', 'max:20'],
             'card_last4' => ['nullable', 'digits:4'],
         ], [
-            'orphan_reference.exists' => 'لم نجد هذه الحالة.',
-            'name.required' => 'اكتب اسمك الكامل.',
-            'email.required' => 'اكتب بريدك الإلكتروني، إليه يصل الإيصال.',
-            'card_token.required_if' => 'أكمل بيانات البطاقة.',
+            'orphan_reference.exists' => __('لم نجد هذه الحالة.'),
+            'name.required' => __('اكتب اسمك الكامل.'),
+            'email.required' => __('اكتب بريدك الإلكتروني، إليه يصل الإيصال.'),
+            'card_token.required_if' => __('أكمل بيانات البطاقة.'),
         ]);
 
         // الزائر وبريده مسجَّل: يدخل أولاً (لا تُنسب كفالة إلى حساب لم يُثبت صاحبه أنه هو)
         if ($user === null && User::where('email', $validated['email'])->exists()) {
             return response()->json([
-                'message' => 'لديك حساب بهذا البريد. سجّل الدخول لإكمال الكفالة، واختياراتك محفوظة.',
+                'message' => __('لديك حساب بهذا البريد. سجّل الدخول لإكمال الكفالة، واختياراتك محفوظة.'),
                 'code' => 'login_required',
             ], 409);
         }
@@ -101,7 +101,7 @@ class CheckoutController extends Controller
         if ($validated['method'] === PaymentMethod::BankTransfer->value
             && RateLimiter::tooManyAttempts($holdKey, self::DAILY_HOLDS_PER_IP)) {
             return response()->json([
-                'message' => 'وصلت إلى حدّ حجوزات التحويل البنكي اليوم. ادفع بالبطاقة، أو أكمل تحويل حجزٍ قائم من حسابك.',
+                'message' => __('وصلت إلى حدّ حجوزات التحويل البنكي اليوم. ادفع بالبطاقة، أو أكمل تحويل حجزٍ قائم من حسابك.'),
                 'code' => 'hold_limit',
             ], 429);
         }
@@ -206,15 +206,15 @@ class CheckoutController extends Controller
 
         return response()->json([
             'message' => $payment !== null
-                ? 'تمّت الكفالة. شكراً لك.'
-                : 'حُجزت الكفالة بانتظار تحويلك.',
+                ? __('تمّت الكفالة. شكراً لك.')
+                : __('حُجزت الكفالة بانتظار تحويلك.'),
             'data' => [
                 'reference' => $sponsorship->reference_code,
                 'status' => $sponsorship->status->value,
                 // الرسم لا الصورة، والجنس لصيغة الشكر («كفالتها»)
                 'orphan' => [
                     'reference' => $orphan->reference_code,
-                    'name' => $orphan->first_name,
+                    'name' => $orphan->translated('first_name'),
                     'photo' => $orphan->illustrationUrl(),
                     'female' => $orphan->gender === \App\Enums\Gender::Female,
                 ],

@@ -66,7 +66,7 @@ class LoginRequest extends FormRequest
         $seconds = RateLimiter::availableIn($this->throttleKey());
 
         throw ValidationException::withMessages([
-            'email' => "محاولات كثيرة. أعد المحاولة بعد {$seconds} ثانية.",
+            'email' => __('محاولات كثيرة. أعد المحاولة بعد :seconds ثانية.', ['seconds' => $seconds]),
         ])->status(429);
     }
 

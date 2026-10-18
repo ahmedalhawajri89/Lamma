@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Resources;
 
+use App\Support\Locale;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -21,11 +22,14 @@ class PublicOrphanResource extends JsonResource
     {
         return [
             'id' => $this->reference_code,
-            'name' => $this->first_name,
+            // النصوص بلغة الصفحة (translations)، والعربية إن لم تُترجم
+            'name' => $this->resource->translated('first_name'),
             'age' => $this->age,
             'gender' => $this->gender->label(),
-            'country' => $this->whenLoaded('family', fn () => $this->family->country?->name_ar),
-            'city' => $this->whenLoaded('family', fn () => $this->family->city?->name_ar),
+            // ثابتٌ لكل اللغات: الواجهة تبني صيغة المؤنث والمذكّر منه، لا من التسمية
+            'gender_code' => $this->gender->value,
+            'country' => $this->whenLoaded('family', fn () => Locale::pick($this->family->country?->name_ar, $this->family->country?->name_en)),
+            'city' => $this->whenLoaded('family', fn () => Locale::pick($this->family->city?->name_ar, $this->family->city?->name_en)),
             'program' => $this->whenLoaded('program', fn () => $this->program->slug),
             'monthly' => (float) $this->monthly_need,
             'funded' => $this->funded_percent,
@@ -36,10 +40,10 @@ class PublicOrphanResource extends JsonResource
             ),
             'urgent' => $this->is_urgent,
             'photo' => $this->resource->illustrationUrl(),
-            'grade' => $this->grade_level,
-            'health' => $this->health_status,
-            'dream' => $this->dream,
-            'story' => $this->story,
+            'grade' => $this->resource->translated('grade_level'),
+            'health' => $this->resource->translated('health_status'),
+            'dream' => $this->resource->translated('dream'),
+            'story' => $this->resource->translated('story'),
 
             /*
              * لصفحة الكفالة (صفحة الطفل الواحد وحدها، فلا يثقل الفهرس): المتبقي
@@ -60,7 +64,7 @@ class PublicOrphanResource extends JsonResource
             'remaining' => $remaining,
             'currency' => $this->program?->currency ?? config('kafala.base_currency'),
             'program_price' => $this->program ? (float) $this->program->monthly_price : null,
-            'program_name' => $this->program?->name_ar,
+            'program_name' => $this->program ? Locale::pick($this->program->name_ar, $this->program->name_en) : null,
             'accepting' => $this->status->acceptsSponsorship() && $remaining > 0,
         ];
     }

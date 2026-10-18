@@ -37,7 +37,7 @@ class AuthController extends Controller
             // رسالة واحدة للبريد الخاطئ ولكلمة المرور الخاطئة معاً،
             // فلا يصلح النموذج أداةً لكشف البريد المسجَّل من غيره
             throw ValidationException::withMessages([
-                'email' => 'بيانات الدخول غير صحيحة.',
+                'email' => __('بيانات الدخول غير صحيحة.'),
             ]);
         }
 
@@ -55,7 +55,7 @@ class AuthController extends Controller
             }
 
             throw ValidationException::withMessages([
-                'email' => 'هذا الحساب موقوف. تواصل مع الإدارة.',
+                'email' => __('هذا الحساب موقوف. تواصل مع الإدارة.'),
             ]);
         }
 
@@ -74,7 +74,7 @@ class AuthController extends Controller
         ])->saveQuietly();
 
         return response()->json([
-            'message' => 'أهلاً بعودتك.',
+            'message' => __('أهلاً بعودتك.'),
             'data' => new UserResource($user->load(['sponsor', 'staffProfile', 'roles'])),
         ]);
     }
@@ -96,7 +96,7 @@ class AuthController extends Controller
         }
 
         return response()->json([
-            'message' => 'تم إنشاء حسابك.',
+            'message' => __('تم إنشاء حسابك.'),
             'data' => new UserResource($user->load(['sponsor', 'staffProfile', 'roles'])),
         ], 201);
     }
@@ -117,6 +117,6 @@ class AuthController extends Controller
             $request->session()->regenerateToken();
         }
 
-        return response()->json(['message' => 'تم تسجيل الخروج.']);
+        return response()->json(['message' => __('تم تسجيل الخروج.')]);
     }
 }

@@ -7,6 +7,7 @@ namespace App\Models;
 use App\Enums\Gender;
 use App\Enums\OrphanStatus;
 use App\Enums\SponsorshipStatus;
+use App\Models\Concerns\HasTranslations;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -60,6 +61,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
 class Orphan extends Model
 {
     use HasFactory;
+    use HasTranslations;
     use LogsActivity;
     use SoftDeletes;
 

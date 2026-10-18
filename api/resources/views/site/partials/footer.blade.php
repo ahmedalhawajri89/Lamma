@@ -74,7 +74,7 @@
     </div>
 
     <div class="kf-footer__bottom">
-      <p>© {{ now()->year }} {{ __('منصة') }} <span data-site="name">{{ $site['name'] }}</span>{{ __('. جميع الحقوق محفوظة.') }}</p>
+      <p>© {{ now()->year }} <span data-site="name">{{ $site['name'] }}</span>{{ __('. جميع الحقوق محفوظة.') }}</p>
       <nav aria-label="{{ __('روابط قانونية') }}">
         <a href="{{ lurl('/transparency#child-policy') }}">{{ __('سياسة حماية الطفل') }}</a>
         <a href="{{ lurl('/transparency') }}">{{ __('الخصوصية') }}</a>

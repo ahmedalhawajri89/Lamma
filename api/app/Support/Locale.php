@@ -71,6 +71,15 @@ final class Locale
         return $path === '/' ? "/{$locale}" : "/{$locale}{$path}";
     }
 
+    /**
+     * من عمودين متقابلين (name_ar / name_en): ما يوافق لغة الصفحة، والعربي إن
+     * لم يُكتب مقابله.
+     */
+    public static function pick(?string $ar, ?string $en): ?string
+    {
+        return ! self::isDefault() && filled($en) ? $en : $ar;
+    }
+
     /** المسار بلا بادئة اللغة: «/en/orphans» ← «/orphans». */
     public static function strip(string $path): string
     {
