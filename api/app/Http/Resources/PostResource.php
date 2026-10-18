@@ -43,8 +43,9 @@ class PostResource extends JsonResource
             'image' => $this->cover_path ? asset('storage/'.$this->cover_path) : null,
             'readMin' => $this->read_minutes,
             'featured' => $this->is_featured,
-            'status' => $this->status->value,
-            'status_label' => $this->status->label(),
+            // «مجدول» منشورٌ بموعدٍ قادم (Post::displayStatus)
+            'status' => $this->displayStatus()->value,
+            'status_label' => $this->displayStatus()->label(),
             'date' => $this->published_at?->toDateString(),
             'dateLabel' => $this->published_at?->translatedFormat('j F Y'),
             'views_count' => $this->views_count,

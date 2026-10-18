@@ -22,6 +22,7 @@ use App\Models\Testimonial;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Services\RichText;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -50,12 +51,17 @@ class ContentController extends Controller
 
         $posts = (clone $base)
             ->with(['category:id,name_ar', 'author:id,name'])
-            ->when($request->filled('status'), fn ($q) => $q->where('status', $request->string('status')))
+            ->when($request->filled('status'), fn ($q) => $q->displayStatus($request->string('status')->toString()))
             ->latest('created_at')
             ->paginate($this->perPage($request, 20));
 
-        $counts = (clone $base)->toBase()->select('status', \Illuminate\Support\Facades\DB::raw('COUNT(*) as n'))
-            ->groupBy('status')->pluck('n', 'status')->map(fn ($n) => (int) $n);
+        // العدّ بالحالة المعروضة: المنشور بموعدٍ قادم يُعدّ «مجدولاً»
+        $shown = "CASE WHEN status = 'published' AND published_at > ? THEN 'scheduled' ELSE status END";
+        $counts = (clone $base)->toBase()
+            ->selectRaw("{$shown} as shown, COUNT(*) as n", [now()])
+            // بالاسم لا بالعبارة: ONLY_FULL_GROUP_BY لا يرى عبارتين بربطين منفصلين متطابقتين
+            ->groupBy('shown')
+            ->pluck('n', 'shown')->map(fn ($n) => (int) $n);
 
         return response()->json([
             'data' => PostResource::collection($posts->items()),
@@ -119,7 +125,7 @@ class ContentController extends Controller
         $this->audit($request, $post, 'created', 'أنشأ مقالاً', ['title' => $post->title, 'status' => $post->status->value]);
 
         return response()->json([
-            'message' => 'أُنشئ المقال.',
+            'message' => $this->outcome($post, null),
             'data' => new PostResource($post->load('category')),
         ], 201);
     }
@@ -141,6 +147,7 @@ class ContentController extends Controller
         ]);
 
         $before = ['title' => $post->title, 'status' => $post->status->value, 'category_id' => $post->category_id];
+        $wasShown = $post->displayStatus();
 
         // استبدال الغلاف: كان يُضبط عند الإنشاء وحده. والقديم يُحذف كي لا تتراكم ملفات بلا صاحب
         if ($request->hasFile('cover')) {
@@ -165,9 +172,11 @@ class ContentController extends Controller
         $after = ['title' => $post->title, 'status' => $post->status->value, 'category_id' => $post->category_id];
         $this->audit($request, $post, 'updated', 'عدّل مقالاً', array_diff_assoc($after, $before), array_intersect_key($before, array_diff_assoc($after, $before)));
 
+        $post = $post->fresh()->load('category');
+
         return response()->json([
-            'message' => 'حُفظت التعديلات.',
-            'data' => new PostResource($post->fresh()->load('category')),
+            'message' => $this->outcome($post, $wasShown),
+            'data' => new PostResource($post),
         ]);
     }
 
@@ -491,12 +500,37 @@ class ContentController extends Controller
      */
     private function withPublishDate(array $data): array
     {
+        /*
+         * «مجدول» لا يُحفظ حالةً: هو منشورٌ بموعدٍ قادم. كان يُحفظ كما هو،
+         * ولا شيء يحوّله إلى منشور يوم يحلّ، فيبقى المقال مخفياً إلى الأبد.
+         */
+        if (($data['status'] ?? null) === PostStatus::Scheduled->value) {
+            if (empty($data['published_at']) || ! Carbon::parse($data['published_at'])->isFuture()) {
+                throw ValidationException::withMessages(['published_at' => 'اختر تاريخاً قادماً لجدولة النشر.']);
+            }
+            $data['status'] = PostStatus::Published->value;
+        }
+
         if (($data['status'] ?? null) === PostStatus::Published->value
             && empty($data['published_at'])) {
             $data['published_at'] = now();
         }
 
         return $data;
+    }
+
+    /** رسالة الحفظ تسمّي ما حدث فعلاً، لا «حُفظ» لكل شيء */
+    private function outcome(Post $post, ?PostStatus $was): string
+    {
+        $now = $post->displayStatus();
+
+        return match (true) {
+            $now === PostStatus::Scheduled && $was !== PostStatus::Scheduled => 'جُدول المقال، ويُنشر في '.$post->published_at->translatedFormat('j F Y').'.',
+            $now === PostStatus::Published && $was !== PostStatus::Published => 'نُشر المقال على الموقع.',
+            $now === PostStatus::Draft && $was !== null && $was !== PostStatus::Draft => 'أُلغي النشر، وصار المقال مسوّدة لا تظهر على الموقع.',
+            $now === PostStatus::Draft => 'حُفظت المسوّدة. لا تظهر على الموقع حتى تنشرها.',
+            default => 'حُفظت التعديلات.',
+        };
     }
 
     /** @return class-string */

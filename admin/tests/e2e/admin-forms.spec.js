@@ -698,6 +698,29 @@ test.describe('الإعدادات', () => {
  * يمحو نصّه، لأن قائمة اللوحة لا تحمل `body` فتُرسله النافذة فارغاً.
  */
 test.describe('محتوى الموقع', () => {
+  /**
+   * «انشر الآن» بلا عنوان كان يقلب المقال «منشوراً» في النموذج قبل الفحص،
+   * فيصير «حفظ» بعده نشراً بلا قصد. الحالة الآن لا تتغيّر إلا بإجراءٍ ناجح.
+   */
+  test('النشر بلا عنوان لا يغيّر شيئاً، والزرّ يقول ما سيفعله', async ({ page }) => {
+    await login(page)
+    await page.goto('/content/posts/new')
+    const publish = page.getByRole('button', { name: 'انشر الآن' })
+    await expect(publish).toBeVisible({ timeout: 20_000 })
+
+    await publish.click()
+    await expect(page.getByText('العنوان مطلوب.')).toBeVisible()
+    await expect(page.locator('#postTitle')).toBeFocused()
+    // ما زالت مسوّدة: الزرّان كما كانا، والملاحظة تقول ذلك
+    await expect(publish).toBeVisible()
+    await expect(page.getByRole('button', { name: /حفظ المسوّدة/ })).toBeVisible()
+    await expect(page.locator('[data-status-note]')).toContainText('مسوّدة')
+
+    // تاريخٌ قادم يجعل النشر جدولة، ويسمّيها الزرّ
+    await page.fill('#postDate', '2099-01-15')
+    await expect(page.getByRole('button', { name: /جدولة لـ/ })).toBeVisible()
+  })
+
   test('مسوّدة ← نشر ← تظهر على الموقع بنصّها كاملاً', async ({ page }) => {
     const SITE = process.env.E2E_SITE ?? 'http://127.0.0.1:8000'
     await login(page)
@@ -754,14 +777,14 @@ test.describe('محتوى الموقع', () => {
     const card = page.locator('.mag-card, .feature', { hasText: title })
     await expect(card).toHaveCount(1, { timeout: 20_000 })
 
+    // صفحة المقال يرسمها الخادم: لا انتظار لتحميلٍ بعد الفتح
     await card.locator('a').first().click()
-    await page.waitForSelector('#postDetail:not([aria-busy])', { timeout: 20_000 })
-    await expect(page.locator('h1')).toHaveText(title)
+    await expect(page.locator('h1#postTitle')).toHaveText(title, { timeout: 20_000 })
 
     // التنسيق يصل الموقع كما كُتب: العنوان عنوان، والفقرات ثلاث
-    await expect(page.locator('.prose h2')).toHaveText('عنوان داخل المقال')
-    await expect(page.locator('.prose p')).toHaveCount(3)
-    expect(await page.locator('.frame__img').evaluate((e) => e.naturalWidth)).toBeGreaterThan(0)
+    await expect(page.locator('.post-body h2')).toHaveText('عنوان داخل المقال')
+    await expect(page.locator('.post-body > p')).toHaveCount(3)
+    expect(await page.locator('.post-cover img').evaluate((e) => e.naturalWidth)).toBeGreaterThan(0)
   })
 
   test('وثيقة شفافية تُرفع من اللوحة فيظهر رابطها على صفحة الشفافية', async ({ page }) => {

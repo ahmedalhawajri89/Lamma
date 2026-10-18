@@ -237,6 +237,8 @@
     font-size: 0.7rem;
     line-height: 1;
   }
+  /* داخل زرٍّ مصمت: إطارٌ شفاف بلون نصّه، لا رقعة بيضاء */
+  .kbd--on-dark { border-color: rgb(255 255 255 / 0.35); background: transparent; color: inherit; }
   @media (min-width: 1024px) {
     .kbd { display: inline-grid; }
   }

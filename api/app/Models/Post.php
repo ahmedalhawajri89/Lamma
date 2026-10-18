@@ -69,4 +69,28 @@ class Post extends Model
             ->where('published_at', '<=', now())
             ->latest('published_at');
     }
+
+    /**
+     * الحالة كما يراها المحرّر.
+     *
+     * في القاعدة حالتان فقط: مسوّدة ومنشور. و«مجدول» منشورٌ بموعدٍ لم يحلّ،
+     * يظهر على الموقع وحده يوم يحلّ (scopePublished). كانت «مجدول» حالةً
+     * تُحفظ، ولا شيء يحوّلها إلى منشور، فيبقى المقال المجدول مخفياً إلى الأبد.
+     */
+    public function displayStatus(): PostStatus
+    {
+        return $this->status === PostStatus::Published && $this->published_at?->isFuture()
+            ? PostStatus::Scheduled
+            : $this->status;
+    }
+
+    /** تصفية القائمة بالحالة كما تُعرض (المجدول منشورٌ بموعدٍ قادم) */
+    public function scopeDisplayStatus(Builder $query, string $status): Builder
+    {
+        return match ($status) {
+            PostStatus::Scheduled->value => $query->where('status', PostStatus::Published)->where('published_at', '>', now()),
+            PostStatus::Published->value => $query->where('status', PostStatus::Published)->where('published_at', '<=', now()),
+            default => $query->where('status', $status),
+        };
+    }
 }

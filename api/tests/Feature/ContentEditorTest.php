@@ -39,3 +39,47 @@ it('يرتّب الأسئلة الشائعة بالترتيب المرسَل', f
     $ids = collect($this->postJson('/api/v1/admin/content/faqs/reorder', ['ids' => [$c->id, $a->id, $b->id]])->assertOk()->json('data'))->pluck('id')->all();
     expect($ids)->toBe([$c->id, $a->id, $b->id]);
 });
+
+/* ------------------------------------------------------------ النشر والجدولة */
+
+/**
+ * «مجدول» كان حالةً تُحفظ ولا شيء يحوّلها إلى منشور، فيبقى المقال مخفياً
+ * إلى الأبد. الآن المجدول منشورٌ بموعدٍ قادم، يظهر وحده يوم يحلّ.
+ */
+it('النشر بتاريخ قادم جدولةٌ تظهر على الموقع يوم يحلّ موعدها', function (): void {
+    $day = now()->addDays(5)->toDateString();
+
+    $res = $this->postJson('/api/v1/admin/posts', ['title' => 'مقال مجدول', 'status' => 'published', 'published_at' => $day])
+        ->assertCreated()
+        ->assertJsonPath('data.status', 'scheduled')
+        ->assertJsonPath('data.status_label', 'مجدول');
+    expect($res->json('message'))->toContain('جُدول');
+
+    $post = Post::find($res->json('data.id'));
+    expect($post->status)->toBe(PostStatus::Published)
+        ->and(Post::published()->whereKey($post->id)->exists())->toBeFalse();
+
+    $meta = $this->getJson('/api/v1/admin/posts?status=scheduled')->json('meta');
+    expect($meta['status_counts']['scheduled'] ?? 0)->toBe(1)->and($meta['total'])->toBe(1);
+
+    $this->travel(6)->days();
+    expect(Post::published()->whereKey($post->id)->exists())->toBeTrue();
+});
+
+it('«مجدول» صريحاً يشترط تاريخاً قادماً، ويُحفظ منشوراً به', function (): void {
+    $this->postJson('/api/v1/admin/posts', ['title' => 'بلا موعد', 'status' => 'scheduled'])
+        ->assertUnprocessable()->assertJsonValidationErrors('published_at');
+
+    $id = $this->postJson('/api/v1/admin/posts', ['title' => 'بموعد', 'status' => 'scheduled', 'published_at' => now()->addWeek()->toDateString()])
+        ->assertCreated()->json('data.id');
+    expect(Post::find($id)->status)->toBe(PostStatus::Published);
+});
+
+it('رسالة الحفظ تسمّي ما حدث: مسوّدة، ونشر، وإلغاء نشر', function (): void {
+    $id = $this->postJson('/api/v1/admin/posts', ['title' => 'مقال', 'status' => 'draft'])->assertCreated()->json('data.id');
+
+    expect($this->patchJson("/api/v1/admin/posts/{$id}", ['status' => 'draft', 'title' => 'مقال معدّل'])->json('message'))->toContain('المسوّدة')
+        ->and($this->patchJson("/api/v1/admin/posts/{$id}", ['status' => 'published'])->json('message'))->toContain('نُشر')
+        ->and($this->patchJson("/api/v1/admin/posts/{$id}", ['status' => 'published', 'title' => 'بعد النشر'])->json('message'))->toBe('حُفظت التعديلات.')
+        ->and($this->patchJson("/api/v1/admin/posts/{$id}", ['status' => 'draft'])->json('message'))->toContain('أُلغي النشر');
+});

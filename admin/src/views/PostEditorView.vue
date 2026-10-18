@@ -24,12 +24,12 @@ const ui = useUiStore()
 
 const isNew = computed(() => route.params.id === 'new')
 
-const BLANK = { title: '', excerpt: '', body: '', category_id: '', status: 'draft', published_at: '', is_featured: false }
+// الحالة ليست في النموذج: لا تتغيّر إلا بإجراءٍ صريح (احفظ المسوّدة، انشر، ألغِ النشر)
+const BLANK = { title: '', excerpt: '', body: '', category_id: '', published_at: '', is_featured: false }
 const form = ref({ ...BLANK })
 const saved = ref(JSON.stringify(BLANK))
 const post = ref(null)
 const categories = ref([])
-const statuses = ref([])
 const loading = ref(true)
 const saving = ref(false)
 const errors = ref({})
@@ -42,20 +42,17 @@ async function load() {
     if (isNew.value) {
       const { data } = await admin.posts.list({ per_page: 1 })
       categories.value = data.meta?.categories ?? []
-      statuses.value = data.meta?.statuses ?? []
       form.value = { ...BLANK }
     } else {
       const { data } = await admin.posts.show(route.params.id)
       post.value = data.data
       categories.value = data.meta?.categories ?? []
-      statuses.value = data.meta?.statuses ?? []
       const p = data.data
       form.value = {
         title: p.title ?? '',
         excerpt: p.excerpt ?? '',
         body: p.body ?? '',
         category_id: p.category_id ?? '',
-        status: p.status ?? 'draft',
         published_at: p.date ?? '',
         is_featured: Boolean(p.featured),
       }
@@ -99,18 +96,50 @@ const coverShown = computed(() => coverPreview.value ?? post.value?.image ?? nul
 
 /* ── الحفظ ───────────────────────────────────────────────────────────── */
 
+/**
+ * الحالة كما هي على الخادم: «draft» أو «published» أو «scheduled» (منشورٌ
+ * بموعدٍ قادم). والأزرار تتبعها، فلا يُنشر مقالٌ بزرّ «حفظ».
+ */
+const current = computed(() => post.value?.status ?? 'draft')
+const isLive = computed(() => current.value !== 'draft')
+
+/** الموعد المكتوب في المستقبل؟ فالنشر جدولة، ويقول الزرّ ذلك */
+const futureDate = computed(() => {
+  if (!form.value.published_at) return null
+  const d = new Date(`${form.value.published_at}T00:00:00`)
+  const today = new Date(); today.setHours(0, 0, 0, 0)
+  return d > today ? d : null
+})
+const publishLabel = computed(() => (futureDate.value ? `جدولة لـ ${date(form.value.published_at)}` : 'انشر الآن'))
+
+/** ما يحدث عند الحفظ، بلغة الكاتب: يظهر بجانب الأزرار */
+const statusNote = computed(() => {
+  if (current.value === 'published') return `منشور منذ ${date(post.value.date)}. «حفظ التغييرات» يحدّثه على الموقع فوراً.`
+  if (current.value === 'scheduled') return `مجدول، يُنشر في ${date(post.value.date)}.`
+  return 'مسوّدة: لا تظهر على الموقع حتى تنشرها.'
+})
+
+/**
+ * الحفظ بحالةٍ صريحة. كانت الحالة تُكتب في النموذج قبل فحص العنوان، فنقرة
+ * «انشر الآن» بلا عنوان تقلب المقال «منشوراً» بصمت، ويصير «حفظ» بعدها نشراً.
+ * الآن: الفحص أولاً، والحالة في الطلب وحده، والنموذج لا يتغيّر.
+ */
 async function save(status = null) {
   if (saving.value) return
-  if (status) form.value.status = status
   if (!form.value.title.trim()) {
     errors.value = { title: ['العنوان مطلوب.'] }
+    document.getElementById('postTitle')?.focus()
     return
   }
+
+  // الحفظ العادي (وCtrl+S) يُبقي الحالة كما هي: المسوّدة مسوّدة، والمنشور منشور
+  const target = status ?? (isLive.value ? 'published' : 'draft')
 
   saving.value = true
   errors.value = {}
   const payload = {
     ...form.value,
+    status: target,
     category_id: form.value.category_id || null,
     published_at: form.value.published_at || null,
     read_minutes: readMinutes.value,
@@ -134,7 +163,20 @@ async function save(status = null) {
   }
 }
 
-const siteUrl = computed(() => (post.value?.status === 'published' ? `${__SITE_URL__}post.html?slug=${encodeURIComponent(post.value.slug)}` : null))
+const siteUrl = computed(() => (post.value?.status === 'published' ? `${__SITE_URL__}post?slug=${encodeURIComponent(post.value.slug)}` : null))
+
+/** إلغاء النشر يُخفي المقال عن القرّاء: يُسأل عنه */
+async function unpublish() {
+  const ok = await confirmDialog({
+    title: current.value === 'scheduled' ? 'إلغاء الجدولة' : 'إلغاء النشر',
+    message: current.value === 'scheduled'
+      ? 'يعود المقال مسوّدة ولا يُنشر في موعده.'
+      : 'يختفي المقال عن المدونة فوراً ويعود مسوّدة. روابطه المشتركة تصير صفحة «غير موجود».',
+    confirmLabel: current.value === 'scheduled' ? 'ألغِ الجدولة' : 'ألغِ النشر',
+    danger: true,
+  })
+  if (ok) save('draft')
+}
 
 /* ── ما لم يُحفظ ─────────────────────────────────────────────────────── */
 
@@ -184,12 +226,22 @@ function grow(e) {
         <a v-if="siteUrl" :href="siteUrl" target="_blank" rel="noopener" class="btn btn-ghost text-sm">
           <BaseIcon name="external" :size="14" /> على الموقع
         </a>
-        <button class="btn btn-outline" type="button" :disabled="saving" @click="save()">
-          حفظ <kbd class="kbd">Ctrl S</kbd>
-        </button>
-        <button v-if="form.status !== 'published'" class="btn btn-primary" type="button" :disabled="saving" @click="save('published')">
-          <BaseIcon name="eye" :size="15" /> انشر الآن
-        </button>
+        <template v-if="!isLive">
+          <button class="btn btn-outline" type="button" :disabled="saving" @click="save('draft')">
+            حفظ المسوّدة <kbd class="kbd">Ctrl S</kbd>
+          </button>
+          <button class="btn btn-primary" type="button" :disabled="saving" @click="save('published')">
+            <BaseIcon name="eye" :size="15" /> {{ publishLabel }}
+          </button>
+        </template>
+        <template v-else>
+          <button class="btn btn-ghost text-sm" type="button" :disabled="saving" @click="unpublish">
+            {{ current === 'scheduled' ? 'إلغاء الجدولة' : 'إلغاء النشر' }}
+          </button>
+          <button class="btn btn-primary" type="button" :disabled="saving" @click="save('published')">
+            حفظ التغييرات <kbd class="kbd kbd--on-dark">Ctrl S</kbd>
+          </button>
+        </template>
       </span>
     </div>
 
@@ -248,16 +300,20 @@ function grow(e) {
       <!-- ══ الإعدادات ══ -->
       <aside class="space-y-4">
         <section class="card p-5 space-y-4">
+          <!-- الحالة تُقرأ ولا تُختار: تتغيّر بالأزرار أعلاه وحدها -->
           <div>
-            <label class="block text-xs font-semibold text-sand-500 mb-1.5" for="postStatus">الحالة</label>
-            <select id="postStatus" v-model="form.status" class="input text-sm">
-              <option v-for="s in statuses" :key="s.value" :value="s.value">{{ s.label }}</option>
-            </select>
+            <p class="block text-xs font-semibold text-sand-500 mb-1.5">الحالة</p>
+            <p class="flex items-center gap-2 text-sm">
+              <StatusBadge :label="post?.status_label ?? 'مسوّدة'" :value="current" />
+            </p>
+            <p class="text-[0.7rem] text-sand-500 mt-1.5 leading-relaxed" data-status-note>{{ statusNote }}</p>
           </div>
           <div>
             <label class="block text-xs font-semibold text-sand-500 mb-1.5" for="postDate">تاريخ النشر</label>
             <input id="postDate" v-model="form.published_at" type="date" lang="en" class="input text-sm" />
-            <p class="text-[0.7rem] text-sand-400 mt-1">فارغاً: يوم النشر. ومستقبلاً: يُنشر في يومه (مجدول).</p>
+            <p class="text-[0.7rem] text-sand-400 mt-1">
+              {{ futureDate ? 'تاريخٌ قادم: يُجدول المقال ويُنشر في يومه.' : 'فارغاً أو اليوم: يُنشر فوراً. واختر تاريخاً قادماً للجدولة.' }}
+            </p>
           </div>
           <div>
             <label class="block text-xs font-semibold text-sand-500 mb-1.5" for="postCategory">التصنيف</label>
