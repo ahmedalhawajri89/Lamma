@@ -183,7 +183,7 @@ export function initCatalog() {
   function renderAll() {
     const any = FILTER_KEYS.some((k) => state[k]);
     const count = kids(total, `<strong class="num">${formatNumber(total)}</strong>`);
-    $('#catalogCount').innerHTML = t(any ? '{kids} يطابقون اختيارك' : '{kids} ينتظرون كافلاً', { kids: count });
+    $('#catalogCount').innerHTML = t(any ? '{kids} يطابقون اختيارك' : '{kids} ينتظرون من يقف معهم', { kids: count });
     renderPrograms();
     renderMenus();
     renderSheet();

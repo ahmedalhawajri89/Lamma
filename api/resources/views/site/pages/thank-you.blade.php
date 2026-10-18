@@ -30,7 +30,7 @@
           <p class="ty-demo" data-thanks-when="demo" hidden><i class="fa-solid fa-flask" aria-hidden="true"></i> {{ __('وضع تجريبي: لم يُخصم أي مال.') }}</p>
 
           <div data-thanks-when="paid" hidden>
-            <h1 class="ty-title">{{ __('تمّت الكفالة. شكراً لأنك مع') }} <span data-thanks="name">…</span>.</h1>
+            <h1 class="ty-title">{{ __('أهلاً بك في لمّة') }} <span data-thanks="name">…</span>.</h1>
             <p class="ty-lede">{{ __('جعلها الله في ميزان حسناتك.') }} <span data-g="{{ __('ملفه الكامل') }}|{{ __('ملفها الكامل') }}">{{ __('ملفه الكامل') }}</span> {{ __('في حسابك الآن، ويصلك أول تقرير مصوّر خلال تسعين يوماً.') }}</p>
           </div>
 
@@ -86,7 +86,7 @@
 
         <div class="ty-actions">
           <a class="btn btn-primary btn-lg" href="{{ lurl('/dashboard') }}">{{ __('افتح حسابي') }} <i class="fa-solid fa-arrow-left ms-1" aria-hidden="true"></i></a>
-          <a class="btn btn-outline-primary btn-lg" href="{{ lurl('/orphans') }}">{{ __('اكفل طفلاً آخر') }}</a>
+          <a class="btn btn-outline-primary btn-lg" href="{{ lurl('/orphans') }}">{{ __('كن من لمّة طفلٍ آخر') }}</a>
         </div>
         <button type="button" class="ty-share" data-share data-share-url="{{ lurl('/orphans') }}" data-share-title="{{ __('أطفال ينتظرون من يكفلهم على :name', ['name' => $site['name']]) }}">
           <i class="fa-solid fa-share-nodes" aria-hidden="true"></i> {{ __('ادعُ غيرك ليكفل طفلاً') }}

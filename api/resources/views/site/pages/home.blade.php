@@ -30,7 +30,7 @@
 
       <!-- عبارة بخط اليد فوق الصورة، وتحتها خط ذهبي يُرسم مرة واحدة -->
       <p class="hero__script" aria-hidden="true">
-        <span>{{ __('بكفالتك..') }}</span>
+        <span>{{ __('معك..') }}</span>
         <span>{{ __('يبقى بين أهله') }}</span>
         <svg class="hero__swoosh" viewBox="0 0 120 30" focusable="false"><path d="M4 24 C 34 8, 72 4, 116 6"/></svg>
       </p>
@@ -50,15 +50,15 @@
         <div class="hero__text">
           <p class="hero__kicker">{{ __('كفالةٌ تبقي الطفل في أسرته') }} <span class="hero__dot" aria-hidden="true"></span> {{ __('منذ') }} <span class="num">2012</span></p>
           <h1 class="hero__title" id="heroTitle">
-            <span class="hero__line">{{ __('اكفل') }} <mark class="hero__mark">{{ __('يتيماً') }}</mark>@if (\App\Support\Locale::isDefault())..@endif</span>
-            <span class="hero__line hero__line--brand">{{ __('في لمّة أهله.') }}</span>
+            <span class="hero__line">{{ __('كل طفلٍ يستحق') }} <mark class="hero__mark">{{ __('لمّة.') }}</mark></span>
+            <span class="hero__line hero__line--brand">{{ __('كن منها.') }}</span>
           </h1>
           <p class="hero__lede">
-            {{ __('لأغلب الأيتام أمٌّ أو أقاربُ يحبّونهم، ويعجزون عن إعالتهم. كفالتك تُبقي الطفل في بيته ومدرسته، وتصلك أخباره في تقريرٍ مصوّر كل ثلاثة أشهر.') }}
+            {{ __('لأغلب الأيتام أمٌّ أو أقاربُ يحبّونهم، ويعجزون عن إعالتهم. بمبلغٍ شهري تصير من لمّة طفل: يبقى في بيته ومدرسته، وتصلك أخباره في تقريرٍ مصوّر كل ثلاثة أشهر.') }}
           </p>
           <div class="hero__actions">
             <a class="btn btn-cta btn-lg" href="{{ lurl('/orphans') }}">
-              {{ __('اكفل يتيماً') }} <i class="fa-solid fa-arrow-left btn__icon btn__icon--arrow" aria-hidden="true"></i>
+              {{ __('كن من لمّة طفل') }} <i class="fa-solid fa-arrow-left btn__icon btn__icon--arrow" aria-hidden="true"></i>
             </a>
             <a class="hero__how" href="#how">
               {{ __('كيف نضمن وصولها؟') }}
@@ -77,7 +77,7 @@
           </li>
           <li data-hero-item="toChild">
             <span class="hero__stat-icon" aria-hidden="true"><i class="fa-regular fa-heart"></i></span>
-            <span class="hero__stat-text"><strong class="num" data-hero="toChild">0</strong><span class="hero__stat-label">{{ __('من كفالتك تصل للطفل') }}</span></span>
+            <span class="hero__stat-text"><strong class="num" data-hero="toChild">0</strong><span class="hero__stat-label">{{ __('من مبلغك يصل للطفل') }}</span></span>
           </li>
           <li data-hero-item="startYear">
             <span class="hero__stat-icon" aria-hidden="true"><i class="fa-solid fa-shield-halved"></i></span>
@@ -124,7 +124,7 @@
     <section class="kf-section kf-section--surface" id="how" aria-labelledby="howTitle">
       <div class="container how" data-how>
         <header class="kf-head kf-head--center" data-reveal>
-          <h2 id="howTitle">{{ __('كيف تبدأ الكفالة؟') }}</h2>
+          <h2 id="howTitle">{{ __('كيف تصير من لمّة طفل؟') }}</h2>
           <p class="kf-lede">{{ __('ثلاث خطوات تأخذ دقائق، بلا أوراق ولا مقابلات.') }}</p>
         </header>
 
@@ -189,7 +189,7 @@
               <div class="how__panel is-active" data-step="1">
                 <div class="how__screen">
                 <div class="how__bar"><span></span><span></span><span></span></div>
-                <p class="how__label">{{ __('أطفال ينتظرون كافلاً') }}</p>
+                <p class="how__label">{{ __('أطفال ينتظرون من يقف معهم') }}</p>
                 <div class="how-search"><i class="fa-solid fa-magnifying-glass"></i> {{ __('ابحث بالاسم أو المدينة') }}</div>
                 <ul class="how-kids">
                   <li class="is-picked">
@@ -212,7 +212,7 @@
               <div class="how__panel" data-step="2">
                 <div class="how__screen">
                 <div class="how__bar"><span></span><span></span><span></span></div>
-                <p class="how__label">{{ __('كفالة أمنية') }}</p>
+                <p class="how__label">{{ __('لمّة أمنية') }}</p>
                 <div class="how-seg"><span class="is-on">{{ __('شهرية') }}</span><span>{{ __('كل 3 أشهر') }}</span><span>{{ __('سنوية') }}</span></div>
                 <div class="how-amounts"><span class="is-on num">$35</span><span class="num">$50</span><span class="num">$70</span></div>
                 <p class="how__label">{{ __('من أين تُدفع؟') }}</p>
@@ -389,7 +389,7 @@
       <div class="container">
         <header class="kf-head kf-head--center" data-reveal>
           <h2 id="storiesTitle">{{ __('كفلاءُ صاروا من اللمّة') }}</h2>
-          <p class="kf-lede">{{ __('بكلماتهم: ما الذي تغيّر حين صار للكفالة وجهٌ وأسرةٌ وتقرير.') }}</p>
+          <p class="kf-lede">{{ __('بكلماتهم: ما الذي تغيّر حين صار لعطائهم وجهٌ وأسرةٌ وتقرير.') }}</p>
         </header>
         <div class="row g-4 align-items-stretch" id="homeVoices"></div>
       </div>
@@ -449,7 +449,7 @@
               <p class="closing__lede">{{ __('من') }} <b class="num">$35</b> {{ __('في الشهر يبقى طفلٌ في بيته ومدرسته. وتستطيع إيقافها متى شئت بلا رسوم ولا اتصال.') }}</p>
               <div class="closing__actions">
                 <a class="btn btn-cta btn-lg" href="{{ lurl('/orphans') }}">
-                  {{ __('اكفل يتيماً') }} <i class="fa-solid fa-arrow-left btn__icon btn__icon--arrow" aria-hidden="true"></i>
+                  {{ __('كن من لمّة طفل') }} <i class="fa-solid fa-arrow-left btn__icon btn__icon--arrow" aria-hidden="true"></i>
                 </a>
                 <a class="link-arrow" href="{{ lurl('/contact') }}">{{ __('تحدّث مع فريقنا') }}</a>
               </div>
@@ -468,7 +468,7 @@
           </div>
 
           <div class="closing__next">
-            <p class="closing__next-title">{{ __('ماذا يحدث بعد أن تكفل؟') }}</p>
+            <p class="closing__next-title">{{ __('ماذا يحدث بعد أن تنضم؟') }}</p>
             <ol class="closing__steps" role="list">
               <li><span class="closing__num num">1</span><div><strong>{{ __('تختار الطفل والبرنامج') }}</strong><p>{{ __('وتدفع شهرياً أو سنوياً بالطريقة التي تناسبك.') }}</p></div></li>
               <li><span class="closing__num num">2</span><div><strong>{{ __('يصلك ملف الطفل') }}</strong><p>{{ __('قصته وأسرته واحتياجاته، ويبقى في حسابك تعود إليه متى أردت.') }}</p></div></li>
@@ -489,7 +489,7 @@
       <span>{{ __('الكفالة تبدأ من') }}</span>
       <strong><b class="num">$35</b> {{ __('في الشهر') }}</strong>
     </div>
-    <a class="btn btn-cta" href="{{ lurl('/orphans') }}">{{ __('اكفل يتيماً') }}</a>
+    <a class="btn btn-cta" href="{{ lurl('/orphans') }}">{{ __('كن من لمّة طفل') }}</a>
   </div>
 
   <button class="to-top" type="button" id="toTop" aria-label="{{ __('العودة إلى أعلى الصفحة') }}">

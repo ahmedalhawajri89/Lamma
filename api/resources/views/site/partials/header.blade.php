@@ -26,7 +26,7 @@
           </ul>
           <div class="d-grid gap-2 mt-4 d-xl-none">
             <a class="btn btn-outline-primary btn-lg" href="{{ lurl('/login') }}" data-account-link>{{ __('تسجيل الدخول') }}</a>
-            <a class="btn btn-cta btn-lg" href="{{ lurl('/orphans') }}">{{ __('اكفل يتيماً') }}</a>
+            <a class="btn btn-cta btn-lg" href="{{ lurl('/orphans') }}">{{ __('كن من لمّة طفل') }}</a>
           </div>
         </div>
       </div>
@@ -34,7 +34,7 @@
       <div class="kf-header__actions">
         <a class="btn btn-outline-primary d-none d-xl-inline-flex" href="{{ lurl('/login') }}" data-account-link>{{ __('تسجيل الدخول') }}</a>
         <a class="btn btn-cta d-none d-sm-inline-flex" href="{{ lurl('/orphans') }}">
-          <i class="fa-regular fa-heart" aria-hidden="true"></i> {{ __('اكفل يتيماً') }}
+          <i class="fa-regular fa-heart" aria-hidden="true"></i> {{ __('كن من لمّة طفل') }}
         </a>
         <a class="btn btn-icon btn-icon--plain kf-header__search" href="{{ lurl('/orphans') }}" aria-label="{{ __('ابحث عن طفل') }}" title="{{ __('ابحث عن طفل') }}">
           <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>

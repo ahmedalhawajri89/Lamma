@@ -65,7 +65,7 @@ it('ترسم صفحة الطفل من الخادم: الاسم والحلم في
         ->toContain('property="og:title" content="ساعد سارة')
         ->toContain('<meta name="robots" content="noindex">')
         ->toContain('href="/checkout?id='.$kid->reference_code.'"')
-        ->toContain('لم يكفلها أحد بعد')
+        ->toContain('لم ينضمّ أحدٌ إلى لمّتها بعد')
         ->not->toContain('المصري');
 });
 
@@ -76,7 +76,7 @@ it('تقول صفحة الطفل المكفول جزئياً كم يكفله و�
 
     $this->get("/orphan?id={$kid->reference_code}")
         ->assertOk()
-        ->assertSee('يكفلها شخصان')
+        ->assertSee('في لمّتها شخصان')
         ->assertSee('$20')
         ->assertSee('أكمل كفالة سارة');
 });
@@ -87,7 +87,7 @@ it('تشكر صفحة من اكتملت كفالته كافليه بلا زرّ 
 
     $this->get("/orphan?id={$kid->reference_code}")
         ->assertOk()
-        ->assertSee('اكتملت كفالتها')
+        ->assertSee('اكتملت لمّتها، شكراً لمن وقف معها.')
         ->assertSee('property="og:title" content="اكتملت كفالة سارة"', false)
         ->assertDontSee('/checkout?id=', false);
 });

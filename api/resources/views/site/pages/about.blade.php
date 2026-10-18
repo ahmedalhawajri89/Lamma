@@ -28,10 +28,10 @@
         <div class="row g-4 g-lg-5 align-items-center">
           <div class="col-lg-7">
             <p class="kf-eyebrow ab-eyebrow">منذ <span class="num" data-ab="startYear">2012</span>، في <span class="num" data-ab="countries">12</span> دولة</p>
-            <h1 class="ab-title" id="abTitle">نُبقي الطفل في لمّة أهله،<br><em>ونريك أثر كفالتك فيها.</em></h1>
+            <h1 class="ab-title" id="abTitle">نُبقي الطفل في لمّة أهله،<br><em>ونريك أثر عطائك فيها.</em></h1>
             <p class="ab-lede">بدأنا بأربعة عشر طفلاً في مخيم واحد، ولم نغيّر القاعدة التي بدأنا بها: لا نُظهر حالةً لم نزرها في بيتها بأنفسنا.</p>
             <div class="ab-actions">
-              <a class="btn btn-cta btn-lg" href="{{ lurl('/orphans') }}">اكفل يتيماً <i class="fa-solid fa-arrow-left ms-1" aria-hidden="true"></i></a>
+              <a class="btn btn-cta btn-lg" href="{{ lurl('/orphans') }}">كن من لمّة طفل <i class="fa-solid fa-arrow-left ms-1" aria-hidden="true"></i></a>
               <a class="link-arrow" href="{{ lurl('/transparency') }}">اطّلع على حساباتنا <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
             </div>
           </div>
@@ -173,7 +173,7 @@
             <p>نجيب على كل سؤال خلال 72 ساعة، مهما كان دقيقاً أو محرجاً.</p>
           </div>
           <div class="ab-cta__actions">
-            <a class="btn btn-cta btn-lg" href="{{ lurl('/orphans') }}">اكفل يتيماً <i class="fa-solid fa-arrow-left ms-1" aria-hidden="true"></i></a>
+            <a class="btn btn-cta btn-lg" href="{{ lurl('/orphans') }}">كن من لمّة طفل <i class="fa-solid fa-arrow-left ms-1" aria-hidden="true"></i></a>
             <a class="btn btn-outline-primary btn-lg" href="{{ lurl('/contact') }}">اسألنا مباشرة</a>
           </div>
         </div>

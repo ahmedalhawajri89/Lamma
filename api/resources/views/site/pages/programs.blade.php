@@ -55,7 +55,7 @@
               <p class="plan__price"><strong class="num">{{ $money($p->monthly_price) }}</strong><span>في الشهر</span></p>
               <p class="plan__summary">{{ $p->summary_ar }}</p>
               @if ($n)
-                <a class="btn {{ $p->is_featured ? 'btn-cta' : 'btn-outline-primary' }} plan__cta" href="{{ lurl('/orphans?program=') }}{{ urlencode($p->slug) }}">اكفل يتيماً</a>
+                <a class="btn {{ $p->is_featured ? 'btn-cta' : 'btn-outline-primary' }} plan__cta" href="{{ lurl('/orphans?program=') }}{{ urlencode($p->slug) }}">كن من لمّة طفل</a>
                 <p class="plan__waiting"><span class="plan__dot" aria-hidden="true"></span> <b class="num">{{ $n }}</b> {{ $n === 1 ? 'طفل ينتظر' : ($n === 2 ? 'طفلان ينتظران' : ($n <= 10 ? 'أطفال ينتظرون' : 'طفلاً ينتظرون')) }} كافلاً</p>
               @else
                 <a class="btn btn-outline-primary plan__cta" href="{{ lurl('/orphans') }}">أطفال في برامج أخرى</a>
@@ -107,7 +107,7 @@
             <input class="form-range pg-calc__range" type="range" id="impactRange" min="15" max="150" step="5" value="45" aria-describedby="impactSuggestion">
             <div class="pg-calc__scale" aria-hidden="true"><span class="num">$15</span><span class="num">$150</span></div>
             <p class="pg-calc__hint" id="impactSuggestion" role="status" aria-live="polite"></p>
-            <a class="btn btn-cta btn-lg" href="{{ lurl('/orphans') }}">اكفل يتيماً <i class="fa-solid fa-arrow-left ms-1" aria-hidden="true"></i></a>
+            <a class="btn btn-cta btn-lg" href="{{ lurl('/orphans') }}">كن من لمّة طفل <i class="fa-solid fa-arrow-left ms-1" aria-hidden="true"></i></a>
           </div>
           <div class="col-lg-7">
             <p class="pg-calc__list-label">هذا المبلغ يغطي:</p>

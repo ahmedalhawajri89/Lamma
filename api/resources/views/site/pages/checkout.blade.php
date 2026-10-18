@@ -46,7 +46,7 @@
             <h1>{{ __('لم نجد هذه الحالة') }}</h1>
             <p>{{ __('ربما تغيّر رابطها أو لم يعد ملفها منشوراً.') }}</p>
           @endif
-          <a class="btn btn-cta btn-lg" href="{{ lurl('/orphans') }}">{{ __('أطفال ينتظرون كافلاً') }}</a>
+          <a class="btn btn-cta btn-lg" href="{{ lurl('/orphans') }}">{{ __('أطفال ينتظرون من يقف معهم') }}</a>
         </section>
       @else
 

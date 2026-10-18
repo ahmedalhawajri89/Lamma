@@ -51,7 +51,7 @@ function renderPlans() {
   <p class="plan__price"><strong class="num">${formatMoney(p.price)}</strong><span>${t('في الشهر')}</span></p>
   <p class="plan__summary">${escapeHtml(p.summary)}</p>
   <a class="btn ${p.featured ? 'btn-cta' : 'btn-outline-primary'} plan__cta"
-     href="${url(`/orphans?program=${encodeURIComponent(p.id)}`)}">${t('اكفل يتيماً')}</a>
+     href="${url(`/orphans?program=${encodeURIComponent(p.id)}`)}">${t('كن من لمّة طفل')}</a>
   <ul class="plan__features" role="list">
     ${(p.features ?? []).map((f) => `<li><i class="fa-solid fa-check" aria-hidden="true"></i>${escapeHtml(f)}</li>`).join('')}
   </ul>
@@ -125,7 +125,7 @@ function renderMoney() {
   <svg viewBox="0 0 200 200" aria-hidden="true"><circle class="money-donut__track" cx="100" cy="100" r="${R}"></circle>${arcs}</svg>
   <div class="money-donut__center" aria-hidden="true">
     <strong class="num" data-money-value>${toChild}${t('٪')}</strong>
-    <span data-money-label>${t('من كفالتك تصل للطفل')}</span>
+    <span data-money-label>${t('من مبلغك يصل للطفل')}</span>
   </div>
 </div>`;
 
@@ -152,7 +152,7 @@ function renderMoney() {
     chart.classList.toggle('is-focused', i >= 0);
     $$('.money-donut__seg', chart).forEach((seg) => seg.classList.toggle('is-on', Number(seg.dataset.i) === i));
     rows.forEach((row, j) => row.classList.toggle('is-on', j === i));
-    if (i < 0) { valueEl.textContent = `${toChild}${t('٪')}`; labelEl.textContent = t('من كفالتك تصل للطفل'); return; }
+    if (i < 0) { valueEl.textContent = `${toChild}${t('٪')}`; labelEl.textContent = t('من مبلغك يصل للطفل'); return; }
     valueEl.textContent = `${formatNumber(safeNumber(SPENDING[i].value))}${t('٪')}`;
     labelEl.textContent = SPENDING[i].label;
   };

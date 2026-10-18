@@ -7,7 +7,7 @@
       <div class="kf-footer__pitch">
         <p class="kf-footer__kicker">{{ __('منصة مرخّصة ومدقّقة منذ 2012') }}</p>
         <h2 class="kf-footer__statement">{{ __('كل طفل يستحق') }}<br><em>{{ __('من يسأل عنه.') }}</em></h2>
-        <a class="kf-footer__cta" href="{{ lurl('/orphans') }}">{{ __('اكفل يتيماً') }} <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
+        <a class="kf-footer__cta" href="{{ lurl('/orphans') }}">{{ __('كن من لمّة طفل') }} <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
       </div>
 
       <div class="kf-footer__news">

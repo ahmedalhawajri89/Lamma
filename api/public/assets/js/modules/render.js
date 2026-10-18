@@ -24,7 +24,7 @@ function sponsorsLabel(n, her) {
     ar: { one: 'شخص واحد', two: 'شخصان', few: '<b class="num">{n}</b> أشخاص', other: '<b class="num">{n}</b> شخصاً' },
     en: { one: 'one person', other: '<b class="num">{n}</b> people' },
   });
-  return t(her ? 'يكفلها {who}' : 'يكفله {who}', { who });
+  return t(her ? 'في لمّتها {who}' : 'في لمّته {who}', { who });
 }
 
 /**
@@ -65,7 +65,7 @@ export function kidCard(o, { delay = 0, cols = 'col-sm-6 col-lg-3' } = {}) {
         <span class="kid-card__track" role="progressbar" aria-label="${t('نسبة كفالة {name}', { name })}" aria-valuenow="${funded}" aria-valuemin="0" aria-valuemax="100"><span style="--v:${funded}%"></span></span>
         ${shared ? `<p class="kid-card__share">${t(her ? 'شارك بأي مبلغ من {min} لإكمال كفالتها' : 'شارك بأي مبلغ من {min} لإكمال كفالته', { min: '<b class="num">$5</b>' })}</p>` : ''}
       </div>
-      <a class="btn btn-cta w-100 kid-card__cta" href="${url(`/checkout?id=${encodeURIComponent(o.id)}`)}">${t(shared ? 'أكمل كفالة {name}' : 'اكفل {name}', { name })}</a>
+      <a class="btn btn-cta w-100 kid-card__cta" href="${url(`/checkout?id=${encodeURIComponent(o.id)}`)}">${t(shared ? 'أكمل كفالة {name}' : 'كن من لمّة {name}', { name })}</a>
     </div>
   </article>
 </div>`;

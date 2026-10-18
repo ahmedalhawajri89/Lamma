@@ -26,11 +26,11 @@
           <div class="col-lg-7">
             <p class="kf-eyebrow cat-hero__eyebrow"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> {{ __('زارهم مشرفونا في بيوتهم') }}</p>
             <h1 class="cat-hero__title" id="catTitle">{{ __('لكل طفلٍ هنا أسرةٌ وحلم،') }}<br><em>{{ __('وينقصهم من يقف معهم.') }}</em></h1>
-            <p class="cat-hero__lede">{{ __('تحقّقت لجنة مستقلة من أوراق كل طفل قبل نشر ملفه. اختر من تكفله، وتصلك أخباره كل ثلاثة أشهر.') }}</p>
+            <p class="cat-hero__lede">{{ __('تحقّقت لجنة مستقلة من أوراق كل طفل قبل نشر ملفه. اختر طفلاً تكون من لمّته، وتصلك أخباره كل ثلاثة أشهر.') }}</p>
           </div>
           <div class="col-lg-5">
             <dl class="cat-stats">
-              <div><dt>{{ __('ينتظرون كافلاً') }}</dt><dd class="num" data-hero-stat="all">0</dd></div>
+              <div><dt>{{ __('ينتظرون من يقف معهم') }}</dt><dd class="num" data-hero-stat="all">0</dd></div>
               <div class="cat-stats__urgent"><dt>{{ __('حالات عاجلة') }}</dt><dd class="num" data-hero-stat="urgent">0</dd></div>
               <div><dt>{{ __('دولة') }}</dt><dd class="num" data-hero-stat="countries">0</dd></div>
             </dl>
