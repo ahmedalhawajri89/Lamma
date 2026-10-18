@@ -25,7 +25,7 @@
         <div class="row g-4 g-lg-5 align-items-end">
           <div class="col-lg-7">
             <p class="kf-eyebrow cat-hero__eyebrow"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> زارهم مشرفونا في بيوتهم</p>
-            <h1 class="cat-hero__title" id="catTitle">لكل طفلٍ هنا حلم،<br><em>وينقصه من يقف معه.</em></h1>
+            <h1 class="cat-hero__title" id="catTitle">لكل طفلٍ هنا أسرةٌ وحلم،<br><em>وينقصهم من يقف معهم.</em></h1>
             <p class="cat-hero__lede">تحقّقت لجنة مستقلة من أوراق كل طفل قبل نشر ملفه. اختر من تكفله، وتصلك أخباره كل ثلاثة أشهر.</p>
           </div>
           <div class="col-lg-5">

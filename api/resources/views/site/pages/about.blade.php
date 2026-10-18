@@ -28,8 +28,8 @@
         <div class="row g-4 g-lg-5 align-items-center">
           <div class="col-lg-7">
             <p class="kf-eyebrow ab-eyebrow">منذ <span class="num" data-ab="startYear">2012</span>، في <span class="num" data-ab="countries">12</span> دولة</p>
-            <h1 class="ab-title" id="abTitle">نوصل كفالتك إلى طفلٍ بعينه،<br><em>ونتابع أثرها معك.</em></h1>
-            <p class="ab-lede">بدأنا بأربعة عشر طفلاً في مخيم واحد، ولم نغيّر القاعدة التي بدأنا بها: لا نُظهر حالةً لم نزرها بأنفسنا.</p>
+            <h1 class="ab-title" id="abTitle">نُبقي الطفل في لمّة أهله،<br><em>ونريك أثر كفالتك فيها.</em></h1>
+            <p class="ab-lede">بدأنا بأربعة عشر طفلاً في مخيم واحد، ولم نغيّر القاعدة التي بدأنا بها: لا نُظهر حالةً لم نزرها في بيتها بأنفسنا.</p>
             <div class="ab-actions">
               <a class="btn btn-cta btn-lg" href="{{ lurl('/orphans') }}">اكفل يتيماً <i class="fa-solid fa-arrow-left ms-1" aria-hidden="true"></i></a>
               <a class="link-arrow" href="{{ lurl('/transparency') }}">اطّلع على حساباتنا <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
@@ -72,16 +72,17 @@
             <h2 class="kf-title" id="abStoryTitle">بدأت بسؤالٍ واحد لم نجد له جواباً مقنعاً</h2>
             <p class="ab-p">في <span class="num" data-ab="startYear">2012</span> تبرّع مؤسسنا لجمعية، وحين سأل بعد ستة أشهر «أين ذهب المبلغ؟» لم يحصل على جواب. لم يكن يشك في أمانتهم، لكنه أدرك أن غياب الجواب نفسه هو ما يوقف آلاف الناس عن العطاء.</p>
             <p class="ab-p">فبدأنا بأربعة عشر طفلاً، ودفترٍ ورقي، وقاعدةٍ واحدة: كل كافل يعرف اسم طفله وصورته وتقريره. القاعدة لم تتغيّر منذ ذلك اليوم، لكن الدفتر صار منصة.</p>
+            <p class="ab-p">ومن آلاف الزيارات تعلّمنا شيئاً ثانياً: أغلب من نسمّيهم أيتاماً لهم أمٌّ أو جدّةٌ أو عمٌّ يحبّونهم ويعجزون عن إعالتهم. فصارت الكفالة تذهب إلى الطفل في بيته، بين أهله، لا إلى دارٍ تأخذه منهم. ومن هنا الاسم: <b>«لمّة»</b>، لمّة العيلة التي تبقى حول الطفل، والكافل واحدٌ منها.</p>
             <div class="ab-vm">
               <div>
                 <span class="ab-vm__icon" aria-hidden="true"><i class="fa-solid fa-eye"></i></span>
                 <h3>رؤيتنا</h3>
-                <p>عالمٌ لا يُترك فيه طفلٌ وحيداً لأن أحداً لم يثق أن دعمه سيصل.</p>
+                <p>عالمٌ لا يُنتزع فيه طفلٌ من أهله لأن أحداً لم يقف معهم.</p>
               </div>
               <div>
                 <span class="ab-vm__icon" aria-hidden="true"><i class="fa-solid fa-compass"></i></span>
                 <h3>رسالتنا</h3>
-                <p>أن نجعل الكفالة علاقةً مرئية وموثّقة، لا تحويلاً مصرفياً مجهول المصير.</p>
+                <p>أن نجعل الكفالة علاقةً مرئية وموثّقة بين كافلٍ وطفلٍ في بيته، لا تحويلاً مصرفياً مجهول المصير.</p>
               </div>
             </div>
           </div>

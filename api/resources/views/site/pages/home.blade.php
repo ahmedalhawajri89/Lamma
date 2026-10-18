@@ -1,9 +1,9 @@
 @extends('site.layouts.app')
 
 @section('title', 'اكفل يتيماً وهو في أسرته، وتابع أثرك شهراً بشهر')
-@section('description', $site['name'].' تربطك بيتيمٍ يعيش في أسرته، وتُريك أين يذهب كل دولار. ٩٣٪ من كفالتك تصل للطفل مباشرة، وتقرير مصوّر كل ثلاثة أشهر.')
+@section('description', $site['name'].': اكفل يتيماً يعيش مع أمّه أو أقاربه، فيبقى في بيته ومدرسته، وتابع أخباره وأين ذهب كل دولار في تقريرٍ مصوّر كل ثلاثة أشهر.')
 @section('canonical', url(lurl('/')))
-@section('og_description', '٩٣٪ من كفالتك تصل للطفل مباشرة، وتقرير مصوّر كل ثلاثة أشهر.')
+@section('og_description', 'اكفل يتيماً وهو في بيته بين أهله، وتابع أثرك بتقريرٍ مصوّر كل ثلاثة أشهر.')
 
 @push('styles')
   <link rel="stylesheet" href="/assets/css/kids.css">
@@ -31,7 +31,7 @@
       <!-- عبارة بخط اليد فوق الصورة، وتحتها خط ذهبي يُرسم مرة واحدة -->
       <p class="hero__script" aria-hidden="true">
         <span>بكفالتك..</span>
-        <span>نمنحهم غداً أفضل</span>
+        <span>يبقى بين أهله</span>
         <svg class="hero__swoosh" viewBox="0 0 120 30" focusable="false"><path d="M4 24 C 34 8, 72 4, 116 6"/></svg>
       </p>
 
@@ -48,14 +48,14 @@
 
       <div class="container hero__inner">
         <div class="hero__text">
-          <p class="hero__kicker">منصة مرخّصة وموثوقة <span class="hero__dot" aria-hidden="true"></span> منذ <span class="num">2012</span></p>
+          <p class="hero__kicker">كفالةٌ تبقي الطفل في أسرته <span class="hero__dot" aria-hidden="true"></span> منذ <span class="num">2012</span></p>
           <h1 class="hero__title" id="heroTitle">
             <span class="hero__line">اكفل <mark class="hero__mark">يتيماً</mark>..</span>
-            <span class="hero__line hero__line--brand">وتابع أثرك بنفسك.</span>
+            <span class="hero__line hero__line--brand">في لمّة أهله.</span>
           </h1>
           <p class="hero__lede">
-            لكلّ يتيم الحقّ في حياة كريمة. وكفالتك تمنحه الأمل والتعليم والمستقبل،
-            وتصلك تقارير مصوّرة عنه كل ثلاثة أشهر.
+            لأغلب الأيتام أمٌّ أو أقاربُ يحبّونهم، ويعجزون عن إعالتهم. كفالتك تُبقي
+            الطفل في بيته ومدرسته، وتصلك أخباره في تقريرٍ مصوّر كل ثلاثة أشهر.
           </p>
           <div class="hero__actions">
             <a class="btn btn-cta btn-lg" href="{{ lurl('/orphans') }}">
@@ -108,8 +108,8 @@
     <section class="kf-section kids" aria-labelledby="childrenTitle">
       <div class="container">
         <header class="kf-head kf-head--center" data-reveal>
-          <h2 id="childrenTitle">أطفالنا ينتظرون كافلاً</h2>
-          <p class="kf-lede">زار مشرفٌ ميداني بيت كل طفل هنا قبل نشر ملفه. تعرّف عليه باسمه وحلمه، ثم قرّر.</p>
+          <h2 id="childrenTitle">أطفالٌ في بيوتهم، ينتظرون من يقف معهم</h2>
+          <p class="kf-lede">زار مشرفٌ ميداني كل طفلٍ هنا في بيته ومع أسرته قبل نشر ملفه. تعرّف عليه باسمه وحلمه، ثم قرّر.</p>
         </header>
         <div class="row g-4" id="homeOrphans" aria-busy="true"></div>
         <div class="kids__more" data-reveal>
@@ -138,7 +138,7 @@
                 <span class="how-step__head"><strong>اختر طفلاً</strong><span>ملفات موثّقة زارها مشرف ميداني</span></span>
               </button>
               <div class="how-step__more" id="howMore1">
-                <p>كل ملف فيه عمر الطفل ومدرسته وحالته الصحية، والمبلغ الذي يحتاجه كل شهر. ولا يُنشر ملف قبل أن يزور مشرف ميداني بيت الطفل.</p>
+                <p>كل ملف فيه عمر الطفل ومدرسته وصحته، ومع من يعيش، والمبلغ الذي تحتاجه أسرته كل شهر. ولا يُنشر ملف قبل أن يزور مشرف ميداني بيت الطفل.</p>
                 <ul class="how-step__points" role="list">
                   <li><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> ابحث بالاسم أو المدينة أو البرنامج</li>
                   <li><i class="fa-solid fa-bolt" aria-hidden="true"></i> الحالات العاجلة تظهر أولاً</li>
@@ -164,7 +164,7 @@
                 <span class="how-step__head"><strong>تابع طفلك</strong><span>تقرير مصوّر كل 90 يوماً</span></span>
               </button>
               <div class="how-step__more" id="howMore3">
-                <p>يصلك تقرير مصوّر كل 90 يوماً عن دراسته وصحته، وفي حسابك كشف بكل دفعة وأين صُرفت.</p>
+                <p>يصلك تقرير مصوّر كل 90 يوماً عن دراسته وصحته وحال أسرته، وفي حسابك كشف بكل دفعة وأين صُرفت.</p>
                 <ul class="how-step__points" role="list">
                   <li><i class="fa-solid fa-circle-pause" aria-hidden="true"></i> إيقاف مؤقت أو إلغاء من حسابك</li>
                   <li><i class="fa-solid fa-comments" aria-hidden="true"></i> اسأل الفريق عن أي تقرير</li>
@@ -284,7 +284,7 @@
       <div class="container">
         <header class="kf-head kf-head--center" data-reveal>
           <h2 id="reportTitle">هذا ما يصلك عن طفلك كل ثلاثة أشهر</h2>
-          <p class="kf-lede">يكتبه المشرف الميداني بعد زيارة البيت والمدرسة، ويصلك على بريدك وفي حسابك. أربعة تقارير في السنة، لا تقرير واحد.</p>
+          <p class="kf-lede">يكتبه المشرف الميداني بعد زيارة الطفل في بيته ومدرسته، ويصلك على بريدك وفي حسابك. أربعة تقارير في السنة، لا تقرير واحد.</p>
         </header>
 
         <div class="row g-4 g-lg-5 align-items-center">
@@ -389,8 +389,8 @@
     <section class="kf-section" aria-labelledby="storiesTitle">
       <div class="container">
         <header class="kf-head kf-head--center" data-reveal>
-          <h2 id="storiesTitle">كفلاء معنا منذ سنوات</h2>
-          <p class="kf-lede">بكلماتهم: ما الذي تغيّر حين صار للكفالة وجهٌ وتقرير.</p>
+          <h2 id="storiesTitle">كفلاءُ صاروا من اللمّة</h2>
+          <p class="kf-lede">بكلماتهم: ما الذي تغيّر حين صار للكفالة وجهٌ وأسرةٌ وتقرير.</p>
         </header>
         <div class="row g-4 align-items-stretch" id="homeVoices"></div>
       </div>
@@ -443,8 +443,8 @@
           <div class="row g-4 g-lg-5 align-items-center">
             <div class="col-lg-7">
               <p class="closing__hadith">«أنا وكافل اليتيم في الجنة هكذا»<span>رواه البخاري</span></p>
-              <h2 id="closingTitle" class="closing__title">ابدأ كفالة طفل هذا الشهر</h2>
-              <p class="closing__lede">من <b class="num">$35</b> في الشهر، وتستطيع إيقافها متى شئت بلا رسوم ولا اتصال.</p>
+              <h2 id="closingTitle" class="closing__title">كن من لمّة طفلٍ هذا الشهر</h2>
+              <p class="closing__lede">من <b class="num">$35</b> في الشهر يبقى طفلٌ في بيته ومدرسته. وتستطيع إيقافها متى شئت بلا رسوم ولا اتصال.</p>
               <div class="closing__actions">
                 <a class="btn btn-cta btn-lg" href="{{ lurl('/orphans') }}">
                   اكفل يتيماً <i class="fa-solid fa-arrow-left btn__icon btn__icon--arrow" aria-hidden="true"></i>
@@ -469,7 +469,7 @@
             <p class="closing__next-title">ماذا يحدث بعد أن تكفل؟</p>
             <ol class="closing__steps" role="list">
               <li><span class="closing__num num">1</span><div><strong>تختار الطفل والبرنامج</strong><p>وتدفع شهرياً أو سنوياً بالطريقة التي تناسبك.</p></div></li>
-              <li><span class="closing__num num">2</span><div><strong>يصلك ملف الطفل</strong><p>قصته واحتياجاته، ويبقى في حسابك تعود إليه متى أردت.</p></div></li>
+              <li><span class="closing__num num">2</span><div><strong>يصلك ملف الطفل</strong><p>قصته وأسرته واحتياجاته، ويبقى في حسابك تعود إليه متى أردت.</p></div></li>
               <li><span class="closing__num num">3</span><div><strong>تقرير مصوّر كل ثلاثة أشهر</strong><p>وتستطيع الإيقاف أو التعديل من حسابك بلا إحراج.</p></div></li>
             </ol>
           </div>
