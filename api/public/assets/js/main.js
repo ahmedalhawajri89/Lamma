@@ -35,10 +35,7 @@ import {
 } from './modules/ui.js';
 import { initForms, initCardInput, initPasswordStrength } from './modules/forms.js';
 import { initCheckout, initThankYou } from './modules/checkout.js';
-import {
-  initImpactCalculator,
-  initResetPassword,
-} from './modules/features.js';
+import { initImpactCalculator } from './modules/features.js';
 import { renderHomeSections } from './modules/home.js';
 import { initCatalog } from './modules/catalog.js';
 import { initProfile } from './modules/profile.js';
@@ -66,7 +63,6 @@ function boot() {
   initSignin();
   initCheckout();
   initBlog();
-  initResetPassword();
   initThankYou();
   initPortal();
 

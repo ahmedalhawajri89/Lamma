@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Lang;
  *
  * إشعار لارافل الافتراضي يبني رابطه من مسار مُسمّى `password.reset` لا
  * وجود له هنا: هذا تطبيق API وموقعه صفحات ساكنة. فنبنيه صراحةً إلى
- * `reset-password.html`، وهي الصفحة التي تقرأ الرمز والبريد من العنوان.
+ * `/reset-password`، وهي الصفحة التي تقرأ الرمز والبريد من العنوان.
  */
 class ResetPasswordNotification extends Notification
 {
@@ -32,7 +32,7 @@ class ResetPasswordNotification extends Notification
     {
         $minutes = config('auth.passwords.users.expire', 60);
 
-        $url = rtrim((string) config('app.url'), '/').'/reset-password.html?'.http_build_query([
+        $url = rtrim((string) config('app.url'), '/').'/reset-password?'.http_build_query([
             'token' => $this->token,
             'email' => $notifiable->getEmailForPasswordReset(),
         ]);

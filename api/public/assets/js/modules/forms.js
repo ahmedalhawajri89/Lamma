@@ -362,8 +362,8 @@ async function submit(form, button, original) {
 
       toast(message, 'success');
 
-      // مهلة قصيرة ليُقرأ التأكيد قبل أن تنتقل الصفحة
-      setTimeout(() => { window.location.href = '/login'; }, 1400);
+      // مهلة قصيرة ليُقرأ التأكيد، ثم الدخول وبريده مكتوبٌ سلفاً
+      setTimeout(() => { window.location.href = `/login?email=${encodeURIComponent(values.email ?? '')}`; }, 1400);
 
       return;
     }

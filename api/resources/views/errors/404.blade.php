@@ -1,37 +1,62 @@
-@extends('site.layouts.legacy')
+@extends('site.layouts.app')
 
+{{--
+  الصفحة غير موجودة. بترويسة الموقع وفوتره، فلا يجد الزائر نفسه في طريقٍ
+  مسدود: إجراءان واضحان (الأطفال، والرئيسية)، ثم أكثر ما يُقصد من الموقع.
+  الرسم من مجموعة CC0 نفسها (assets/img/kids)، لا صورة طفلٍ حقيقي.
+--}}
 @section('title')الصفحة غير موجودة | كفالة@endsection
 @section('description')الصفحة التي تبحث عنها غير موجودة.@endsection
 @section('robots', 'noindex')
 
+@push('styles')
+  <link rel="stylesheet" href="/assets/css/notfound.css">
+@endpush
+
+@php
+  $links = [
+      ['/programs', 'fa-hand-holding-heart', 'برامج الكفالة', 'من الشاملة إلى التعليمية، وما يغطيه كل برنامج.'],
+      ['/transparency', 'fa-scale-balanced', 'الشفافية', 'أين يذهب كل دولار، بأرقام هذا الربع.'],
+      ['/faq', 'fa-circle-question', 'الأسئلة الشائعة', 'الزكاة، والتقارير، والإيقاف المؤقت.'],
+      ['/contact', 'fa-envelope', 'تواصل معنا', 'نردّ خلال يوم عمل واحد.'],
+  ];
+@endphp
+
 @section('content')
-  <main id="main">
-    <section class="notfound">
-      <div class="container container--narrow">
-        <p class="notfound__code">٤٠٤</p>
-        <h1 style="font-size:var(--text-2xl);margin-block:var(--space-4)">
-          لم نجد هذه الصفحة
-        </h1>
-        <p class="section-lede" style="margin-inline:auto;max-inline-size:34rem">
-          ربما تغيّر الرابط أو حُذفت الصفحة. لكن الأطفال ما زالوا هنا،
-          ويمكنك الوصول إليهم من الروابط أدناه.
-        </p>
-
-        <div class="cluster cluster--center" style="margin-block-start:var(--space-8)">
-          <a class="btn btn--cta btn--lg" href="/orphans">
-            تصفّح كل الأطفال
-            <i class="fa-solid fa-arrow-left btn__icon btn__icon--arrow" aria-hidden="true"></i>
-          </a>
-          <a class="btn btn--outline btn--lg" href="/">الصفحة الرئيسية</a>
+  <main id="main" class="nf">
+    <div class="container">
+      <section class="nf-hero" aria-labelledby="nfTitle">
+        <div class="nf-art" aria-hidden="true">
+          <span class="nf-art__code">404</span>
+          <span class="nf-art__circle"><img src="/assets/img/kids/girl-03.svg" alt="" width="220" height="220"></span>
+          <span class="nf-art__chip"><i class="fa-solid fa-question"></i></span>
         </div>
 
-        <div class="cluster cluster--center" style="margin-block-start:var(--space-10);gap:var(--space-5)">
-          <a class="link-arrow" href="/programs">برامج الكفالة</a>
-          <a class="link-arrow" href="/transparency">الشفافية</a>
-          <a class="link-arrow" href="/faq">الأسئلة الشائعة</a>
-          <a class="link-arrow" href="/contact">تواصل معنا</a>
+        <div class="nf-text">
+          <p class="kf-eyebrow">الصفحة غير موجودة</p>
+          <h1 class="nf-title" id="nfTitle">لم نجد هذه الصفحة</h1>
+          <p class="nf-lede">ربما تغيّر الرابط أو حُذفت الصفحة. لكنّ الأطفال ما زالوا هنا، وطريقك إليهم من هنا.</p>
+          <div class="nf-actions">
+            <a class="btn btn-cta btn-lg" href="/orphans">تصفّح الأطفال <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
+            <a class="btn btn-outline-primary btn-lg" href="/">الصفحة الرئيسية</a>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+
+      <nav class="nf-more" aria-labelledby="nfMore">
+        <h2 class="nf-more__title" id="nfMore">ربما تبحث عن</h2>
+        <ul class="nf-links" role="list">
+          @foreach ($links as [$href, $icon, $title, $text])
+            <li>
+              <a class="nf-link" href="{{ $href }}">
+                <span class="nf-link__icon" aria-hidden="true"><i class="fa-solid {{ $icon }}"></i></span>
+                <span class="nf-link__text"><b>{{ $title }}</b><small>{{ $text }}</small></span>
+                <i class="fa-solid fa-arrow-left nf-link__arrow" aria-hidden="true"></i>
+              </a>
+            </li>
+          @endforeach
+        </ul>
+      </nav>
+    </div>
   </main>
 @endsection

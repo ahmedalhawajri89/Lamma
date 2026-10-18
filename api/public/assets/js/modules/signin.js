@@ -56,6 +56,17 @@ function initViews() {
     show(to);
   }));
 
+  /*
+   * قادمٌ من صفحة تعيين كلمة المرور: ‎?email= يكتب بريده سلفاً، و‎#forgot
+   * (رابطٌ انتهت صلاحيته) يفتح الاستعادة مباشرةً بدل أن يبحث عن زرّها.
+   */
+  const email = new URLSearchParams(window.location.search).get('email');
+  if (email) {
+    ['#email', '#resetEmail'].forEach((sel) => { const input = $(sel); if (input && !input.value) input.value = email; });
+  }
+  if (window.location.hash === '#forgot') show('forgot');
+  else if (email) $('#password')?.focus();
+
   // forms.js يُطلق form:sent بعد طلب الرابط: نعرض حالتنا بدل الإشعار
   $('[data-action="forgot"]')?.addEventListener('form:sent', (e) => {
     e.preventDefault();

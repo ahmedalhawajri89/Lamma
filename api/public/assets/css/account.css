@@ -123,6 +123,7 @@
 .acc-backlink { display: inline-flex; align-items: center; gap: 0.45rem; margin-block-end: 1.5rem; padding: 0; border: 0; background: none; font-size: 0.9rem; font-weight: 600; color: var(--color-text-muted); }
 .acc-backlink:hover { color: var(--color-brand); }
 .acc-view-icon { display: inline-grid; place-items: center; inline-size: 3.5rem; block-size: 3.5rem; margin-block-end: 1.25rem; border-radius: var(--radius-lg); background: var(--color-brand-soft); color: var(--color-brand); font-size: 1.4rem; }
+.acc-view-icon--warn { background: var(--color-cta-soft); color: var(--color-cta-strong); }
 .acc-view-icon--ok { background: var(--color-success-soft, var(--color-brand-soft)); color: var(--color-success, var(--color-brand)); }
 .acc-tips { display: grid; gap: 0.6rem; margin: 1.5rem 0; padding: 1rem 1.1rem; border-radius: var(--radius-lg); background: var(--color-surface); list-style: none; font-size: 0.9rem; color: var(--color-text-muted); }
 .acc-tips i { inline-size: 1.1rem; margin-inline-end: 0.4rem; color: var(--color-brand); }

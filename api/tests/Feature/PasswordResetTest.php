@@ -105,3 +105,50 @@ it('يرفض كلمة قصيرة أو غير مؤكّدة', function (): void {
         'password_confirmation' => 'مختلفة',
     ])->assertStatus(422)->assertJsonValidationErrors('password');
 });
+
+/* ------------------------------------------------------------ الصفحة */
+
+/**
+ * الصفحة تفحص الرابط عند فتحها: كان الزائر يكتب كلمته مرتين ثم يُقال له
+ * إن الرابط انتهى.
+ */
+it('رابط البريد يقصد الصفحة النظيفة، وتفتح بنموذجها لرمزٍ صالح', function (): void {
+    Notification::fake();
+    $user = User::factory()->create();
+    $this->postJson('/api/v1/auth/forgot-password', ['email' => $user->email])->assertOk();
+
+    Notification::assertSentTo($user, ResetPasswordNotification::class, function ($n) use ($user): bool {
+        $url = $n->toMail($user)->actionUrl;
+        expect($url)->toContain('/reset-password?')->not->toContain('.html');
+
+        $page = $this->get(parse_url($url, PHP_URL_PATH).'?'.parse_url($url, PHP_URL_QUERY))->assertOk();
+        $page->assertSee('كلمة مرور جديدة')->assertSee('data-action="reset"', false)
+            ->assertHeader('Referrer-Policy', 'no-referrer');
+        expect($page->headers->get('Cache-Control'))->toContain('no-store');
+
+        return true;
+    });
+});
+
+it('رمزٌ منتهٍ أو خاطئ يُقال عند الفتح، بلا نموذج ولا كشفٍ للبريد', function (): void {
+    $user = User::factory()->create();
+
+    foreach ([$user->email, 'nobody@nowhere.test'] as $email) {
+        $this->get('/reset-password?'.http_build_query(['token' => 'wrong', 'email' => $email]))->assertOk()
+            ->assertSee('انتهت صلاحية الرابط')
+            ->assertDontSee('data-action="reset"', false);
+    }
+
+    $this->get('/reset-password')->assertOk()->assertSee('الرابط غير مكتمل');
+});
+
+it('فتح الصفحة لا يستهلك الرمز', function (): void {
+    $user = User::factory()->create();
+    $token = Password::createToken($user);
+
+    $this->get('/reset-password?'.http_build_query(['token' => $token, 'email' => $user->email]))->assertSee('data-action="reset"', false);
+
+    $this->postJson('/api/v1/auth/reset-password', [
+        'token' => $token, 'email' => $user->email, 'password' => 'Jadeed1234', 'password_confirmation' => 'Jadeed1234',
+    ])->assertOk();
+});

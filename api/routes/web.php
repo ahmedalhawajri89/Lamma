@@ -49,7 +49,7 @@ Route::get('/programs', App\Http\Controllers\Site\ProgramsPageController::class)
 
 Route::view('/login', 'site.auth.login')->name('site.login');
 Route::view('/register', 'site.auth.register')->name('site.register');
-Route::view('/reset-password', 'site.auth.reset-password')->name('site.reset-password');
+Route::get('/reset-password', App\Http\Controllers\Site\ResetPasswordPageController::class)->name('site.reset-password');
 Route::view('/dashboard', 'site.portal.dashboard')->name('site.dashboard');
 
 /** دليل الواجهة: مرجع للمطوّر لا صفحة للزائر، فلا يُسجَّل خارج التطوير. */
