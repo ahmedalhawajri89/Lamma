@@ -11,6 +11,7 @@
 import { hydrate } from './modules/data.js';
 import { mountLayout, refreshLayout } from './modules/layout.js';
 import { initThemeToggle } from './modules/theme.js';
+import { initSearch } from './modules/search.js';
 import { initHowSteps } from './modules/how.js';
 import {
   initReveal,
@@ -135,6 +136,7 @@ async function start() {
   try {
     mountLayout();
     initThemeToggle();
+    initSearch();
     initToastStack();
 
     await hydrate();

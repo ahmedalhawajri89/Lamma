@@ -94,7 +94,7 @@ class OrphanController extends Controller
         return Orphan::query()
             // من يقبل كفالة الآن وحده: المكفول بالكامل لا يُعرض بزرّ «اكفل» يُرفض
             ->seekingSponsor()
-            ->search($has('q') ? $request->string('q')->toString() : null)
+            ->publicSearch($has('q') ? $request->string('q')->toString() : null)
             ->when($has('program'), fn ($q) => $q->whereHas('program', fn ($p) => $p->where('slug', $request->string('program'))))
             ->when($has('country'), fn ($q) => $q->whereHas('family.country', fn ($c) => $c->where('name_ar', $request->string('country'))))
             ->when($has('gender'), fn ($q) => $q->where('gender', $request->string('gender')))

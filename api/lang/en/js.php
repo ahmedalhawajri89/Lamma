@@ -114,4 +114,9 @@ return [
     'في لمّته {who}' => 'In his circle: {who}',
     'كن من لمّة {name}' => 'Join {name}\'s circle',
     '{kids} ينتظرون من يقف معهم' => '{kids} waiting for someone to stand with them',
+    'أطفال' => 'Children',
+    'تعذّر البحث الآن. حاول بعد قليل.' => 'Search isn’t available right now. Please try again shortly.',
+    'كل النتائج لـ «{q}»' => 'All results for “{q}”',
+    'لا طفل بهذا الاسم أو المكان.' => 'No child matches that name or place.',
+    'تصفّح كل الأطفال' => 'Browse all children',
 ];

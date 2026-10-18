@@ -42,6 +42,20 @@
  */
 (function () {
   var AUTH = /\/(login|register|reset-password)(\.html)?$/;
+  var PREFIX = /^\/en(?=\/|$)/;
+
+  /*
+   * تبديل اللغة: الصفحة نفسها بلغة أخرى («/orphans» ↔ «/en/orphans»). له
+   * انتقاله الخاص في كل الصفحات (النوع «lang» في theme.css).
+   */
+  function isLangSwitch(from, to) {
+    if (!from || !to) return false;
+    var a = new URL(from, location.href);
+    var b = new URL(to, location.href);
+    return PREFIX.test(a.pathname) !== PREFIX.test(b.pathname)
+      && (a.pathname.replace(PREFIX, '') || '/') === (b.pathname.replace(PREFIX, '') || '/');
+  }
+
   window.addEventListener('pageswap', function (e) {
     var vt = e.viewTransition;
     if (!vt) return;
@@ -49,7 +63,12 @@
     var ignore = function () {};
     vt.ready.catch(ignore);
     vt.finished.catch(ignore);
-    if (!to || !AUTH.test(new URL(to).pathname)) vt.skipTransition();
+    if (isLangSwitch(location.href, to)) {
+      if (vt.types) vt.types.add('lang');
+      return;
+    }
+    // وغير ذلك: بين صفحتي حساب وحدهما (الدخول ↔ التسجيل)
+    if (!to || !AUTH.test(new URL(to).pathname) || !AUTH.test(location.pathname)) vt.skipTransition();
   });
 
   /*
@@ -60,6 +79,10 @@
   window.addEventListener('pagereveal', function (e) {
     var vt = e.viewTransition;
     if (!vt || !vt.types || !window.navigation || !navigation.activation || !navigation.activation.from) return;
+    if (isLangSwitch(navigation.activation.from.url, location.href)) {
+      vt.types.add('lang');
+      return;
+    }
     var from = new URL(navigation.activation.from.url).pathname;
     var to = location.pathname;
     vt.types.add(/register/.test(to) ? 'acc-forward' : /register/.test(from) ? 'acc-back' : 'acc-forward');

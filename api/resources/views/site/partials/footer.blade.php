@@ -42,7 +42,7 @@
         <h2 class="kf-footer__heading" id="footerNavHeading">{{ __('تصفّح') }}</h2>
         <ul class="kf-footer__links kf-footer__links--two">
           <li><a href="{{ lurl('/') }}">{{ __('الرئيسية') }}</a></li>
-          @foreach ($nav as $link)
+          @foreach ($navFlat as $link)
             <li><a href="{{ $link['href'] }}">{{ $link['label'] }}</a></li>
           @endforeach
         </ul>

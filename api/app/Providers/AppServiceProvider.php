@@ -36,6 +36,7 @@ class AppServiceProvider extends ServiceProvider
         View::composer(['site.layouts.*', 'site.pages.*', 'site.auth.*', 'site.portal.*', 'errors.*'], fn ($view) => $view->with([
             'site' => \App\Support\SiteProfile::forViews(),
             'nav' => \App\Support\SiteProfile::nav(request()->path()),
+            'navFlat' => \App\Support\SiteProfile::flatNav(request()->path()),
         ]));
 
         /**

@@ -14,14 +14,20 @@ use App\Models\Setting;
  */
 final class SiteProfile
 {
-    /** التنقل الرئيسي بترتيب نية الزائر: الأيتام أولاً. */
+    /**
+     * التنقل الرئيسي بترتيب نية الزائر: الأطفال أولاً. ثلاثة روابط ظاهرة،
+     * والرابع مجموعة «عن لمّة» تُفتح قائمةً على الشاشة العريضة وتُسرد تحت
+     * عنوانها في درج الجوال. الأيقونة والوصف للقائمة والدرج.
+     */
     private const NAV = [
-        ['label' => 'الأيتام', 'page' => 'orphans'],
-        ['label' => 'برامج الكفالة', 'page' => 'programs'],
-        ['label' => 'الشفافية', 'page' => 'transparency'],
-        ['label' => 'المدونة', 'page' => 'blog'],
-        ['label' => 'من نحن', 'page' => 'about'],
-        ['label' => 'تواصل معنا', 'page' => 'contact'],
+        ['label' => 'الأطفال', 'page' => 'orphans', 'icon' => 'fa-children'],
+        ['label' => 'البرامج', 'page' => 'programs', 'icon' => 'fa-layer-group'],
+        ['label' => 'الشفافية', 'page' => 'transparency', 'icon' => 'fa-scale-balanced'],
+        ['label' => 'عن لمّة', 'icon' => 'fa-circle-info', 'children' => [
+            ['label' => 'من نحن', 'page' => 'about', 'icon' => 'fa-people-roof', 'hint' => 'قصتنا، ولماذا «لمّة»'],
+            ['label' => 'المدونة', 'page' => 'blog', 'icon' => 'fa-pen-nib', 'hint' => 'من الزيارات الميدانية، بالأرقام'],
+            ['label' => 'تواصل معنا', 'page' => 'contact', 'icon' => 'fa-envelope', 'hint' => 'نردّ خلال يوم عمل'],
+        ]],
     ];
 
     /** الصفحات العميقة تُبرز قسمها: ملف الطفل والكفالة تحت «الأيتام»، والمقال تحت «المدونة». */
@@ -66,23 +72,56 @@ final class SiteProfile
     }
 
     /**
-     * روابط التنقل مع حالة كل منها: «page» للصفحة نفسها و«true» لقسمٍ أنت داخله.
+     * روابط التنقل مع حالة كل منها: «page» للصفحة نفسها و«true» لقسمٍ أنت
+     * داخله. المجموعة بلا رابط، ولها children، وحالتها «true» إن كنت في أحد فروعها.
      *
-     * @return list<array{label: string, href: string, current: string|null}>
+     * @return list<array{label: string, href: ?string, icon: string, hint: ?string, current: ?string, children?: list<array>}>
      */
     public static function nav(string $path): array
     {
         // «en/orphans» و«orphans» الصفحة نفسها: البادئة لغةٌ لا قسم
         $page = trim(Locale::strip($path), '/');
 
-        return array_map(fn (array $link): array => [
-            'label' => __($link['label']),
-            'href' => Locale::url('/'.$link['page']),
-            'current' => match ($link['page']) {
-                $page => 'page',
-                self::SECTION_OF[$page] ?? null => 'true',
-                default => null,
-            },
-        ], self::NAV);
+        $item = function (array $link) use ($page, &$item): array {
+            if (isset($link['children'])) {
+                $children = array_map($item, $link['children']);
+
+                return [
+                    'label' => __($link['label']),
+                    'href' => null,
+                    'icon' => $link['icon'],
+                    'hint' => null,
+                    'current' => collect($children)->contains(fn ($c) => $c['current'] !== null) ? 'true' : null,
+                    'children' => $children,
+                ];
+            }
+
+            return [
+                'label' => __($link['label']),
+                'href' => Locale::url('/'.$link['page']),
+                'icon' => $link['icon'],
+                'hint' => isset($link['hint']) ? __($link['hint']) : null,
+                'current' => match ($link['page']) {
+                    $page => 'page',
+                    self::SECTION_OF[$page] ?? null => 'true',
+                    default => null,
+                },
+            ];
+        };
+
+        return array_map($item, self::NAV);
+    }
+
+    /**
+     * التنقل مسطّحاً، كل صفحة رابطٌ واحد: للفوتر ولكل ما لا يعرض مجموعات.
+     *
+     * @return list<array{label: string, href: string, icon: string, hint: ?string, current: ?string}>
+     */
+    public static function flatNav(string $path): array
+    {
+        return collect(self::nav($path))
+            ->flatMap(fn (array $link) => $link['children'] ?? [$link])
+            ->values()
+            ->all();
     }
 }

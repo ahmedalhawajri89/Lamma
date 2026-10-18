@@ -1,6 +1,6 @@
 /**
- * سلوك الترويسة في كل الصفحات: تختفي عند النزول وتعود عند الصعود، ورابط
- * الحساب يصير «كفالاتي» لمن دخل، وإعدادات الموقع تُكتب في أماكنها.
+ * سلوك الترويسة في كل الصفحات: تتكيّف مع التمرير، وتختفي عند النزول وتعود
+ * عند الصعود، وتعرض حساب الكافل لمن دخل، وتُكتب إعدادات الموقع في أماكنها.
  *
  * الترويسة والفوتر يرسمهما الخادم (resources/views/site/partials). كانا يُبنيان
  * هنا بـ JS لصفحات HTML القديمة، وذهبت تلك الصفحات فذهب البناء معها.
@@ -8,20 +8,20 @@
 
 import { SITE } from './data.js';
 import { $, $$, rafThrottle } from './utils.js';
-import { me, hasSignedInHint, clearSignedIn } from './auth.js';
-import { url, t } from './i18n.js';
+import { me, isSponsor, logout, hasSignedInHint, clearSignedIn } from './auth.js';
 
 /**
- * الشريط يختفي عند النزول ويعود عند أول صعود.
- *
- * ولا يختفي أبداً ودرج الجوال مفتوح أو التركيز بداخله — من يتنقّل
- * بلوحة المفاتيح لا يجوز أن يختفي الرابط الذي يقف عليه.
+ * أعلى الصفحة: الترويسة بلون الأرضية بلا حدّ، متصلةً بالهيرو. بعد أول
+ * تمرير (.is-scrolled): أقصر، على سطحٍ بظلٍّ خفيف.
+ * وتختفي عند النزول وتعود عند أول صعود، إلا ودرج الجوال أو البحث مفتوح أو
+ * التركيز بداخلها: من يتنقّل بلوحة المفاتيح لا يختفي الرابط الذي يقف عليه.
  */
 function initStickyHeader() {
   const header = $('#siteHeader');
   if (!header) return;
 
   const nav = $('#siteNav');
+  const search = $('#siteSearch');
   let lastY = window.scrollY;
 
   // ارتفاعها لما يلصق تحتها (شريط فلاتر الأيتام)، ويتبعها إن تغيّر
@@ -31,9 +31,9 @@ function initStickyHeader() {
 
   const update = rafThrottle(() => {
     const y = window.scrollY;
+    header.classList.toggle('is-scrolled', y > 8);
 
-    // لا تختفي ودرج الجوال مفتوح أو التركيز بداخلها
-    const locked = nav?.classList.contains('show') || header.contains(document.activeElement);
+    const locked = nav?.classList.contains('show') || search?.open || header.contains(document.activeElement);
     if (locked || y < 120) header.classList.remove('is-hidden');
     else if (y > lastY + 6) header.classList.add('is-hidden');
     else if (y < lastY - 6) header.classList.remove('is-hidden');
@@ -47,22 +47,44 @@ function initStickyHeader() {
 }
 
 /**
- * الكافل المسجّل يرى «كفالاتي» مكان «تسجيل الدخول» ويذهب إلى بوابته مباشرة.
+ * حساب الكافل: دائرة بأحرف اسمه وقائمة (لوحتي، كفالاتي، التقارير، الإعدادات،
+ * الخروج) مكان «تسجيل الدخول»، في الشريط وفي الدرج.
+ *
  * لا نسأل الخادم إلا إن سبق للمتصفح دخول، فالزائر العادي لا يكلّف طلباً.
+ * ومن له تلميح تظهر دائرته فارغة فوراً، فلا تقفز الترويسة حين يعود الطلب.
+ * حساب فريق العمل يبقى على «تسجيل الدخول»: لوحته غير هذه.
  */
-async function initAccountLink() {
+async function initAccount() {
   if (!hasSignedInHint()) return;
+  showAccount(true);
 
   const user = await me();
-  if (!user) {
-    clearSignedIn();
+  if (!user || !isSponsor(user)) {
+    if (!user) clearSignedIn();
+    showAccount(false);
     return;
   }
 
-  $$('[data-account-link]').forEach((link) => {
-    link.href = url('/dashboard');
-    link.textContent = t('كفالاتي');
-  });
+  $$('[data-account-name]').forEach((el) => { el.textContent = user.name ?? ''; });
+  $$('[data-account-email]').forEach((el) => { el.textContent = user.email ?? ''; });
+  $$('[data-account-initials]').forEach((el) => { el.textContent = initials(user.name); });
+
+  $$('[data-account-logout]').forEach((btn) => btn.addEventListener('click', async () => {
+    btn.disabled = true;
+    await logout().catch(() => {});
+    clearSignedIn();
+    window.location.reload();
+  }));
+}
+
+function showAccount(signedIn) {
+  $$('[data-account]').forEach((el) => { el.hidden = !signedIn; });
+  $$('[data-account-login]').forEach((el) => { el.hidden = signedIn; });
+}
+
+/** «سارة الحاج» ← «سح»، و«Jane Doe» ← «JD». */
+function initials(name = '') {
+  return String(name).trim().split(/\s+/).slice(0, 2).map((w) => w[0] ?? '').join('').toUpperCase();
 }
 
 /**
@@ -84,5 +106,5 @@ export function refreshLayout() {
 /** سلوك الترويسة المرسومة من الخادم. */
 export function mountLayout() {
   initStickyHeader();
-  initAccountLink();
+  initAccount();
 }

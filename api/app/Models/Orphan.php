@@ -274,6 +274,34 @@ class Orphan extends Model
         return $query;
     }
 
+    /**
+     * بحث الموقع العام (الفهرس والبحث السريع): كل كلمة بداية الاسم الأول،
+     * بالعربية أو بترجمته، أو بداية اسم المدينة أو الدولة باللغتين.
+     * بلا اسم العائلة: لا يظهر للعامة، فلا يُستدلّ عليه بالبحث. والرمز كما
+     * في البحث العادي.
+     */
+    public function scopePublicSearch(Builder $query, ?string $term): Builder
+    {
+        $term = trim((string) $term);
+
+        if ($term === '' || preg_match('/\d/', $term) === 1) {
+            return $query->search($term);
+        }
+
+        $like = fn (string $s): string => addcslashes($s, '%_\\').'%';
+        $place = fn (string $word) => fn (Builder $p) => $p->where('name_ar', 'like', $like($word))->orWhere('name_en', 'like', $like($word));
+
+        foreach (preg_split('/\s+/u', $term) as $word) {
+            $query->where(fn (Builder $q) => $q
+                ->where('first_name', 'like', $like($word))
+                ->orWhere('translations->en->first_name', 'like', $like($word))
+                ->orWhereHas('family.city', $place($word))
+                ->orWhereHas('family.country', $place($word)));
+        }
+
+        return $query;
+    }
+
     /* ----------------------------------------------------------------- المشتقات */
 
     /** العمر يُشتق من التاريخ، فلا يحتاج تحديثاً سنوياً لكل صف. */

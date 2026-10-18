@@ -25,7 +25,9 @@
   <link rel="stylesheet" href="/assets/css/footer.css">
   @stack('styles')
 
-  <script type="module" src="/assets/js/main.js"></script>
+  {{-- blocking="render": بدونه يرسم المتصفح الصفحة قبل وصول وحدات main.js
+       فيُلغي انتقال تبديل اللغة (theme.css) في الصفحة الجديدة. --}}
+  <script type="module" src="/assets/js/main.js" blocking="render"></script>
 </head>
 
 <body>

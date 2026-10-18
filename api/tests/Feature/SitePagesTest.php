@@ -37,11 +37,15 @@ it('يحوّل الرابط القديم بامتداد html إلى العنوا
 });
 
 it('يُبرز في التنقل القسم الذي تقف فيه الصفحة العميقة', function () {
-    $nav = collect(App\Support\SiteProfile::nav('orphan'))->keyBy('href');
+    $nav = collect(App\Support\SiteProfile::flatNav('orphan'))->keyBy('href');
 
     expect($nav['/orphans']['current'])->toBe('true')
         ->and($nav['/blog']['current'])->toBeNull()
-        ->and(collect(App\Support\SiteProfile::nav('blog'))->firstWhere('href', '/blog')['current'])->toBe('page');
+        ->and(collect(App\Support\SiteProfile::flatNav('blog'))->firstWhere('href', '/blog')['current'])->toBe('page');
+
+    // المجموعة «عن لمّة» تُعلَّم حين تكون في أحد فروعها
+    expect(collect(App\Support\SiteProfile::nav('post'))->firstWhere('children')['current'])->toBe('true')
+        ->and(collect(App\Support\SiteProfile::nav('orphans'))->firstWhere('children')['current'])->toBeNull();
 });
 
 /** طفلٌ منشور موثّق، بحاجة 50 في الشهر. */
