@@ -32,6 +32,23 @@
 @hasSection('canonical')
 <link rel="canonical" href="@yield('canonical')">
 @endif
+{{-- الصفحة نفسها بكل لغة: محركات البحث تعرض لكل قارئ نسخته --}}
+@foreach (\App\Support\Locale::alternates(request()) as $code => $href)
+<link rel="alternate" hreflang="{{ $code }}" href="{{ $href }}">
+@endforeach
+<link rel="alternate" hreflang="x-default" href="{{ \App\Support\Locale::alternates(request())[\App\Support\Locale::default()] }}">
+
+{{-- لغة الصفحة ونصوص JS: كتلة بيانات لا سكربت، فلا تخالف CSP (script-src 'self') --}}
+@php
+  $i18n = [
+      'locale' => \App\Support\Locale::current(),
+      'default' => \App\Support\Locale::default(),
+      'dir' => \App\Support\Locale::dir(),
+      'intl' => \App\Support\Locale::config()['intl'],
+      'strings' => \App\Support\Locale::isDefault() ? (object) [] : (object) trans('js'),
+  ];
+@endphp
+<script type="application/json" id="kf-i18n">{!! json_encode($i18n, JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) !!}</script>
 <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png">
 

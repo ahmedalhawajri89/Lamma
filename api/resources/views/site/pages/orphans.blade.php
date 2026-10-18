@@ -2,7 +2,7 @@
 
 @section('title')الأيتام بانتظار الكفالة@endsection
 @section('description')تصفّح الحالات الموثّقة وابحث حسب البرنامج أو الدولة. كل حالة مزارة ميدانياً ومراجَعة من لجنة مستقلة.@endsection
-@section('canonical', url('/orphans'))
+@section('canonical', url(lurl('/orphans')))
 
 @push('styles')
   <link rel="stylesheet" href="/assets/css/kids.css">
@@ -17,7 +17,7 @@
       <div class="container">
         <nav aria-label="مسار التنقل">
           <ol class="breadcrumb cat-hero__crumbs">
-            <li class="breadcrumb-item"><a href="/">الرئيسية</a></li>
+            <li class="breadcrumb-item"><a href="{{ lurl('/') }}">الرئيسية</a></li>
             <li class="breadcrumb-item active" aria-current="page">الأيتام</li>
           </ol>
         </nav>
@@ -37,7 +37,7 @@
           </div>
         </div>
 
-        <form class="cat-search" role="search" action="/orphans" data-catalog-search>
+        <form class="cat-search" role="search" action="{{ lurl('/orphans') }}" data-catalog-search>
           <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
           <label class="visually-hidden" for="catalogQ">ابحث بالاسم أو المدينة أو الرمز</label>
           <input type="search" id="catalogQ" name="q" data-filter-search placeholder="ابحث باسم الطفل، أو المدينة، أو الرمز KFL" autocomplete="off" enterkeyhint="search">

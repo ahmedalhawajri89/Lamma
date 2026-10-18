@@ -6,6 +6,7 @@
  */
 
 import { escapeHtml, arabicDigits, readingTime, safeNumber } from './utils.js';
+import { url } from './i18n.js';
 
 const isGirl = (o) => ['أنثى', 'female'].includes(o.gender);
 const ageLabel = (age) => `${age} ${age >= 3 && age <= 10 ? 'سنوات' : 'سنة'}`;
@@ -35,7 +36,7 @@ export function kidCard(o, { delay = 0, cols = 'col-sm-6 col-lg-3' } = {}) {
   const funded = safeNumber(o.funded);
   const sponsors = safeNumber(o.sponsors);
   const shared = funded > 0;
-  const link = `/orphan?id=${encodeURIComponent(o.id)}`;
+  const link = url(`/orphan?id=${encodeURIComponent(o.id)}`);
 
   return `
 <div class="${cols}">
@@ -59,7 +60,7 @@ export function kidCard(o, { delay = 0, cols = 'col-sm-6 col-lg-3' } = {}) {
         <span class="kid-card__track" role="progressbar" aria-label="نسبة كفالة ${name}" aria-valuenow="${funded}" aria-valuemin="0" aria-valuemax="100"><span style="--v:${funded}%"></span></span>
         ${shared ? `<p class="kid-card__share">شارك بأي مبلغ من <b class="num">$5</b> لإكمال ${her ? 'كفالتها' : 'كفالته'}</p>` : ''}
       </div>
-      <a class="btn btn-cta w-100 kid-card__cta" href="/checkout?id=${encodeURIComponent(o.id)}">${shared ? 'أكمل كفالة' : 'اكفل'} ${name}</a>
+      <a class="btn btn-cta w-100 kid-card__cta" href="${url(`/checkout?id=${encodeURIComponent(o.id)}`)}">${shared ? 'أكمل كفالة' : 'اكفل'} ${name}</a>
     </div>
   </article>
 </div>`;
@@ -112,7 +113,7 @@ export function homePosts(posts) {
   if (!posts.length) return '';
   const lead = posts.find((p) => p.featured) ?? posts[0];
   const rest = posts.filter((p) => p !== lead).slice(0, 3);
-  const href = (p) => (p.slug ? `/post?slug=${encodeURIComponent(p.slug)}` : null);
+  const href = (p) => (p.slug ? url(`/post?slug=${encodeURIComponent(p.slug)}`) : null);
   const title = (p) => (href(p) ? `<a href="${href(p)}">${escapeHtml(p.title)}</a>` : escapeHtml(p.title));
   const media = (p, w, h) => `<div class="bento__media">${p.image
     ? `<img src="${escapeHtml(p.image)}" alt="" loading="lazy" width="${w}" height="${h}">`

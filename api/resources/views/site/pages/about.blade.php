@@ -6,7 +6,7 @@
 --}}
 @section('title')من نحن@endsection
 @section('description')عملٌ موثّق منذ 2012. تعرّف على قصتنا، وقيمنا، وكيف نتحقق من كل حالة قبل نشرها.@endsection
-@section('canonical', url('/about'))
+@section('canonical', url(lurl('/about')))
 
 @push('styles')
   <link rel="stylesheet" href="/assets/css/about.css">
@@ -20,7 +20,7 @@
       <div class="container">
         <nav aria-label="مسار التنقل">
           <ol class="breadcrumb ab-crumbs">
-            <li class="breadcrumb-item"><a href="/">الرئيسية</a></li>
+            <li class="breadcrumb-item"><a href="{{ lurl('/') }}">الرئيسية</a></li>
             <li class="breadcrumb-item active" aria-current="page">من نحن</li>
           </ol>
         </nav>
@@ -31,8 +31,8 @@
             <h1 class="ab-title" id="abTitle">نوصل كفالتك إلى طفلٍ بعينه،<br><em>ونتابع أثرها معك.</em></h1>
             <p class="ab-lede">بدأنا بأربعة عشر طفلاً في مخيم واحد، ولم نغيّر القاعدة التي بدأنا بها: لا نُظهر حالةً لم نزرها بأنفسنا.</p>
             <div class="ab-actions">
-              <a class="btn btn-cta btn-lg" href="/orphans">اكفل يتيماً <i class="fa-solid fa-arrow-left ms-1" aria-hidden="true"></i></a>
-              <a class="link-arrow" href="/transparency">اطّلع على حساباتنا <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
+              <a class="btn btn-cta btn-lg" href="{{ lurl('/orphans') }}">اكفل يتيماً <i class="fa-solid fa-arrow-left ms-1" aria-hidden="true"></i></a>
+              <a class="link-arrow" href="{{ lurl('/transparency') }}">اطّلع على حساباتنا <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
             </div>
           </div>
           <div class="col-lg-5">
@@ -172,8 +172,8 @@
             <p>نجيب على كل سؤال خلال 72 ساعة، مهما كان دقيقاً أو محرجاً.</p>
           </div>
           <div class="ab-cta__actions">
-            <a class="btn btn-cta btn-lg" href="/orphans">اكفل يتيماً <i class="fa-solid fa-arrow-left ms-1" aria-hidden="true"></i></a>
-            <a class="btn btn-outline-primary btn-lg" href="/contact">اسألنا مباشرة</a>
+            <a class="btn btn-cta btn-lg" href="{{ lurl('/orphans') }}">اكفل يتيماً <i class="fa-solid fa-arrow-left ms-1" aria-hidden="true"></i></a>
+            <a class="btn btn-outline-primary btn-lg" href="{{ lurl('/contact') }}">اسألنا مباشرة</a>
           </div>
         </div>
       </div>

@@ -20,7 +20,7 @@
 
 @section('title')الأسئلة الشائعة@endsection
 @section('description')إجابات مباشرة عن الكفالة: كيف نتحقق، ما نسبة المصاريف الإدارية، هل تُحتسب من الزكاة، وكيف توقفها.@endsection
-@section('canonical', url('/faq'))
+@section('canonical', url(lurl('/faq')))
 
 @push('styles')
   <link rel="stylesheet" href="/assets/css/faq.css">
@@ -37,7 +37,7 @@
       <div class="container">
         <nav aria-label="مسار التنقل">
           <ol class="breadcrumb fq-crumbs">
-            <li class="breadcrumb-item"><a href="/">الرئيسية</a></li>
+            <li class="breadcrumb-item"><a href="{{ lurl('/') }}">الرئيسية</a></li>
             <li class="breadcrumb-item active" aria-current="page">الأسئلة الشائعة</li>
           </ol>
         </nav>
@@ -84,7 +84,7 @@
               <span class="fq-empty__icon" aria-hidden="true"><i class="fa-regular fa-comment-dots"></i></span>
               <h2>لم نجد سؤالاً بهذا البحث</h2>
               <p>اسألنا مباشرة، ونجيبك خلال 72 ساعة.</p>
-              <a class="btn btn-primary" href="/contact">اطرح سؤالك</a>
+              <a class="btn btn-primary" href="{{ lurl('/contact') }}">اطرح سؤالك</a>
             </div>
           </div>
 
@@ -96,9 +96,9 @@
                 <h2>لم تجد جوابك؟</h2>
                 <p>اسألنا عن أي شيء، حتى أدقّ بنود الميزانية.</p>
                 <a class="fq-help__link fq-help__link--wa" href="{{ $wa }}" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i> واتساب <span>أسرع ردّ</span></a>
-                <a class="fq-help__link" href="/contact"><i class="fa-regular fa-envelope" aria-hidden="true"></i> نموذج التواصل <span>خلال 72 ساعة</span></a>
+                <a class="fq-help__link" href="{{ lurl('/contact') }}"><i class="fa-regular fa-envelope" aria-hidden="true"></i> نموذج التواصل <span>خلال 72 ساعة</span></a>
               </div>
-              <a class="fq-side-card" href="/transparency">
+              <a class="fq-side-card" href="{{ lurl('/transparency') }}">
                 <i class="fa-solid fa-chart-pie" aria-hidden="true"></i>
                 <span><strong>صفحة الشفافية</strong><span>الميزانية وأين يذهب كل دولار، محدّثة مع كل صرف.</span></span>
               </a>

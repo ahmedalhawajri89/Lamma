@@ -4,11 +4,12 @@
   الموقع ولا فوتره: الكافل هنا ليتابع، لا ليتصفح.
 --}}
 <!DOCTYPE html>
-<html lang="ar" dir="rtl" data-ui="bs">
+<html lang="{{ app()->getLocale() }}" dir="{{ \App\Support\Locale::dir() }}" data-ui="bs">
 <head>
   @include('site.partials.head')
 
-  <link rel="stylesheet" href="/assets/vendor/bootstrap/css/bootstrap.rtl.min.css">
+  {{-- Bootstrap بنسخة اتجاه اللغة: rtl للعربية، والعادية لليسار --}}
+  <link rel="stylesheet" href="/assets/vendor/bootstrap/css/{{ \App\Support\Locale::config()['css'] }}">
   <link rel="stylesheet" href="/assets/css/tokens.css">
   <link rel="stylesheet" href="/assets/css/theme.css">
   <link rel="stylesheet" href="/assets/css/portal.css">

@@ -27,7 +27,7 @@
     {{-- ══ الشريط الجانبي: ثابت على الشاشة العريضة، ودرجٌ على الجوال ══ --}}
     <aside class="pt-side offcanvas-lg offcanvas-start" id="ptSide" tabindex="-1" aria-labelledby="ptSideTitle">
       <div class="pt-side__head">
-        <a class="pt-side__brand" href="/" title="الموقع">
+        <a class="pt-side__brand" href="{{ lurl('/') }}" title="الموقع">
           <img src="/assets/img/logo.svg" alt="" width="36" height="36">
           <span class="pt-label"><b id="ptSideTitle">{{ $site['name'] }}</b><small>بوابة الكافل</small></span>
         </a>
@@ -62,11 +62,11 @@
 
         <div class="pt-nav__group">
           <p class="pt-nav__title"><span class="pt-label">على الموقع</span></p>
-          <a class="pt-nav__link" href="/orphans" data-tip="اكفل طفلاً آخر">
+          <a class="pt-nav__link" href="{{ lurl('/orphans') }}" data-tip="اكفل طفلاً آخر">
             <i class="fa-solid fa-hand-holding-heart" aria-hidden="true"></i>
             <span class="pt-label">اكفل طفلاً آخر</span>
           </a>
-          <a class="pt-nav__link" href="/transparency" data-tip="الشفافية">
+          <a class="pt-nav__link" href="{{ lurl('/transparency') }}" data-tip="الشفافية">
             <i class="fa-solid fa-scale-balanced" aria-hidden="true"></i>
             <span class="pt-label">أين تذهب الأموال</span>
           </a>
@@ -86,6 +86,7 @@
             <i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i>
             <span class="pt-label">تسجيل الخروج</span>
           </button>
+          @include('site.partials.lang-switch', ['class' => 'pt-iconbtn kf-lang kf-lang--icon'])
           <button class="pt-iconbtn" type="button" id="themeToggle" aria-pressed="false" aria-label="الوضع الليلي">
             <i class="fa-solid fa-moon" aria-hidden="true"></i>
             <i class="fa-solid fa-sun" aria-hidden="true"></i>
@@ -102,7 +103,7 @@
           <span class="pt-dot" data-reports-count hidden></span>
         </button>
         <span class="pt-top__title" data-pt-title>نظرة عامة</span>
-        <a class="pt-top__brand" href="/" aria-label="{{ $site['name'] }}"><img src="/assets/img/logo.svg" alt="" width="30" height="30"></a>
+        <a class="pt-top__brand" href="{{ lurl('/') }}" aria-label="{{ $site['name'] }}"><img src="/assets/img/logo.svg" alt="" width="30" height="30"></a>
       </header>
 
       <main class="pt-content" id="main">
@@ -115,7 +116,7 @@
               <p class="pt-head__sub"><span data-portal-today></span><span data-portal-since></span></p>
             </div>
             <div class="pt-head__actions">
-              <a class="btn btn-cta" href="/orphans"><i class="fa-solid fa-plus" aria-hidden="true"></i> اكفل طفلاً آخر</a>
+              <a class="btn btn-cta" href="{{ lurl('/orphans') }}"><i class="fa-solid fa-plus" aria-hidden="true"></i> اكفل طفلاً آخر</a>
             </div>
           </header>
 
@@ -197,7 +198,7 @@
               <p class="pt-head__sub" data-children-sub></p>
             </div>
             <div class="pt-head__actions">
-              <a class="btn btn-cta" href="/orphans"><i class="fa-solid fa-plus" aria-hidden="true"></i> اكفل طفلاً آخر</a>
+              <a class="btn btn-cta" href="{{ lurl('/orphans') }}"><i class="fa-solid fa-plus" aria-hidden="true"></i> اكفل طفلاً آخر</a>
             </div>
           </header>
 

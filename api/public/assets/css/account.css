@@ -111,7 +111,7 @@
 .acc-form .btn-primary:hover { translate: 0 -1px; box-shadow: 0 14px 28px -12px rgb(15 92 92 / 0.65); }
 .acc-form .btn-primary:active { translate: 0 0; box-shadow: 0 6px 14px -10px rgb(15 92 92 / 0.6); }
 .acc-btn__arrow { transition: translate var(--dur-fast) var(--ease-out); }
-.acc-form .btn:hover .acc-btn__arrow { translate: -0.3rem 0; }
+.acc-form .btn:hover .acc-btn__arrow { translate: calc(-0.3rem * var(--kf-dir, 1)) 0; }
 .acc-secure { display: flex; align-items: flex-start; gap: 0.5rem; margin: 1.1rem 0 0; font-size: 0.85rem; line-height: 1.7; color: var(--color-text-muted); }
 .acc-secure i { margin-block-start: 0.25rem; color: var(--color-success); }
 
@@ -298,9 +298,9 @@
 ::view-transition-old(acc-form) { animation: acc-out 0.32s cubic-bezier(0.4, 0, 1, 1) both; }
 ::view-transition-new(acc-form) { animation: acc-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both; }
 /* التقدّم في صفحةٍ عربية: يمضي القديم يساراً ويأتي الجديد من اليمين */
-@keyframes acc-out { to { opacity: 0; translate: -2.5rem 0; filter: blur(4px); } }
-@keyframes acc-in { from { opacity: 0; translate: 2.5rem 0; filter: blur(4px); } }
+@keyframes acc-out { to { opacity: 0; translate: calc(-2.5rem * var(--kf-dir, 1)) 0; filter: blur(4px); } }
+@keyframes acc-in { from { opacity: 0; translate: calc(2.5rem * var(--kf-dir, 1)) 0; filter: blur(4px); } }
 html:active-view-transition-type(acc-back)::view-transition-old(acc-form) { animation-name: acc-out-back; }
 html:active-view-transition-type(acc-back)::view-transition-new(acc-form) { animation-name: acc-in-back; }
-@keyframes acc-out-back { to { opacity: 0; translate: 2.5rem 0; filter: blur(4px); } }
-@keyframes acc-in-back { from { opacity: 0; translate: -2.5rem 0; filter: blur(4px); } }
+@keyframes acc-out-back { to { opacity: 0; translate: calc(2.5rem * var(--kf-dir, 1)) 0; filter: blur(4px); } }
+@keyframes acc-in-back { from { opacity: 0; translate: calc(-2.5rem * var(--kf-dir, 1)) 0; filter: blur(4px); } }

@@ -46,12 +46,12 @@
             <h1>لم نجد هذه الحالة</h1>
             <p>ربما تغيّر رابطها أو لم يعد ملفها منشوراً.</p>
           @endif
-          <a class="btn btn-cta btn-lg" href="/orphans">أطفال ينتظرون كافلاً</a>
+          <a class="btn btn-cta btn-lg" href="{{ lurl('/orphans') }}">أطفال ينتظرون كافلاً</a>
         </section>
       @else
 
       <header class="co-head">
-        <a class="co-back" href="/orphan?id={{ urlencode($kid['id']) }}"><i class="fa-solid fa-arrow-right" aria-hidden="true"></i> ملف {{ $kid['name'] }}</a>
+        <a class="co-back" href="{{ lurl('/orphan?id=') }}{{ urlencode($kid['id']) }}"><i class="fa-solid fa-arrow-right" aria-hidden="true"></i> ملف {{ $kid['name'] }}</a>
         <h1 class="co-head__title">{{ $shared ? 'أكمل كفالة' : 'كفالة' }} {{ $kid['name'] }}</h1>
         <ol class="co-steps" aria-label="مراحل الكفالة">
           <li class="is-done"><span aria-hidden="true"><i class="fa-solid fa-check"></i></span> اختيار الطفل</li>
@@ -72,7 +72,7 @@
 
           <div data-checkout="blocked" class="co-blocked co-blocked--inline" role="status" hidden>
             <p data-checkout="blocked-text"></p>
-            <a class="btn btn-primary" href="/orphans">اختر طفلاً آخر ينتظر كافلاً</a>
+            <a class="btn btn-primary" href="{{ lurl('/orphans') }}">اختر طفلاً آخر ينتظر كافلاً</a>
           </div>
 
           {{-- method=post: إن تعطّل JS لا تذهب الحقول في الرابط --}}
@@ -117,7 +117,7 @@
                 <input class="form-check-input" type="checkbox" role="switch" id="isZakat" name="is_zakat" value="1">
                 <label class="form-check-label" for="isZakat">
                   <strong>احتسبها من الزكاة</strong>
-                  <span>يُصرف مبلغك على الحالات المستحقة للزكاة وحدها، ويظهر ذلك في إيصالك. <a href="/faq#zakat">كيف؟</a></span>
+                  <span>يُصرف مبلغك على الحالات المستحقة للزكاة وحدها، ويظهر ذلك في إيصالك. <a href="{{ lurl('/faq#zakat') }}">كيف؟</a></span>
                 </label>
               </div>
             </section>
@@ -133,7 +133,7 @@
 
               <div data-checkout="guest">
                 <p class="co-card__lede">ننشئ لك حساباً بهذا البريد تتابع منه الكفالة، ونرسل إليه رابط تعيين كلمة المرور.
-                  لديك حساب؟ <a href="/login" data-checkout="login-link">سجّل الدخول</a>.</p>
+                  لديك حساب؟ <a href="{{ lurl('/login') }}" data-checkout="login-link">سجّل الدخول</a>.</p>
                 <div class="row g-3">
                   <div class="col-sm-6 field">
                     <label class="form-label" for="donorName">الاسم الكامل</label>
@@ -224,7 +224,7 @@
               <p class="co-plan" data-checkout="plan" aria-live="polite"></p>
               <p class="co-error" data-checkout="error" role="alert" hidden></p>
               <button class="btn btn-cta btn-lg w-100" type="submit" id="checkoutSubmit"><i class="fa-solid fa-lock" aria-hidden="true"></i> تفعيل الكفالة</button>
-              <p class="co-terms">بالمتابعة توافق على <a href="/transparency#child-policy">شروط الكفالة وسياسة الخصوصية</a>. تستطيع الإيقاف متى شئت بلا رسوم.</p>
+              <p class="co-terms">بالمتابعة توافق على <a href="{{ lurl('/transparency#child-policy') }}">شروط الكفالة وسياسة الخصوصية</a>. تستطيع الإيقاف متى شئت بلا رسوم.</p>
             </div>
           </form>
         </div>
@@ -255,7 +255,7 @@
             <ul class="co-summary__trust">
               <li><i class="fa-solid fa-hand" aria-hidden="true"></i> إيقاف بنقرة من حسابك، بلا رسوم</li>
               <li><i class="fa-solid fa-file-lines" aria-hidden="true"></i> تقرير مصوّر كل ثلاثة أشهر</li>
-              <li><i class="fa-solid fa-chart-pie" aria-hidden="true"></i> أين يذهب كل دولار في <a href="/transparency">تقارير الشفافية</a></li>
+              <li><i class="fa-solid fa-chart-pie" aria-hidden="true"></i> أين يذهب كل دولار في <a href="{{ lurl('/transparency') }}">تقارير الشفافية</a></li>
             </ul>
           </div>
         </aside>

@@ -34,7 +34,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => RoleMiddleware::class,
             'permission' => PermissionMiddleware::class,
             'active' => \App\Http\Middleware\EnsureUserIsActive::class,
+            'locale' => \App\Http\Middleware\SetLocale::class,
         ]);
+
+        // الـ API بلغة الصفحة التي تطلبه (Accept-Language من api.js)
+        $middleware->api(append: \App\Http\Middleware\SetLocale::class);
 
         // تحديد المعدّل يُفعَّل لكل مسارات api عبر مجموعات معرّفة في routes/api.php
         $middleware->throttleApi();
@@ -78,6 +82,11 @@ return Application::configure(basePath: dirname(__DIR__))
          * المعالج هنا يغطّي المصدرين معاً.
          */
         $exceptions->render(function (HttpExceptionInterface $e, Request $request) {
+            // صفحة الخطأ خارج مجموعات المسارات: لغتها من بادئة الرابط
+            if (! $request->is('api/*')) {
+                app()->setLocale(\App\Support\Locale::fromPath($request->getPathInfo()));
+            }
+
             if ($e->getStatusCode() === 404
                 && ! $request->is('api/*')
                 && ! $request->expectsJson()

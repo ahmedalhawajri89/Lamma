@@ -15,6 +15,7 @@ import { submitContact, subscribeNewsletter } from './api.js';
 import { toast } from './ui.js';
 import { $, $$, toLatinDigits } from './utils.js';
 import { submitCheckoutForm } from './checkout.js';
+import { url } from './i18n.js';
 
 /**
  * وجهة ما بعد الدخول من الرابط، على هذا الموقع وحده.
@@ -363,7 +364,7 @@ async function submit(form, button, original) {
       toast(message, 'success');
 
       // مهلة قصيرة ليُقرأ التأكيد، ثم الدخول وبريده مكتوبٌ سلفاً
-      setTimeout(() => { window.location.href = `/login?email=${encodeURIComponent(values.email ?? '')}`; }, 1400);
+      setTimeout(() => { window.location.href = url(`/login?email=${encodeURIComponent(values.email ?? '')}`); }, 1400);
 
       return;
     }
@@ -402,7 +403,7 @@ async function submit(form, button, original) {
 
     // ?redirect= يعيد الكافل إلى الصفحة التي طُرد منها، لا إلى اللوحة دائماً
     const params = new URLSearchParams(window.location.search);
-    window.location.href = safeRedirect(params.get('redirect')) || form.dataset.redirect || '/dashboard';
+    window.location.href = safeRedirect(params.get('redirect')) || form.dataset.redirect || url('/dashboard');
   } catch (error) {
     restore();
 

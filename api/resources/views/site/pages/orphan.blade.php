@@ -48,7 +48,7 @@
         <span class="kid-missing__icon" aria-hidden="true"><i class="fa-solid fa-child"></i></span>
         <h1>لم نجد هذا الطفل</h1>
         <p>ربما تغيّر رابط ملفه أو لم يعد منشوراً. الأطفال الذين ينتظرون كافلاً في صفحتهم.</p>
-        <a class="btn btn-cta btn-lg" href="/orphans">أطفال ينتظرون كافلاً</a>
+        <a class="btn btn-cta btn-lg" href="{{ lurl('/orphans') }}">أطفال ينتظرون كافلاً</a>
       </div>
     </section>
   @else
@@ -56,8 +56,8 @@
       <div class="container">
         <nav aria-label="مسار التنقل">
           <ol class="breadcrumb kid-profile__crumbs">
-            <li class="breadcrumb-item"><a href="/">الرئيسية</a></li>
-            <li class="breadcrumb-item"><a href="/orphans">الأيتام</a></li>
+            <li class="breadcrumb-item"><a href="{{ lurl('/') }}">الرئيسية</a></li>
+            <li class="breadcrumb-item"><a href="{{ lurl('/orphans') }}">الأيتام</a></li>
             <li class="breadcrumb-item active" aria-current="page">{{ $kid['name'] }}</li>
           </ol>
         </nav>
@@ -153,23 +153,23 @@
                     <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
                     <span>اكتملت {{ $her ? 'كفالتها' : 'كفالته' }}، شكراً لكافلي{{ $her ? 'ها' : 'ه' }}.</span>
                   </p>
-                  <a class="btn btn-primary btn-lg w-100" href="/orphans">أطفال ينتظرون كافلاً <i class="fa-solid fa-arrow-left ms-1" aria-hidden="true"></i></a>
+                  <a class="btn btn-primary btn-lg w-100" href="{{ lurl('/orphans') }}">أطفال ينتظرون كافلاً <i class="fa-solid fa-arrow-left ms-1" aria-hidden="true"></i></a>
                 @else
                   @if ($state === 'shared')
                     <p class="kid-panel__share">تكمل {{ $her ? 'كفالتها' : 'كفالته' }} بأي مبلغ من <b class="num">$5</b> حتى <b class="num">{{ $money($kid['remaining']) }}</b>.</p>
                   @endif
-                  <a class="btn btn-cta btn-lg w-100" href="/checkout?id={{ urlencode($kid['id']) }}">{{ $cta }} <i class="fa-solid fa-arrow-left ms-1" aria-hidden="true"></i></a>
+                  <a class="btn btn-cta btn-lg w-100" href="{{ lurl('/checkout?id=') }}{{ urlencode($kid['id']) }}">{{ $cta }} <i class="fa-solid fa-arrow-left ms-1" aria-hidden="true"></i></a>
                   <ul class="kid-panel__assure">
                     <li><i class="fa-solid fa-lock" aria-hidden="true"></i> دفع مشفّر</li>
                     <li><i class="fa-solid fa-hand" aria-hidden="true"></i> إيقاف بنقرة بلا رسوم</li>
-                    <li><a href="/faq#zakat"><i class="fa-solid fa-scale-balanced" aria-hidden="true"></i> تُحتسب من الزكاة؟</a></li>
+                    <li><a href="{{ lurl('/faq#zakat') }}"><i class="fa-solid fa-scale-balanced" aria-hidden="true"></i> تُحتسب من الزكاة؟</a></li>
                   </ul>
                 @endif
 
                 <div class="kid-panel__sharebox">
                   <p class="kid-panel__sharelabel">شارك ملف {{ $kid['name'] }}{{ $state === 'done' ? '' : '، لعلّ أحداً يكفل'.($her ? 'ها' : 'ه') }}</p>
                   @include('site.partials.share', [
-                      'url' => url('/orphan?id='.urlencode($kid['id'])),
+                      'url' => url(lurl('/orphan?id='.urlencode($kid['id']))),
                       'title' => $state === 'done' ? 'اكتملت كفالة '.$kid['name'] : 'ساعد '.$kid['name'].' على تحقيق '.($her ? 'حلمها' : 'حلمه'),
                       'label' => 'شارك ملف '.$kid['name'],
                   ])
@@ -186,7 +186,7 @@
       <div class="container">
         <div class="kid-similar__head">
           <h2 class="kid-h2" id="similarTitle">{{ $state === 'done' ? 'أطفال ينتظرون كافلاً' : 'قد تودّ الوقوف معهم أيضاً' }}</h2>
-          <a class="link-arrow" href="/orphans">كل الأطفال <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
+          <a class="link-arrow" href="{{ lurl('/orphans') }}">كل الأطفال <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
         </div>
         <div class="row g-4" id="similarOrphans"></div>
       </div>
@@ -203,7 +203,7 @@
         <span>{{ $state === 'shared' ? 'يتبقى من كفالة '.$kid['name'] : 'كفالة '.$kid['name'] }}</span>
         <strong class="num">{{ $money($state === 'shared' ? $kid['remaining'] : $kid['monthly']) }} في الشهر</strong>
       </div>
-      <a class="btn btn-cta" href="/checkout?id={{ urlencode($kid['id']) }}">{{ $state === 'shared' ? ($her ? 'أكمل كفالتها' : 'أكمل كفالته') : 'اكفل الآن' }}</a>
+      <a class="btn btn-cta" href="{{ lurl('/checkout?id=') }}{{ urlencode($kid['id']) }}">{{ $state === 'shared' ? ($her ? 'أكمل كفالتها' : 'أكمل كفالته') : 'اكفل الآن' }}</a>
     </div>
   @endif
 

@@ -2,7 +2,7 @@
 
 @section('title')الشفافية والتقارير@endsection
 @section('description')أين يذهب كل دولار؟ ميزانية مدقّقة، توزيع الإنفاق، سياسة حماية الطفل، وتقارير سنوية متاحة للجميع.@endsection
-@section('canonical', url('/transparency'))
+@section('canonical', url(lurl('/transparency')))
 
 @push('styles')
   <link rel="stylesheet" href="/assets/css/transparency.css">
@@ -16,7 +16,7 @@
       <div class="container">
         <nav aria-label="مسار التنقل">
           <ol class="breadcrumb tp-crumbs">
-            <li class="breadcrumb-item"><a href="/">الرئيسية</a></li>
+            <li class="breadcrumb-item"><a href="{{ lurl('/') }}">الرئيسية</a></li>
             <li class="breadcrumb-item active" aria-current="page">الشفافية</li>
           </ol>
         </nav>
@@ -158,7 +158,7 @@
             <h2>لديك سؤال عن بند معيّن؟</h2>
             <p>اسأل عن أي رقم في أي تقرير. نلتزم بالرد خلال ٧٢ ساعة، وننشر الجواب إن كان يهم غيرك.</p>
           </div>
-          <a class="btn btn-cta btn-lg" href="/contact">اطرح سؤالك <i class="fa-solid fa-arrow-left ms-1" aria-hidden="true"></i></a>
+          <a class="btn btn-cta btn-lg" href="{{ lurl('/contact') }}">اطرح سؤالك <i class="fa-solid fa-arrow-left ms-1" aria-hidden="true"></i></a>
         </div>
       </div>
     </section>

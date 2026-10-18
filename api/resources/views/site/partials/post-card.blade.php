@@ -24,7 +24,7 @@
     @endif
   </div>
   <div class="mag-card__body">
-    <h3 class="mag-card__title"><a href="/post?slug={{ urlencode($post->slug) }}">{{ $post->title }}</a></h3>
+    <h3 class="mag-card__title"><a href="{{ lurl('/post?slug=') }}{{ urlencode($post->slug) }}">{{ $post->title }}</a></h3>
     <p class="mag-card__excerpt">{{ $post->excerpt }}</p>
     <p class="mag-card__meta"><time datetime="{{ $post->published_at?->toDateString() }}">{{ $post->published_at?->translatedFormat('j F Y') }}</time> <span aria-hidden="true">·</span> <span>{{ $read }} قراءة</span></p>
   </div>

@@ -37,8 +37,8 @@
           <h1 class="nf-title" id="nfTitle">لم نجد هذه الصفحة</h1>
           <p class="nf-lede">ربما تغيّر الرابط أو حُذفت الصفحة. لكنّ الأطفال ما زالوا هنا، وطريقك إليهم من هنا.</p>
           <div class="nf-actions">
-            <a class="btn btn-cta btn-lg" href="/orphans">تصفّح الأطفال <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
-            <a class="btn btn-outline-primary btn-lg" href="/">الصفحة الرئيسية</a>
+            <a class="btn btn-cta btn-lg" href="{{ lurl('/orphans') }}">تصفّح الأطفال <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
+            <a class="btn btn-outline-primary btn-lg" href="{{ lurl('/') }}">الصفحة الرئيسية</a>
           </div>
         </div>
       </section>

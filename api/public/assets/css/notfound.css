@@ -91,7 +91,7 @@
 .nf-link__text b { font-family: var(--font-display); font-weight: 600; }
 .nf-link__text small { font-size: 0.825rem; color: var(--color-text-muted); }
 .nf-link__arrow { margin-inline-start: auto; font-size: 0.8rem; color: var(--color-text-subtle); transition: translate var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out); }
-.nf-link:hover .nf-link__arrow { translate: -4px 0; color: var(--color-brand); }
+.nf-link:hover .nf-link__arrow { translate: calc(-4px * var(--kf-dir, 1)) 0; color: var(--color-brand); }
 @media (prefers-reduced-motion: reduce) {
   .nf-link, .nf-link__arrow { transition: none; }
 }

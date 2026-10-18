@@ -25,6 +25,8 @@
  * والقراءة من وسم HTML لا من متغيّر بيئة مقصودة: هذا الجزء من المشروع بلا
  * خطوة بناء، فالتغيير عند النشر يجب أن يكون بتحرير ملف لا بإعادة تجميع.
  */
+import { locale } from './i18n.js';
+
 const META = document.querySelector('meta[name="api-base"]')?.content?.trim() ?? '';
 const DISABLED = META === 'off';
 const BASE = DISABLED ? '' : META;
@@ -98,7 +100,8 @@ export async function request(path, { method = 'GET', body = null, headers: extr
   try {
     if (method !== 'GET') await ensureCsrf();
 
-    const headers = { Accept: 'application/json', ...extra };
+    // لغة الصفحة: الخادم يردّ رسائله وتسمياته بها (SetLocale)
+    const headers = { Accept: 'application/json', 'Accept-Language': locale, ...extra };
     if (body) headers['Content-Type'] = 'application/json';
 
     const token = csrfToken();
@@ -187,7 +190,7 @@ async function tryGetRaw(path, params = {}) {
 
   try {
     const response = await fetch(url, {
-      headers: { Accept: 'application/json' },
+      headers: { Accept: 'application/json', 'Accept-Language': locale },
       signal: controller.signal,
 
       /**

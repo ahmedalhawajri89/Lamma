@@ -17,6 +17,7 @@
 import { $, $$, countUp, escapeHtml, formatNumber, keepFocus, observeOnce, prefersReducedMotion, presetCount, safeColor, safeNumber } from './utils.js';
 import { ANNUAL, PROOF, SPENDING } from './data.js';
 import { apiEnabled, request } from './api.js';
+import { url } from './i18n.js';
 
 const DOC_META = {
   audited_budget: { icon: 'fa-file-invoice-dollar', label: 'الميزانية المدقّقة', hint: 'بيان الإيرادات والمصروفات كاملاً، معتمداً من مكتب تدقيق مستقل.' },
@@ -298,7 +299,7 @@ export function initTransparency() {
         ${d
           ? `<a class="btn btn-primary tp-doc__cta" href="${escapeHtml(d.url)}" target="_blank" rel="noopener" download>
                <i class="fa-solid fa-arrow-down" aria-hidden="true"></i> تحميل PDF</a>`
-          : `<span class="tp-doc__pending">يُنشر بعد اعتماد المدقق · <a href="/contact">اطلب نسخة</a></span>`}
+          : `<span class="tp-doc__pending">يُنشر بعد اعتماد المدقق · <a href="${url('/contact')}">اطلب نسخة</a></span>`}
       </li>`;
     }).join('');
     // البطاقات تُكتب بعد الإقلاع: تُكشف هنا لا بانتظار initReveal

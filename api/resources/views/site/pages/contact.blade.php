@@ -20,7 +20,7 @@
 
 @section('title')تواصل معنا@endsection
 @section('description')اسألنا عن أي بند في أي تقرير. نلتزم بالرد خلال 72 ساعة.@endsection
-@section('canonical', url('/contact'))
+@section('canonical', url(lurl('/contact')))
 
 @push('styles')
   <link rel="stylesheet" href="/assets/css/contact.css">
@@ -34,7 +34,7 @@
       <div class="container">
         <nav aria-label="مسار التنقل">
           <ol class="breadcrumb ct-crumbs">
-            <li class="breadcrumb-item"><a href="/">الرئيسية</a></li>
+            <li class="breadcrumb-item"><a href="{{ lurl('/') }}">الرئيسية</a></li>
             <li class="breadcrumb-item active" aria-current="page">تواصل معنا</li>
           </ol>
         </nav>
@@ -149,7 +149,7 @@
                       </details>
                     @endforeach
                   </div>
-                  <a class="link-arrow" href="/faq">كل الأسئلة الشائعة <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
+                  <a class="link-arrow" href="{{ lurl('/faq') }}">كل الأسئلة الشائعة <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
                 </section>
               @endif
 
@@ -158,7 +158,7 @@
                 <ul class="ct-info">
                   <li><i class="fa-solid fa-location-dot" aria-hidden="true"></i><span><b>المقر الرئيسي</b>{{ $contact['address'] }}</span></li>
                   <li><i class="fa-regular fa-clock" aria-hidden="true"></i><span><b>ساعات العمل</b>من الأحد إلى الخميس، 9 صباحاً حتى 5 مساءً</span></li>
-                  <li><i class="fa-solid fa-scale-balanced" aria-hidden="true"></i><span><b>سؤالٌ مالي؟</b>اذكر البند أو الشهر في رسالتك، وراجع قبلها <a href="/transparency">صفحة الشفافية</a>: الأرقام فيها تتحدّث مع كل صرف.</span></li>
+                  <li><i class="fa-solid fa-scale-balanced" aria-hidden="true"></i><span><b>سؤالٌ مالي؟</b>اذكر البند أو الشهر في رسالتك، وراجع قبلها <a href="{{ lurl('/transparency') }}">صفحة الشفافية</a>: الأرقام فيها تتحدّث مع كل صرف.</span></li>
                 </ul>
               </section>
             </div>

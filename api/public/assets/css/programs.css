@@ -39,7 +39,7 @@
 .pg-guide__text span { font-size: 0.875rem; color: var(--color-text-muted); }
 .pg-guide__pick { flex-shrink: 0; font-size: 0.85rem; font-weight: 600; color: var(--color-brand); white-space: nowrap; }
 .pg-guide__pick i { margin-inline-start: 0.25rem; transition: translate var(--dur-fast) var(--ease-out); }
-.pg-guide__item:hover .pg-guide__pick i { translate: -0.2rem 0; }
+.pg-guide__item:hover .pg-guide__pick i { translate: calc(-0.2rem * var(--kf-dir, 1)) 0; }
 
 /* ── الحاسبة ── */
 .pg-calc { padding-block: clamp(3rem, 6vw, 5rem); background: var(--color-canvas); }

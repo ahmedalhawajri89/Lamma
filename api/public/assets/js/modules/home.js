@@ -20,6 +20,7 @@ import {
 } from './render.js';
 
 import { $, $$, countUp, escapeHtml, formatNumber, formatMoney, observeOnce, prefersReducedMotion, presetCount, safeColor, safeNumber } from './utils.js';
+import { url } from './i18n.js';
 
 /** عدد الأطفال في بطاقات الرئيسية: صفّ واحد على الشاشة العريضة. */
 const KIDS_COUNT = 4;
@@ -50,7 +51,7 @@ function renderPlans() {
   <p class="plan__price"><strong class="num">${formatMoney(p.price)}</strong><span>في الشهر</span></p>
   <p class="plan__summary">${escapeHtml(p.summary)}</p>
   <a class="btn ${p.featured ? 'btn-cta' : 'btn-outline-primary'} plan__cta"
-     href="/orphans?program=${encodeURIComponent(p.id)}">اكفل يتيماً</a>
+     href="${url(`/orphans?program=${encodeURIComponent(p.id)}`)}">اكفل يتيماً</a>
   <ul class="plan__features" role="list">
     ${(p.features ?? []).map((f) => `<li><i class="fa-solid fa-check" aria-hidden="true"></i>${escapeHtml(f)}</li>`).join('')}
   </ul>

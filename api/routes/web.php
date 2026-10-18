@@ -21,41 +21,50 @@ use Illuminate\Support\Facades\Route;
 | والمحتوى الحيّ (الأطفال، المقالات، الأرقام) يملؤه JS من الـ API كما كان.
 */
 
-Route::view('/', 'site.pages.home')->name('home');
+/**
+ * صفحات الموقع العام، مرتين: العربية بلا بادئة كما كانت، والإنجليزية تحت /en.
+ * أسماء مسارات الإنجليزية تبدأ بـ «en.» (en.site.orphans).
+ */
+$site = function (): void {
+    Route::view('/', 'site.pages.home')->name('home');
 
-/** صفحات الموقع: العنوان هو اسم القالب في site/pages. */
-foreach ([
-    'orphans', 'thank-you', 'transparency',
-    'blog', 'about',
-] as $page) {
-    Route::view("/{$page}", "site.pages.{$page}")->name("site.{$page}");
-}
+    /** صفحات الموقع: العنوان هو اسم القالب في site/pages. */
+    foreach ([
+        'orphans', 'thank-you', 'transparency',
+        'blog', 'about',
+    ] as $page) {
+        Route::view("/{$page}", "site.pages.{$page}")->name("site.{$page}");
+    }
 
-/** صفحة الطفل وصفحة كفالته تُرسمان من الخادم: الاسم وحالة الكفالة ووسوم المشاركة */
-Route::get('/orphan', [App\Http\Controllers\Site\OrphanPageController::class, 'show'])->name('site.orphan');
-Route::get('/checkout', [App\Http\Controllers\Site\OrphanPageController::class, 'checkout'])->name('site.checkout');
+    /** صفحة الطفل وصفحة كفالته تُرسمان من الخادم: الاسم وحالة الكفالة ووسوم المشاركة */
+    Route::get('/orphan', [App\Http\Controllers\Site\OrphanPageController::class, 'show'])->name('site.orphan');
+    Route::get('/checkout', [App\Http\Controllers\Site\OrphanPageController::class, 'checkout'])->name('site.checkout');
 
-/** المقال من الخادم: عنوانه وصورته ونصّه ووسوم مشاركته */
-Route::get('/post', App\Http\Controllers\Site\PostPageController::class)->name('site.post');
+    /** المقال من الخادم: عنوانه وصورته ونصّه ووسوم مشاركته */
+    Route::get('/post', App\Http\Controllers\Site\PostPageController::class)->name('site.post');
 
-/** التواصل: بياناته من الإعدادات، وأكثر الأسئلة قبل النموذج */
-Route::get('/contact', App\Http\Controllers\Site\ContactPageController::class)->name('site.contact');
+    /** التواصل: بياناته من الإعدادات، وأكثر الأسئلة قبل النموذج */
+    Route::get('/contact', App\Http\Controllers\Site\ContactPageController::class)->name('site.contact');
 
-/** الأسئلة الشائعة من الخادم: نصّها ووصفها المنظَّم لمحركات البحث */
-Route::get('/faq', App\Http\Controllers\Site\FaqPageController::class)->name('site.faq');
+    /** الأسئلة الشائعة من الخادم: نصّها ووصفها المنظَّم لمحركات البحث */
+    Route::get('/faq', App\Http\Controllers\Site\FaqPageController::class)->name('site.faq');
 
-/** البرامج من جدولها: السعر والبنود من مصدرٍ واحد، ومع كلٍّ من ينتظر فيه */
-Route::get('/programs', App\Http\Controllers\Site\ProgramsPageController::class)->name('site.programs');
+    /** البرامج من جدولها: السعر والبنود من مصدرٍ واحد، ومع كلٍّ من ينتظر فيه */
+    Route::get('/programs', App\Http\Controllers\Site\ProgramsPageController::class)->name('site.programs');
 
-Route::view('/login', 'site.auth.login')->name('site.login');
-Route::view('/register', 'site.auth.register')->name('site.register');
-Route::get('/reset-password', App\Http\Controllers\Site\ResetPasswordPageController::class)->name('site.reset-password');
-Route::view('/dashboard', 'site.portal.dashboard')->name('site.dashboard');
+    Route::view('/login', 'site.auth.login')->name('site.login');
+    Route::view('/register', 'site.auth.register')->name('site.register');
+    Route::get('/reset-password', App\Http\Controllers\Site\ResetPasswordPageController::class)->name('site.reset-password');
+    Route::view('/dashboard', 'site.portal.dashboard')->name('site.dashboard');
 
-/** دليل الواجهة: مرجع للمطوّر لا صفحة للزائر، فلا يُسجَّل خارج التطوير. */
-if (app()->isLocal()) {
-    Route::view('/styleguide', 'site.pages.styleguide')->name('site.styleguide');
-}
+    /** دليل الواجهة: مرجع للمطوّر لا صفحة للزائر، فلا يُسجَّل خارج التطوير. */
+    if (app()->isLocal()) {
+        Route::view('/styleguide', 'site.pages.styleguide')->name('site.styleguide');
+    }
+};
+
+Route::middleware('locale:ar')->group($site);
+Route::prefix('en')->name('en.')->middleware('locale:en')->group($site);
 
 /**
  * الروابط القديمة بامتداد `.html` (المحفوظة والمُشاركة قبل الانتقال إلى

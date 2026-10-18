@@ -9,6 +9,7 @@
 import { SITE } from './data.js';
 import { $, $$, rafThrottle } from './utils.js';
 import { me, hasSignedInHint, clearSignedIn } from './auth.js';
+import { url } from './i18n.js';
 
 /**
  * الشريط يختفي عند النزول ويعود عند أول صعود.
@@ -59,7 +60,7 @@ async function initAccountLink() {
   }
 
   $$('[data-account-link]').forEach((link) => {
-    link.href = '/dashboard';
+    link.href = url('/dashboard');
     link.textContent = 'كفالاتي';
   });
 }

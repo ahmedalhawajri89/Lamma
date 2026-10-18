@@ -85,10 +85,10 @@
         </section>
 
         <div class="ty-actions">
-          <a class="btn btn-primary btn-lg" href="/dashboard">افتح حسابي <i class="fa-solid fa-arrow-left ms-1" aria-hidden="true"></i></a>
-          <a class="btn btn-outline-primary btn-lg" href="/orphans">اكفل طفلاً آخر</a>
+          <a class="btn btn-primary btn-lg" href="{{ lurl('/dashboard') }}">افتح حسابي <i class="fa-solid fa-arrow-left ms-1" aria-hidden="true"></i></a>
+          <a class="btn btn-outline-primary btn-lg" href="{{ lurl('/orphans') }}">اكفل طفلاً آخر</a>
         </div>
-        <button type="button" class="ty-share" data-share data-share-url="/orphans" data-share-title="أطفال ينتظرون من يكفلهم على {{ $site['name'] }}">
+        <button type="button" class="ty-share" data-share data-share-url="{{ lurl('/orphans') }}" data-share-title="أطفال ينتظرون من يكفلهم على {{ $site['name'] }}">
           <i class="fa-solid fa-share-nodes" aria-hidden="true"></i> ادعُ غيرك ليكفل طفلاً
         </button>
       </div>
@@ -99,8 +99,8 @@
         <h1 class="ty-title">لا كفالة حديثة لعرضها</h1>
         <p class="ty-lede">كفالاتك كلها في حسابك، ومعها إيصالاتها.</p>
         <div class="ty-actions">
-          <a class="btn btn-primary btn-lg" href="/dashboard">افتح حسابي</a>
-          <a class="btn btn-outline-primary btn-lg" href="/orphans">تصفّح الأطفال</a>
+          <a class="btn btn-primary btn-lg" href="{{ lurl('/dashboard') }}">افتح حسابي</a>
+          <a class="btn btn-outline-primary btn-lg" href="{{ lurl('/orphans') }}">تصفّح الأطفال</a>
         </div>
       </div>
 

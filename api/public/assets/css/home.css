@@ -240,7 +240,7 @@
   transition: scale var(--dur-fast) var(--ease-out);
 }
 /* أيقونة التشغيل مقلوبة في العربية لتشير لجهة القراءة */
-.hero__how-icon i { scale: -1 1; }
+.hero__how-icon i { scale: calc(-1 * var(--kf-dir, 1)) 1; }
 .hero__how:hover { color: var(--color-brand-hover); }
 .hero__how:hover .hero__how-icon { scale: 1.08; }
 
@@ -977,7 +977,7 @@
               translate var(--dur-normal) var(--ease-out);
 }
 .report-point:hover,
-.report-point.is-on { border-color: var(--color-brand-border); box-shadow: var(--shadow-md); translate: -6px 0; }
+.report-point.is-on { border-color: var(--color-brand-border); box-shadow: var(--shadow-md); translate: calc(-6px * var(--kf-dir, 1)) 0; }
 .report-point[aria-pressed="true"] { border-color: var(--color-brand); }
 .report-point:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
 .report-point__icon {
@@ -1271,7 +1271,7 @@
               translate var(--dur-fast) var(--ease-out);
 }
 .money-row:hover,
-.money-row.is-on { background: rgb(255 255 255 / 0.08); border-color: rgb(255 255 255 / 0.18); translate: -4px 0; }
+.money-row.is-on { background: rgb(255 255 255 / 0.08); border-color: rgb(255 255 255 / 0.18); translate: calc(-4px * var(--kf-dir, 1)) 0; }
 .money-row[aria-pressed="true"] { border-color: var(--c); }
 .money-row:focus-visible { outline: 3px solid var(--color-cta); outline-offset: 2px; }
 .money-row__swatch { inline-size: 0.85rem; block-size: 0.85rem; border-radius: 4px; background: var(--c); }
@@ -1774,7 +1774,7 @@
 .bento__panel .bento__excerpt { color: var(--color-on-ink-muted); }
 .bento__cta { display: inline-flex; align-items: center; gap: 0.5rem; font-family: var(--font-display); font-weight: 600; color: var(--color-cta); }
 .bento__cta i { font-size: 0.8em; transition: translate var(--dur-fast) var(--ease-out); }
-.bento--lead:hover .bento__cta i { translate: -4px 0; }
+.bento--lead:hover .bento__cta i { translate: calc(-4px * var(--kf-dir, 1)) 0; }
 
 /* ── الصغيران: صورة مربعة جانبية ونص ── */
 .bento--a, .bento--b { align-items: stretch; }

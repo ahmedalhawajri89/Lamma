@@ -7,7 +7,7 @@
       <div class="kf-footer__pitch">
         <p class="kf-footer__kicker">منصة مرخّصة ومدقّقة منذ 2012</p>
         <h2 class="kf-footer__statement">كل طفل يستحق<br><em>من يسأل عنه.</em></h2>
-        <a class="kf-footer__cta" href="/orphans">اكفل يتيماً <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
+        <a class="kf-footer__cta" href="{{ lurl('/orphans') }}">اكفل يتيماً <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
       </div>
 
       <div class="kf-footer__news">
@@ -31,7 +31,7 @@
 
     <div class="kf-footer__cols">
       <div class="kf-footer__about">
-        <a class="kf-footer__brand" href="/">
+        <a class="kf-footer__brand" href="{{ lurl('/') }}">
           <img src="/assets/img/logo.svg" alt="" width="40" height="40">
           <span><b data-site="name">{{ $site['name'] }}</b><small data-site="tagline">{{ $site['tagline'] }}</small></span>
         </a>
@@ -41,7 +41,7 @@
       <nav aria-labelledby="footerNavHeading">
         <h2 class="kf-footer__heading" id="footerNavHeading">تصفّح</h2>
         <ul class="kf-footer__links kf-footer__links--two">
-          <li><a href="/">الرئيسية</a></li>
+          <li><a href="{{ lurl('/') }}">الرئيسية</a></li>
           @foreach ($nav as $link)
             <li><a href="{{ $link['href'] }}">{{ $link['label'] }}</a></li>
           @endforeach
@@ -51,10 +51,10 @@
       <nav aria-labelledby="footerHelpHeading">
         <h2 class="kf-footer__heading" id="footerHelpHeading">مساعدة</h2>
         <ul class="kf-footer__links">
-          <li><a href="/faq">الأسئلة الشائعة</a></li>
-          <li><a href="/transparency">تقارير الشفافية</a></li>
-          <li><a href="/transparency#child-policy">سياسة حماية الطفل</a></li>
-          <li><a href="/dashboard">حسابي</a></li>
+          <li><a href="{{ lurl('/faq') }}">الأسئلة الشائعة</a></li>
+          <li><a href="{{ lurl('/transparency') }}">تقارير الشفافية</a></li>
+          <li><a href="{{ lurl('/transparency#child-policy') }}">سياسة حماية الطفل</a></li>
+          <li><a href="{{ lurl('/dashboard') }}">حسابي</a></li>
         </ul>
       </nav>
 
@@ -76,9 +76,9 @@
     <div class="kf-footer__bottom">
       <p>© {{ now()->year }} منصة <span data-site="name">{{ $site['name'] }}</span>. جميع الحقوق محفوظة.</p>
       <nav aria-label="روابط قانونية">
-        <a href="/transparency#child-policy">سياسة حماية الطفل</a>
-        <a href="/transparency">الخصوصية</a>
-        <a href="/faq">شروط الاستخدام</a>
+        <a href="{{ lurl('/transparency#child-policy') }}">سياسة حماية الطفل</a>
+        <a href="{{ lurl('/transparency') }}">الخصوصية</a>
+        <a href="{{ lurl('/faq') }}">شروط الاستخدام</a>
       </nav>
       <div class="kf-footer__pay" role="img" aria-label="وسائل الدفع المقبولة: فيزا، ماستركارد، Apple Pay، والتحويل البنكي">
         <i class="fa-brands fa-cc-visa" aria-hidden="true"></i>

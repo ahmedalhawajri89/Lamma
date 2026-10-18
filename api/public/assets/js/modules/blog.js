@@ -16,6 +16,7 @@ import { $, $$, debounce, escapeHtml, formatNumber, keepFocus, prefersReducedMot
 import { POSTS } from './data.js';
 import { apiEnabled, request } from './api.js';
 import { initReveal } from './motion.js';
+import { url } from './i18n.js';
 
 const PER_PAGE = 9;
 const KEYS = ['cat', 'q', 'page'];
@@ -132,7 +133,7 @@ export function initBlog() {
   function renderFeatured(post) {
     const host = $('#blogFeatured');
     if (!post) { host.innerHTML = ''; return; }
-    const href = post.slug ? `/post?slug=${encodeURIComponent(post.slug)}` : null;
+    const href = post.slug ? url(`/post?slug=${encodeURIComponent(post.slug)}`) : null;
     host.innerHTML = `
       <article class="feature" data-reveal>
         <div class="feature__media">${post.image ? `<img src="${escapeHtml(post.image)}" alt="" width="900" height="600">` : '<span class="feature__mark"></span>'}</div>
@@ -194,7 +195,7 @@ function meta(post) {
  * site/partials/post-card.blade.php (مقالات «اقرأ أيضاً») بالأصناف نفسها.
  */
 function magCard(post, delay) {
-  const href = post.slug ? `/post?slug=${encodeURIComponent(post.slug)}` : null;
+  const href = post.slug ? url(`/post?slug=${encodeURIComponent(post.slug)}`) : null;
   return `
 <article class="mag-card" data-reveal data-reveal-delay="${delay}">
   <div class="mag-card__media">

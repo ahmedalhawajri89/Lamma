@@ -5,7 +5,7 @@
 <header class="kf-header" id="siteHeader">
   <nav class="navbar navbar-expand-lg" aria-label="التنقل الرئيسي">
     <div class="container">
-      <a class="navbar-brand kf-brand" href="/">
+      <a class="navbar-brand kf-brand" href="{{ lurl('/') }}">
         <img src="/assets/img/logo.svg" alt="" width="46" height="46">
         <span class="kf-brand__name"><span data-site="name">{{ $site['name'] }}</span><span class="kf-brand__tag" data-site="tagline">{{ $site['tagline'] }}</span></span>
       </a>
@@ -25,20 +25,21 @@
             @endforeach
           </ul>
           <div class="d-grid gap-2 mt-4 d-lg-none">
-            <a class="btn btn-outline-primary btn-lg" href="/login" data-account-link>تسجيل الدخول</a>
-            <a class="btn btn-cta btn-lg" href="/orphans">اكفل يتيماً</a>
+            <a class="btn btn-outline-primary btn-lg" href="{{ lurl('/login') }}" data-account-link>تسجيل الدخول</a>
+            <a class="btn btn-cta btn-lg" href="{{ lurl('/orphans') }}">اكفل يتيماً</a>
           </div>
         </div>
       </div>
 
       <div class="kf-header__actions">
-        <a class="btn btn-outline-primary d-none d-lg-inline-flex" href="/login" data-account-link>تسجيل الدخول</a>
-        <a class="btn btn-cta d-none d-sm-inline-flex" href="/orphans">
+        <a class="btn btn-outline-primary d-none d-lg-inline-flex" href="{{ lurl('/login') }}" data-account-link>تسجيل الدخول</a>
+        <a class="btn btn-cta d-none d-sm-inline-flex" href="{{ lurl('/orphans') }}">
           <i class="fa-regular fa-heart" aria-hidden="true"></i> اكفل يتيماً
         </a>
-        <a class="btn btn-icon btn-icon--plain" href="/orphans" aria-label="ابحث عن طفل" title="ابحث عن طفل">
+        <a class="btn btn-icon btn-icon--plain" href="{{ lurl('/orphans') }}" aria-label="ابحث عن طفل" title="ابحث عن طفل">
           <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
         </a>
+        @include('site.partials.lang-switch')
         <button class="btn btn-icon btn-icon--plain" type="button" id="themeToggle" aria-pressed="false" aria-label="الوضع الليلي">
           <i class="fa-solid fa-moon" aria-hidden="true"></i>
           <i class="fa-solid fa-sun" aria-hidden="true"></i>

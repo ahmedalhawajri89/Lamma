@@ -12,7 +12,7 @@
 --}}
 @section('title')إنشاء حساب@endsection
 @section('description')أنشئ حسابك مجاناً لتكفل يتيماً وتتابع تقاريره.@endsection
-@section('canonical', url('/register'))
+@section('canonical', url(lurl('/register')))
 
 @section('content')
   <div class="acc">
@@ -20,16 +20,17 @@
     {{-- ══ النموذج ══ --}}
     <main class="acc-main" id="main">
       <div class="acc-bar">
-        <a class="kf-brand acc-brand" href="/">
+        <a class="kf-brand acc-brand" href="{{ lurl('/') }}">
           <img src="/assets/img/logo.svg" alt="" width="40" height="40">
           <span class="kf-brand__name"><span>{{ $site['name'] }}</span><span class="kf-brand__tag">{{ $site['tagline'] }}</span></span>
         </a>
         <div class="acc-bar__tools">
+          @include('site.partials.lang-switch')
           <button class="btn btn-icon btn-icon--plain" type="button" id="themeToggle" aria-pressed="false" aria-label="الوضع الليلي">
             <i class="fa-solid fa-moon" aria-hidden="true"></i>
             <i class="fa-solid fa-sun" aria-hidden="true"></i>
           </button>
-          <a class="acc-back" href="/">الرئيسية <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
+          <a class="acc-back" href="{{ lurl('/') }}">الرئيسية <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
         </div>
       </div>
 
@@ -37,7 +38,7 @@
         <h1 class="acc-title">أنشئ حسابك</h1>
         <p class="acc-lede">دقيقةٌ واحدة تفصلك عن كفالتك الأولى. الحساب مجاني.</p>
 
-        <form class="acc-form" data-validate-form data-action="register" data-redirect="/dashboard" novalidate>
+        <form class="acc-form" data-validate-form data-action="register" data-redirect="{{ lurl('/dashboard') }}" novalidate>
           <div class="field">
             <label class="form-label" for="fullName">الاسم الكامل</label>
             <div class="acc-input">
@@ -83,12 +84,12 @@
           {{-- الموافقة بجملةٍ صريحة عند الزرّ لا بخانة: إنشاء الحساب هو الموافقة، وتُرسل terms معه --}}
           <input type="hidden" name="terms" value="on">
           <button class="btn btn-primary btn-lg w-100" type="submit">إنشاء الحساب <i class="fa-solid fa-arrow-left acc-btn__arrow" aria-hidden="true"></i></button>
-          <p class="acc-consent">بإنشاء الحساب توافق على <a href="/transparency#child-policy">شروط الاستخدام وسياسة الخصوصية</a>. لا نشارك بياناتك مع أي جهة.</p>
+          <p class="acc-consent">بإنشاء الحساب توافق على <a href="{{ lurl('/transparency#child-policy') }}">شروط الاستخدام وسياسة الخصوصية</a>. لا نشارك بياناتك مع أي جهة.</p>
         </form>
 
         <div class="acc-switch">
           <span>لديك حساب بالفعل؟</span>
-          <a href="/login">سجّل الدخول <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
+          <a href="{{ lurl('/login') }}">سجّل الدخول <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
         </div>
       </div>
     </main>

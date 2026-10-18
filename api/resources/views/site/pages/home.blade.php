@@ -2,7 +2,7 @@
 
 @section('title', 'اكفل يتيماً وهو في أسرته، وتابع أثرك شهراً بشهر')
 @section('description', $site['name'].' تربطك بيتيمٍ يعيش في أسرته، وتُريك أين يذهب كل دولار. ٩٣٪ من كفالتك تصل للطفل مباشرة، وتقرير مصوّر كل ثلاثة أشهر.')
-@section('canonical', url('/'))
+@section('canonical', url(lurl('/')))
 @section('og_description', '٩٣٪ من كفالتك تصل للطفل مباشرة، وتقرير مصوّر كل ثلاثة أشهر.')
 
 @push('styles')
@@ -58,7 +58,7 @@
             وتصلك تقارير مصوّرة عنه كل ثلاثة أشهر.
           </p>
           <div class="hero__actions">
-            <a class="btn btn-cta btn-lg" href="/orphans">
+            <a class="btn btn-cta btn-lg" href="{{ lurl('/orphans') }}">
               اكفل يتيماً <i class="fa-solid fa-arrow-left btn__icon btn__icon--arrow" aria-hidden="true"></i>
             </a>
             <a class="hero__how" href="#how">
@@ -113,7 +113,7 @@
         </header>
         <div class="row g-4" id="homeOrphans" aria-busy="true"></div>
         <div class="kids__more" data-reveal>
-          <a class="btn btn-outline-primary btn-lg" href="/orphans">
+          <a class="btn btn-outline-primary btn-lg" href="{{ lurl('/orphans') }}">
             تعرّف على كل الأطفال <i class="fa-solid fa-arrow-left btn__icon btn__icon--arrow" aria-hidden="true"></i>
           </a>
         </div>
@@ -172,7 +172,7 @@
               </div>
             </li>
             </ol>
-            <a class="btn btn-cta btn-lg how-cta" href="/orphans">
+            <a class="btn btn-cta btn-lg how-cta" href="{{ lurl('/orphans') }}">
               ابدأ باختيار طفل <i class="fa-solid fa-arrow-left btn__icon btn__icon--arrow" aria-hidden="true"></i>
             </a>
           </div>
@@ -266,7 +266,7 @@
             <ul class="money-list" id="moneyList" role="list"></ul>
             <div class="money__foot">
               <p><i class="fa-solid fa-file-shield" aria-hidden="true"></i> التقرير الكامل والوثائق منشورة للجميع، كفلاء وغير كفلاء.</p>
-              <a class="btn btn-ink-outline" href="/transparency">
+              <a class="btn btn-ink-outline" href="{{ lurl('/transparency') }}">
                 اطّلع على تقرير الشفافية <i class="fa-solid fa-arrow-left btn__icon btn__icon--arrow" aria-hidden="true"></i>
               </a>
             </div>
@@ -311,7 +311,7 @@
             </ul>
             <div class="report__foot" data-reveal>
               <p class="report__stat"><b class="num">4</b><span>تقارير مصوّرة<br>كل سنة</span></p>
-              <a class="link-arrow" href="/transparency">كيف نتحقق من كل حالة <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
+              <a class="link-arrow" href="{{ lurl('/transparency') }}">كيف نتحقق من كل حالة <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
             </div>
           </div>
 
@@ -380,7 +380,7 @@
         </header>
         <div class="plans" id="homePlans"></div>
         <div class="d-flex justify-content-center mt-4" data-reveal>
-          <a class="link-arrow" href="/programs">قارن البرامج بالتفصيل <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
+          <a class="link-arrow" href="{{ lurl('/programs') }}">قارن البرامج بالتفصيل <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
         </div>
       </div>
     </section>
@@ -405,7 +405,7 @@
         </header>
         <div class="home-blog" id="postsGrid" data-limit="4"></div>
         <div class="d-flex justify-content-center mt-5" data-reveal>
-          <a class="btn btn-outline-primary btn-lg" href="/blog">
+          <a class="btn btn-outline-primary btn-lg" href="{{ lurl('/blog') }}">
             كل المقالات <i class="fa-solid fa-arrow-left btn__icon btn__icon--arrow" aria-hidden="true"></i>
           </a>
         </div>
@@ -428,8 +428,8 @@
               <span class="faq-help__icon" aria-hidden="true"><i class="fa-solid fa-headset"></i></span>
               <h3 id="faqHelpTitle">لم تجد سؤالك؟</h3>
               <p>راسل الفريق، ونرد على كل رسالة خلال <b class="num">72</b> ساعة.</p>
-              <a class="btn btn-primary w-100" href="/contact">راسل الفريق</a>
-              <a class="link-arrow" href="/faq">كل الأسئلة الشائعة <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
+              <a class="btn btn-primary w-100" href="{{ lurl('/contact') }}">راسل الفريق</a>
+              <a class="link-arrow" href="{{ lurl('/faq') }}">كل الأسئلة الشائعة <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
             </aside>
           </div>
         </div>
@@ -446,10 +446,10 @@
               <h2 id="closingTitle" class="closing__title">ابدأ كفالة طفل هذا الشهر</h2>
               <p class="closing__lede">من <b class="num">$35</b> في الشهر، وتستطيع إيقافها متى شئت بلا رسوم ولا اتصال.</p>
               <div class="closing__actions">
-                <a class="btn btn-cta btn-lg" href="/orphans">
+                <a class="btn btn-cta btn-lg" href="{{ lurl('/orphans') }}">
                   اكفل يتيماً <i class="fa-solid fa-arrow-left btn__icon btn__icon--arrow" aria-hidden="true"></i>
                 </a>
-                <a class="link-arrow" href="/contact">تحدّث مع فريقنا</a>
+                <a class="link-arrow" href="{{ lurl('/contact') }}">تحدّث مع فريقنا</a>
               </div>
             </div>
             <div class="col-lg-5">
@@ -487,7 +487,7 @@
       <span>الكفالة تبدأ من</span>
       <strong><b class="num">$35</b> في الشهر</strong>
     </div>
-    <a class="btn btn-cta" href="/orphans">اكفل يتيماً</a>
+    <a class="btn btn-cta" href="{{ lurl('/orphans') }}">اكفل يتيماً</a>
   </div>
 
   <button class="to-top" type="button" id="toTop" aria-label="العودة إلى أعلى الصفحة">

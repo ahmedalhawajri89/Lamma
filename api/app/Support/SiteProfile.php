@@ -64,11 +64,12 @@ final class SiteProfile
      */
     public static function nav(string $path): array
     {
-        $page = trim($path, '/');
+        // «en/orphans» و«orphans» الصفحة نفسها: البادئة لغةٌ لا قسم
+        $page = trim(Locale::strip($path), '/');
 
         return array_map(fn (array $link): array => [
-            'label' => $link['label'],
-            'href' => '/'.$link['page'],
+            'label' => __($link['label']),
+            'href' => Locale::url('/'.$link['page']),
             'current' => match ($link['page']) {
                 $page => 'page',
                 self::SECTION_OF[$page] ?? null => 'true',

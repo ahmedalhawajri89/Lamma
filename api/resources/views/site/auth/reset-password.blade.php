@@ -19,16 +19,17 @@
     {{-- ══ النموذج ══ --}}
     <main class="acc-main" id="main">
       <div class="acc-bar">
-        <a class="kf-brand acc-brand" href="/">
+        <a class="kf-brand acc-brand" href="{{ lurl('/') }}">
           <img src="/assets/img/logo.svg" alt="" width="40" height="40">
           <span class="kf-brand__name"><span>{{ $site['name'] }}</span><span class="kf-brand__tag">{{ $site['tagline'] }}</span></span>
         </a>
         <div class="acc-bar__tools">
+          @include('site.partials.lang-switch')
           <button class="btn btn-icon btn-icon--plain" type="button" id="themeToggle" aria-pressed="false" aria-label="الوضع الليلي">
             <i class="fa-solid fa-moon" aria-hidden="true"></i>
             <i class="fa-solid fa-sun" aria-hidden="true"></i>
           </button>
-          <a class="acc-back" href="/">الرئيسية <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
+          <a class="acc-back" href="{{ lurl('/') }}">الرئيسية <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
         </div>
       </div>
 
@@ -38,7 +39,7 @@
           <h1 class="acc-title">كلمة مرور جديدة</h1>
           <p class="acc-lede">لحساب <b dir="ltr">{{ $email }}</b>. اختر كلمةً لم تستعملها في موقعٍ آخر.</p>
 
-          <form class="acc-form" data-validate-form data-action="reset" data-redirect="/login" novalidate>
+          <form class="acc-form" data-validate-form data-action="reset" data-redirect="{{ lurl('/login') }}" novalidate>
             <input type="hidden" name="token" value="{{ $token }}">
             <input type="hidden" name="email" value="{{ $email }}">
             {{-- لمدير كلمات المرور: يحفظ الكلمة الجديدة باسم الحساب الصحيح --}}
@@ -99,10 +100,10 @@
             <li><i class="fa-regular fa-folder-open" aria-hidden="true"></i> لم تصلك؟ انظر في مجلد الرسائل غير المرغوب فيها.</li>
           </ul>
 
-          <a class="btn btn-primary btn-lg w-100" href="/login?{{ http_build_query(array_filter(['email' => $email])) }}#forgot">اطلب رابطاً جديداً <i class="fa-solid fa-arrow-left acc-btn__arrow" aria-hidden="true"></i></a>
+          <a class="btn btn-primary btn-lg w-100" href="{{ lurl('/login?') }}{{ http_build_query(array_filter(['email' => $email])) }}#forgot">اطلب رابطاً جديداً <i class="fa-solid fa-arrow-left acc-btn__arrow" aria-hidden="true"></i></a>
           <div class="acc-switch">
             <span>تذكّرت كلمة المرور؟</span>
-            <a href="/login">سجّل الدخول <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
+            <a href="{{ lurl('/login') }}">سجّل الدخول <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
           </div>
         @endif
       </div>

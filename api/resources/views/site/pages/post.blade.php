@@ -14,7 +14,7 @@
           default => $minutes.' دقيقة',
       };
       $cover = $post->cover_path ? asset('storage/'.$post->cover_path) : null;
-      $url = url('/post?slug='.urlencode($post->slug));
+      $url = url(lurl('/post?slug='.urlencode($post->slug)));
       $schema = [
           '@context' => 'https://schema.org',
           '@type' => 'Article',
@@ -59,7 +59,7 @@
         <span class="post-missing__icon" aria-hidden="true"><i class="fa-regular fa-newspaper"></i></span>
         <h1>لم نجد هذا المقال</h1>
         <p>ربما حُذف أو تغيّر رابطه. المقالات كلها في المدونة.</p>
-        <a class="btn btn-primary btn-lg" href="/blog">العودة إلى المدونة</a>
+        <a class="btn btn-primary btn-lg" href="{{ lurl('/blog') }}">العودة إلى المدونة</a>
       </div>
     </section>
   @else
@@ -71,16 +71,16 @@
         <div class="container">
           <nav aria-label="مسار التنقل">
             <ol class="breadcrumb post-crumbs">
-              <li class="breadcrumb-item"><a href="/">الرئيسية</a></li>
-              <li class="breadcrumb-item"><a href="/blog">المدونة</a></li>
+              <li class="breadcrumb-item"><a href="{{ lurl('/') }}">الرئيسية</a></li>
+              <li class="breadcrumb-item"><a href="{{ lurl('/blog') }}">المدونة</a></li>
               @if ($post->category)
-                <li class="breadcrumb-item"><a href="/blog?cat={{ urlencode($post->category->slug) }}">{{ $post->category->name_ar }}</a></li>
+                <li class="breadcrumb-item"><a href="{{ lurl('/blog?cat=') }}{{ urlencode($post->category->slug) }}">{{ $post->category->name_ar }}</a></li>
               @endif
             </ol>
           </nav>
           <div class="post-head__text">
             @if ($post->category)
-              <a class="post-tag" href="/blog?cat={{ urlencode($post->category->slug) }}">{{ $post->category->name_ar }}</a>
+              <a class="post-tag" href="{{ lurl('/blog?cat=') }}{{ urlencode($post->category->slug) }}">{{ $post->category->name_ar }}</a>
             @endif
             <h1 class="post-title" id="postTitle">{{ $post->title }}</h1>
             @if ($post->excerpt)
@@ -131,7 +131,7 @@
                   <div><dt><i class="fa-regular fa-calendar" aria-hidden="true"></i> نُشر</dt><dd><time datetime="{{ $post->published_at?->toDateString() }}">{{ $post->published_at?->translatedFormat('j F Y') }}</time></dd></div>
                   <div><dt><i class="fa-regular fa-clock" aria-hidden="true"></i> القراءة</dt><dd>{{ $read }}</dd></div>
                   @if ($post->category)
-                    <div><dt><i class="fa-regular fa-folder" aria-hidden="true"></i> التصنيف</dt><dd><a href="/blog?cat={{ urlencode($post->category->slug) }}">{{ $post->category->name_ar }}</a></dd></div>
+                    <div><dt><i class="fa-regular fa-folder" aria-hidden="true"></i> التصنيف</dt><dd><a href="{{ lurl('/blog?cat=') }}{{ urlencode($post->category->slug) }}">{{ $post->category->name_ar }}</a></dd></div>
                   @endif
                 </dl>
                 <div>
@@ -145,7 +145,7 @@
                 <span class="post-invite__icon" aria-hidden="true"><i class="fa-solid fa-hand-holding-heart"></i></span>
                 <h2>كل ما تقرؤه هنا يحدث لطفلٍ ينتظر كافلاً</h2>
                 <p>ملفات موثّقة ومزارة ميدانياً، وتقرير مصوّر كل ثلاثة أشهر.</p>
-                <a class="btn btn-cta w-100" href="/orphans">اكفل يتيماً <i class="fa-solid fa-arrow-left ms-1" aria-hidden="true"></i></a>
+                <a class="btn btn-cta w-100" href="{{ lurl('/orphans') }}">اكفل يتيماً <i class="fa-solid fa-arrow-left ms-1" aria-hidden="true"></i></a>
               </div>
             </div>
           </aside>
@@ -158,7 +158,7 @@
         <div class="container">
           <div class="post-related__head">
             <h2 class="kf-title" id="relatedTitle">اقرأ أيضاً</h2>
-            <a class="link-arrow" href="/blog">كل المقالات <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
+            <a class="link-arrow" href="{{ lurl('/blog') }}">كل المقالات <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
           </div>
           <div class="mag-grid">
             @foreach ($related as $i => $r)

@@ -11,7 +11,7 @@
 --}}
 @section('title')تسجيل الدخول@endsection
 @section('description')ادخل إلى حسابك لمتابعة كفالاتك وتقاريرها.@endsection
-@section('canonical', url('/login'))
+@section('canonical', url(lurl('/login')))
 
 @section('content')
   <div class="acc">
@@ -19,16 +19,17 @@
     {{-- ══ النموذج ══ --}}
     <main class="acc-main" id="main">
       <div class="acc-bar">
-        <a class="kf-brand acc-brand" href="/">
+        <a class="kf-brand acc-brand" href="{{ lurl('/') }}">
           <img src="/assets/img/logo.svg" alt="" width="40" height="40">
           <span class="kf-brand__name"><span>{{ $site['name'] }}</span><span class="kf-brand__tag">{{ $site['tagline'] }}</span></span>
         </a>
         <div class="acc-bar__tools">
+          @include('site.partials.lang-switch')
           <button class="btn btn-icon btn-icon--plain" type="button" id="themeToggle" aria-pressed="false" aria-label="الوضع الليلي">
             <i class="fa-solid fa-moon" aria-hidden="true"></i>
             <i class="fa-solid fa-sun" aria-hidden="true"></i>
           </button>
-          <a class="acc-back" href="/">الرئيسية <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
+          <a class="acc-back" href="{{ lurl('/') }}">الرئيسية <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
         </div>
       </div>
 
@@ -38,7 +39,7 @@
           <h1 class="acc-title" id="loginTitle">أهلاً بعودتك</h1>
           <p class="acc-lede">ادخل لتتابع كفالاتك، وتقرأ آخر تقاريرها.</p>
 
-          <form class="acc-form" data-validate-form data-action="login" data-redirect="/dashboard" novalidate>
+          <form class="acc-form" data-validate-form data-action="login" data-redirect="{{ lurl('/dashboard') }}" novalidate>
             <div class="field">
               <label class="form-label" for="email">البريد الإلكتروني</label>
               <div class="acc-input">
@@ -80,7 +81,7 @@
 
           <div class="acc-switch">
             <span>جديد على {{ $site['name'] }}؟</span>
-            <a href="/register">أنشئ حساباً <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
+            <a href="{{ lurl('/register') }}">أنشئ حساباً <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
           </div>
         </section>
 

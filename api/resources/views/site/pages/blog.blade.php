@@ -7,7 +7,7 @@
 --}}
 @section('title')المدونة@endsection
 @section('description')نكتب عن آلية عملنا وقراراتنا وأخطائنا: الشفافية، سياسات الحماية، قصص الأطفال، وتقارير الحملات.@endsection
-@section('canonical', url('/blog'))
+@section('canonical', url(lurl('/blog')))
 
 @push('styles')
   <link rel="stylesheet" href="/assets/css/blog.css">
@@ -21,7 +21,7 @@
       <div class="container">
         <nav aria-label="مسار التنقل">
           <ol class="breadcrumb post-crumbs">
-            <li class="breadcrumb-item"><a href="/">الرئيسية</a></li>
+            <li class="breadcrumb-item"><a href="{{ lurl('/') }}">الرئيسية</a></li>
             <li class="breadcrumb-item active" aria-current="page">المدونة</li>
           </ol>
         </nav>

@@ -17,6 +17,7 @@ import {
 } from './auth.js';
 import { fetchCheckoutConfig } from './api.js';
 import { toast } from './ui.js';
+import { url } from './i18n.js';
 
 const dateFmt = new Intl.DateTimeFormat('ar', { day: 'numeric', month: 'long', year: 'numeric' });
 const shortFmt = new Intl.DateTimeFormat('ar', { day: 'numeric', month: 'long' });
@@ -122,7 +123,7 @@ function trackModals() {
 /** انتهت الجلسة أثناء التصفح: إلى الدخول ثم العودة إلى هنا. */
 function toLogin() {
   clearSignedIn();
-  window.location.replace(`/login?redirect=${encodeURIComponent('/dashboard')}`);
+  window.location.replace(url(`/login?redirect=${encodeURIComponent(url('/dashboard'))}`));
 }
 
 /** خطأ طلبٍ في البوابة: الجلسة المنتهية تُعيد للدخول، وغيرها يُقال. */
@@ -183,7 +184,7 @@ export async function initPortal() {
   if (!isSponsor(user)) {
     await logout().catch(() => {});
     clearSignedIn();
-    window.location.replace('/login');
+    window.location.replace(url('/login'));
     return;
   }
 
@@ -465,7 +466,7 @@ function renderKids() {
     host.innerHTML = `<li class="pt-empty">
       <i class="fa-solid fa-hand-holding-heart" aria-hidden="true"></i>
       <p>لا كفالات قائمة الآن. طفلٌ واحد يكفي لتبدأ.</p>
-      <a class="btn btn-cta btn-sm" href="/orphans">اختر طفلاً تقف معه</a>
+      <a class="btn btn-cta btn-sm" href="${url('/orphans')}">اختر طفلاً تقف معه</a>
     </li>`;
     return;
   }
@@ -526,7 +527,7 @@ function renderSponsorships() {
 <div class="pt-empty">
   <i class="fa-solid fa-hand-holding-heart" aria-hidden="true"></i>
   <p>لا كفالات قائمة الآن. طفلٌ واحد يكفي لتبدأ.</p>
-  <a class="btn btn-cta" href="/orphans">اختر طفلاً تقف معه</a>
+  <a class="btn btn-cta" href="${url('/orphans')}">اختر طفلاً تقف معه</a>
 </div>`;
     return;
   }
@@ -538,7 +539,7 @@ function renderSponsorships() {
     const interval = Number(s.interval_months ?? 1);
     const pending = s.status === 'pending';
     const paused = s.status === 'paused';
-    const profile = `/orphan?id=${encodeURIComponent(orphan.reference_code ?? '')}`;
+    const profile = url(`/orphan?id=${encodeURIComponent(orphan.reference_code ?? '')}`);
     const latest = reports.find((r) => r.orphan?.id === orphan.id);
 
     // ما يظهر من الإجراءات يتبع الحالة: الحجز يُستكمل أو يُلغى، والموقوفة تُستأنف

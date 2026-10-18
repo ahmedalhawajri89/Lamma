@@ -19,7 +19,7 @@
 
 @section('title')برامج الكفالة@endsection
 @section('description')أربعة برامج كفالة: شاملة، تعليمية، صحية، وكفالة أسرة. ما يغطيه كل برنامج ومبلغه الشهري، وكم طفلاً ينتظر فيه.@endsection
-@section('canonical', url('/programs'))
+@section('canonical', url(lurl('/programs')))
 
 @push('styles')
   <link rel="stylesheet" href="/assets/css/plans.css">
@@ -34,7 +34,7 @@
       <div class="container">
         <nav aria-label="مسار التنقل">
           <ol class="breadcrumb pg-crumbs">
-            <li class="breadcrumb-item"><a href="/">الرئيسية</a></li>
+            <li class="breadcrumb-item"><a href="{{ lurl('/') }}">الرئيسية</a></li>
             <li class="breadcrumb-item active" aria-current="page">برامج الكفالة</li>
           </ol>
         </nav>
@@ -55,10 +55,10 @@
               <p class="plan__price"><strong class="num">{{ $money($p->monthly_price) }}</strong><span>في الشهر</span></p>
               <p class="plan__summary">{{ $p->summary_ar }}</p>
               @if ($n)
-                <a class="btn {{ $p->is_featured ? 'btn-cta' : 'btn-outline-primary' }} plan__cta" href="/orphans?program={{ urlencode($p->slug) }}">اكفل يتيماً</a>
+                <a class="btn {{ $p->is_featured ? 'btn-cta' : 'btn-outline-primary' }} plan__cta" href="{{ lurl('/orphans?program=') }}{{ urlencode($p->slug) }}">اكفل يتيماً</a>
                 <p class="plan__waiting"><span class="plan__dot" aria-hidden="true"></span> <b class="num">{{ $n }}</b> {{ $n === 1 ? 'طفل ينتظر' : ($n === 2 ? 'طفلان ينتظران' : ($n <= 10 ? 'أطفال ينتظرون' : 'طفلاً ينتظرون')) }} كافلاً</p>
               @else
-                <a class="btn btn-outline-primary plan__cta" href="/orphans">أطفال في برامج أخرى</a>
+                <a class="btn btn-outline-primary plan__cta" href="{{ lurl('/orphans') }}">أطفال في برامج أخرى</a>
                 <p class="plan__waiting">كل أطفاله مكفولون الآن</p>
               @endif
               <ul class="plan__features">
@@ -107,7 +107,7 @@
             <input class="form-range pg-calc__range" type="range" id="impactRange" min="15" max="150" step="5" value="45" aria-describedby="impactSuggestion">
             <div class="pg-calc__scale" aria-hidden="true"><span class="num">$15</span><span class="num">$150</span></div>
             <p class="pg-calc__hint" id="impactSuggestion" role="status" aria-live="polite"></p>
-            <a class="btn btn-cta btn-lg" href="/orphans">اكفل يتيماً <i class="fa-solid fa-arrow-left ms-1" aria-hidden="true"></i></a>
+            <a class="btn btn-cta btn-lg" href="{{ lurl('/orphans') }}">اكفل يتيماً <i class="fa-solid fa-arrow-left ms-1" aria-hidden="true"></i></a>
           </div>
           <div class="col-lg-7">
             <p class="pg-calc__list-label">هذا المبلغ يغطي:</p>
@@ -126,7 +126,7 @@
             <h2 class="kf-title" id="zakatTitle">هل تُحتسب الكفالة من الزكاة؟</h2>
             <p class="pg-zakat__p">كفالة اليتيم في أصلها صدقة. لكن إن كان الطفل وأسرته من الفقراء أو المساكين، وهذا حال معظم الحالات عندنا، جاز صرف الزكاة إليهم.</p>
             <p class="pg-zakat__p">لذلك نفصل الحسابين تماماً: أموال الزكاة تُصرف على الحالات المستحقة وحدها، ولا يُخصم منها أي مصروف تشغيلي.</p>
-            <a class="link-arrow" href="/faq#zakat">اقرأ التفاصيل في الأسئلة الشائعة <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
+            <a class="link-arrow" href="{{ lurl('/faq#zakat') }}">اقرأ التفاصيل في الأسئلة الشائعة <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
           </div>
           <div class="col-lg-6">
             <ol class="pg-zakat__steps">
@@ -148,7 +148,7 @@
             <h2>حدّدت البرنامج؟ اختر الطفل الآن</h2>
             <p>كل الحالات موثّقة ومزارة ميدانياً، وتنتظر من يقف معها.</p>
           </div>
-          <a class="btn btn-cta btn-lg" href="/orphans">تصفّح الأطفال <i class="fa-solid fa-arrow-left ms-1" aria-hidden="true"></i></a>
+          <a class="btn btn-cta btn-lg" href="{{ lurl('/orphans') }}">تصفّح الأطفال <i class="fa-solid fa-arrow-left ms-1" aria-hidden="true"></i></a>
         </div>
       </div>
     </section>

@@ -85,7 +85,7 @@
 }
 .kf-footer__cta:hover { background: var(--color-cta-hover); }
 .kf-footer__cta i { transition: translate var(--dur-fast) var(--ease-out); }
-.kf-footer__cta:hover i { translate: -0.25rem 0; }
+.kf-footer__cta:hover i { translate: calc(-0.25rem * var(--kf-dir, 1)) 0; }
 
 .kf-footer__news-title {
   display: flex;

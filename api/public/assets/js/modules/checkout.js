@@ -15,6 +15,7 @@ import { fetchOrphan, fetchCheckoutConfig, submitCheckout } from './api.js';
 import { me, isSponsor, markSignedIn } from './auth.js';
 import { launchConfetti } from './features.js';
 import { toast } from './ui.js';
+import { url } from './i18n.js';
 
 const INTERVALS = { monthly: 1, quarterly: 3, yearly: 12 };
 const CYCLE_WORDS = { 1: 'شهرياً', 3: 'كل ثلاثة أشهر', 12: 'سنوياً' };
@@ -87,7 +88,7 @@ export async function initCheckout() {
 
   // «سجّل الدخول» يعيد إلى هذه الصفحة نفسها
   const login = $('[data-checkout="login-link"]');
-  if (login) login.href = `/login?redirect=${encodeURIComponent(`/checkout?id=${o.id}`)}`;
+  if (login) login.href = url(`/login?redirect=${encodeURIComponent(url(`/checkout?id=${o.id}`))}`);
 
   form.dataset.action = 'checkout';
 
@@ -334,12 +335,12 @@ export async function submitCheckoutForm(form) {
     } catch { /* صفحة الشكر تعرض ما تستطيع */ }
 
     if (data.account_created) markSignedIn();
-    window.location.href = `/thank-you?ref=${encodeURIComponent(data.reference)}`;
+    window.location.href = url(`/thank-you?ref=${encodeURIComponent(data.reference)}`);
   } catch (error) {
     if (error.code === 'login_required') {
       saveDraft(form);
-      const back = `/checkout?id=${encodeURIComponent(state.orphan.id)}`;
-      error.redirect = `/login?redirect=${encodeURIComponent(back)}`;
+      const back = url(`/checkout?id=${encodeURIComponent(state.orphan.id)}`);
+      error.redirect = url(`/login?redirect=${encodeURIComponent(back)}`);
     }
 
     // أخطاء لا حقل لها في النموذج (الطفل اكتمل تمويله، رفض البنك) تظهر فوق الزر،
