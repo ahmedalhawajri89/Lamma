@@ -164,6 +164,10 @@ class ReferenceSeeder extends Seeder
             ['site', 'email', 'hello@lamma.org', 'string'],
             ['site', 'phone', '+44 20 4000 0000', 'string'],
             ['site', 'address', 'لندن، المملكة المتحدة', 'string'],
+            // مقابلاتها في الإنجليزية (SiteProfile::site)
+            ['site', 'name_en', 'Lamma', 'string'],
+            ['site', 'tagline_en', 'Every child in the circle of their family', 'string'],
+            ['site', 'address_en', 'London, United Kingdom', 'string'],
             ['site', 'start_year', '2012', 'number'],
             ['finance', 'base_currency', 'USD', 'string'],
             ['finance', 'overhead_target_percent', '7', 'number'],

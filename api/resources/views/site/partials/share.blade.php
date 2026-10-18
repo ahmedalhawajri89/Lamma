@@ -16,12 +16,12 @@
       ['لينكدإن', 'fa-linkedin-in', "https://www.linkedin.com/sharing/share-offsite/?url={$u}", 'linkedin'],
   ];
 @endphp
-<div class="share" role="group" aria-label="{{ $label ?? 'شارك' }}">
+<div class="share" role="group" aria-label="{{ $label ?? __('شارك') }}">
   @foreach ($networks as [$name, $icon, $href, $key])
     <a class="share__btn share__btn--{{ $key }}" href="{{ $href }}" target="_blank" rel="noopener noreferrer"
-       aria-label="شارك عبر {{ $name }} (تفتح في نافذة جديدة)" title="{{ $name }}"><i class="fa-brands {{ $icon }}" aria-hidden="true"></i></a>
+       aria-label="{{ __('شارك عبر :network (تفتح في نافذة جديدة)', ['network' => __($name)]) }}" title="{{ __($name) }}"><i class="fa-brands {{ $icon }}" aria-hidden="true"></i></a>
   @endforeach
-  <a class="share__btn" href="mailto:?subject={{ $t }}&body={{ $u }}" aria-label="شارك عبر البريد" title="البريد"><i class="fa-regular fa-envelope" aria-hidden="true"></i></a>
-  <button type="button" class="share__btn" data-copy-link="{{ $url }}" aria-label="انسخ الرابط" title="انسخ الرابط"><i class="fa-solid fa-link" aria-hidden="true"></i></button>
-  <button type="button" class="share__btn share__btn--native" data-share data-share-title="{{ $title }}" data-share-url="{{ $url }}" aria-label="مشاركة" title="مشاركة" hidden><i class="fa-solid fa-share-nodes" aria-hidden="true"></i></button>
+  <a class="share__btn" href="mailto:?subject={{ $t }}&body={{ $u }}" aria-label="{{ __('شارك عبر البريد') }}" title="{{ __('البريد') }}"><i class="fa-regular fa-envelope" aria-hidden="true"></i></a>
+  <button type="button" class="share__btn" data-copy-link="{{ $url }}" aria-label="{{ __('انسخ الرابط') }}" title="{{ __('انسخ الرابط') }}"><i class="fa-solid fa-link" aria-hidden="true"></i></button>
+  <button type="button" class="share__btn share__btn--native" data-share data-share-title="{{ $title }}" data-share-url="{{ $url }}" aria-label="{{ __('مشاركة') }}" title="{{ __('مشاركة') }}" hidden><i class="fa-solid fa-share-nodes" aria-hidden="true"></i></button>
 </div>

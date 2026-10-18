@@ -133,7 +133,7 @@ class PurgeTestData extends Command
             }
         });
 
-        Cache::forget('public.bootstrap');
+        \App\Http\Controllers\Api\V1\Public\CatalogController::forgetBootstrap();
         Cache::forget('transparency.proof');
         Cache::forget('transparency.spending.'.now()->year);
         $metrics->flushCache();

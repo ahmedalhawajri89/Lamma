@@ -101,7 +101,7 @@ export async function request(path, { method = 'GET', body = null, headers: extr
     if (method !== 'GET') await ensureCsrf();
 
     // لغة الصفحة: الخادم يردّ رسائله وتسمياته بها (SetLocale)
-    const headers = { Accept: 'application/json', 'Accept-Language': locale, ...extra };
+    const headers = { Accept: 'application/json', 'X-Locale': locale, ...extra };
     if (body) headers['Content-Type'] = 'application/json';
 
     const token = csrfToken();
@@ -190,7 +190,7 @@ async function tryGetRaw(path, params = {}) {
 
   try {
     const response = await fetch(url, {
-      headers: { Accept: 'application/json', 'Accept-Language': locale },
+      headers: { Accept: 'application/json', 'X-Locale': locale },
       signal: controller.signal,
 
       /**

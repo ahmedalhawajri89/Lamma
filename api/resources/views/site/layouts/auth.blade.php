@@ -20,7 +20,7 @@
   <script type="module" src="/assets/js/main.js" blocking="render"></script>
 </head>
 <body class="acc-body">
-  <a class="visually-hidden-focusable kf-skip btn btn-primary" href="#main">تخطَّ إلى المحتوى الرئيسي</a>
+  <a class="visually-hidden-focusable kf-skip btn btn-primary" href="#main">{{ __('تخطَّ إلى المحتوى الرئيسي') }}</a>
 
   @yield('content')
 

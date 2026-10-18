@@ -5,8 +5,8 @@
   مسدود: إجراءان واضحان (الأطفال، والرئيسية)، ثم أكثر ما يُقصد من الموقع.
   الرسم من مجموعة CC0 نفسها (assets/img/kids)، لا صورة طفلٍ حقيقي.
 --}}
-@section('title')الصفحة غير موجودة@endsection
-@section('description')الصفحة التي تبحث عنها غير موجودة.@endsection
+@section('title'){{ __('الصفحة غير موجودة') }}@endsection
+@section('description'){{ __('الصفحة التي تبحث عنها غير موجودة.') }}@endsection
 @section('robots', 'noindex')
 
 @push('styles')
@@ -33,24 +33,24 @@
         </div>
 
         <div class="nf-text">
-          <p class="kf-eyebrow">الصفحة غير موجودة</p>
-          <h1 class="nf-title" id="nfTitle">لم نجد هذه الصفحة</h1>
-          <p class="nf-lede">ربما تغيّر الرابط أو حُذفت الصفحة. لكنّ الأطفال ما زالوا هنا، وطريقك إليهم من هنا.</p>
+          <p class="kf-eyebrow">{{ __('الصفحة غير موجودة') }}</p>
+          <h1 class="nf-title" id="nfTitle">{{ __('لم نجد هذه الصفحة') }}</h1>
+          <p class="nf-lede">{{ __('ربما تغيّر الرابط أو حُذفت الصفحة. لكنّ الأطفال ما زالوا هنا، وطريقك إليهم من هنا.') }}</p>
           <div class="nf-actions">
-            <a class="btn btn-cta btn-lg" href="{{ lurl('/orphans') }}">تصفّح الأطفال <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
-            <a class="btn btn-outline-primary btn-lg" href="{{ lurl('/') }}">الصفحة الرئيسية</a>
+            <a class="btn btn-cta btn-lg" href="{{ lurl('/orphans') }}">{{ __('تصفّح الأطفال') }} <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
+            <a class="btn btn-outline-primary btn-lg" href="{{ lurl('/') }}">{{ __('الصفحة الرئيسية') }}</a>
           </div>
         </div>
       </section>
 
       <nav class="nf-more" aria-labelledby="nfMore">
-        <h2 class="nf-more__title" id="nfMore">ربما تبحث عن</h2>
+        <h2 class="nf-more__title" id="nfMore">{{ __('ربما تبحث عن') }}</h2>
         <ul class="nf-links" role="list">
           @foreach ($links as [$href, $icon, $title, $text])
             <li>
               <a class="nf-link" href="{{ $href }}">
                 <span class="nf-link__icon" aria-hidden="true"><i class="fa-solid {{ $icon }}"></i></span>
-                <span class="nf-link__text"><b>{{ $title }}</b><small>{{ $text }}</small></span>
+                <span class="nf-link__text"><b>{{ __($title) }}</b><small>{{ __($text) }}</small></span>
                 <i class="fa-solid fa-arrow-left nf-link__arrow" aria-hidden="true"></i>
               </a>
             </li>

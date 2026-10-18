@@ -32,12 +32,20 @@ final class SiteProfile
     {
         $settings = Setting::cached();
 
+        /*
+         * النصوص بلغة الصفحة: site.name_en في الإنجليزية، والعربية إن لم يُكتب
+         * لها مقابل. البريد والهاتف لا لغة لهما.
+         */
+        $suffix = Locale::isDefault() ? '' : '_'.Locale::current();
+        $text = fn (string $key, string $fallback = '') => ($suffix !== '' ? ($settings["site.{$key}{$suffix}"] ?? null) : null)
+            ?: ($settings["site.{$key}"] ?? $fallback);
+
         return [
-            'name' => $settings['site.name'] ?? 'لمّة',
-            'tagline' => $settings['site.tagline'] ?? '',
+            'name' => $text('name', 'لمّة'),
+            'tagline' => $text('tagline'),
             'email' => $settings['site.email'] ?? '',
             'phone' => $settings['site.phone'] ?? '',
-            'address' => $settings['site.address'] ?? '',
+            'address' => $text('address'),
         ];
     }
 

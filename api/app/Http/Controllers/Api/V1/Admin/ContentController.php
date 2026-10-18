@@ -352,7 +352,7 @@ class ContentController extends Controller
     /** الأسئلة والشهادات والشركاء في ذاكرة الموقع العام؛ كانت تبقى قديمة عشر دقائق */
     private function flushPublic(): void
     {
-        Cache::forget('public.bootstrap');
+        \App\Http\Controllers\Api\V1\Public\CatalogController::forgetBootstrap();
     }
 
     public function settings(Request $request): JsonResponse
@@ -470,7 +470,7 @@ class ContentController extends Controller
             ]);
         }
 
-        Cache::forget('public.bootstrap');
+        \App\Http\Controllers\Api\V1\Public\CatalogController::forgetBootstrap();
         Cache::forget('transparency.proof');
 
         $after = Setting::cached();

@@ -30,9 +30,23 @@ class CatalogController extends Controller
 {
     private const CACHE_TTL = 600;
 
+    /** نسخةٌ لكل لغة: الاسم والبرامج والأسئلة تختلف بلغة الطلب */
+    public static function bootstrapKey(?string $locale = null): string
+    {
+        return 'public.bootstrap.'.($locale ?? \App\Support\Locale::current());
+    }
+
+    /** يمحو نسخ كل اللغات، بعد أي تعديلٍ في المحتوى أو الإعدادات */
+    public static function forgetBootstrap(): void
+    {
+        foreach (array_keys(\App\Support\Locale::all()) as $locale) {
+            Cache::forget(self::bootstrapKey($locale));
+        }
+    }
+
     public function bootstrap(): JsonResponse
     {
-        $data = Cache::remember('public.bootstrap', self::CACHE_TTL, fn (): array => [
+        $data = Cache::remember(self::bootstrapKey(), self::CACHE_TTL, fn (): array => [
             'site' => SiteProfile::site(),
             'programs' => ProgramResource::collection(
                 Program::active()->with('features')->get(),

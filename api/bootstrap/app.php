@@ -37,7 +37,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'locale' => \App\Http\Middleware\SetLocale::class,
         ]);
 
-        // الـ API بلغة الصفحة التي تطلبه (Accept-Language من api.js)
+        // الـ API بلغة الصفحة التي تطلبه (X-Locale من api.js)
         $middleware->api(append: \App\Http\Middleware\SetLocale::class);
 
         // تحديد المعدّل يُفعَّل لكل مسارات api عبر مجموعات معرّفة في routes/api.php

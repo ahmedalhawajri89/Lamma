@@ -13,8 +13,12 @@ use Symfony\Component\HttpFoundation\Response;
  * لغة الطلب.
  *
  * صفحات الموقع: من مجموعة المسار (locale:en)، فالرابط وحده يحدّد اللغة.
- * والـ API: من ترويسة Accept-Language التي يرسلها api.js بلغة الصفحة، فتصل
- * رسائل التحقق والتسميات باللغة نفسها. ما ليس في القائمة يعود للافتراضية.
+ * والـ API: من ترويسة X-Locale التي يرسلها api.js بلغة الصفحة، فتصل رسائل
+ * التحقق والتسميات باللغة نفسها.
+ *
+ * لا من Accept-Language: كل متصفح يرسلها بلغة جهازه، فكانت لوحة الإدارة
+ * العربية تتلقى رسائلها بالإنجليزية لموظفٍ متصفحه إنجليزي. ما لم يُطلب
+ * صراحةً، أو ليس في القائمة، يعود للافتراضية.
  */
 class SetLocale
 {
@@ -29,9 +33,8 @@ class SetLocale
 
     private function fromHeader(Request $request): ?string
     {
-        $header = (string) $request->header('Accept-Language', '');
-        $first = strtolower(substr(trim(explode(',', $header)[0]), 0, 2));
+        $locale = strtolower(trim((string) $request->header('X-Locale', '')));
 
-        return $first !== '' ? $first : null;
+        return $locale !== '' ? $locale : null;
     }
 }

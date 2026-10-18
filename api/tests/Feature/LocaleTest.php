@@ -46,9 +46,9 @@ it('صفحة غير موجودة تحت /en تُرسم بالإنجليزية', 
     $this->get('/en/no-such-page')->assertNotFound()->assertSee('<html lang="en" dir="ltr"', false);
 });
 
-it('الـ API يردّ رسائل التحقق بلغة الصفحة (Accept-Language)', function () {
-    $en = $this->postJson('/api/v1/auth/login', [], ['Accept-Language' => 'en'])->assertUnprocessable();
-    $ar = $this->postJson('/api/v1/auth/login', [], ['Accept-Language' => 'ar'])->assertUnprocessable();
+it('الـ API يردّ رسائل التحقق بلغة الصفحة (X-Locale)، لا بلغة المتصفح', function () {
+    $en = $this->postJson('/api/v1/auth/login', [], ['X-Locale' => 'en'])->assertUnprocessable();
+    $ar = $this->postJson('/api/v1/auth/login', [], ['Accept-Language' => 'en-US,en'])->assertUnprocessable();
 
     expect($en->json('errors.email.0'))->toBe('Email is required.')
         ->and($ar->json('errors.email.0'))->not->toContain('required');

@@ -177,6 +177,8 @@
   letter-spacing: 0;
   color: var(--color-text);
 }
+/* الإنجليزية أعرض حروفاً من العربية بالحجم نفسه: العنوان أصغر قليلاً كي لا يتكسّر أربعة أسطر */
+.hero__title:lang(en) { font-size: clamp(2.3rem, 4.2vw, 3.5rem); line-height: 1.12; }
 .hero__line { animation: hero-up 0.85s var(--ease-out) 0.3s both; }
 .hero__line--brand { color: var(--color-brand); animation-delay: 0.45s; }
 
@@ -201,6 +203,8 @@
   transform-origin: right;
   animation: hero-mark 0.7s var(--ease-out) 1s both;
 }
+/* يُرسم الخط من بداية السطر: اليمين في العربية، واليسار في الإنجليزية */
+[dir="ltr"] .hero__mark::after { transform-origin: left; }
 
 .hero__lede {
   margin: 1.5rem 0 0;
