@@ -35,12 +35,14 @@ class RefundPayment
                 'refund_reason' => $reason,
             ])->save();
 
-            // الدفعة قدّمت موعد القسط شهراً، فاستردادها يعيده شهراً
+            /*
+             * الدفعة قدّمت موعد القسط بما غطّته من أشهر، فاستردادها يعيده بالقدر
+             * نفسه. كان يعيده شهراً واحداً دائماً، فاسترداد دفعة سنوية يترك
+             * الكافل «مسدَّداً» أحد عشر شهراً لم يدفعها.
+             */
             $sponsorship = $payment->sponsorship()->lockForUpdate()->first();
             if ($sponsorship !== null && $sponsorship->status->isLive() && $sponsorship->next_due_at !== null) {
-                $sponsorship->next_due_at = $sponsorship->next_due_at->copy()->subMonthNoOverflow()->setDay(
-                    min($sponsorship->billing_day, $sponsorship->next_due_at->copy()->subMonthNoOverflow()->daysInMonth),
-                );
+                $sponsorship->rewindDueDate($sponsorship->monthsCoveredBy((float) $payment->amount));
                 $sponsorship->save();
             }
 

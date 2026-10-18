@@ -139,6 +139,9 @@ class ReportController extends Controller
 
     public function store(StoreReportRequest $request): JsonResponse
     {
+        // لا تقرير لطفلٍ خارج منطقة المشرف (السياسة نفسها التي تحجب ملفه عنه)
+        $this->authorize('view', \App\Models\Orphan::findOrFail($request->validated('orphan_id')));
+
         $report = Report::create([
             ...$request->validated(),
             'supervisor_id' => $request->user()->id,

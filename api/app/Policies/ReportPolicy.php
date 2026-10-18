@@ -40,20 +40,33 @@ class ReportPolicy
         return $user->can('reports.create');
     }
 
+    /**
+     * من يعدّل التقرير.
+     *
+     * كانت الصلاحية وحدها تكفي: أي مشرف يعدّل مسوّدة غيره، ولو كانت لطفلٍ في
+     * بلدٍ لا يراه. فالمسوّدة لكاتبها أو لمن يراجع، وكلاهما داخل نطاق بلده.
+     */
     public function update(User $user, Report $report): bool
     {
+        if (! $this->withinScope($user, $report)) {
+            return false;
+        }
+
         // بعد الاعتماد لا يعدّله كاتبه — وإلا فقد الاعتماد معناه
         if (in_array($report->status, [ReportStatus::Approved, ReportStatus::Published], true)) {
             return $user->can('reports.approve');
         }
 
-        return $user->can('reports.create');
+        return $user->can('reports.approve')
+            || ($user->can('reports.create') && $report->supervisor_id === $user->id);
     }
 
     public function approve(User $user, Report $report): bool
     {
-        // ولا يعتمد المشرف تقريره بنفسه
-        return $user->can('reports.approve') && $report->supervisor_id !== $user->id;
+        // ولا يعتمد المشرف تقريره بنفسه، ولا تقريراً خارج بلده
+        return $user->can('reports.approve')
+            && $report->supervisor_id !== $user->id
+            && $this->withinScope($user, $report);
     }
 
     public function publish(User $user): bool
@@ -64,7 +77,7 @@ class ReportPolicy
     /** الإرجاع للتعديل قرارُ مراجعة، فشرطه شرط الاعتماد نفسه. */
     public function return(User $user, Report $report): bool
     {
-        return $this->approve($user, $report) && $this->withinScope($user, $report);
+        return $this->approve($user, $report);
     }
 
     /**

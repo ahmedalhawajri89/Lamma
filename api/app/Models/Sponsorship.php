@@ -62,6 +62,12 @@ class Sponsorship extends Model
      */
     protected $guarded = ['active_key'];
 
+    /**
+     * مرجع البطاقة المحفوظة عند البوابة: يُخصم به ولا يُعرض. لا يُسند من طلب
+     * (ليس في fillable)، تكتبه صفحة الكفالة بعد خصمٍ ناجح بـ forceFill.
+     */
+    protected $hidden = ['gateway_payment_method'];
+
     protected function casts(): array
     {
         return [
@@ -168,6 +174,26 @@ class Sponsorship extends Model
         $from = ($this->next_due_at ?? now())->copy()->startOfMonth()->addMonthsNoOverflow($months);
 
         $this->next_due_at = $from->setDay(min($this->billing_day, $from->daysInMonth));
+    }
+
+    /** عكس advanceDueDate: يعيد الموعد أشهراً، على يوم الفوترة نفسه. */
+    public function rewindDueDate(int $months): void
+    {
+        if ($this->next_due_at === null) {
+            return;
+        }
+
+        $from = $this->next_due_at->copy()->startOfMonth()->subMonthsNoOverflow(max(1, $months));
+        $this->next_due_at = $from->setDay(min($this->billing_day, $from->daysInMonth));
+    }
+
+    /**
+     * كم شهراً يغطي مبلغٌ ما من هذه الكفالة: دفعة سنوية 12، ويدوية بستة
+     * أقساط 6. القاعدة واحدة للتسجيل (يقدّم بها الموعد) وللاسترداد (يعيده بها).
+     */
+    public function monthsCoveredBy(float $amount): int
+    {
+        return max(1, (int) floor(($amount + 0.005) / max(0.01, (float) $this->monthly_amount)));
     }
 
     /** ما يُخصم في الدورة الواحدة: القسط الشهري × أشهر الدورة */

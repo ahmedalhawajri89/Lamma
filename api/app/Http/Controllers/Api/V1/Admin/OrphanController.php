@@ -298,14 +298,41 @@ class OrphanController extends Controller
         );
 
         $old = $orphan->status->value;
-        $orphan->forceFill(['status' => $validated['status'], 'published_at' => null])->save();
+
+        /*
+         * الكفالات تنتهي مع الملف. كانت تبقى قائمة، فيستمر الخصم الشهري من
+         * الكافل لطفلٍ تخرّج أو توفي. المدفوعة تُختم «مكتملة» (لم يُلغها
+         * الكافل)، والحجز الذي لم يُدفع يُلغى. والسبب يُحفظ على كل كفالة.
+         */
+        $reason = $validated['status'] === OrphanStatus::Graduated->value ? 'تخرّج الطفل' : 'توفي الطفل، رحمه الله';
+        $ended = DB::transaction(function () use ($orphan, $validated, $reason): int {
+            $orphan->forceFill(['status' => $validated['status'], 'published_at' => null])->save();
+
+            $live = $orphan->sponsorships()
+                ->whereIn('status', [SponsorshipStatus::Pending, SponsorshipStatus::Active, SponsorshipStatus::Paused])
+                ->with('orphan')   // SponsorshipObserver يعيد حساب تمويله
+                ->lockForUpdate()
+                ->get();
+
+            foreach ($live as $sponsorship) {
+                $sponsorship->update([
+                    'status' => $sponsorship->status === SponsorshipStatus::Pending ? SponsorshipStatus::Cancelled : SponsorshipStatus::Completed,
+                    'cancellation_reason' => $reason,
+                    'ended_at' => now(),
+                    'next_due_at' => null,
+                ]);
+            }
+
+            return $live->count();
+        });
 
         activity()->performedOn($orphan)->causedBy($request->user())->event('status_changed')
-            ->withProperties(['old' => ['status' => $old], 'attributes' => ['status' => $validated['status']], 'reason' => $validated['reason']])
+            ->withProperties(['old' => ['status' => $old], 'attributes' => ['status' => $validated['status']], 'reason' => $validated['reason'], 'sponsorships_ended' => $ended])
             ->log('غيّر مسار الملف');
 
         return response()->json([
-            'message' => 'غُيّر مسار الملف وأُخفي من الموقع.',
+            'message' => 'غُيّر مسار الملف وأُخفي من الموقع.'.($ended > 0 ? " وأُنهيت كفالاته ({$ended}) وتوقف الخصم." : ''),
+            'sponsorships_ended' => $ended,
             'data' => new OrphanResource($orphan->fresh()->load(['program', 'family'])),
         ]);
     }

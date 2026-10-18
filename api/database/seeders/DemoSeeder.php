@@ -612,6 +612,28 @@ class DemoSeeder extends Seeder
                     DB::table('payments')->insert($part);
                 }
             });
+
+        /*
+         * من دفع آخر قسطٍ ببطاقة له بطاقةٌ محفوظة عند البوابة التجريبية،
+         * فيخصمها billing:run كما يخصم بطاقة من كفل من الموقع. وغيره (تحويل)
+         * يبقى بلا بطاقة، يتابعه المحاسب.
+         */
+        $cards = DB::table('payments as p')
+            ->join('sponsorships as s', 's.id', '=', 'p.sponsorship_id')
+            ->where('s.status', SponsorshipStatus::Active->value)
+            ->where('p.status', PaymentStatus::Succeeded->value)
+            ->whereIn('p.method', [PaymentMethod::Card->value, PaymentMethod::ApplePay->value])
+            ->whereRaw('p.paid_at = (select max(paid_at) from payments where sponsorship_id = s.id and status = ?)', [PaymentStatus::Succeeded->value])
+            ->get(['s.id', 'p.card_brand', 'p.card_last4']);
+
+        foreach ($cards as $card) {
+            DB::table('sponsorships')->where('id', $card->id)->update([
+                'payment_method' => PaymentMethod::Card->value,
+                'gateway_payment_method' => 'pm_demo_seed_'.$card->id,
+                'card_brand' => $card->card_brand,
+                'card_last4' => $card->card_last4,
+            ]);
+        }
     }
 
     /* ==================================================================== */

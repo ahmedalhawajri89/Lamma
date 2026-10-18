@@ -148,3 +148,53 @@ it('يعتمد المراجع الرسالة ويرفضها بسبب، والإ�
         ->rejection_reason->toBe('معلومات شخصية')
         ->reviewed_by->toBe($admin->id);
 });
+
+/* ------------------------------------------------------------ من يكتب ويعدّل */
+
+/**
+ * كان يكفي أن يملك المشرف «reports.create»: يعدّل مسوّدة زميله، أو يكتب
+ * تقريراً لطفلٍ في بلدٍ لا يراه.
+ */
+function otherIso(): string
+{
+    return Country::where('iso2', '!=', 'PS')->value('iso2');
+}
+
+it('المشرف يعدّل مسوّدته، لا مسوّدة زميله في البلد نفسه', function () {
+    $ps = Country::where('iso2', 'PS')->value('id');
+    $author = User::factory()->supervisor($ps)->create();
+    $colleague = User::factory()->supervisor($ps)->create();
+    $report = reportFor(orphanIn('PS'), $author, ReportStatus::Draft);
+
+    $this->actingAs($author)->patchJson("/api/v1/admin/reports/{$report->id}", ['title' => 'تقريري'])->assertOk();
+    $this->actingAs($colleague)->patchJson("/api/v1/admin/reports/{$report->id}", ['title' => 'ليس لي'])->assertForbidden();
+    $this->actingAs($colleague)->postJson("/api/v1/admin/reports/{$report->id}/submit")->assertForbidden();
+
+    expect($report->fresh()->title)->toBe('تقريري');
+});
+
+it('ولا يمسّ تقريراً لطفلٍ خارج بلده، ولو كان كاتبه', function () {
+    // نُقل المشرف إلى فلسطين بعد أن كتب: تقاريره القديمة صارت خارج نطاقه
+    $supervisor = User::factory()->supervisor(Country::where('iso2', 'PS')->value('id'))->create();
+    $report = reportFor(orphanIn(otherIso()), $supervisor, ReportStatus::Draft);
+
+    $this->actingAs($supervisor)->patchJson("/api/v1/admin/reports/{$report->id}", ['title' => 'x'])->assertForbidden();
+});
+
+it('لا يُنشئ المشرف تقريراً لطفلٍ خارج بلده', function () {
+    $supervisor = User::factory()->supervisor(Country::where('iso2', 'PS')->value('id'))->create();
+
+    $this->actingAs($supervisor)->postJson('/api/v1/admin/reports', [
+        'orphan_id' => orphanIn(otherIso())->id, 'period_year' => 2026, 'period_quarter' => 3,
+        'title' => 'تقرير', 'summary' => 'ملخص',
+    ])->assertForbidden();
+
+    expect(Report::count())->toBe(0);
+});
+
+it('المدير يعدّل مسوّدة أي مشرف في أي بلد', function () {
+    $report = reportFor(orphanIn(otherIso()), User::factory()->supervisor(Country::where('iso2', 'PS')->value('id'))->create(), ReportStatus::Draft);
+
+    $this->actingAs(User::factory()->admin()->create())
+        ->patchJson("/api/v1/admin/reports/{$report->id}", ['title' => 'بعد المراجعة'])->assertOk();
+});

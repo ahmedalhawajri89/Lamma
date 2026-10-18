@@ -108,8 +108,7 @@ class RecordPayment
              * الدفعة تقدّم الموعد بما تغطيه من أشهر: دفعة يدوية بمبلغ ستة أقساط
              * تغطي ستة أشهر، لا شهراً واحداً فتصير الكفالة متأخرة بعده.
              */
-            $months = max(1, (int) floor(($value + 0.005) / max(0.01, (float) $sponsorship->monthly_amount)));
-            $sponsorship->advanceDueDate($months);
+            $sponsorship->advanceDueDate($sponsorship->monthsCoveredBy((float) $value));
             $sponsorship->save();
 
             return $payment;

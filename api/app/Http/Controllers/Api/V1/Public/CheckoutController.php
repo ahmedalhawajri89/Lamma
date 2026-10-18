@@ -187,6 +187,14 @@ class CheckoutController extends Controller
                 cardLast4: $validated['card_last4'] ?? null,
                 gatewayReference: $result->reference,
             );
+
+            // البطاقة المحفوظة عند البوابة: بها يُخصم القسط القادم (billing:run)
+            $sponsorship->forceFill([
+                'payment_method' => PaymentMethod::Card->value,
+                'gateway_payment_method' => $result->paymentMethod,
+                'card_brand' => $validated['card_brand'] ?? null,
+                'card_last4' => isset($validated['card_last4']) ? substr((string) $validated['card_last4'], -4) : null,
+            ])->save();
         }
 
         // الحساب الجديد يصله رابط تعيين كلمة مروره (هو رابط الاستعادة نفسه)

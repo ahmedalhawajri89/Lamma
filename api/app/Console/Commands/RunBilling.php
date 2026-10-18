@@ -10,6 +10,8 @@ use App\Enums\PaymentStatus;
 use App\Models\Payment;
 use App\Enums\SponsorshipStatus;
 use App\Models\Sponsorship;
+use App\Payments\ChargeDeclined;
+use App\Payments\PaymentGateway;
 use App\Services\MetricsService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -24,6 +26,11 @@ use Throwable;
  * `idempotency_key` مبنيّ من «معرّف الكفالة + الشهر»، فتشغيل الأمر مرتين في
  * اليوم نفسه — أو إعادة تشغيله بعد انقطاع في منتصف الدفعة — لا يخصم مرتين.
  * هذا هو الفرق بين أمر مجدول آمن وآخر يحتاج من يراقبه.
+ *
+ * والخصم يمرّ بالبوابة فعلاً، بالبطاقة التي حفظتها صفحة الكفالة عند أول خصم.
+ * كان الأمر يسجّل دفعة «بطاقة» ناجحة بإيصالها لكل كفالة مستحقة بلا أن يخصم
+ * شيئاً: الكافل يرى إيصالاً لمالٍ لم يُدفع، والتقارير تحسب دخلاً غير موجود.
+ * كفالةٌ بلا بطاقة محفوظة تُسجَّل محاولتها فاشلةً بسببها، فيتابعها المحاسب.
  */
 class RunBilling extends Command
 {
@@ -33,7 +40,7 @@ class RunBilling extends Command
 
     protected $description = 'تحصيل أقساط الكفالات المستحقة اليوم';
 
-    public function handle(RecordPayment $recordPayment, MetricsService $metrics): int
+    public function handle(RecordPayment $recordPayment, PaymentGateway $gateway, MetricsService $metrics): int
     {
         $dry = (bool) $this->option('dry');
         $limit = (int) $this->option('limit');
@@ -77,18 +84,38 @@ class RunBilling extends Command
                 continue;
             }
 
+            // قسط هذا الشهر سُجّل من قبل (تشغيلٌ ثانٍ اليوم): لا نطلب من البوابة خصماً آخر
+            if (Payment::where('idempotency_key', $key)->exists()) {
+                continue;
+            }
+
+            $card = $sponsorship->gateway_payment_method;
+
             if ($dry) {
-                $this->line("  · {$sponsorship->reference_code} — {$sponsorship->monthly_amount} {$sponsorship->currency}");
+                $this->line("  · {$sponsorship->reference_code} — {$sponsorship->cycleAmount()} {$sponsorship->currency}".($card ? '' : ' (بلا بطاقة محفوظة)'));
                 $done++;
 
                 continue;
             }
 
             try {
+                if ($card === null) {
+                    throw new ChargeDeclined('لا بطاقة محفوظة لهذه الكفالة. تواصل مع الكافل ليحدّث وسيلة الدفع.');
+                }
+
+                $result = $gateway->chargeSaved($card, $sponsorship->cycleAmount(), $sponsorship->currency, $key);
+
+                if (! $result->succeeded) {
+                    throw new ChargeDeclined($result->failureReason ?? 'رفضت البوابة الخصم.');
+                }
+
                 $recordPayment->handle(
                     sponsorship: $sponsorship,
                     idempotencyKey: $key,
                     method: PaymentMethod::Card,
+                    cardBrand: $sponsorship->card_brand,
+                    cardLast4: $sponsorship->card_last4,
+                    gatewayReference: $result->reference,
                 );
                 $done++;
             } catch (Throwable $e) {
@@ -100,7 +127,12 @@ class RunBilling extends Command
                 // فإعادة المحاولة لاحقاً تبقى ممكنة.
                 $this->recordFailure($sponsorship, $key, $e->getMessage());
                 $this->error("  × {$sponsorship->reference_code}: {$e->getMessage()}");
-                report($e);
+
+                // رفض البنك أو غياب البطاقة نتيجةٌ متوقعة تُتابع من شاشة الدفعات،
+                // لا عطلٌ في البرنامج يُبلَّغ عنه
+                if (! $e instanceof ChargeDeclined) {
+                    report($e);
+                }
             }
         }
 
@@ -118,7 +150,9 @@ class RunBilling extends Command
     {
         try {
             DB::transaction(fn () => Payment::firstOrCreate(
-                ['idempotency_key' => $key.'-failed-'.now()->format('Ymd')],
+                // مُجزّأ لا مُلصق: المفتاح 64 حرفاً هو العمود كله، و«-failed-…» بعده
+                // كان يتجاوزه فيسقط الإدراج بصمت، فلا تُحفظ أي محاولة فاشلة أبداً
+                ['idempotency_key' => hash('sha256', $key.'|failed|'.now()->format('Ymd'))],
                 [
                     // من مولّد المراجع نفسه: مرجع بصيغة أخرى كان يُفسد حساب «الأكبر»
                     'reference_code' => app(RecordPayment::class)->nextReference(),
