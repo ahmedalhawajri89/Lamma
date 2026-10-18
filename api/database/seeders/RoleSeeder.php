@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Database\Seeders;
 
 use App\Enums\UserRole;
+use App\Support\Permissions;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -15,54 +16,21 @@ use Spatie\Permission\PermissionRegistrar;
  *
  * الصلاحية هنا فعلٌ لا شاشة: `orphans.verify` لا `orphans_page`.
  * ربطُها بالشاشات يجعل كل تعديل في الواجهة تعديلاً في الصلاحيات.
+ * أوصافها ومجموعاتها في App\Support\Permissions.
  */
 class RoleSeeder extends Seeder
 {
-    /** @var array<string, string> صلاحية => وصفها العربي */
-    private const PERMISSIONS = [
-        'orphans.view' => 'عرض ملفات الأيتام',
-        'orphans.create' => 'إنشاء ملف يتيم',
-        'orphans.update' => 'تعديل ملف يتيم',
-        'orphans.verify' => 'توثيق ملف يتيم',
-        'orphans.publish' => 'نشر ملف يتيم على الموقع',
-        'orphans.delete' => 'أرشفة ملف يتيم',
-        'families.manage' => 'إدارة الأسر والأوصياء',
-        'documents.manage' => 'إدارة مستندات التحقق',
-        'sponsors.view' => 'عرض الكفلاء',
-        'sponsors.manage' => 'إدارة حسابات الكفلاء',
-        'sponsorships.view' => 'عرض الكفالات',
-        'sponsorships.manage' => 'إنشاء وتعديل وإلغاء الكفالات',
-        'payments.view' => 'عرض المدفوعات',
-        'payments.record' => 'تسجيل دفعة يدوية',
-        'payments.refund' => 'استرداد دفعة',
-        'disbursements.view' => 'عرض الصرف',
-        'disbursements.record' => 'تسجيل صرف',
-        'disbursements.approve' => 'اعتماد صرف',
-        'reports.view' => 'عرض التقارير الربعية',
-        'reports.create' => 'كتابة تقرير ربعي',
-        'reports.approve' => 'اعتماد تقرير',
-        'reports.publish' => 'نشر تقرير للكافل',
-        'visits.view' => 'عرض الزيارات الميدانية',
-        'visits.record' => 'تسجيل زيارة ميدانية',
-        'messages.review' => 'مراجعة رسائل الكفلاء والأطفال',
-        'content.manage' => 'إدارة المدونة والأسئلة والشركاء',
-        'users.manage' => 'إدارة المستخدمين والأدوار',
-        'settings.manage' => 'تعديل إعدادات المنصة',
-        'analytics.view' => 'عرض لوحة التحليلات',
-        'activity.view' => 'عرض سجل النشاط',
-    ];
-
     public function run(): void
     {
         app(PermissionRegistrar::class)->forgetCachedPermissions();
 
-        foreach (array_keys(self::PERMISSIONS) as $name) {
+        foreach (array_keys(Permissions::all()) as $name) {
             Permission::findOrCreate($name, 'web');
         }
 
         // المدير: كل شيء
         Role::findOrCreate(UserRole::Admin->value, 'web')
-            ->syncPermissions(array_keys(self::PERMISSIONS));
+            ->syncPermissions(array_keys(Permissions::all()));
 
         // المحاسب: المال وما يفسّره، بلا صلاحية تعديل على ملفات الأطفال
         Role::findOrCreate(UserRole::Accountant->value, 'web')->syncPermissions([

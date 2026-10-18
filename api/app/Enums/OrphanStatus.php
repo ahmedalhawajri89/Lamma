@@ -22,13 +22,13 @@ enum OrphanStatus: string
     public function label(): string
     {
         return match ($this) {
-            self::Draft => 'مسوّدة',
-            self::PendingVerification => 'بانتظار التحقق',
-            self::Active => 'نشط',
-            self::FullyFunded => 'مكتمل التمويل',
-            self::Graduated => 'متخرّج',
-            self::Withdrawn => 'منسحب',
-            self::Deceased => 'متوفّى',
+            self::Draft => __('مسوّدة'),
+            self::PendingVerification => __('بانتظار التوثيق'),
+            self::Active => __('نشط'),
+            self::FullyFunded => __('مكتمل التمويل'),
+            self::Graduated => __('متخرّج'),
+            self::Withdrawn => __('منسحب'),
+            self::Deceased => __('متوفّى'),
         };
     }
 

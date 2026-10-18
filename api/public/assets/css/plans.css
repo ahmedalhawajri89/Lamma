@@ -1,0 +1,103 @@
+/* =========================================================================
+   أعمدة البرامج: واحدة للرئيسية (home.js، renderPlans) وصفحة البرامج
+   (programs.blade.php من جدول البرامج). القالب في الموضعين بالأصناف نفسها.
+   ========================================================================= */
+
+/* خطوط شعرية بين الأعمدة بدل صناديق، والبرنامج الأكثر اختياراً وحده بأرضية ملوّنة.
+   السعر والزر قبل المزايا: القرار أولاً، والتفاصيل لمن يريدها. */
+.plans {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-block: 1px solid var(--color-border);
+}
+
+.plan {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-8) var(--space-6);
+}
+
+.plan + .plan { border-inline-start: 1px solid var(--color-border); }
+
+.plan.is-featured {
+  background: var(--color-brand-soft);
+  border-color: transparent;
+}
+
+.plan.is-featured + .plan { border-inline-start-color: transparent; }
+
+.plan__flag {
+  min-block-size: 1.2rem;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-2xs);
+  font-weight: 600;
+  color: var(--color-brand-strong);
+}
+
+.plan__name { margin: 0; font-size: var(--text-lg); }
+
+.plan__price { display: flex; align-items: baseline; gap: var(--space-2); margin: 0; }
+
+.plan__price strong {
+  font-family: var(--font-display);
+  font-size: var(--text-4xl);
+  font-weight: 700;
+  line-height: 1;
+  color: var(--color-text);
+}
+
+.plan__price span { font-size: var(--text-sm); color: var(--color-text-subtle); }
+
+.plan__summary {
+  margin: 0;
+  min-block-size: 4.8em;
+  font-size: var(--text-sm);
+  line-height: 1.6;
+  color: var(--color-text-muted);
+}
+
+.plan__cta { inline-size: 100%; }
+.plan__cta.btn-cta { box-shadow: none; }
+
+.plan__features {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: var(--space-2) 0 0;
+  padding: var(--space-5) 0 0;
+  border-block-start: 1px solid var(--color-border);
+  list-style: none;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.plan.is-featured .plan__features { border-block-start-color: var(--color-brand-border); }
+
+.plan__features li { display: flex; align-items: flex-start; gap: var(--space-3); }
+.plan__features i { margin-block-start: 0.3rem; font-size: var(--text-2xs); color: var(--color-brand); }
+
+@media (max-width: 75rem) {
+  .plans { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .plan:nth-child(3) { border-inline-start: 0; }
+  .plan:nth-child(n + 3) { border-block-start: 1px solid var(--color-border); }
+}
+
+@media (max-width: 40rem) {
+  .plans { grid-template-columns: minmax(0, 1fr); }
+  .plan + .plan { border-inline-start: 0; border-block-start: 1px solid var(--color-border); }
+  .plan { padding-inline: var(--space-4); }
+  .plan__summary { min-block-size: 0; }
+
+  /* على الهاتف يكفي السعر والزر لبقية البرامج، والمقارنة الكاملة على بُعد رابط */
+  .plan:not(.is-featured) .plan__features { display: none; }
+}
+
+/* صفحة البرامج: هي صفحة التفاصيل، فالبنود ظاهرة على الهاتف أيضاً، ومعها من ينتظر */
+@media (max-width: 40rem) {
+  .plans--full .plan:not(.is-featured) .plan__features { display: flex; }
+}
+.plan__waiting { display: flex; align-items: center; gap: 0.4rem; margin: 0; font-size: 0.8rem; color: var(--color-text-muted); }
+.plan__waiting b { color: var(--color-text); }
+.plan__dot { inline-size: 0.45rem; block-size: 0.45rem; border-radius: 50%; background: var(--color-urgent); }

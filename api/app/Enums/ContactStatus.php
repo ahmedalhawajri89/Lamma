@@ -18,9 +18,9 @@ enum ContactStatus: string
     public function label(): string
     {
         return match ($this) {
-            self::New => 'جديدة',
-            self::InProgress => 'قيد المعالجة',
-            self::Closed => 'مغلقة',
+            self::New => __('جديدة'),
+            self::InProgress => __('قيد المعالجة'),
+            self::Closed => __('مغلقة'),
         };
     }
 }

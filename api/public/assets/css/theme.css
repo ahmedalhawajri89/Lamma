@@ -1,0 +1,1153 @@
+/* ==========================================================================
+   theme.css: هوية كفالة فوق Bootstrap 5.3
+   --------------------------------------------------------------------------
+   يُحمَّل بعد bootstrap.rtl.min.css وtokens.css. لا يعيد كتابة مكوّنات
+   Bootstrap، بل يملأ متغيراته (--bs-*) من رموز الهوية في tokens.css.
+
+   معظم المتغيرات تشير إلى رموز الهوية مباشرة، فتتبدّل مع الوضع الليلي
+   وحدها. الاستثناء ثلاثيات RGB (--bs-*-rgb) التي تحتاجها أدوات الشفافية في
+   Bootstrap: تُكتب صريحة لكل وضع.
+
+   إرشادات ui-ux-pro-max المعتمدة: تباين 4.5 للنص و3 لحدود الحقول، حلقة
+   تركيز 3px، أهداف لمس 44px، حركة هادئة (12px و350ms) تحترم تقليل الحركة.
+   بلا تدرجات وبلا حركات متكررة.
+   ========================================================================== */
+
+/* ── 1. المتغيرات العامة ── */
+:root,
+[data-bs-theme] {
+  /* الألوان الدلالية: الثانوي رمادي النص المكتوم لا تركوازي فاتح،
+     لأن ‎#1e8a7a على الخلفية الرملية 3.9 فقط */
+  --bs-primary: var(--color-brand);
+  --bs-secondary: var(--color-text-muted);
+  --bs-success: var(--color-success);
+  --bs-danger: var(--color-urgent);
+  --bs-warning: var(--color-cta);
+  --bs-info: var(--color-info);
+
+  --bs-primary-rgb: 15, 92, 92;
+  --bs-secondary-rgb: 78, 91, 95;
+  --bs-success-rgb: 31, 128, 72;
+  --bs-danger-rgb: 190, 18, 60;
+  --bs-warning-rgb: 224, 166, 59;
+  --bs-info-rgb: 3, 105, 161;
+  --bs-light-rgb: 239, 236, 228;
+  --bs-dark-rgb: 31, 42, 46;
+
+  --bs-primary-text-emphasis: var(--color-brand-strong);
+  --bs-primary-bg-subtle: var(--color-brand-soft);
+  --bs-primary-border-subtle: var(--color-brand-border);
+  --bs-success-text-emphasis: var(--color-success);
+  --bs-success-bg-subtle: var(--color-success-soft);
+  --bs-danger-text-emphasis: var(--color-urgent);
+  --bs-danger-bg-subtle: var(--color-urgent-soft);
+  --bs-warning-text-emphasis: var(--color-cta-strong);
+  --bs-warning-bg-subtle: var(--color-cta-soft);
+  --bs-info-text-emphasis: var(--color-info);
+  --bs-info-bg-subtle: var(--color-info-soft);
+
+  /* الجسم */
+  --bs-body-font-family: var(--font-body);
+  --bs-body-line-height: 1.7;
+  --bs-body-bg: var(--color-canvas);
+  --bs-body-bg-rgb: 247, 245, 240;
+  --bs-body-color: var(--color-text);
+  --bs-body-color-rgb: 31, 42, 46;
+  --bs-emphasis-color: var(--color-text);
+  --bs-secondary-color: var(--color-text-muted);
+  --bs-tertiary-color: var(--color-text-subtle);
+  --bs-secondary-bg: var(--color-surface-alt);
+  --bs-tertiary-bg: var(--color-surface);
+  --bs-heading-color: var(--color-text);
+
+  --bs-link-color: var(--color-brand);
+  --bs-link-color-rgb: 15, 92, 92;
+  --bs-link-hover-color: var(--color-brand-hover);
+  --bs-link-hover-color-rgb: 12, 74, 74;
+
+  --bs-border-color: var(--color-border);
+  --bs-border-color-translucent: var(--color-border);
+
+  /* الزوايا: هادئة، والحبّة للأزرار فقط */
+  --bs-border-radius-sm: var(--radius-xs);
+  --bs-border-radius: var(--radius-sm);
+  --bs-border-radius-lg: var(--radius-md);
+  --bs-border-radius-xl: var(--radius-lg);
+  --bs-border-radius-xxl: var(--radius-xl);
+  --bs-border-radius-pill: var(--radius-pill);
+
+  --bs-box-shadow-sm: var(--shadow-sm);
+  --bs-box-shadow: var(--shadow-md);
+  --bs-box-shadow-lg: var(--shadow-lg);
+
+  --bs-focus-ring-width: 3px;
+  --bs-focus-ring-opacity: 0.35;
+  --bs-focus-ring-color: rgba(15, 92, 92, 0.35);
+
+  /* نص فوق الأخضر والأزرق المصمتين: أبيض هنا، وداكن في الوضع الليلي */
+  --kf-on-strong: #ffffff;
+}
+
+/* ثلاثيات RGB للوضع الليلي: باقي المتغيرات تتبع tokens.css وحدها */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bs-primary-rgb: 116, 187, 178;
+    --bs-secondary-rgb: 170, 181, 179;
+    --bs-success-rgb: 76, 196, 124;
+    --bs-danger-rgb: 251, 113, 133;
+    --bs-warning-rgb: 231, 180, 80;
+    --bs-info-rgb: 125, 211, 252;
+    --bs-body-bg-rgb: 13, 22, 23;
+    --bs-body-color-rgb: 236, 239, 234;
+    --bs-link-color-rgb: 116, 187, 178;
+    --bs-link-hover-color-rgb: 168, 214, 208;
+    --bs-focus-ring-color: rgba(116, 187, 178, 0.4);
+    --kf-on-strong: #062727;
+  }
+}
+:root[data-theme="dark"] {
+  --bs-primary-rgb: 116, 187, 178;
+  --bs-secondary-rgb: 170, 181, 179;
+  --bs-success-rgb: 76, 196, 124;
+  --bs-danger-rgb: 251, 113, 133;
+  --bs-warning-rgb: 231, 180, 80;
+  --bs-info-rgb: 125, 211, 252;
+  --bs-body-bg-rgb: 13, 22, 23;
+  --bs-body-color-rgb: 236, 239, 234;
+  --bs-link-color-rgb: 116, 187, 178;
+  --bs-link-hover-color-rgb: 168, 214, 208;
+  --bs-focus-ring-color: rgba(116, 187, 178, 0.4);
+  --kf-on-strong: #062727;
+}
+
+/* ── 2. الطباعة ── */
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6,
+.display-1, .display-2, .display-3, .display-4, .display-5, .display-6 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+.lead { color: var(--color-text-muted); line-height: 1.8; }
+.text-body-secondary { color: var(--color-text-muted) !important; }
+
+/* ── 3. الأزرار: حبّة، وارتفاع لمس 44px ── */
+.btn {
+  --bs-btn-font-family: var(--font-display);
+  --bs-btn-font-weight: 600;
+  --bs-btn-padding-y: 0.6rem;
+  --bs-btn-padding-x: 1.35rem;
+  --bs-btn-border-radius: var(--radius-pill);
+  --bs-btn-focus-box-shadow: 0 0 0 3px var(--bs-focus-ring-color);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-block-size: 2.75rem;
+  transition: background-color var(--dur-fast) var(--ease-out),
+              border-color var(--dur-fast) var(--ease-out),
+              color var(--dur-fast) var(--ease-out);
+}
+.btn-sm { --bs-btn-padding-x: 1rem; min-block-size: 2.5rem; }
+.btn-lg { --bs-btn-padding-y: 0.8rem; --bs-btn-padding-x: 1.75rem; min-block-size: 3.25rem; }
+
+.btn-primary {
+  --bs-btn-color: var(--color-brand-contrast);
+  --bs-btn-bg: var(--color-brand);
+  --bs-btn-border-color: var(--color-brand);
+  --bs-btn-hover-color: var(--color-brand-contrast);
+  --bs-btn-hover-bg: var(--color-brand-hover);
+  --bs-btn-hover-border-color: var(--color-brand-hover);
+  --bs-btn-active-color: var(--color-brand-contrast);
+  --bs-btn-active-bg: var(--color-brand-hover);
+  --bs-btn-active-border-color: var(--color-brand-hover);
+  --bs-btn-disabled-color: var(--color-brand-contrast);
+  --bs-btn-disabled-bg: var(--color-brand);
+  --bs-btn-disabled-border-color: var(--color-brand);
+}
+
+/* الإجراء الرئيسي في الصفحة (اكفل يتيماً): ذهبي بنص داكن، واحد في كل شاشة */
+.btn-cta {
+  --bs-btn-color: var(--color-cta-contrast);
+  --bs-btn-bg: var(--color-cta);
+  --bs-btn-border-color: var(--color-cta);
+  --bs-btn-hover-color: var(--color-cta-contrast);
+  --bs-btn-hover-bg: var(--color-cta-hover);
+  --bs-btn-hover-border-color: var(--color-cta-hover);
+  --bs-btn-active-color: var(--color-cta-contrast);
+  --bs-btn-active-bg: var(--color-cta-hover);
+  --bs-btn-active-border-color: var(--color-cta-hover);
+  --bs-btn-disabled-color: var(--color-cta-contrast);
+  --bs-btn-disabled-bg: var(--color-cta);
+  --bs-btn-disabled-border-color: var(--color-cta);
+  --bs-btn-focus-box-shadow: 0 0 0 3px rgba(224, 166, 59, 0.45);
+}
+
+.btn-outline-primary {
+  --bs-btn-color: var(--color-brand);
+  --bs-btn-border-color: var(--color-brand-border);
+  --bs-btn-hover-color: var(--color-brand-contrast);
+  --bs-btn-hover-bg: var(--color-brand);
+  --bs-btn-hover-border-color: var(--color-brand);
+  --bs-btn-active-color: var(--color-brand-contrast);
+  --bs-btn-active-bg: var(--color-brand-hover);
+  --bs-btn-active-border-color: var(--color-brand-hover);
+  --bs-btn-disabled-color: var(--color-brand);
+  --bs-btn-disabled-border-color: var(--color-brand-border);
+}
+
+/* زر هادئ لإجراء ثانوي بجانب الرئيسي */
+.btn-soft {
+  --bs-btn-color: var(--color-brand-strong);
+  --bs-btn-bg: var(--color-brand-soft);
+  --bs-btn-border-color: transparent;
+  --bs-btn-hover-color: var(--color-brand-strong);
+  --bs-btn-hover-bg: var(--color-brand-border);
+  --bs-btn-hover-border-color: transparent;
+  --bs-btn-active-color: var(--color-brand-strong);
+  --bs-btn-active-bg: var(--color-brand-border);
+  --bs-btn-active-border-color: transparent;
+}
+
+.btn-link {
+  --bs-btn-color: var(--color-brand);
+  --bs-btn-hover-color: var(--color-brand-hover);
+  --bs-btn-active-color: var(--color-brand-hover);
+  text-underline-offset: 0.35em;
+}
+
+/* ── 4. النماذج: حدّ الحقل 3:1 على الأقل، وحلقة تركيز 3px ── */
+.form-control,
+.form-select {
+  min-block-size: 2.75rem;
+  border-color: var(--color-border-field);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface);
+  color: var(--color-text);
+}
+.form-control::placeholder { color: var(--color-text-subtle); opacity: 1; }
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--color-brand);
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: 0 0 0 3px var(--bs-focus-ring-color);
+}
+.form-label { font-weight: 600; margin-block-end: 0.4rem; }
+.form-text { color: var(--color-text-muted); }
+
+.form-check-input {
+  border-color: var(--color-border-field);
+  background-color: var(--color-surface);
+}
+.form-check-input:checked {
+  background-color: var(--color-brand);
+  border-color: var(--color-brand);
+}
+.form-check-input:focus {
+  border-color: var(--color-brand);
+  box-shadow: 0 0 0 3px var(--bs-focus-ring-color);
+}
+
+.was-validated .form-control:invalid,
+.form-control.is-invalid { border-color: var(--color-urgent); }
+.invalid-feedback { color: var(--color-urgent); }
+.was-validated .form-control:valid,
+.form-control.is-valid { border-color: var(--color-success); }
+.valid-feedback { color: var(--color-success); }
+
+/* ── 5. البطاقات: سطح وحدّ رفيع، بلا ظل ثقيل ── */
+.card {
+  /* بلا --bs-card-color ولا --bs-card-title-color: يرث النص لونه، فبطاقة
+     text-bg-primary يبقى نصها فاتحاً بدل لون الجسم الداكن */
+  --bs-card-bg: var(--color-surface);
+  --bs-card-border-color: var(--color-border);
+  --bs-card-border-radius: var(--radius-lg);
+  --bs-card-inner-border-radius: calc(var(--radius-lg) - 1px);
+  --bs-card-cap-bg: transparent;
+  --bs-card-spacer-y: 1.5rem;
+  --bs-card-spacer-x: 1.5rem;
+}
+.card-img-top { aspect-ratio: 16 / 10; object-fit: cover; }
+
+/* ── 6. التنقل ── */
+.navbar {
+  --bs-navbar-color: var(--color-text-muted);
+  --bs-navbar-hover-color: var(--color-brand);
+  --bs-navbar-active-color: var(--color-text);
+  --bs-navbar-brand-color: var(--color-text);
+  --bs-navbar-brand-hover-color: var(--color-text);
+  --bs-navbar-toggler-border-color: var(--color-border);
+  --bs-navbar-toggler-focus-width: 3px;
+  --bs-navbar-nav-link-padding-x: 0.9rem;
+  font-family: var(--font-display);
+}
+.navbar .nav-link { font-weight: 500; }
+.navbar .nav-link.active { box-shadow: inset 0 -2px 0 var(--color-cta); }
+
+.nav-pills {
+  --bs-nav-pills-border-radius: var(--radius-pill);
+  --bs-nav-pills-link-active-bg: var(--color-brand);
+  --bs-nav-pills-link-active-color: var(--color-brand-contrast);
+}
+.nav { --bs-nav-link-color: var(--color-text-muted); --bs-nav-link-hover-color: var(--color-brand); }
+
+.pagination {
+  --bs-pagination-color: var(--color-text);
+  --bs-pagination-bg: var(--color-surface);
+  --bs-pagination-border-color: var(--color-border);
+  --bs-pagination-hover-color: var(--color-brand);
+  --bs-pagination-hover-bg: var(--color-brand-soft);
+  --bs-pagination-hover-border-color: var(--color-border);
+  --bs-pagination-focus-box-shadow: 0 0 0 3px var(--bs-focus-ring-color);
+  --bs-pagination-active-bg: var(--color-brand);
+  --bs-pagination-active-border-color: var(--color-brand);
+  --bs-pagination-active-color: var(--color-brand-contrast);
+  --bs-pagination-disabled-color: var(--color-text-subtle);
+  --bs-pagination-disabled-bg: var(--color-surface-alt);
+  --bs-pagination-disabled-border-color: var(--color-border);
+  --bs-pagination-padding-x: 0.9rem;
+  --bs-pagination-padding-y: 0.55rem;
+}
+
+.breadcrumb { --bs-breadcrumb-divider-color: var(--color-text-subtle); --bs-breadcrumb-item-active-color: var(--color-text); }
+
+/* ── 7. الشارات والتنبيهات ── */
+.badge { --bs-badge-font-weight: 600; --bs-badge-padding-x: 0.75em; --bs-badge-padding-y: 0.45em; --bs-badge-border-radius: var(--radius-pill); }
+/* النص فوق الألوان المصمتة: Bootstrap يثبّته أبيض، والألوان تفتح في الوضع
+   الليلي (الأبيض على التركوازي الفاتح 2.2). فنربطه بنقيض كل لون من الهوية */
+.text-bg-primary { color: var(--color-brand-contrast) !important; background-color: var(--color-brand) !important; }
+.text-bg-success { color: var(--kf-on-strong) !important; background-color: var(--color-success) !important; }
+.text-bg-danger  { color: var(--color-urgent-contrast) !important; background-color: var(--color-urgent) !important; }
+.text-bg-info    { color: var(--kf-on-strong) !important; background-color: var(--color-info) !important; }
+/* والذهبي بنص داكن في الوضعين: الأبيض عليه 2.1 فقط */
+.text-bg-warning { color: var(--color-cta-contrast) !important; background-color: var(--color-cta) !important; }
+.alert { --bs-alert-border-radius: var(--radius-md); --bs-alert-padding-y: 0.9rem; }
+
+/* ── 8. الطيّ والجداول والتقدّم ── */
+.accordion {
+  --bs-accordion-bg: transparent;
+  --bs-accordion-color: var(--color-text);
+  --bs-accordion-border-color: var(--color-border);
+  --bs-accordion-border-radius: var(--radius-md);
+  --bs-accordion-inner-border-radius: calc(var(--radius-md) - 1px);
+  --bs-accordion-btn-color: var(--color-text);
+  --bs-accordion-btn-bg: transparent;
+  --bs-accordion-btn-focus-box-shadow: inset 0 0 0 3px var(--bs-focus-ring-color);
+  --bs-accordion-active-color: var(--color-brand-strong);
+  --bs-accordion-active-bg: var(--color-brand-soft);
+}
+.accordion-button { font-family: var(--font-display); font-weight: 600; }
+
+.table {
+  --bs-table-bg: transparent;
+  --bs-table-color: var(--color-text);
+  --bs-table-border-color: var(--color-border);
+  --bs-table-striped-bg: var(--color-surface-alt);
+  --bs-table-striped-color: var(--color-text);
+  --bs-table-hover-bg: var(--color-brand-soft);
+  --bs-table-hover-color: var(--color-text);
+}
+.table > thead th { font-family: var(--font-display); font-weight: 600; color: var(--color-text-muted); font-size: 0.875rem; }
+
+.progress {
+  --bs-progress-height: 0.5rem;
+  --bs-progress-bg: var(--color-surface-alt);
+  --bs-progress-bar-bg: var(--color-brand);
+  --bs-progress-border-radius: var(--radius-pill);
+}
+
+/* ── 9. النوافذ والقائمة الجانبية ── */
+.modal {
+  --bs-modal-bg: var(--color-surface);
+  --bs-modal-color: var(--color-text);
+  --bs-modal-border-color: var(--color-border);
+  --bs-modal-border-radius: var(--radius-lg);
+  --bs-modal-inner-border-radius: calc(var(--radius-lg) - 1px);
+  --bs-modal-header-border-color: var(--color-border);
+  --bs-modal-footer-border-color: var(--color-border);
+  --bs-modal-box-shadow: var(--shadow-xl);
+}
+.offcanvas {
+  --bs-offcanvas-bg: var(--color-surface);
+  --bs-offcanvas-color: var(--color-text);
+  --bs-offcanvas-border-color: var(--color-border);
+}
+.modal-backdrop { --bs-backdrop-bg: #062727; --bs-backdrop-opacity: 0.55; }
+
+/* ── 10. التركيز المرئي لكل عنصر تفاعلي ── */
+a:focus-visible,
+button:focus-visible,
+[tabindex]:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+.btn:focus-visible,
+.form-control:focus-visible,
+.form-select:focus-visible,
+.form-check-input:focus-visible,
+.accordion-button:focus-visible,
+.page-link:focus-visible { outline: none; }
+
+/* ── 11. الهيدر ── */
+.kf-skip { position: fixed; inset-block-start: 0.5rem; inset-inline-start: 0.5rem; z-index: 1080; }
+
+/* ══ الترويسة ══════════════════════════════════════════════════════════
+   أعلى الصفحة بلون الأرضية بلا حدّ، متصلةً بالهيرو؛ وبعد أول تمرير
+   (.is-scrolled من layout.js) أقصر، على سطحٍ بظلٍّ خفيف. وتختفي عند النزول
+   وتعود عند أول صعود (.is-hidden).
+   لا backdrop-filter ولا transform هنا: كلاهما يجعل الهيدر مرجعاً لما
+   بداخله من position: fixed، فينحصر درج الجوال في ارتفاع الهيدر ويُحدث
+   تمريراً أفقياً بعرضه وهو مغلق. */
+.kf-header {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 1030;
+  background: var(--color-canvas);
+  box-shadow: 0 1px 0 transparent;
+  transition:
+    inset-block-start var(--dur-normal) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out);
+}
+.kf-header.is-scrolled {
+  background: var(--color-surface);
+  box-shadow: 0 1px 0 var(--color-border), 0 8px 24px rgb(0 0 0 / 0.06);
+}
+.kf-header.is-hidden { inset-block-start: -6rem; }
+.kf-header .navbar { --bs-navbar-padding-y: 0.9rem; transition: padding var(--dur-fast) var(--ease-out); }
+.kf-header.is-scrolled .navbar { --bs-navbar-padding-y: 0.45rem; }
+.kf-header .navbar > .container { flex-wrap: nowrap; gap: 1rem; }
+.kf-header .nav-link, .kf-header .btn { white-space: nowrap; }
+
+/* الشعار: أصغر قليلاً بعد التمرير، والشعار اللفظي يُخفى حين يضيق المكان */
+.kf-header .kf-brand { margin: 0; padding: 0; }
+.kf-header .kf-brand__logo { inline-size: 2.75rem; block-size: auto; transition: inline-size var(--dur-fast) var(--ease-out); }
+.kf-header.is-scrolled .kf-brand__logo { inline-size: 2.375rem; }
+.kf-header .kf-brand__name { font-size: 1.45rem; color: var(--color-brand); }
+.kf-header .kf-brand__tag { font-size: 0.75rem; }
+@media (max-width: 575.98px), (min-width: 1200px) and (max-width: 1399.98px) {
+  .kf-header .kf-brand__tag { display: none; }
+}
+
+/* ── الروابط على الشاشة العريضة: حبّات، والحالية بلون العلامة ── */
+@media (min-width: 1200px) {
+  .kf-nav { gap: 0.25rem; margin-inline: auto; }
+  .kf-nav .nav-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.5rem 0.95rem;
+    border-radius: var(--radius-pill);
+    font-size: 0.98rem;
+    color: var(--color-text-muted);
+    transition: background-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+  }
+  /* المرور بلون الرمل الدافئ لا الأزرق المخضرّ، والحالية رملٌ أعمق ونصٌّ بلون العلامة */
+  .kf-nav .nav-link:hover,
+  .kf-nav .nav-link:focus-visible,
+  .kf-nav .nav-link.show { background: color-mix(in srgb, var(--color-surface-alt) 65%, transparent); color: var(--color-text); }
+  .kf-nav .nav-link.active,
+  .kf-nav .kf-nav__toggle.is-current { background: var(--color-surface-alt); color: var(--color-brand); font-weight: 600; box-shadow: none; }
+  /* ما للدرج وحده */
+  .kf-nav__icon, .kf-nav__heading, .kf-nav__sub, .kf-drawer__search, .kf-drawer__foot { display: none !important; }
+}
+@media (min-width: 1200px) and (max-width: 1399.98px) {
+  .kf-nav .nav-link { padding-inline: 0.75rem; }
+}
+.kf-nav__toggle::after { margin-inline-start: 0.4rem; vertical-align: 0.15em; transition: rotate var(--dur-fast) var(--ease-out); }
+.kf-nav__toggle[aria-expanded="true"]::after { rotate: 180deg; }
+
+/* قائمة «عن لمّة» ولوحة الحساب: لوحٌ بظل، والعناصر أيقونة ونص */
+.kf-nav__panel,
+.kf-account__panel {
+  --bs-dropdown-padding-x: 0.5rem;
+  --bs-dropdown-padding-y: 0.5rem;
+  --bs-dropdown-bg: var(--color-surface);
+  --bs-dropdown-color: var(--color-text);
+  --bs-dropdown-border-color: var(--color-border);
+  --bs-dropdown-border-radius: var(--radius-lg);
+  --bs-dropdown-link-color: var(--color-text);
+  --bs-dropdown-link-hover-color: var(--color-text);
+  --bs-dropdown-link-hover-bg: var(--color-surface-alt);
+  --bs-dropdown-link-active-color: var(--color-brand);
+  --bs-dropdown-link-active-bg: var(--color-surface-alt);
+  box-shadow: var(--shadow-lg);
+}
+.kf-nav__panel { --bs-dropdown-min-width: 19.5rem; }
+.kf-nav__panel.show,
+.kf-account__panel.show { animation: kf-pop var(--dur-fast) var(--ease-out); }
+@keyframes kf-pop { from { opacity: 0; translate: 0 4px; } }
+
+.kf-nav__item {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  text-decoration: none;
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+.kf-nav__item:hover, .kf-nav__item:focus-visible { background: var(--color-surface-alt); color: var(--color-text); }
+.kf-nav__item.is-current { background: var(--color-surface-alt); }
+.kf-nav__item-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+  border-radius: var(--radius-md);
+  background: var(--color-brand-soft);
+  color: var(--color-brand);
+}
+.kf-nav__item:nth-child(2) .kf-nav__item-icon { background: var(--color-cta-soft); color: var(--color-cta-strong); }
+.kf-nav__item:nth-child(3) .kf-nav__item-icon { background: var(--color-growth-soft); color: var(--color-growth-strong); }
+.kf-nav__item-text { display: flex; flex-direction: column; line-height: 1.35; }
+.kf-nav__item-text strong { font-weight: 600; font-size: 0.98rem; }
+.kf-nav__item-text small { font-family: var(--font-body); font-size: 0.82rem; color: var(--color-text-muted); }
+
+/* ── الأزرار: البحث، واللغة والمظهر والحساب (العريضة)، والدعوة، والقائمة ── */
+.kf-header__actions { display: flex; align-items: center; gap: 0.25rem; margin-inline-start: auto; }
+@media (min-width: 1200px) { .kf-header__actions { margin-inline-start: 0; } }
+.kf-header__wide { display: none; align-items: center; gap: 0.25rem; }
+@media (min-width: 1200px) { .kf-header__wide { display: inline-flex; } }
+.kf-header__cta { display: none; margin-inline-start: 0.5rem; }
+@media (min-width: 768px) { .kf-header__cta { display: inline-flex; } }
+
+.kf-search-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-block-size: 2.75rem;
+  padding-inline: 1rem 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  white-space: nowrap;
+  transition: border-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out), background-color var(--dur-fast) var(--ease-out);
+}
+.kf-search-trigger:hover { border-color: var(--color-border-strong); color: var(--color-text); }
+.kf-search-trigger:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
+.kf-search-trigger__label { padding-inline-end: 1.5rem; }
+/* حتى 1400: أيقونة وحدها */
+@media (max-width: 1399.98px) {
+  .kf-search-trigger { justify-content: center; inline-size: 2.75rem; padding: 0; border-color: transparent; background: transparent; color: var(--color-text); }
+  .kf-search-trigger:hover { background: var(--color-surface-alt); border-color: transparent; }
+  .kf-search-trigger__label, .kf-search-trigger__kbd { display: none; }
+}
+
+.kf-search-trigger__kbd,
+.kf-search kbd {
+  display: inline-block;
+  padding: 0.1rem 0.4rem;
+  border: 1px solid var(--color-border);
+  border-block-end-width: 2px;
+  border-radius: 6px;
+  background: var(--color-surface-alt);
+  color: var(--color-text-muted);
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.4;
+  box-shadow: none;
+  direction: ltr;
+}
+
+.kf-header__login {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 2.75rem;
+  padding-inline: 0.9rem;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--color-brand);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+.kf-header__login:hover { background: var(--color-surface-alt); color: var(--color-brand); }
+[data-account][hidden], [data-account-login][hidden] { display: none !important; }
+
+/* حساب الكافل: دائرة بأحرف اسمه */
+.kf-avatar {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+  border-radius: 50%;
+  background: var(--color-brand);
+  color: var(--color-brand-contrast);
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1;
+}
+.kf-avatar--button { margin-inline: 0.25rem; box-shadow: 0 0 0 2px var(--color-canvas), 0 0 0 3px var(--color-brand-border); }
+.kf-avatar--button:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
+.kf-account { display: inline-flex; }
+.kf-account__panel { --bs-dropdown-min-width: 16rem; }
+.kf-account__who {
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem 0.75rem 0.75rem;
+  margin-block-end: 0.35rem;
+  border-block-end: 1px solid var(--color-border);
+  line-height: 1.35;
+}
+.kf-account__who small { font-size: 0.8rem; color: var(--color-text-muted); text-align: start; }
+.kf-account__panel .dropdown-item { display: flex; align-items: center; gap: 0.65rem; padding: 0.55rem 0.75rem; border-radius: var(--radius-sm); }
+.kf-account__panel .dropdown-item i { inline-size: 1.1rem; text-align: center; color: var(--color-text-muted); }
+.kf-account__panel .dropdown-divider { display: block; }
+.kf-account__panel .kf-account__logout,
+.kf-account__panel .kf-account__logout i { color: var(--color-urgent); }
+
+/* أيقونة بلا إطار (المظهر) */
+.btn-icon--plain { --bs-btn-border-color: transparent; --bs-btn-hover-border-color: transparent; }
+
+.kf-brand { display: inline-flex; align-items: center; gap: 0.6rem; color: var(--color-text); text-decoration: none; }
+.kf-brand:hover { color: var(--color-text); }
+.kf-brand__name { display: flex; flex-direction: column; line-height: 1.15; font-family: var(--font-display); font-weight: 700; font-size: 1.15rem; }
+.kf-brand__tag { font-family: var(--font-body); font-weight: 400; font-size: 0.75rem; color: var(--color-text-muted); }
+.kf-brand--on-ink { color: #fff; }
+.kf-brand--on-ink:hover { color: #fff; }
+.kf-brand--on-ink .kf-brand__tag { color: var(--color-on-ink-muted); }
+
+/* مبدّل اللغة: حبّةٌ صغيرة بجانب زرّ السمة، رمز اللغة الأخرى («EN» أو «ع») */
+.kf-lang { display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; min-block-size: 2.75rem; min-inline-size: 2.75rem; padding-inline: 0.75rem; border-radius: var(--radius-pill); font-family: var(--font-display); font-size: 0.875rem; font-weight: 600; color: var(--color-text-muted); text-decoration: none; transition: background-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out); }
+.kf-lang:hover { background: var(--color-surface-alt); color: var(--color-text); }
+.kf-lang i { font-size: 0.95em; }
+.kf-lang--icon { padding-inline: 0; min-inline-size: 2.5rem; min-block-size: 2.5rem; gap: 0.2rem; font-size: 0.75rem; }
+
+/* زر أيقونة دائري بهدف لمس 44px */
+.btn-icon {
+  --bs-btn-color: var(--color-text);
+  --bs-btn-border-color: var(--color-border);
+  --bs-btn-hover-color: var(--color-text);
+  --bs-btn-hover-bg: var(--color-surface-alt);
+  --bs-btn-hover-border-color: var(--color-border-strong);
+  --bs-btn-active-color: var(--color-brand);
+  --bs-btn-active-bg: var(--color-surface-alt);
+  --bs-btn-padding-x: 0;
+  inline-size: 2.75rem;
+  border-radius: 50%;
+}
+#themeToggle[aria-pressed="true"] .fa-moon,
+#themeToggle[aria-pressed="false"] .fa-sun { display: none; }
+
+.kf-header .navbar-toggler {
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  color: var(--color-text);
+  font-size: 1.15rem;
+}
+.kf-header .navbar-toggler:hover { background: var(--color-surface-alt); }
+.kf-header .navbar-toggler:focus { box-shadow: 0 0 0 3px var(--bs-focus-ring-color); }
+
+/* أزرار اختيار (اللغة والمظهر في الدرج) */
+.kf-seg { display: flex; padding: 0.2rem; border-radius: var(--radius-pill); background: var(--color-surface-alt); }
+.kf-seg > * {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-block-size: 2.5rem;
+  padding-inline: 0.5rem;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+}
+.kf-seg > *:hover { color: var(--color-text); }
+.kf-seg > [aria-current="true"],
+.kf-seg > [aria-pressed="true"] { background: var(--color-surface); color: var(--color-brand); box-shadow: var(--shadow-xs); }
+
+/* ── الدرج (تحت 1200): من جهة البداية، والأسفل للدعوة والحساب والتفضيلات ── */
+@media (max-width: 1199.98px) {
+  .kf-drawer { --bs-offcanvas-width: min(22rem, 90vw); --bs-offcanvas-bg: var(--color-surface); }
+  .kf-drawer__head { padding: 1rem 1.25rem; border-block-end: 1px solid var(--color-border); }
+  .kf-drawer__title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--color-brand);
+  }
+  .kf-drawer__body { display: flex; flex-direction: column; gap: 0.75rem; padding: 1rem 1.25rem 0; }
+
+  .kf-drawer__search {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    inline-size: 100%;
+    min-block-size: 3rem;
+    padding-inline: 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-pill);
+    background: var(--color-canvas);
+    color: var(--color-text-muted);
+    font-size: 1rem;
+    text-align: start;
+  }
+  .kf-drawer__search i { color: var(--color-brand); }
+
+  .kf-nav .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    min-block-size: 3.25rem;
+    padding: 0.5rem 0.85rem;
+    border-inline-start: 3px solid transparent;
+    border-radius: var(--radius-md);
+    font-size: 1.05rem;
+    color: var(--color-text);
+  }
+  .kf-nav .nav-link:hover { background: var(--color-surface-alt); color: var(--color-text); }
+  .kf-nav .nav-link.active { background: var(--color-surface-alt); color: var(--color-brand); border-inline-start-color: var(--color-cta); box-shadow: none; }
+  .kf-nav__icon { inline-size: 1.25rem; text-align: center; color: var(--color-brand); }
+  .kf-nav__toggle, .kf-nav__panel { display: none !important; }
+  .kf-nav__heading { margin: 0.85rem 0 0.25rem; padding-inline: 0.85rem; font-size: 0.78rem; font-weight: 600; color: var(--color-text-subtle); }
+  .kf-nav__sub { list-style: none; margin: 0; padding: 0; }
+
+  .kf-drawer__foot {
+    position: sticky;
+    inset-block-end: 0;
+    display: grid;
+    gap: 0.75rem;
+    margin-block-start: auto;
+    padding: 1rem 0 1.25rem;
+    border-block-start: 1px solid var(--color-border);
+    background: var(--color-surface);
+  }
+  .kf-drawer__who { display: flex; align-items: center; gap: 0.75rem; margin: 0 0 0.35rem; }
+  .kf-drawer__who > span:last-child { display: flex; flex-direction: column; min-inline-size: 0; line-height: 1.3; }
+  .kf-drawer__who small { overflow: hidden; text-overflow: ellipsis; font-size: 0.8rem; color: var(--color-text-muted); text-align: start; }
+  .kf-drawer__links { display: grid; grid-template-columns: 1fr 1fr; gap: 0.25rem; margin: 0; padding: 0; list-style: none; }
+  .kf-drawer__links a,
+  .kf-drawer__links button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    inline-size: 100%;
+    padding: 0.55rem 0.65rem;
+    border-radius: var(--radius-sm);
+    color: var(--color-text);
+    font-size: 0.92rem;
+    text-align: start;
+    text-decoration: none;
+  }
+  .kf-drawer__links a:hover, .kf-drawer__links button:hover { background: var(--color-surface-alt); }
+  .kf-drawer__links i { inline-size: 1rem; text-align: center; color: var(--color-text-muted); }
+  .kf-drawer__links button, .kf-drawer__links button i { color: var(--color-urgent); }
+  .kf-drawer__prefs { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+}
+@media (min-width: 1200px) {
+  .kf-header .offcanvas-header { display: none; }
+}
+
+/* ── البحث السريع: نافذة <dialog> (search.js) ── */
+.kf-search {
+  inline-size: min(40rem, calc(100vw - 2rem));
+  max-inline-size: none;
+  max-block-size: min(36rem, calc(100dvh - 4rem));
+  margin: 8vh auto auto;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: var(--shadow-xl);
+}
+.kf-search[open] { display: flex; flex-direction: column; animation: kf-pop var(--dur-fast) var(--ease-out); }
+.kf-search::backdrop { background: rgb(10 28 28 / 0.45); }
+.kf-search__box {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.9rem 1.1rem;
+  border-block-end: 1px solid var(--color-border);
+}
+.kf-search__icon { font-size: 1.1rem; color: var(--color-brand); }
+.kf-search__input {
+  flex: 1;
+  min-inline-size: 0;
+  padding-block: 0.35rem;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--color-text);
+  font-size: 1.15rem;
+}
+.kf-search__input::placeholder { color: var(--color-text-subtle); }
+.kf-search__input::-webkit-search-cancel-button { display: none; }
+.kf-search__close { display: inline-flex; }
+.kf-search__body { flex: 1; overflow-y: auto; padding: 0.5rem; overscroll-behavior: contain; }
+.kf-search__label { margin: 0.5rem 0.75rem 0.35rem; font-size: 0.75rem; font-weight: 600; color: var(--color-text-subtle); }
+.kf-search__list { margin: 0; padding: 0; list-style: none; }
+.kf-search__opt a {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  text-decoration: none;
+}
+.kf-search__opt.is-active a { background: var(--color-surface-alt); }
+.kf-search__opt-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+  border-radius: var(--radius-md);
+  background: var(--color-surface-alt);
+  color: var(--color-brand);
+}
+.kf-search__opt-icon--urgent { background: var(--color-urgent-soft); color: var(--color-urgent); }
+.kf-search__opt-text { flex: 1; display: flex; flex-direction: column; min-inline-size: 0; line-height: 1.35; }
+.kf-search__opt-text strong { font-weight: 600; }
+.kf-search__opt-text small { overflow: hidden; font-size: 0.82rem; color: var(--color-text-muted); text-overflow: ellipsis; white-space: nowrap; }
+.kf-search__opt--all strong { color: var(--color-brand); }
+.kf-search__age { font-weight: 400; color: var(--color-text-muted); }
+.kf-search__kid { flex: none; inline-size: 2.5rem; block-size: 2.5rem; border-radius: 50%; object-fit: cover; background: var(--color-surface-alt); }
+.kf-search__funded { flex: none; font-size: 0.78rem; color: var(--color-text-muted); }
+.kf-search__funded b { font-weight: 600; color: var(--color-text); }
+.kf-search__empty { padding: 1rem 0.75rem 0.5rem; color: var(--color-text-muted); }
+.kf-search__skel { display: flex; align-items: center; gap: 0.85rem; padding: 0.6rem 0.75rem; }
+.kf-search__skel span:first-child { flex: none; inline-size: 2.5rem; block-size: 2.5rem; border-radius: 50%; background: var(--color-surface-alt); }
+.kf-search__skel span:last-child { flex: 1; max-inline-size: 14rem; block-size: 0.8rem; border-radius: var(--radius-pill); background: var(--color-surface-alt); }
+.kf-search__foot {
+  display: flex;
+  gap: 1.25rem;
+  padding: 0.65rem 1.1rem;
+  border-block-start: 1px solid var(--color-border);
+  background: var(--color-canvas);
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+.kf-search__foot kbd { margin-inline-end: 0.2rem; }
+@media (max-width: 575.98px) {
+  .kf-search { margin-block-start: 1rem; max-block-size: calc(100dvh - 2rem); }
+  .kf-search__foot { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kf-search[open], .kf-nav__panel.show, .kf-account__panel.show { animation: none; }
+  .kf-header .navbar, .kf-header .kf-brand__logo, .kf-nav__toggle::after { transition: none; }
+}
+
+/* حشوة الحاوية في Bootstrap نصف --bs-gutter-x (0.75rem)، لا --gutter القديم
+   (1.25rem): الصفوف التي تمتد لحافة الشاشة تُزاح بها وإلا فاضت أفقياً */
+:root { --kf-gutter: calc(var(--bs-gutter-x, 1.5rem) * 0.5); }
+
+/* ── 11ب. عناصر ثابتة في كل صفحة: شريط الإجراء على الجوال وزر العودة للأعلى ──
+   كانا في home.css فلم تجدهما الصفحات الأخرى، فظهر الزر بلا أنماط تحت الفوتر. */
+/* ==========================================================================
+   شريط الإجراء السفلي على الجوال — يبقي "اكفل الآن" في متناول الإبهام
+   ========================================================================== */
+.action-bar {
+  position: fixed;
+  inset-block-end: 0;
+  inset-inline: 0;
+  z-index: var(--z-sticky);
+  display: none;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--kf-gutter);
+  padding-block-end: max(var(--space-3), env(safe-area-inset-bottom));
+  /* خلفية شبه مصمتة بلا تمويه: الشريط ثابت فوق محتوى يتحرك، والتمويه
+     يُعاد رسمه مع كل إطار تمرير على الهواتف الضعيفة */
+  background: var(--glass-strong);
+  border-block-start: 1px solid var(--color-border);
+  transform: translateY(110%);
+  transition: transform var(--dur-normal) var(--ease-out);
+}
+
+.action-bar.is-visible { transform: translateY(0); }
+
+@media (max-width: 48rem) {
+  .action-bar { display: flex; }
+  /* الشريط ثابت فوق آخر الصفحة: مساحةٌ تحت الفوتر بقدره كي لا يغطي سطره الأخير */
+  body:has(.action-bar) .kf-footer { padding-block-end: 4.5rem; }
+}
+
+.action-bar__info { flex: 1; min-inline-size: 0; }
+.action-bar__info span { display: block; font-size: var(--text-2xs); color: var(--color-text-subtle); }
+.action-bar__info strong { font-family: var(--font-display); font-size: var(--text-sm); }
+
+/* ==========================================================================
+   زر العودة للأعلى
+   ========================================================================== */
+.to-top {
+  position: fixed;
+  inset-block-end: var(--space-6);
+  inset-inline-start: var(--space-6);
+  z-index: var(--z-sticky);
+  display: grid;
+  place-items: center;
+  inline-size: 3rem;
+  block-size: 3rem;
+  border-radius: 50%;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-brand);
+  box-shadow: var(--shadow-md);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(0.75rem);
+  transition: color var(--dur-normal) var(--ease-out),
+              background-color var(--dur-normal) var(--ease-out),
+              border-color var(--dur-normal) var(--ease-out),
+              transform var(--dur-normal) var(--ease-out),
+              box-shadow var(--dur-normal) var(--ease-out);
+}
+
+.to-top.is-visible { opacity: 1; visibility: visible; transform: translateY(0); }
+.to-top:hover { background: var(--color-brand); color: var(--color-brand-contrast); }
+
+/* على الجوال يكفي الشريط السفلي، وزر الصعود يغطي المحتوى ويزاحمه */
+@media (max-width: 48rem) {
+  .to-top { display: none; }
+}
+
+/* ── 11ج. أزرار المشاركة (partials/share): دوائر بلون المنصة عند المرور ── */
+.share { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+.share__btn {
+  display: inline-grid;
+  place-items: center;
+  inline-size: 2.6rem;
+  block-size: 2.6rem;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font-size: 1rem;
+  text-decoration: none;
+  transition: background-color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+}
+.share__btn:hover { --share: var(--color-brand); border-color: var(--share); background: var(--share); color: #fff; }
+.share__btn--whatsapp:hover { --share: #25d366; }
+.share__btn--x:hover { --share: #0f1419; }
+.share__btn--facebook:hover { --share: #1877f2; }
+.share__btn--telegram:hover { --share: #229ed9; }
+.share__btn--linkedin:hover { --share: #0a66c2; }
+.share__btn.is-copied { border-color: var(--color-success); color: var(--color-success); }
+.share__btn:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .share__btn { transition: none; } }
+
+/* ── 11د. الإشعارات (toast() في ui.js) ──
+   الصنف .toast نفسه في Bootstrap، وفيه .toast:not(.show) { display: none }،
+   فكانت إشعارات ui.js تُضاف ولا تُرى في كل صفحة منقولة. نعرّفها هنا
+   بمحدِّد أخصّ من قاعدته. */
+.toast-stack { position: fixed; inset-block-end: 1.5rem; inset-inline-end: 1.5rem; z-index: 1090; display: flex; flex-direction: column; gap: 0.75rem; pointer-events: none; }
+.toast-stack > .toast {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  inline-size: auto;
+  max-inline-size: 24rem;
+  padding: 0.9rem 1.1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-lg);
+  color: var(--color-text);
+  font-size: 0.925rem;
+  font-weight: 500;
+  pointer-events: auto;
+}
+.toast-stack .toast__icon { display: grid; place-items: center; flex-shrink: 0; inline-size: 1.9rem; block-size: 1.9rem; border-radius: 50%; font-size: 0.8rem; }
+.toast-stack .toast__text { flex: 1; }
+.toast-stack .toast__close { display: grid; place-items: center; flex-shrink: 0; inline-size: 2.5rem; block-size: 2.5rem; margin: -0.5rem; border-radius: 50%; color: var(--color-text-subtle); }
+.toast-stack .toast__close:hover { background: var(--color-surface-alt); color: var(--color-text); }
+.toast--success .toast__icon { background: var(--color-success-soft); color: var(--color-success); }
+.toast--error .toast__icon { background: var(--color-urgent-soft); color: var(--color-urgent); }
+.toast--info .toast__icon { background: var(--color-info-soft); color: var(--color-info); }
+@media (prefers-reduced-motion: no-preference) {
+  .toast-stack > .toast { animation: kf-toast-in 0.32s var(--ease-out) both; }
+  .toast-stack > .toast.is-leaving { animation: kf-toast-out 0.25s var(--ease-out) forwards; }
+}
+@keyframes kf-toast-in { from { opacity: 0; translate: 0 0.75rem; } }
+@keyframes kf-toast-out { to { opacity: 0; translate: 0 0.5rem; } }
+@media (max-width: 38rem) {
+  .toast-stack { inset-inline: 1rem; inset-block-end: 1rem; }
+  .toast-stack > .toast { max-inline-size: none; }
+}
+
+/* ── 12. الفوتر: في footer.css، يحمّله القالبان كلاهما ── */
+
+/* ── 13. أخطاء الحقول التي يكتبها forms.js (.field و.field__error) ── */
+.field__error { margin: 0.35rem 0 0; font-size: 0.875rem; color: var(--color-urgent); }
+.field__error:empty { display: none; }
+.field.is-invalid .form-control,
+.field.is-invalid .form-select { border-color: var(--color-urgent); }
+
+/* ── 13ب. تهيئة العناصر كما في base.css القديم ──
+   Reboot في Bootstrap يترك للزر حدّه وخلفيته الافتراضيين، والمكوّنات
+   المخصّصة (تبويبات الأطفال والخطوات) بُنيت على زرٍّ مُصفَّر. :where()
+   تجعل الوزن صفراً، فأي صنف (ومنه أزرار Bootstrap) يغلبها. */
+:where(button:not(.btn, .btn-close, .navbar-toggler, .accordion-button, .page-link)) {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+:where(img, picture, svg, video) { max-inline-size: 100%; block-size: auto; }
+:where(ul[role="list"], ol[role="list"]) { list-style: none; padding: 0; margin: 0; }
+:where(p, li, dd, dt, figcaption, h1, h2, h3, h4, h5, h6) { overflow-wrap: break-word; }
+:where(h1, h2, h3, h4) { text-wrap: balance; }
+:where(p) { text-wrap: pretty; }
+:where(a) { text-underline-offset: 0.22em; }
+
+/* ── 13ج. الاتجاه: العربية من اليمين، والإنجليزية من اليسار ──
+   --kf-dir يقلب كل حركةٍ «إلى الأمام» (دفعة السهم عند المرور، انزلاق النموذج):
+   1 في العربية و-1 في غيرها. والأسهم والأيقونات الاتجاهية تنقلب بـ scale لا
+   transform، فلا تتعارض مع translate في حركاتها. */
+:root { --kf-dir: 1; }
+[dir="ltr"] { --kf-dir: -1; }
+[dir="ltr"] :is(.fa-arrow-left, .fa-arrow-right, .fa-chevron-left, .fa-chevron-right, .fa-angle-left, .fa-angle-right, .fa-arrow-right-from-bracket, .kf-dir-icon) { scale: -1 1; }
+
+/* ── 14. مكوّنات مشتركة لا مقابل لها في Bootstrap ──
+   كانت «طبقة توافق» تعرّف أصناف التصميم القديم بلغة Bootstrap ريثما تنتقل
+   الصفحات. انتقلت كلها، فبقي هنا ما هو مكوّنٌ حقيقي يُستعمل في كل مكان. */
+
+/* الأرقام: أرقام لاتينية بعرضٍ ثابت، واتجاهها من اليسار ولو في سطرٍ عربي */
+.num {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+/* زرٌّ بإطارٍ أبيض فوق خلفيةٍ داكنة (قسم الشفافية في الرئيسية) */
+.btn-ink-outline { --bs-btn-color: #fff; --bs-btn-border-color: rgb(255 255 255 / 0.4); --bs-btn-hover-color: var(--color-ink); --bs-btn-hover-bg: #fff; --bs-btn-hover-border-color: #fff; --bs-btn-active-color: var(--color-ink); --bs-btn-active-bg: #fff; }
+
+/* سهمٌ داخل الزرّ يتقدّم خطوةً عند المرور */
+.btn__icon { font-size: 0.85em; transition: translate var(--dur-fast) var(--ease-out); }
+.btn:hover .btn__icon--arrow { translate: calc(-3px * var(--kf-dir, 1)) 0; }
+
+/* رابط بسهم: «كل المقالات ←» */
+.link-arrow { display: inline-flex; align-items: center; gap: 0.5rem; font-family: var(--font-display); font-weight: 600; color: var(--color-brand); text-decoration: none; min-block-size: 2.75rem; }
+.link-arrow i { font-size: 0.8em; transition: translate var(--dur-fast) var(--ease-out); }
+.link-arrow:hover { color: var(--color-brand-hover); }
+.link-arrow:hover i { translate: calc(-4px * var(--kf-dir, 1)) 0; }
+
+.avatar { display: grid; place-items: center; inline-size: 2.75rem; block-size: 2.75rem; border-radius: 50%; background: var(--avatar-bg, var(--avatar-1)); color: #fff; font-family: var(--font-display); font-weight: 600; line-height: 1; flex-shrink: 0; }
+.avatar--lg { inline-size: 3rem; block-size: 3rem; }
+.avatar--1 { --avatar-bg: var(--avatar-1); }
+.avatar--2 { --avatar-bg: var(--avatar-2); }
+.avatar--3 { --avatar-bg: var(--avatar-3); }
+.avatar--4 { --avatar-bg: var(--avatar-4); }
+
+/* ── 15. رؤوس الأقسام وإيقاعها في الصفحات المنقولة ── */
+.kf-section { padding-block: clamp(3.5rem, 7vw, 6rem); }
+.kf-section--surface { background: var(--color-surface); }
+.kf-section--ink { background: var(--color-ink); color: #fff; }
+.kf-section--ink h2, .kf-section--ink h3 { color: #fff; }
+.kf-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 1rem 2rem; margin-block-end: clamp(2rem, 4vw, 3rem); }
+.kf-head h2,
+.kf-title { margin: 0; font-size: clamp(1.75rem, 3.2vw, 2.5rem); }
+.kf-lede { max-inline-size: 40rem; margin: 0.75rem 0 0; font-size: 1.125rem; line-height: 1.8; color: var(--color-text-muted); }
+.kf-section--ink .kf-lede { color: var(--color-on-ink-muted); }
+/* رأس بالوسط بخط ذهبي قصير فوقه، كما في رأس الهيرو */
+.kf-head--center { flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.kf-head--center::before { content: ""; inline-size: 3rem; block-size: 3px; border-radius: 3px; background: var(--color-cta); margin-block-end: 0.5rem; }
+.kf-head--center .kf-lede { margin-inline: auto; }
+.kf-eyebrow { margin: 0 0 0.5rem; font-family: var(--font-display); font-size: 0.85rem; font-weight: 700; color: var(--color-brand); }
+
+/* ── 16. الحركة: ظهور هادئ مرة واحدة عند التمرير ── */
+.js [data-reveal] {
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 350ms var(--ease-out), transform 350ms var(--ease-out);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+.js [data-reveal].is-visible { opacity: 1; transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .js [data-reveal] { opacity: 1; transform: none; transition: none; }
+  .btn, .kf-header { transition: none; }
+}
+
+
+/* ==========================================================================
+   انتقالا المظهر واللغة (View Transitions)
+   --------------------------------------------------------------------------
+   المظهر (theme.js): السمة الجديدة تنتشر دائرةً من الزر الذي ضُغط، فوق
+   القديمة، مرةً واحدة. --kf-vt-x/y/r يضعها theme.js على <html>.
+
+   اللغة (theme-init.js يضع النوع «lang» بين المستندين): الصفحة القديمة تخفت
+   وتتشوّش قليلاً، والجديدة تنكشف مسحاً من الجهة التي تُقرأ منها: من اليمين
+   للعربية ومن اليسار للإنجليزية، مع وضوحٍ تدريجي.
+
+   كلاهما يُلغى لمن طلب تقليل الحركة، وحيث لا يدعمه المتصفح يتبدّل كما كان.
+   ========================================================================== */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition { navigation: auto; }
+}
+
+/* المظهر: الجديد فوق القديم، بلا تلاشٍ افتراضي */
+.kf-theme-vt::view-transition-old(root),
+.kf-theme-vt::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+.kf-theme-vt::view-transition-new(root) {
+  animation: kf-theme-reveal 0.65s cubic-bezier(0.65, 0, 0.35, 1) both;
+}
+@keyframes kf-theme-reveal {
+  from { clip-path: circle(0 at var(--kf-vt-x, 50%) var(--kf-vt-y, 0)); }
+  to   { clip-path: circle(var(--kf-vt-r, 150vmax) at var(--kf-vt-x, 50%) var(--kf-vt-y, 0)); }
+}
+
+/* اللغة */
+html:active-view-transition-type(lang)::view-transition-old(root) {
+  animation: kf-lang-out 0.42s cubic-bezier(0.4, 0, 1, 1) both;
+}
+html:active-view-transition-type(lang)::view-transition-new(root) {
+  animation: kf-lang-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.08s both;
+}
+@keyframes kf-lang-out {
+  to { opacity: 0; filter: blur(6px); scale: 0.985; }
+}
+/* العربية (rtl) تنكشف من اليمين؛ والإنجليزية من اليسار (القاعدة التالية) */
+@keyframes kf-lang-in {
+  from { clip-path: inset(0 0 0 100%); filter: blur(8px); opacity: 0.4; }
+  to   { clip-path: inset(0 0 0 0); filter: blur(0); opacity: 1; }
+}
+@keyframes kf-lang-in-ltr {
+  from { clip-path: inset(0 100% 0 0); filter: blur(8px); opacity: 0.4; }
+  to   { clip-path: inset(0 0 0 0); filter: blur(0); opacity: 1; }
+}
+html[dir="ltr"]:active-view-transition-type(lang)::view-transition-new(root) { animation-name: kf-lang-in-ltr; }
+
+/* زرّ المظهر: الأيقونة تدور وتظهر حين تتبدّل */
+#themeToggle i { transition: rotate var(--dur-normal) var(--ease-out), scale var(--dur-normal) var(--ease-out); }
+#themeToggle[aria-pressed="true"] .fa-sun,
+#themeToggle[aria-pressed="false"] .fa-moon { animation: kf-icon-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1); }
+@keyframes kf-icon-in { from { rotate: -90deg; scale: 0.4; opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  #themeToggle i { animation: none !important; transition: none; }
+}

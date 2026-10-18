@@ -39,23 +39,18 @@ const BLANK = {
   status: 'active',
 }
 
-const form = useForm(BLANK, ({ email, title, status, ...rest }) =>
+const form = useForm(BLANK, ({ email, status: _, ...rest }) =>
   editing.value
-    // البريد والمسمّى لا يُعدَّلان من هنا: البريد هوية الحساب، وتغييره
-    // يقطع رابط الاستعادة المُرسَل؛ والمسمّى في ملف الموظف لا في الحساب
-    ? admin.users.update(props.user.id, { ...rest, status })
-    : admin.users.create({ ...rest, email, title }),
+    // البريد لا يُعدَّل: هو هوية الحساب، وتغييره يقطع رابط الاستعادة المُرسَل.
+    // والحالة لا تُرسَل من هنا: الإيقاف وإعادة التفعيل في درج الموظف بتأكيد
+    ? admin.users.update(props.user.id, rest)
+    : admin.users.create({ ...rest, email }),
 )
 
 const ROLES = [
-  { value: 'admin', label: 'مدير النظام — كل شيء' },
-  { value: 'accountant', label: 'محاسب — المال والتقارير، بلا ملفات' },
-  { value: 'field_supervisor', label: 'مشرف ميداني — الملفات والزيارات، بلا مال' },
-]
-
-const STATUSES = [
-  { value: 'active', label: 'نشط' },
-  { value: 'suspended', label: 'موقوف' },
+  { value: 'admin', label: 'مدير النظام: كل شيء' },
+  { value: 'accountant', label: 'محاسب: المال والتقارير، بلا ملفات' },
+  { value: 'field_supervisor', label: 'مشرف ميداني: الملفات والزيارات، بلا مال' },
 ]
 
 const countryOptions = computed(() =>
@@ -89,8 +84,10 @@ watch(
         email: u.email ?? '',
         phone: u.phone ?? '',
         role: u.roles?.[0] ?? '',
-        title: u.title ?? '',
-        assigned_country_id: u.country?.id ?? '',
+        // من ملف الموظف: كان يُقرأ من حقل لا يرسله الخادم، فيُرسَل فارغاً
+        // مع كل تعديل ويُمسح بلد المشرف
+        assigned_country_id: u.staff_profile?.assigned_country_id ?? '',
+        title: u.staff_profile?.title ?? '',
         status: u.status ?? 'active',
       })
     } else {
@@ -112,7 +109,7 @@ async function save() {
     :title="editing ? 'تعديل الموظف' : 'موظف جديد'"
     :subtitle="editing
       ? user.email
-      : 'يُنشأ الحساب معلَّقاً — والموظف يضبط كلمته بنفسه عبر رابط الاستعادة.'"
+      : 'يُنشأ الحساب معلَّقاً، والموظف يضبط كلمة مروره بنفسه عبر رابط الاستعادة.'"
     :busy="form.submitting.value" :dirty="form.dirty.value"
     @close="emit('close')" @submit="save"
   >
@@ -134,35 +131,26 @@ async function save() {
         :error="form.errors.value.phone" @update:model-value="form.touch('phone')"
       />
       <FormField
-        v-if="!editing"
         v-model="form.values.title" label="المسمّى الوظيفي"
-        placeholder="مشرف ميداني — غزة"
+        placeholder="مشرف ميداني في غزة"
         :error="form.errors.value.title" @update:model-value="form.touch('title')"
       />
     </div>
 
     <FormField
       v-model="form.values.role" label="الدور" required
-      :options="ROLES" placeholder="اختر الدور"
+      :options="ROLES" placeholder="اختر الدور" :disabled="isSelf"
+      :hint="isSelf ? 'لا يمكنك تغيير دورك أنت. يغيّره مدير آخر.' : ''"
       :error="form.errors.value.role" @update:model-value="form.touch('role')"
     />
 
     <FormField
       v-if="scoped"
-      v-model="form.values.assigned_country_id" label="البلد المُسنَد"
-      :options="countryOptions" placeholder="كل البلدان"
-      hint="المشرف يرى أيتام بلده وحده — وهذا ما يحدّده."
+      v-model="form.values.assigned_country_id" label="البلد المُسنَد" required
+      :options="countryOptions" placeholder="اختر البلد"
+      hint="المشرف يرى أيتام بلده وحده، وبلا بلد لا يرى شيئاً."
       :error="form.errors.value.assigned_country_id"
       @update:model-value="form.touch('assigned_country_id')"
     />
-
-    <template v-if="editing">
-      <FormField
-        v-model="form.values.status" label="الحالة" required
-        :options="STATUSES" :disabled="isSelf"
-        :hint="isSelf ? 'لا توقف حسابك أنت — الخادم يرفضه، ولسببٍ وجيه.' : ''"
-        :error="form.errors.value.status" @update:model-value="form.touch('status')"
-      />
-    </template>
   </FormModal>
 </template>

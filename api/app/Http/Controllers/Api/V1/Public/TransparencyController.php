@@ -29,6 +29,11 @@ class TransparencyController extends Controller
                 'spending' => $this->transparency->spendingBreakdown($year),
                 'proof' => $this->transparency->proof(),
                 'annual' => $this->transparency->annual($year),
+                // للتقرير الحيّ: نسبة التشغيل محسوبة لا مكتوبة، والشهور، والسنوات، والوثائق
+                'overhead' => $this->transparency->overhead($year),
+                'monthly' => $this->transparency->monthly(),
+                'years' => $this->transparency->years(),
+                'documents' => $this->transparency->documents(),
             ],
         ]);
     }

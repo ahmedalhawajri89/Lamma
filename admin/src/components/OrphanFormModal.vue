@@ -14,6 +14,8 @@ import { admin } from '@/api/endpoints'
 import { useForm } from '@/composables/useForm'
 import FormModal from './FormModal.vue'
 import FormField from './FormField.vue'
+import SearchSelect from './SearchSelect.vue'
+import { searchFamilies, familyLabel } from '@/composables/lookups'
 
 const props = defineProps({
   open: { type: Boolean, default: false },
@@ -26,6 +28,9 @@ const props = defineProps({
 
   /** الأسر للاختيار منها — `[{ id, family_code, guardian_name }]`. */
   families: { type: Array, default: () => [] },
+
+  /** أسرةٌ مختارة سلفاً عند الإنشاء من صفحة الأسرة نفسها */
+  presetFamily: { type: Object, default: null },
 })
 
 const emit = defineEmits(['close', 'saved'])
@@ -76,12 +81,6 @@ const dobRange = computed(() => {
   return { min: iso(floor), max: iso(new Date(today.getTime() - 86400000)) }
 })
 
-const familyOptions = computed(() =>
-  props.families.map((f) => ({
-    value: f.id,
-    label: `${f.family_code} — ${f.guardian_name ?? f.guardian?.name ?? 'بلا وصيّ'}`,
-  })),
-)
 
 const programOptions = computed(() =>
   (props.references.programs ?? []).map((p) => ({ value: p.id, label: `${p.name} · $${p.price}` })),
@@ -94,21 +93,23 @@ const programOptions = computed(() =>
  * من سعر البرنامج. لكن الاقتراح يوفّر على المدخل كتابة الرقم في كل مرة —
  * وهو نفسه في أغلب الحالات.
  */
-watch(
-  () => form.values.program_id,
-  (id, previous) => {
-    if (!id || id === previous) return
+/**
+ * يُستدعى حين يختار المستخدم البرنامج بيده، لا حين تتغيّر القيمة: مراقبٌ على
+ * القيمة كان يعمل أيضاً عند تعبئة النموذج للتعديل، فيستبدل حاجةً شهريةً
+ * مخصّصة بسعر البرنامج إن صادف أنها تساوي سعر أي برنامج.
+ */
+function onProgramPicked(id) {
+  form.touch('program_id')
 
-    const program = (props.references.programs ?? []).find((p) => p.id === Number(id))
-    if (!program) return
+  const program = (props.references.programs ?? []).find((p) => p.id === Number(id))
+  if (!program) return
 
-    // لا نطمس رقماً كتبه المستخدم عمداً
-    const suggested = (props.references.programs ?? []).some((p) => p.price === form.values.monthly_need)
-    if (form.values.monthly_need === null || form.values.monthly_need === '' || suggested) {
-      form.values.monthly_need = program.price
-    }
-  },
-)
+  // لا نطمس رقماً كتبه المستخدم عمداً
+  const suggested = (props.references.programs ?? []).some((p) => p.price === form.values.monthly_need)
+  if (form.values.monthly_need === null || form.values.monthly_need === '' || suggested) {
+    form.values.monthly_need = program.price
+  }
+}
 
 watch(
   () => props.open,
@@ -144,7 +145,7 @@ watch(
         story: o.story ?? '',
       })
     } else {
-      form.setValues(BLANK)
+      form.setValues({ ...BLANK, family_id: props.presetFamily?.id ?? '' })
     }
   },
   { immediate: true },
@@ -162,7 +163,7 @@ async function save() {
     :title="editing ? 'تحرير الملف' : 'ملف يتيم جديد'"
     :subtitle="editing
       ? orphan.reference_code
-      : 'يُنشأ الملف مسوّدةً — النشر يمرّ بالتوثيق أولاً.'"
+      : 'يُنشأ الملف مسوّدةً، والنشر يمرّ بالتوثيق أولاً.'"
     :busy="form.submitting.value" :dirty="form.dirty.value"
     @close="emit('close')" @submit="save"
   >
@@ -184,20 +185,21 @@ async function save() {
       <FormField
         v-model="form.values.date_of_birth" label="تاريخ الميلاد" type="date" required
         :min="dobRange.min" :max="dobRange.max"
-        hint="حتى ١٨ سنة — عندها يتخرّج من البرنامج."
+        hint="حتى 18 سنة، وعندها يتخرّج من البرنامج."
         :error="form.errors.value.date_of_birth" @update:model-value="form.touch('date_of_birth')"
       />
 
-      <FormField
+      <SearchSelect
         v-model="form.values.family_id" label="الأسرة" required
-        :options="familyOptions" placeholder="اختر الأسرة"
-        hint="لا يُنشأ يتيم بلا أسرة — الوصيّ والعنوان يأتيان منها."
+        :search="searchFamilies" :initial-label="familyLabel(orphan?.family ?? presetFamily)"
+        placeholder="رمز الأسرة أو اسم الوصيّ…"
+        hint="لا يُنشأ يتيم بلا أسرة، فالوصيّ والعنوان يأتيان منها."
         :error="form.errors.value.family_id" @update:model-value="form.touch('family_id')"
       />
       <FormField
         v-model="form.values.program_id" label="البرنامج" required
         :options="programOptions" placeholder="اختر البرنامج"
-        :error="form.errors.value.program_id" @update:model-value="form.touch('program_id')"
+        :error="form.errors.value.program_id" @update:model-value="onProgramPicked"
       />
 
       <FormField
@@ -215,7 +217,7 @@ async function save() {
 
     <FormField
       v-model="form.values.health_status" label="الحالة الصحية"
-      hint="ما يؤثر في الكفالة فقط. لا تفاصيل تشخيصية — البطاقة العامة لا تعرضها."
+      hint="ما يؤثر في الكفالة فقط. لا تفاصيل تشخيصية، فالبطاقة العامة لا تعرضها."
       :error="form.errors.value.health_status" @update:model-value="form.touch('health_status')"
     />
 
@@ -253,15 +255,15 @@ async function save() {
         ولا جوع ولا جسد مكشوف. والبطاقة بلا صورة أفضل من صورة تسيء لصاحبها.
       -->
       <p id="orphanPhotoHelp" class="text-xs text-sand-500 mt-1">
-        بموافقة الوصيّ المكتوبة. لا بكاء ولا جوع — والبطاقة بلا صورة أفضل من
+        بموافقة الوصيّ المكتوبة. لا بكاء ولا جوع، والبطاقة بلا صورة أفضل من
         صورة تسيء إلى صاحبها.
       </p>
-      <p v-if="form.errors.value.photo" class="text-xs text-clay-700 mt-1" role="alert">
+      <p v-if="form.errors.value.photo" class="text-xs text-rose-700 mt-1" role="alert">
         {{ form.errors.value.photo[0] }}
       </p>
     </div>
     <FormField
-      v-model="form.values.is_urgent" label="حالة عاجلة — تُعرض في مقدمة الموقع"
+      v-model="form.values.is_urgent" label="حالة عاجلة تُعرض في مقدمة الموقع"
       type="checkbox"
       :error="form.errors.value.is_urgent" @update:model-value="form.touch('is_urgent')"
     />

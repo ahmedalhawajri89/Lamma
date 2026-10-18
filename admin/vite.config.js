@@ -3,6 +3,13 @@ import vue from '@vitejs/plugin-vue'
 import tailwindcss from '@tailwindcss/vite'
 import { fileURLToPath, URL } from 'node:url'
 
+/**
+ * خادم الـ API خلف الوسيط. 8000 للتطوير؛ واختبارات E2E تشغّل خادماً آخر
+ * على قاعدة منفصلة (playwright.config.js) فتمرّر عنوانه هنا، كي لا تكتب
+ * بيانات اختبارية في قاعدة التطوير.
+ */
+const API = process.env.KAFALA_API ?? 'http://127.0.0.1:8000'
+
 export default defineConfig(({ mode }) => ({
   /**
    * في الإنتاج تُبنى اللوحة داخل `api/public` فتُقدَّم من خادم لارافل نفسه —
@@ -26,6 +33,12 @@ export default defineConfig(({ mode }) => ({
    */
   base: mode === 'production' ? '/admin-app/' : '/',
 
+  /**
+   * عنوان الموقع العام لروابط «على الموقع» في التطوير: الخادم نفسه الذي
+   * يمرّ إليه الوسيط (كان ثابتاً على 8000). وفي الإنتاج اللوحة على أصل الموقع.
+   */
+  define: { __SITE_URL__: JSON.stringify(mode === 'production' ? '/' : `${API}/`) },
+
   build: {
     outDir: '../api/public/admin-app',
     emptyOutDir: true,
@@ -38,7 +51,7 @@ export default defineConfig(({ mode }) => ({
   },
 
   server: {
-    port: 5173,
+    port: Number(process.env.VITE_PORT ?? 5173),
     host: 'localhost',
 
     /**
@@ -58,8 +71,8 @@ export default defineConfig(({ mode }) => ({
      *     حيث تختلف النطاقات فعلاً.
      */
     proxy: {
-      '/api': { target: 'http://127.0.0.1:8000', changeOrigin: false },
-      '/sanctum': { target: 'http://127.0.0.1:8000', changeOrigin: false },
+      '/api': { target: API, changeOrigin: false },
+      '/sanctum': { target: API, changeOrigin: false },
 
       /**
        * `/storage` لازم أيضاً.
@@ -70,7 +83,7 @@ export default defineConfig(({ mode }) => ({
        * تمرير `/storage` يردّ عليها بصفحة index.html — فتظهر الصورة
        * مكسورة بلا خطأ في الشبكة (استجابة 200 وعرضٌ صفر).
        */
-      '/storage': { target: 'http://127.0.0.1:8000', changeOrigin: false },
+      '/storage': { target: API, changeOrigin: false },
     },
   },
 

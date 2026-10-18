@@ -76,12 +76,16 @@ const cityOptions = computed(() => {
   return (country?.cities ?? []).map((c) => ({ value: c.id, label: c.name }))
 })
 
-watch(
-  () => form.values.country_id,
-  (id, previous) => {
-    if (previous !== undefined && id !== previous) form.values.city_id = ''
-  },
-)
+/**
+ * المدينة تُفرَّغ حين يغيّر المستخدم الدولة بيده، لا حين تتغيّر القيمة.
+ *
+ * مراقبٌ على القيمة كان يرى تعبئة النموذج عند فتحه للتعديل (من فارغ إلى
+ * دولة الأسرة) تغييراً، فيمسح المدينة، ثم يحفظها الخادم فارغة بصمت.
+ */
+function onCountryPicked() {
+  form.touch('country_id')
+  form.values.city_id = ''
+}
 
 watch(
   () => props.open,
@@ -157,7 +161,7 @@ async function save() {
         <FormField
           v-if="!editing"
           v-model="form.values.guardian.national_id" label="رقم الهوية"
-          hint="يُخزَّن بصمةً مُملَّحة لا رقماً — تكفي لكشف التكرار ولا تكفي لإعادة بنائه."
+          hint="يُخزَّن بصمةً مُملَّحة لا رقماً: تكفي لكشف التكرار ولا تكفي لإعادة بنائه."
           :error="guardianError('national_id')" @update:model-value="form.touch('guardian.national_id')"
         />
         <FormField
@@ -176,7 +180,7 @@ async function save() {
         <FormField
           v-model="form.values.country_id" label="الدولة" required
           :options="countryOptions" placeholder="اختر الدولة"
-          :error="form.errors.value.country_id" @update:model-value="form.touch('country_id')"
+          :error="form.errors.value.country_id" @update:model-value="onCountryPicked"
         />
         <FormField
           v-model="form.values.city_id" label="المدينة"
@@ -193,7 +197,7 @@ async function save() {
         <FormField
           v-model="form.values.monthly_income" label="دخل الأسرة الشهري ($)"
           type="number" :min="0" :step="1"
-          hint="اتركه فارغاً إن كان مجهولاً — الفراغ غياب، والصفر قيمة."
+          hint="اتركه فارغاً إن كان مجهولاً، فالفراغ غياب والصفر قيمة."
           :error="form.errors.value.monthly_income" @update:model-value="form.touch('monthly_income')"
         />
       </div>
@@ -206,7 +210,7 @@ async function save() {
 
       <FormField
         v-model="form.values.address" label="العنوان"
-        hint="للاستعمال الداخلي — لا يظهر على الموقع العام."
+        hint="للاستعمال الداخلي، ولا يظهر على الموقع العام."
         :error="form.errors.value.address" @update:model-value="form.touch('address')"
       />
     </fieldset>

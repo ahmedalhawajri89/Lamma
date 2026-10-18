@@ -10,36 +10,71 @@
  *   • كل رسائل الخطأ نصية (textContent) فلا مجال لحقن HTML.
  */
 
-import { login, register, forgotPassword, resetPassword } from './auth.js';
+import { login, logout, register, forgotPassword, resetPassword, markSignedIn, isSponsor } from './auth.js';
 import { submitContact, subscribeNewsletter } from './api.js';
 import { toast } from './ui.js';
-import { $, $$, clamp } from './utils.js';
+import { $, $$, toLatinDigits } from './utils.js';
+import { submitCheckoutForm } from './checkout.js';
+import { url, t } from './i18n.js';
+
+/**
+ * وجهة ما بعد الدخول من الرابط، على هذا الموقع وحده.
+ *
+ * كانت تُستعمل كما هي: `/login?redirect=https://موقع-آخر` يرسل الكافل
+ * بعد دخولٍ حقيقي إلى صفحة تصيّد تشبه الموقع. المقبول مسار نسبي على الأصل
+ * نفسه، وما سواه يُتجاهل.
+ */
+export function safeRedirect(value) {
+  // `/\evil.com` يقرؤه بعض المتصفحات `//evil.com`، فالشرطة المائلة العكسية تُرفض كلها
+  if (!value || value.startsWith('//') || value.includes('\\')) return null;
+  try {
+    const url = new URL(value, window.location.origin);
+    if (url.origin !== window.location.origin) return null;
+    return url.pathname.replace(/^\//, '') + url.search + url.hash;
+  } catch {
+    return null;
+  }
+}
 
 /* =========================================================================
    قواعد التحقق
    ========================================================================= */
 const RULES = {
-  required: (value) => value.trim().length > 0 || 'هذا الحقل مطلوب',
+  required: (value) => value.trim().length > 0 || t('هذا الحقل مطلوب'),
 
   email: (value) =>
-    /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value.trim()) || 'صيغة البريد الإلكتروني غير صحيحة',
+    /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value.trim()) || t('صيغة البريد الإلكتروني غير صحيحة'),
 
   // يقبل الأرقام الدولية بصيغ شائعة، ٩ إلى ١٥ رقماً
   phone: (value) =>
-    /^\+?[\d\s-]{9,18}$/.test(value.trim()) || 'أدخل رقم هاتف صحيح',
+    /^\+?[\d\s-]{9,18}$/.test(value.trim()) || t('أدخل رقم هاتف صحيح'),
 
   minlength: (value, param) =>
-    value.trim().length >= Number(param) || `يجب ألا يقل عن ${param} أحرف`,
+    value.trim().length >= Number(param) || t('يجب ألا يقل عن {n} أحرف', { n: param }),
 
-  card: (value) => luhnCheck(value) || 'رقم البطاقة غير صحيح',
+  // ما يشترطه الخادم بعينه (Password::letters()->numbers()): حرفٌ ورقم بأي لغة،
+  // فيُعرف الرفض هنا قبل أن يُرسل النموذج ويعود
+  lettersNumbers: (value) =>
+    (/\p{L}/u.test(value) && /\p{N}/u.test(value)) || t('يجب أن تحتوي حرفاً ورقماً على الأقل'),
 
-  expiry: (value) => validExpiry(value) || 'تاريخ الانتهاء غير صالح',
+  card: (value) => luhnCheck(value) || t('رقم البطاقة غير صحيح'),
 
-  cvc: (value) => /^\d{3,4}$/.test(value.trim()) || 'رمز الأمان من ٣ أو ٤ أرقام',
+  expiry: (value) => validExpiry(value) || t('تاريخ الانتهاء غير صالح'),
+
+  cvc: (value) => /^\d{3,4}$/.test(value.trim()) || t('رمز الأمان من ٣ أو ٤ أرقام'),
+
+  // مبلغ بين حدّين: `range:5:90`
+  range: (value, param) => {
+    const [min, max] = param.split(':').map(Number);
+    const n = Number(value);
+    if (!Number.isFinite(n)) return t('اكتب مبلغاً بالأرقام');
+    if (n < min) return t('أقل مبلغ {min}', { min });
+    return n <= max || t('أكثر ما يمكن {max}، وهو المتبقي من حاجته', { max });
+  },
 
   match: (value, param) => {
     const other = document.getElementById(param);
-    return (other && value === other.value) || 'القيمتان غير متطابقتين';
+    return (other && value === other.value) || t('القيمتان غير متطابقتين');
   },
 };
 
@@ -96,15 +131,29 @@ function setError(input, message) {
     // نص فقط — لا innerHTML مع محتوى متغيّر
     box.textContent = message || '';
     if (message) {
-      box.insertAdjacentHTML('afterbegin', '<i class="fa-solid fa-circle-exclamation"></i> ');
+      box.insertAdjacentHTML('afterbegin', '<i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> ');
     }
   }
 }
 
 /** تشغيل قواعد حقل واحد. الترتيب مهم: "مطلوب" أولاً. */
 function validateInput(input) {
-  const value = input.value ?? '';
+  // حقلٌ معطّل خارج النموذج الآن (حقول البطاقة حين يُختار التحويل)
+  if (input.disabled) {
+    setError(input, '');
+    return true;
+  }
+
   const rules = (input.dataset.validate || '').split('|').filter(Boolean);
+
+  // خانة الموافقة قيمتها «on» دائماً، فالعبرة بحالة التأشير لا بالقيمة
+  if (input.type === 'checkbox') {
+    const ok = !rules.includes('required') || input.checked;
+    setError(input, ok ? '' : (input.dataset.requiredMessage || t('يلزم التأشير على هذه الخانة للمتابعة')));
+    return ok;
+  }
+
+  const value = input.value ?? '';
 
   // حقل اختياري وفارغ = صالح
   if (!rules.includes('required') && !value.trim()) {
@@ -113,7 +162,8 @@ function validateInput(input) {
   }
 
   for (const rule of rules) {
-    const [name, param] = rule.split(':');
+    const [name, ...rest] = rule.split(':');
+    const param = rest.join(':');
     const check = RULES[name];
     if (!check) continue;
 
@@ -131,15 +181,53 @@ function validateInput(input) {
 /* =========================================================================
    ربط النماذج
    ========================================================================= */
+/**
+ * الحقول الرقمية تقبل «٥٠» كما تقبل «50».
+ *
+ * كان المبلغ المكتوب بلوحة عربية يُرفض بـ«اكتب مبلغاً بالأرقام»، وأرقام
+ * البطاقة تُحذف كلها لأن `\D` لا يعدّها أرقاماً. التحويل في مرحلة الالتقاط
+ * يسبق أي معالج آخر (التنسيق والتحقق والمعاينة)، والطول لا يتغير فيبقى
+ * المؤشر مكانه. كلمات المرور مستثناة: «٣» فيها حرفٌ مقصود لا يُبدَّل.
+ */
+function initDigitInputs() {
+  const numeric = 'input[inputmode="numeric"], input[inputmode="decimal"], input[inputmode="tel"], input[type="tel"], input[type="number"]';
+
+  document.addEventListener('input', (e) => {
+    const input = e.target;
+    if (!input.matches?.(numeric)) return;
+
+    const latin = toLatinDigits(input.value);
+    if (latin === input.value) return;
+
+    const { selectionStart, selectionEnd } = input;
+    input.value = latin;
+    try { input.setSelectionRange(selectionStart, selectionEnd); } catch { /* type=number لا يدعم التحديد */ }
+  }, true);
+}
+
 export function initForms() {
+  initDigitInputs();
   $$('form[data-validate-form]').forEach((form) => {
     const inputs = $$('[data-validate]', form);
 
+    // «مطلوب» يُعلَن لقارئ الشاشة لا بالنجمة وحدها (وهي مخفية عنه)
+    inputs.forEach((input) => {
+      if (input.dataset.validate.split('|').includes('required')) input.setAttribute('aria-required', 'true');
+    });
+
     // نتحقق عند الخروج من الحقل، ثم مباشرةً أثناء الكتابة بعد أول خطأ.
     // هذا يمنع إزعاج المستخدم بخطأ قبل أن ينتهي من الكتابة.
+    //
+    // وخطأ الخادم («بيانات الدخول غير صحيحة») يبقى حتى يُعدَّل الحقل: كان الخروج
+    // منه يمحوه لأن صيغته صحيحة، فتقفز الصفحة تحت المؤشر وتضيع نقرة «نسيت
+    // كلمة المرور؟»، وتختفي الرسالة قبل أن تُقرأ.
     inputs.forEach((input) => {
-      input.addEventListener('blur', () => validateInput(input));
+      input.addEventListener('blur', () => {
+        if (input.dataset.serverError === input.value) return;
+        validateInput(input);
+      });
       input.addEventListener('input', () => {
+        delete input.dataset.serverError;
         if (input.closest('.field')?.classList.contains('is-invalid')) validateInput(input);
       });
     });
@@ -153,7 +241,7 @@ export function initForms() {
       if (firstInvalid) {
         firstInvalid.focus();
         firstInvalid.scrollIntoView({ block: 'center', behavior: 'smooth' });
-        toast('يرجى تصحيح الحقول المعلَّمة بالأحمر', 'error');
+        toast(t('يرجى تصحيح الحقول المعلَّمة بالأحمر'), 'error');
         return;
       }
 
@@ -162,7 +250,7 @@ export function initForms() {
 
       if (button) {
         button.disabled = true;
-        button.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> جارٍ المعالجة…';
+        button.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i> ' + t('جارٍ المعالجة…');
       }
 
       submit(form, button, original);
@@ -189,19 +277,13 @@ async function submit(form, button, original) {
 
   const action = form.dataset.action;
 
+  /*
+   * نموذجٌ بلا وجهة لا يدّعي النجاح. كان هذا الفرع «محاكاة» تنتقل بعد ثانية
+   * إلى صفحة الشكر، فبدت الكفالة تمّت ولم يصل الخادم شيء. صفحة الكفالة
+   * تضبط وجهتها بعد تحميل الطفل، فإن أُرسلت قبل ذلك يعود الزرّ ببساطة.
+   */
   if (!action) {
-    // لا خادم لهذا النموذج بعد — سلوك المحاكاة كما كان
-    setTimeout(() => {
-      const redirect = form.dataset.redirect;
-      if (redirect) {
-        window.location.href = redirect;
-        return;
-      }
-      restore();
-      form.reset();
-      $$('.field', form).forEach((f) => f.classList.remove('is-invalid'));
-      toast(form.dataset.successMessage || 'تم الإرسال بنجاح، شكراً لك', 'success');
-    }, 900);
+    restore();
     return;
   }
 
@@ -214,6 +296,12 @@ async function submit(form, button, original) {
   const staysOnPage = action === 'contact' || action === 'newsletter' || action === 'forgot';
 
   try {
+    // الكفالة: الوحدة تُرسل وتنتقل إلى صفحة الشكر، والأخطاء تعود إلى هنا
+    if (action === 'checkout') {
+      await submitCheckoutForm(form);
+      return;
+    }
+
     if (action === 'contact') {
       const { message } = await submitContact({
         name: values.name,
@@ -257,7 +345,10 @@ async function submit(form, button, original) {
       restore();
       form.reset();
       $$('.field', form).forEach((fl) => fl.classList.remove('is-invalid'));
-      toast(message, 'success');
+
+      // صفحةٌ لها حالة «أُرسل» تعرضها (صفحة الدخول)، وإلا فإشعار
+      const sent = new CustomEvent('form:sent', { cancelable: true, detail: { email: values.email, message } });
+      if (form.dispatchEvent(sent)) toast(message, 'success');
 
       return;
     }
@@ -272,14 +363,23 @@ async function submit(form, button, original) {
 
       toast(message, 'success');
 
-      // مهلة قصيرة ليُقرأ التأكيد قبل أن تنتقل الصفحة
-      setTimeout(() => { window.location.href = 'login.html'; }, 1400);
+      // مهلة قصيرة ليُقرأ التأكيد، ثم الدخول وبريده مكتوبٌ سلفاً
+      setTimeout(() => { window.location.href = url(`/login?email=${encodeURIComponent(values.email ?? '')}`); }, 1400);
 
       return;
     }
 
     if (action === 'login') {
-      await login(values.email, values.password, Boolean(values.remember));
+      const { data: user } = await login(values.email, values.password, Boolean(values.remember));
+
+      // حساب فريق العمل لا يدخل لوحة الكافل: نغلق جلسته فوراً ونوجّهه
+      if (!isSponsor(user)) {
+        await logout().catch(() => {});
+        throw {
+          staff: true,
+          errors: { email: [t('هذا حساب فريق العمل، والدخول به من لوحة الإدارة.')] },
+        };
+      }
     } else if (action === 'register') {
       // حقول النموذج مسمّاة بقيم autocomplete (given-name وtel) لأنها الأصحّ
       // دلالياً للمتصفح؛ الربط بأسماء الـ API يقع هنا لا بتشويه الـ HTML
@@ -294,15 +394,25 @@ async function submit(form, button, original) {
         phone: values.tel || values.phone || null,
         password: values.password,
         password_confirmation: values.password_confirmation ?? values.password,
-        terms: true,
+        // خانة الموافقة أو الحقل المخفي مع جملة الموافقة عند الزرّ؛ والخادم يتحقق بـ accepted
+        terms: values.terms === 'on',
       });
     }
 
+    markSignedIn();
+
     // ?redirect= يعيد الكافل إلى الصفحة التي طُرد منها، لا إلى اللوحة دائماً
     const params = new URLSearchParams(window.location.search);
-    window.location.href = params.get('redirect') || form.dataset.redirect || 'dashboard.html';
+    window.location.href = safeRedirect(params.get('redirect')) || form.dataset.redirect || url('/dashboard');
   } catch (error) {
     restore();
+
+    // بريدٌ مسجَّل في صفحة الكفالة: إلى الدخول، والاختيارات محفوظة للعودة
+    if (error.redirect) {
+      toast(error.message, 'error');
+      setTimeout(() => { window.location.href = error.redirect; }, 1600);
+      return;
+    }
 
     const fields = error.errors ?? {};
     let focused = false;
@@ -319,13 +429,12 @@ async function submit(form, button, original) {
 
     Object.entries(fields).forEach(([name, messages]) => {
       const input = form.querySelector(`[name="${name}"]`);
-      const wrapper = input?.closest('.field');
-      const errorEl = wrapper?.querySelector('.field__error');
+      const errorEl = input?.closest('.field')?.querySelector('.field__error');
 
-      if (wrapper) wrapper.classList.add('is-invalid');
-
-      if (errorEl && input?.type !== 'hidden') {
-        errorEl.textContent = messages[0];
+      // setError لا كتابة النص وحده: يضبط aria-invalid والأيقونة كخطأ المتصفح تماماً
+      if (errorEl && input.type !== 'hidden') {
+        setError(input, messages[0]);
+        input.dataset.serverError = input.value;
       } else {
         orphaned.push(messages[0]);
       }
@@ -336,10 +445,23 @@ async function submit(form, button, original) {
       }
     });
 
-    if (orphaned.length) {
+    // رابط مباشر للوحة الإدارة تحت رسالة حساب الفريق
+    if (error.staff) {
+      const errorEl = form.querySelector('[name="email"]')?.closest('.field')?.querySelector('.field__error');
+      if (errorEl) {
+        const link = document.createElement('a');
+        link.href = '/admin';
+        link.textContent = ` ${t('افتح لوحة الإدارة')}`;
+        errorEl.append(link);
+      }
+    }
+
+    if (error.shown) {
+      // عُرض في مكانه من الصفحة (صندوق خطأ الكفالة فوق الزر)
+    } else if (orphaned.length) {
       toast(orphaned[0], 'error');
     } else if (!Object.keys(fields).length) {
-      toast(error.message ?? 'تعذّر إتمام الطلب.', 'error');
+      toast(error.message ?? t('تعذّر إتمام الطلب.'), 'error');
     }
   }
 }
@@ -386,55 +508,7 @@ export function initCardInput() {
   if (holder && previewHolder) {
     holder.addEventListener('input', () => {
       // textContent يمنع أي حقن من مدخلات المستخدم
-      previewHolder.textContent = holder.value.trim().toUpperCase() || 'الاسم على البطاقة';
+      previewHolder.textContent = holder.value.trim().toUpperCase() || t('الاسم على البطاقة');
     });
   }
-}
-
-/* =========================================================================
-   مقياس قوة كلمة المرور
-   ========================================================================= */
-const STRENGTH_LEVELS = [
-  { label: 'ضعيفة جداً', color: 'var(--rose-600)' },
-  { label: 'ضعيفة',      color: 'var(--rose-600)' },
-  { label: 'متوسطة',     color: 'var(--amber-500)' },
-  { label: 'جيدة',       color: 'var(--olive-500)' },
-  { label: 'قوية',       color: 'var(--olive-600)' },
-];
-
-function scorePassword(value) {
-  let score = 0;
-  if (value.length >= 8) score += 1;
-  if (value.length >= 12) score += 1;
-  if (/[a-z]/.test(value) && /[A-Z]/.test(value)) score += 1;
-  if (/\d/.test(value)) score += 1;
-  if (/[^\w\s]/.test(value)) score += 1;
-  return clamp(score, 0, 4);
-}
-
-export function initPasswordStrength() {
-  const input = $('[data-strength-for]');
-  const meter = $('#passwordStrength');
-  if (!input || !meter) return;
-
-  const bars = $$('.strength__bar', meter);
-  const label = $('.strength__label', meter);
-
-  input.addEventListener('input', () => {
-    if (!input.value) {
-      bars.forEach((bar) => bar.classList.remove('is-on'));
-      label.textContent = 'استخدم ٨ أحرف على الأقل مع أرقام ورموز';
-      return;
-    }
-
-    const score = scorePassword(input.value);
-    const level = STRENGTH_LEVELS[score];
-
-    bars.forEach((bar, i) => {
-      bar.classList.toggle('is-on', i <= score);
-      bar.style.setProperty('--strength-color', level.color);
-    });
-
-    label.textContent = `قوة كلمة المرور: ${level.label}`;
-  });
 }

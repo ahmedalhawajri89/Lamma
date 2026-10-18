@@ -19,10 +19,10 @@ enum MessageStatus: string
     public function label(): string
     {
         return match ($this) {
-            self::PendingReview => 'بانتظار المراجعة',
-            self::Approved => 'معتمَدة',
-            self::Rejected => 'مرفوضة',
-            self::Delivered => 'سُلّمت',
+            self::PendingReview => __('بانتظار المراجعة'),
+            self::Approved => __('معتمَدة'),
+            self::Rejected => __('مرفوضة'),
+            self::Delivered => __('سُلّمت'),
         };
     }
 }

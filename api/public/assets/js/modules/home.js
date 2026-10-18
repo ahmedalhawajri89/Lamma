@@ -10,61 +10,295 @@ import {
   FAQS,
   POSTS,
   SPENDING,
+  PROOF,
 } from './data.js';
 
 import {
-  orphanCard,
-  programCard,
-  storyCard,
   faqItem,
-  postCard,
-  spendingDonut,
-  spendingLegend,
-  renderInto,
+  homePosts,
+  kidCard,
 } from './render.js';
 
+import { $, $$, countUp, escapeHtml, formatNumber, formatMoney, observeOnce, prefersReducedMotion, presetCount, safeColor, safeNumber } from './utils.js';
+import { url, t } from './i18n.js';
+
+/** عدد الأطفال في بطاقات الرئيسية: صفّ واحد على الشاشة العريضة. */
+const KIDS_COUNT = 4;
+
+/** «أطفالنا ينتظرون كافلاً»: العاجلون أولاً، ثم الأقل تمويلاً. */
+function renderHomeOrphans() {
+  const host = $('#homeOrphans');
+  if (!host) return;
+  host.removeAttribute('aria-busy');
+  if (!ORPHANS.length) return;
+
+  const kids = [...ORPHANS]
+    .sort((a, b) => Number(b.urgent) - Number(a.urgent) || a.funded - b.funded)
+    .slice(0, KIDS_COUNT);
+
+  host.innerHTML = kids.map((o, i) => kidCard(o, { delay: i * 90 })).join('');
+}
+
+/**
+ * البرامج كأعمدة مفتوحة بلا بطاقات، تفصلها خطوط شعرية.
+ * السعر والزر في الأعلى: القرار قبل التفاصيل، والمزايا تحتهما لمن يريد.
+ */
+function renderPlans() {
+  const html = PROGRAMS.map((p, i) => `
+<article class="plan${p.featured ? ' is-featured' : ''}" data-reveal data-reveal-delay="${i * 90}">
+  <p class="plan__flag">${p.featured ? t('الأكثر اختياراً') : ''}</p>
+  <h3 class="plan__name">${escapeHtml(p.name)}</h3>
+  <p class="plan__price"><strong class="num">${formatMoney(p.price)}</strong><span>${t('في الشهر')}</span></p>
+  <p class="plan__summary">${escapeHtml(p.summary)}</p>
+  <a class="btn ${p.featured ? 'btn-cta' : 'btn-outline-primary'} plan__cta"
+     href="${url(`/orphans?program=${encodeURIComponent(p.id)}`)}">${t('كن من لمّة طفل')}</a>
+  <ul class="plan__features" role="list">
+    ${(p.features ?? []).map((f) => `<li><i class="fa-solid fa-check" aria-hidden="true"></i>${escapeHtml(f)}</li>`).join('')}
+  </ul>
+</article>`).join('');
+
+  // الرئيسية وصفحة البرامج تعرضانها بالشكل نفسه
+  // صفحة البرامج يرسمها الخادم من جدولها (ProgramsPageController)
+  $$('#homePlans').forEach((host) => { host.innerHTML = html; });
+}
+
+/**
+ * الشهادات: اقتباس رئيسي كبير على لوح بلون الحبر بعلامة اقتباس ذهبية تُرسم،
+ * وبجانبه اقتباسان أقصر. صورة الكافل دائرة بحرف اسمه: لا صور لأشخاص حقيقيين.
+ */
+function renderVoices() {
+  const host = $('#homeVoices');
+  if (!host || !STORIES.length) return;
+
+  const [lead, ...rest] = STORIES;
+  const by = (s) => `
+    <figcaption class="voice__by">
+      <span class="voice__avatar" aria-hidden="true">${escapeHtml(s.name.charAt(0))}</span>
+      <span><strong>${escapeHtml(s.name)}</strong><span>${escapeHtml(s.role)}</span></span>
+    </figcaption>`;
+  const mark = '<svg class="voice__mark" viewBox="0 0 64 48" aria-hidden="true" focusable="false"><path d="M26 6C14 10 6 19 6 31c0 7 4 11 10 11 5 0 9-4 9-9s-4-9-9-9c-1 0-2 0-3 1 2-7 7-12 15-15zM58 6C46 10 38 19 38 31c0 7 4 11 10 11 5 0 9-4 9-9s-4-9-9-9c-1 0-2 0-3 1 2-7 7-12 15-15z"/></svg>';
+
+  host.innerHTML = `
+<div class="col-lg-7">
+  <figure class="voice-lead" data-reveal="start">
+    ${mark}
+    <blockquote>${escapeHtml(lead.quote)}</blockquote>
+    ${by(lead)}
+  </figure>
+</div>
+<div class="col-lg-5 d-flex flex-column gap-4">
+  ${rest.slice(0, 2).map((s, i) => `
+  <figure class="voice-card" data-reveal="end" data-reveal-delay="${150 + i * 120}">
+    <blockquote>${escapeHtml(s.quote)}</blockquote>
+    ${by(s)}
+  </figure>`).join('')}
+</div>`;
+}
+
+/**
+ * «أين تذهب كل مئة دولار»: الحلقة والبنود متّصلتان.
+ *
+ * البند زرٌّ (aria-pressed): المرور عليه أو التركيز يُبرز قطعته ويُخفت
+ * الباقي ويكتب حصته في وسط الحلقة، والنقر يثبّته. وفي الوسط افتراضياً ما
+ * يصل للطفل. الأرقام كلها من الشفافية (SPENDING وPROOF)، لا من نصٍّ ثابت.
+ */
+function renderMoney() {
+  const donutHost = $('#moneyDonut');
+  const listHost = $('#moneyList');
+  if (!donutHost || !listHost || !SPENDING.length) return;
+
+  const R = 78;
+  const C = 2 * Math.PI * R;
+  const GAP = 3; // فاصل بين القطع
+  let offset = 0;
+  const arcs = SPENDING.map((seg, i) => {
+    const len = Math.max(0, (safeNumber(seg.value) / 100) * C - GAP);
+    const arc = `<circle class="money-donut__seg" data-i="${i}" cx="100" cy="100" r="${R}" stroke="${safeColor(seg.color)}"
+      style="--len:${len.toFixed(2)};--gap:${(C - len).toFixed(2)};--d:${i * 160}ms" stroke-dashoffset="${(-offset).toFixed(2)}"></circle>`;
+    offset += (safeNumber(seg.value) / 100) * C;
+    return arc;
+  }).join('');
+
+  const toChild = safeNumber(PROOF.toChild);
+  donutHost.innerHTML = `
+<div class="money-donut__chart" role="img" aria-label="${escapeHtml(t('توزيع الإنفاق: {list}', { list: SPENDING.map((s) => `${s.label} ${safeNumber(s.value)}${t('٪')}`).join(t('، ')) }))}">
+  <svg viewBox="0 0 200 200" aria-hidden="true"><circle class="money-donut__track" cx="100" cy="100" r="${R}"></circle>${arcs}</svg>
+  <div class="money-donut__center" aria-hidden="true">
+    <strong class="num" data-money-value>${toChild}${t('٪')}</strong>
+    <span data-money-label>${t('من مبلغك يصل للطفل')}</span>
+  </div>
+</div>`;
+
+  listHost.innerHTML = SPENDING.map((seg, i) => {
+    const v = safeNumber(seg.value);
+    return `
+<li data-reveal data-reveal-delay="${i * 80}">
+  <button class="money-row" type="button" data-i="${i}" aria-pressed="false" style="--c:${safeColor(seg.color)};--v:${v}%">
+    <span class="money-row__swatch" aria-hidden="true"></span>
+    <span class="money-row__name">${escapeHtml(seg.label)}</span>
+    <span class="money-row__bar" aria-hidden="true"><span></span></span>
+    <b class="money-row__amount num">$${formatNumber(v)}</b>
+  </button>
+</li>`;
+  }).join('');
+
+  const chart = $('.money-donut__chart', donutHost);
+  const valueEl = $('[data-money-value]', donutHost);
+  const labelEl = $('[data-money-label]', donutHost);
+  const rows = $$('.money-row', listHost);
+  let pinned = -1;
+
+  const show = (i) => {
+    chart.classList.toggle('is-focused', i >= 0);
+    $$('.money-donut__seg', chart).forEach((seg) => seg.classList.toggle('is-on', Number(seg.dataset.i) === i));
+    rows.forEach((row, j) => row.classList.toggle('is-on', j === i));
+    if (i < 0) { valueEl.textContent = `${toChild}${t('٪')}`; labelEl.textContent = t('من مبلغك يصل للطفل'); return; }
+    valueEl.textContent = `${formatNumber(safeNumber(SPENDING[i].value))}${t('٪')}`;
+    labelEl.textContent = SPENDING[i].label;
+  };
+
+  rows.forEach((row, i) => {
+    row.addEventListener('mouseenter', () => show(i));
+    row.addEventListener('focus', () => show(i));
+    row.addEventListener('mouseleave', () => show(pinned));
+    row.addEventListener('blur', () => show(pinned));
+    row.addEventListener('click', () => {
+      pinned = pinned === i ? -1 : i;
+      rows.forEach((r, j) => r.setAttribute('aria-pressed', String(j === pinned)));
+      show(pinned === -1 ? i : pinned);
+    });
+  });
+
+  // تُرسم القطع وتعدّ النسبة حين تظهر الحلقة، مرة واحدة
+  observeOnce([chart], () => {
+    chart.classList.add('is-drawn');
+    // عدّ بسيط للنص مباشرة: الوسط زينة (aria-hidden) والقائمة تحمل الأرقام
+    // للقارئ الصوتي، وcountUp يغلّف النص بعناصر يمحوها show() عند المرور
+    if (prefersReducedMotion()) return;
+    const start = performance.now();
+    const tick = (now) => {
+      if (chart.classList.contains('is-focused')) return;
+      const k = Math.min(1, (now - start) / 1100);
+      valueEl.textContent = `${formatNumber(Math.round(toChild * (1 - (1 - k) ** 3)))}${t('٪')}`;
+      if (k < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }, { threshold: 0.35 });
+}
+
+/**
+ * بطاقة أرقام الهيرو: من الشفافية لحظة الفتح، تعدّ مرة واحدة حين تظهر.
+ * البند الذي لا رقم له يُخفى: بطاقة تقول «0 يتيماً مكفولاً» أسوأ من غيابه،
+ * ورقمٌ مكتوب باليد (كان «120,000» في التصميم المقترح) هو ما خرجنا منه.
+ */
+function renderHeroProof() {
+  const host = $('#heroStats');
+  if (!host) return;
+
+  const stats = {
+    sponsored: { value: PROOF.sponsored },
+    toChild: { value: PROOF.toChild, format: (n) => `${formatNumber(n)}${t('٪')}` },
+    startYear: { value: PROOF.startYear, format: String, still: true },
+    visits: { value: PROOF.visits },
+  };
+
+  $$('[data-hero-item]', host).forEach((item) => {
+    const stat = stats[item.dataset.heroItem];
+    item.hidden = !(Number(stat?.value) > 0);
+  });
+
+  const items = $$('[data-hero]', host).filter((el) => !el.closest('[hidden]'));
+  // السنة تُكتب كما هي، والبقية تعدّ من الصفر حين تظهر البطاقة
+  items.forEach((el) => {
+    const { value, format = formatNumber, still } = stats[el.dataset.hero];
+    if (still) el.textContent = format(value);
+    else presetCount(el, format(value)).textContent = format(0);
+  });
+  observeOnce([host], () => items.forEach((el) => {
+    const { value, format = formatNumber, still } = stats[el.dataset.hero];
+    if (!still) countUp(el, Number(value), format);
+  }), { threshold: 0.4 });
+}
+
+/**
+ * نموذج التقرير: كل بند (الدراسة، الصحة، كفالتك) مربوط بجزئه من التقرير.
+ * المرور أو التركيز يُبرز الجزء ويُخفت الباقي، والنقر يثبّته (aria-pressed).
+ */
+function linkReportPoints() {
+  const mock = $('#reportMock');
+  const points = $$('.report-point');
+  if (!mock || !points.length) return;
+
+  let pinned = null;
+  const show = (key) => {
+    mock.classList.toggle('is-focused', Boolean(key));
+    $$('[data-block]', mock).forEach((b) => b.classList.toggle('is-on', b.dataset.block === key));
+    points.forEach((p) => p.classList.toggle('is-on', p.dataset.block === key));
+  };
+
+  points.forEach((point) => {
+    const key = point.dataset.block;
+    point.addEventListener('mouseenter', () => show(key));
+    point.addEventListener('focus', () => show(key));
+    point.addEventListener('mouseleave', () => show(pinned));
+    point.addEventListener('blur', () => show(pinned));
+    point.addEventListener('click', () => {
+      pinned = pinned === key ? null : key;
+      points.forEach((p) => p.setAttribute('aria-pressed', String(p.dataset.block === pinned)));
+      show(pinned ?? key);
+    });
+  });
+}
+
+/**
+ * بيانات منظّمة FAQPage لمحركات البحث: تعرض الأسئلة والأجوبة في النتائج.
+ * كتلة بيانات (application/ld+json) لا سكربت يُنفَّذ، فلا تمسّها CSP. وتصف
+ * الأسئلة الظاهرة في الصفحة وحدها، كما تشترط إرشادات Google.
+ */
+function publishFaqSchema(faqs) {
+  if (!faqs.length) return;
+  document.querySelector('#faqSchema')?.remove();
+  const data = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((f) => ({
+      '@type': 'Question',
+      name: f.q,
+      acceptedAnswer: { '@type': 'Answer', text: f.a },
+    })),
+  };
+  const block = document.createElement('script');
+  block.type = 'application/ld+json';
+  block.id = 'faqSchema';
+  block.textContent = JSON.stringify(data);
+  document.head.append(block);
+}
+
 export function renderHomeSections() {
-  /* البرامج */
-  renderInto('#programsGrid', PROGRAMS, programCard);
+  renderHeroProof();
+  renderHomeOrphans();
+  renderMoney();
+  linkReportPoints();
 
-  /* الحالات العاجلة على الصفحة الرئيسية — أكثرها احتياجاً أولاً */
-  const urgentHost = document.querySelector('#urgentOrphans');
-  if (urgentHost) {
-    const urgent = [...ORPHANS]
-      .sort((a, b) => Number(b.urgent) - Number(a.urgent) || a.funded - b.funded)
-      .slice(0, 6);
-
-    urgentHost.innerHTML = urgent
-      .map((o) => `<div class="slider__slide">${orphanCard(o)}</div>`)
-      .join('');
-  }
-
-  /* قصص الكفلاء */
-  const storiesHost = document.querySelector('#storiesTrack');
-  if (storiesHost) {
-    storiesHost.innerHTML = STORIES
-      .map((s, index) => `<div class="slider__slide slider__slide--wide">${storyCard(s, { index })}</div>`)
-      .join('');
-  }
+  renderPlans();
+  renderVoices();
 
   /* الأسئلة الشائعة — يقبل حدّاً أقصى عبر data-limit */
   const faqHost = document.querySelector('#faqList');
   if (faqHost) {
     const limit = Number(faqHost.dataset.limit) || FAQS.length;
-    faqHost.innerHTML = FAQS.slice(0, limit).map(faqItem).join('');
+    const shown = FAQS.slice(0, limit);
+    // data-faq="rich" (الرئيسية): أيقونة الموضوع، والسؤال الأول مفتوح
+    const rich = faqHost.dataset.faq === 'rich';
+    faqHost.innerHTML = shown.map((f, i) => faqItem(f, i, { icon: rich, open: rich && i === 0 })).join('');
+    publishFaqSchema(shown);
   }
 
   /* المدونة */
   const postsHost = document.querySelector('#postsGrid');
   if (postsHost) {
     const limit = Number(postsHost.dataset.limit) || POSTS.length;
-    renderInto('#postsGrid', POSTS.slice(0, limit), postCard);
+    postsHost.innerHTML = homePosts(POSTS.slice(0, limit));
   }
 
-  /* حلقة الشفافية */
-  const donutHost = document.querySelector('#spendingDonut');
-  if (donutHost) donutHost.innerHTML = spendingDonut(SPENDING);
-
-  const legendHost = document.querySelector('#spendingLegend');
-  if (legendHost) legendHost.innerHTML = spendingLegend(SPENDING);
 }

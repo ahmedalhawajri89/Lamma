@@ -31,7 +31,7 @@ class Disbursement extends Model
 
     protected $fillable = [
         'orphan_id', 'category_id', 'amount', 'currency', 'amount_base',
-        'spent_on', 'description', 'receipt_path', 'recorded_by',
+        'spent_on', 'description', 'receipt_path', 'recorded_by', 'updated_by', 'fx_rate',
 
         // الاعتماد فعلٌ منفصل عن التسجيل، ولا يملكه المسجِّل نفسه
         'approved_by', 'approved_at',

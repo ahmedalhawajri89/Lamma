@@ -6,50 +6,76 @@ use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
-| مسارات الويب — الموقع العام ولوحة الإدارة
+| مسارات الويب: الموقع العام ولوحة الإدارة
 |--------------------------------------------------------------------------
 |
-| الموقع العام ملفات HTML ساكنة في `public/`، ولارافل لا يعرضها بل **يوجّه
-| إليها**. الفرق مهم: على خادم حقيقي (Nginx/Apache) يخدم `about.html` مباشرةً
-| بلا أن يلمس PHP إطلاقاً، ولا تصل هذه المسارات إلا لطلبٍ بلا امتداد.
+| الموقع العام قوالب Blade في `resources/views`:
 |
-| فما فائدتها إذن؟ **العناوين النظيفة**: `/about` بدل `/about.html`، وصفحة
-| ٤٠٤ الخاصة بالمشروع بدل صفحة لارافل.
+|   site/layouts/   app (ترويسة وفوتر من الخادم)، وauth (صفحات الحساب)، وportal (بوابة الكافل)
+|   site/partials/  الرأس المشترك والترويسة والفوتر
+|   site/pages/     صفحات الموقع
+|   site/auth/      الدخول والتسجيل واستعادة كلمة المرور
+|   site/portal/    لوحة الكافل
+|   errors/404      صفحة ٤٠٤
 |
-| والترتيب هنا ليس اعتباطياً: المسارات المحدّدة قبل الشامل، وإلا ابتلع
-| الشاملُ `/admin` وعرض عليه صفحة الموقع العام.
-|
+| والمحتوى الحيّ (الأطفال، المقالات، الأرقام) يملؤه JS من الـ API كما كان.
 */
 
 /**
- * يعرض ملف HTML من `public/`.
- *
- * لماذا `file_get_contents` لا `response()->file()`؟
- *
- * لأن `BinaryFileResponse` **لا يرسل محتوى الملف إطلاقاً مع حالة غير ناجحة**:
- * `sendContent()` فيه يفوّض إلى الأب حين `!isSuccessful()`، والأب يرسل خاصية
- * `content` الفارغة. فتخرج صفحة ٤٠٤ برأس صحيح وجسم فارغ — ٤٠٤ بيضاء لا يظهر
- * فيها خطأ ولا تكشف عن نفسها.
- *
- * والملفات هنا بضعة كيلوبايتات، فقراءتها إلى الذاكرة لا تكلّف شيئاً.
- *
- * وهي **إغلاق لا دالة عامة**: مجموعة الاختبارات تُقلع التطبيق مرة لكل اختبار،
- * فيُحمَّل ملف المسارات مراراً — ودالةٌ عامة تُلقي `Cannot redeclare` وتُسقط
- * الحزمة كلها بخطأ قاتل بعيدٍ كل البعد عن سببه.
+ * صفحات الموقع العام، مرتين: العربية بلا بادئة كما كانت، والإنجليزية تحت /en.
+ * أسماء مسارات الإنجليزية تبدأ بـ «en.» (en.site.orphans).
  */
-$servePage = function (string $name, int $status = 200) {
-    $file = public_path("{$name}.html");
+$site = function (): void {
+    Route::view('/', 'site.pages.home')->name('home');
 
-    abort_unless(is_file($file), 404);
+    /** صفحات الموقع: العنوان هو اسم القالب في site/pages. */
+    foreach ([
+        'orphans', 'thank-you', 'transparency',
+        'blog', 'about',
+    ] as $page) {
+        Route::view("/{$page}", "site.pages.{$page}")->name("site.{$page}");
+    }
 
-    return response(file_get_contents($file), $status, [
-        'Content-Type' => 'text/html; charset=UTF-8',
-        // الصفحات تُبنى من الـ API في المتصفح، فتخزينها يعرض بياناتٍ قديمة
-        'Cache-Control' => 'no-cache, must-revalidate',
-    ]);
+    /** صفحة الطفل وصفحة كفالته تُرسمان من الخادم: الاسم وحالة الكفالة ووسوم المشاركة */
+    Route::get('/orphan', [App\Http\Controllers\Site\OrphanPageController::class, 'show'])->name('site.orphan');
+    Route::get('/checkout', [App\Http\Controllers\Site\OrphanPageController::class, 'checkout'])->name('site.checkout');
+
+    /** المقال من الخادم: عنوانه وصورته ونصّه ووسوم مشاركته */
+    Route::get('/post', App\Http\Controllers\Site\PostPageController::class)->name('site.post');
+
+    /** التواصل: بياناته من الإعدادات، وأكثر الأسئلة قبل النموذج */
+    Route::get('/contact', App\Http\Controllers\Site\ContactPageController::class)->name('site.contact');
+
+    /** الأسئلة الشائعة من الخادم: نصّها ووصفها المنظَّم لمحركات البحث */
+    Route::get('/faq', App\Http\Controllers\Site\FaqPageController::class)->name('site.faq');
+
+    /** البرامج من جدولها: السعر والبنود من مصدرٍ واحد، ومع كلٍّ من ينتظر فيه */
+    Route::get('/programs', App\Http\Controllers\Site\ProgramsPageController::class)->name('site.programs');
+
+    Route::view('/login', 'site.auth.login')->name('site.login');
+    Route::view('/register', 'site.auth.register')->name('site.register');
+    Route::get('/reset-password', App\Http\Controllers\Site\ResetPasswordPageController::class)->name('site.reset-password');
+    Route::view('/dashboard', 'site.portal.dashboard')->name('site.dashboard');
+
+    /** دليل الواجهة: مرجع للمطوّر لا صفحة للزائر، فلا يُسجَّل خارج التطوير. */
+    if (app()->isLocal()) {
+        Route::view('/styleguide', 'site.pages.styleguide')->name('site.styleguide');
+    }
 };
 
-Route::get('/', fn () => $servePage('index'))->name('home');
+Route::middleware('locale:ar')->group($site);
+Route::prefix('en')->name('en.')->middleware('locale:en')->group($site);
+
+/**
+ * الروابط القديمة بامتداد `.html` (المحفوظة والمُشاركة قبل الانتقال إلى
+ * Blade) تُحوَّل دائماً إلى العنوان النظيف مع معاملاتها، فلا ينكسر منها شيء.
+ */
+Route::get('/{page}.html', function (string $page) {
+    $query = request()->getQueryString();
+    $target = $page === 'index' ? '/' : "/{$page}";
+
+    return redirect($target.($query ? "?{$query}" : ''), 301);
+})->where('page', '[a-z0-9\-]+')->name('page.legacy');
 
 /*
 |--------------------------------------------------------------------------
@@ -85,17 +111,5 @@ $adminSpa = function () {
 Route::get('/admin', $adminSpa)->name('admin');
 Route::get('/admin/{path}', $adminSpa)->where('path', '.*')->name('admin.spa');
 
-/*
-|--------------------------------------------------------------------------
-| صفحات الموقع بعناوين نظيفة
-|--------------------------------------------------------------------------
-|
-| القيد `[a-z0-9\-]+` يمنع المقطع من احتواء `/` أو `.`، فلا يبتلع هذا المسار
-| `/storage/...` ولا `/assets/...` ولا أي مسار مركّب.
-*/
-Route::get('/{page}', fn (string $page) => $servePage($page))
-    ->where('page', '[a-z0-9\-]+')
-    ->name('page');
-
-/** صفحة ٤٠٤ الخاصة بالمشروع بدل صفحة لارافل الافتراضية. */
-Route::fallback(fn () => $servePage('404', 404));
+/** ما لم يطابق شيئاً: صفحة ٤٠٤ الخاصة بالمشروع (errors/404) لا صفحة لارافل. */
+Route::fallback(fn () => abort(404));

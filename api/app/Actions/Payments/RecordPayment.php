@@ -9,6 +9,7 @@ use App\Enums\PaymentStatus;
 use App\Enums\SponsorshipStatus;
 use App\Models\Payment;
 use App\Models\Sponsorship;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -32,6 +33,9 @@ class RecordPayment
         ?string $cardBrand = null,
         ?string $cardLast4 = null,
         float $fxRate = 1.0,
+        ?string $gatewayReference = null,
+        ?\DateTimeInterface $paidAt = null,
+        ?int $recordedBy = null,
     ): Payment {
         $existing = Payment::where('idempotency_key', $idempotencyKey)->first();
 
@@ -39,10 +43,35 @@ class RecordPayment
             return $existing;                       // الطلب نفسه وصل مرتين — لا تخصم ثانيةً
         }
 
+        try {
+            return $this->record($sponsorship, $idempotencyKey, $amount, $method, $cardBrand, $cardLast4, $fxRate, $gatewayReference, $paidAt, $recordedBy);
+        } catch (UniqueConstraintViolationException) {
+            /*
+             * طلبان متزامنان (تبويبان، أو webhook يسابق الخصم الآلي) مرّا كلاهما
+             * من الفحص أعلاه، وسبق أحدهما إلى القيد الفريد. الخاسر يعيد دفعة
+             * الرابح بدل خطأ 500.
+             */
+            return Payment::where('idempotency_key', $idempotencyKey)->firstOrFail();
+        }
+    }
+
+    private function record(
+        Sponsorship $sponsorship,
+        string $idempotencyKey,
+        ?float $amount,
+        PaymentMethod $method,
+        ?string $cardBrand,
+        ?string $cardLast4,
+        float $fxRate,
+        ?string $gatewayReference,
+        ?\DateTimeInterface $paidAt,
+        ?int $recordedBy,
+    ): Payment {
         return DB::transaction(function () use (
-            $sponsorship, $idempotencyKey, $amount, $method, $cardBrand, $cardLast4, $fxRate
+            $sponsorship, $idempotencyKey, $amount, $method, $cardBrand, $cardLast4, $fxRate, $gatewayReference, $paidAt, $recordedBy
         ): Payment {
-            $value = $amount ?? (float) $sponsorship->monthly_amount;
+            // الافتراضي دورة كاملة (شهر، أو ثلاثة، أو سنة)
+            $value = $amount ?? $sponsorship->cycleAmount();
 
             $payment = Payment::create([
                 'reference_code' => $this->nextReference(),
@@ -54,13 +83,18 @@ class RecordPayment
                 'amount_base' => round($value * $fxRate, 2),
                 'method' => $method,
                 'gateway' => config('kafala.gateway', 'manual'),
+                // رقم الحوالة أو الإيصال كما كتبه المحاسب: به تُطابَق الدفعات مع كشف البنك
+                'gateway_reference' => $gatewayReference,
+                'recorded_by' => $recordedBy,
                 'status' => PaymentStatus::Succeeded,
                 'card_brand' => $cardBrand,
 
                 // آخر أربعة أرقام فقط — لا نملك غيرها ولا نريد
                 'card_last4' => $cardLast4 ? substr($cardLast4, -4) : null,
 
-                'paid_at' => now(),
+                // تاريخ وصول المال فعلاً، لا تاريخ إدخاله: حوالة وصلت الأسبوع الماضي
+                // تُحسب في فترتها
+                'paid_at' => $paidAt ?? now(),
                 'receipt_number' => $this->nextReceipt(),
                 'idempotency_key' => $idempotencyKey,
             ]);
@@ -70,14 +104,19 @@ class RecordPayment
                 $sponsorship->status = SponsorshipStatus::Active;
             }
 
-            $sponsorship->advanceDueDate();
+            /*
+             * الدفعة تقدّم الموعد بما تغطيه من أشهر: دفعة يدوية بمبلغ ستة أقساط
+             * تغطي ستة أشهر، لا شهراً واحداً فتصير الكفالة متأخرة بعده.
+             */
+            $sponsorship->advanceDueDate($sponsorship->monthsCoveredBy((float) $value));
             $sponsorship->save();
 
             return $payment;
         });
     }
 
-    private function nextReference(): string
+    /** يُستدعى داخل معاملة: القفل يمنع رقمين متطابقين لطلبين متزامنين. */
+    public function nextReference(): string
     {
         $last = Payment::query()->lockForUpdate()->max('reference_code');
         $next = $last ? ((int) substr($last, 4)) + 1 : 1;

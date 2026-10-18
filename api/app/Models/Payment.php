@@ -43,7 +43,10 @@ class Payment extends Model
         'amount', 'currency', 'fx_rate', 'amount_base',
         'method', 'gateway', 'gateway_reference', 'status',
         'card_brand', 'card_last4', 'paid_at', 'failure_reason',
-        'receipt_number', 'idempotency_key',
+        'receipt_number', 'idempotency_key', 'recorded_by',
+
+        // يُسندها RefundPayment وحده
+        'refunded_at', 'refunded_by', 'refund_reason',
     ];
 
     protected function casts(): array
@@ -55,6 +58,7 @@ class Payment extends Model
             'method' => PaymentMethod::class,
             'status' => PaymentStatus::class,
             'paid_at' => 'datetime',
+            'refunded_at' => 'datetime',
         ];
     }
 
@@ -84,6 +88,11 @@ class Payment extends Model
     /** «فيزا ••42» كما تعرضها لوحة الكافل. */
     public function maskedCard(): ?string
     {
+        // البطاقة لما دُفع ببطاقة وحده: كان التحويل البنكي يظهر «فيزا ••4147»
+        if (! in_array($this->method, [PaymentMethod::Card, PaymentMethod::ApplePay], true)) {
+            return null;
+        }
+
         return $this->card_last4 ? trim("{$this->card_brand} ••{$this->card_last4}") : null;
     }
 }

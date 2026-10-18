@@ -42,9 +42,9 @@ class LoginRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'email.required' => 'البريد الإلكتروني مطلوب.',
-            'email.email' => 'صيغة البريد الإلكتروني غير صحيحة.',
-            'password.required' => 'كلمة المرور مطلوبة.',
+            'email.required' => __('البريد الإلكتروني مطلوب.'),
+            'email.email' => __('صيغة البريد الإلكتروني غير صحيحة.'),
+            'password.required' => __('كلمة المرور مطلوبة.'),
         ];
     }
 
@@ -66,7 +66,7 @@ class LoginRequest extends FormRequest
         $seconds = RateLimiter::availableIn($this->throttleKey());
 
         throw ValidationException::withMessages([
-            'email' => "محاولات كثيرة. أعد المحاولة بعد {$seconds} ثانية.",
+            'email' => __('محاولات كثيرة. أعد المحاولة بعد :seconds ثانية.', ['seconds' => $seconds]),
         ])->status(429);
     }
 

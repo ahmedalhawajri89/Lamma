@@ -24,12 +24,23 @@ class ContactMessage extends Model
 
     protected $fillable = ['name', 'email', 'phone', 'subject', 'body', 'ip_address', 'status', 'handled_by', 'handled_at'];
 
+    /**
+     * عنوان الزائر يُحفظ لمكافحة الإساءة (تحديد المعدّل والحظر)، ولا يحتاجه
+     * من يردّ على الرسالة. كان يصل كل محرّر محتوى مع القائمة.
+     */
+    protected $hidden = ['ip_address'];
+
     protected function casts(): array
     {
         return ['status' => ContactStatus::class, 'handled_at' => 'datetime'];
     }
 
     /** @return BelongsTo<User, $this> */
+    public function replies(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(ContactReply::class)->oldest();
+    }
+
     public function handler(): BelongsTo
     {
         return $this->belongsTo(User::class, 'handled_by');

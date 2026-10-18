@@ -5,20 +5,29 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\V1\Admin;
 
 use App\Enums\ContactStatus;
+use App\Enums\MessageStatus;
+use App\Enums\OrphanStatus;
 use App\Enums\PostStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PostResource;
 use App\Models\ContactMessage;
+use App\Models\Disbursement;
 use App\Models\Faq;
+use App\Models\Message;
+use App\Models\Orphan;
 use App\Models\Partner;
 use App\Models\Post;
 use App\Models\Setting;
 use App\Models\Testimonial;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use App\Services\RichText;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
+use Spatie\Activitylog\Models\Activity;
 
 /**
  * إدارة المحتوى التحريري.
@@ -33,15 +42,53 @@ class ContentController extends Controller
     {
         abort_unless($request->user()->can('content.manage'), 403);
 
-        $posts = Post::query()
+        $base = Post::query()
+            ->when($request->filled('category_id'), fn ($q) => $q->where('category_id', $request->integer('category_id')))
+            ->when($request->filled('q'), fn ($q) => $q->where(function ($w) use ($request): void {
+                $term = addcslashes($request->string('q')->toString(), '%_\\');
+                $w->where('title', 'like', "%{$term}%")->orWhere('excerpt', 'like', "%{$term}%");
+            }));
+
+        $posts = (clone $base)
             ->with(['category:id,name_ar', 'author:id,name'])
-            ->when($request->filled('status'), fn ($q) => $q->where('status', $request->string('status')))
+            ->when($request->filled('status'), fn ($q) => $q->displayStatus($request->string('status')->toString()))
             ->latest('created_at')
-            ->paginate($request->integer('per_page', 20));
+            ->paginate($this->perPage($request, 20));
+
+        // العدّ بالحالة المعروضة: المنشور بموعدٍ قادم يُعدّ «مجدولاً»
+        $shown = "CASE WHEN status = 'published' AND published_at > ? THEN 'scheduled' ELSE status END";
+        $counts = (clone $base)->toBase()
+            ->selectRaw("{$shown} as shown, COUNT(*) as n", [now()])
+            // بالاسم لا بالعبارة: ONLY_FULL_GROUP_BY لا يرى عبارتين بربطين منفصلين متطابقتين
+            ->groupBy('shown')
+            ->pluck('n', 'shown')->map(fn ($n) => (int) $n);
 
         return response()->json([
             'data' => PostResource::collection($posts->items()),
-            'meta' => ['total' => $posts->total(), 'current_page' => $posts->currentPage(), 'last_page' => $posts->lastPage()],
+            'meta' => [
+                'total' => $posts->total(), 'current_page' => $posts->currentPage(), 'last_page' => $posts->lastPage(),
+                'status_counts' => $counts,
+                'all_count' => $counts->sum(),
+                // للقائمة المنسدلة في المحرّر، والحالات من الـ enum نفسه
+                'categories' => \App\Models\PostCategory::orderBy('sort_order')->get(['id', 'name_ar'])
+                    ->map(fn ($c) => ['id' => $c->id, 'name' => $c->name_ar]),
+                'statuses' => PostStatus::options(),
+            ],
+        ]);
+    }
+
+    /** مقالٌ واحد بنصّه كاملاً، لصفحة المحرّر */
+    public function showPost(Request $request, Post $post): JsonResponse
+    {
+        abort_unless($request->user()->can('content.manage'), 403);
+
+        return response()->json([
+            'data' => new PostResource($post->load(['category:id,name_ar', 'author:id,name'])),
+            'meta' => [
+                'categories' => \App\Models\PostCategory::orderBy('sort_order')->get(['id', 'name_ar'])
+                    ->map(fn ($c) => ['id' => $c->id, 'name' => $c->name_ar]),
+                'statuses' => PostStatus::options(),
+            ],
         ]);
     }
 
@@ -61,6 +108,11 @@ class ContentController extends Controller
             'cover' => ['nullable', 'image', 'mimes:jpeg,png,webp', 'max:'.config('kafala.uploads.max_size_kb')],
         ]);
 
+        // النصّ المنسّق يمرّ بالتنظيف قبل الحفظ: يُعرض على الموقع كما هو
+        if (array_key_exists('body', $validated)) {
+            $validated['body'] = app(RichText::class)->sanitize($validated['body']);
+        }
+
         $post = Post::create([
             ...$this->withPublishDate(collect($validated)->except('cover')->all()),
             'slug' => $this->uniqueSlug($validated['title']),
@@ -70,8 +122,10 @@ class ContentController extends Controller
                 : null,
         ]);
 
+        $this->audit($request, $post, 'created', 'أنشأ مقالاً', ['title' => $post->title, 'status' => $post->status->value]);
+
         return response()->json([
-            'message' => 'أُنشئ المقال.',
+            'message' => $this->outcome($post, null),
             'data' => new PostResource($post->load('category')),
         ], 201);
     }
@@ -89,7 +143,24 @@ class ContentController extends Controller
             'status' => ['sometimes', Rule::in(PostStatus::values())],
             'published_at' => ['sometimes', 'nullable', 'date'],
             'is_featured' => ['sometimes', 'boolean'],
+            'cover' => ['sometimes', 'nullable', 'image', 'mimes:jpeg,png,webp', 'max:'.config('kafala.uploads.max_size_kb')],
         ]);
+
+        $before = ['title' => $post->title, 'status' => $post->status->value, 'category_id' => $post->category_id];
+        $wasShown = $post->displayStatus();
+
+        // استبدال الغلاف: كان يُضبط عند الإنشاء وحده. والقديم يُحذف كي لا تتراكم ملفات بلا صاحب
+        if ($request->hasFile('cover')) {
+            if ($post->cover_path) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($post->cover_path);
+            }
+            $post->cover_path = $request->file('cover')->store('posts', 'public');
+        }
+        unset($validated['cover']);
+
+        if (array_key_exists('body', $validated)) {
+            $validated['body'] = app(RichText::class)->sanitize($validated['body']);
+        }
 
         // النشر لاحقاً من مسوّدة يمرّ من هنا لا من الإنشاء
         $post->update($this->withPublishDate([
@@ -98,10 +169,35 @@ class ContentController extends Controller
             'published_at' => $validated['published_at'] ?? $post->published_at,
         ]));
 
+        $after = ['title' => $post->title, 'status' => $post->status->value, 'category_id' => $post->category_id];
+        $this->audit($request, $post, 'updated', 'عدّل مقالاً', array_diff_assoc($after, $before), array_intersect_key($before, array_diff_assoc($after, $before)));
+
+        $post = $post->fresh()->load('category');
+
         return response()->json([
-            'message' => 'حُفظت التعديلات.',
-            'data' => new PostResource($post->fresh()->load('category')),
+            'message' => $this->outcome($post, $wasShown),
+            'data' => new PostResource($post),
         ]);
+    }
+
+    /**
+     * صورة داخل نصّ المقال (لا غلافه): تُرفع وتُرجع رابطها ليضعه المحرّر.
+     * صورة لا ملف: يُفحص نوعها الحقيقي، ولا تُقبل SVG (قد تحمل سكربتاً).
+     */
+    public function postImage(Request $request): JsonResponse
+    {
+        abort_unless($request->user()->can('content.manage'), 403);
+
+        $request->validate([
+            'image' => ['required', 'image', 'mimes:jpeg,png,webp', 'max:'.config('kafala.uploads.max_size_kb')],
+        ], [
+            'image.mimes' => 'الصورة JPG أو PNG أو WebP.',
+        ]);
+
+        $path = $request->file('image')->store('posts/inline', 'public');
+        activity()->causedBy($request->user())->withProperties(['path' => $path])->log('رفع صورة داخل مقال');
+
+        return response()->json(['data' => ['url' => asset('storage/'.$path)]], 201);
     }
 
     /** الأسئلة والشهادات والشركاء — ثلاثة جداول بواجهة واحدة. */
@@ -119,9 +215,13 @@ class ContentController extends Controller
         $model = $this->modelFor($type);
         $validated = $request->validate($this->rulesFor($type));
 
+        $item = $model::create($validated);
+        $this->audit($request, $item, 'created', 'أضاف عنصر محتوى', $validated);
+        $this->flushPublic();
+
         return response()->json([
             'message' => 'أُضيف العنصر.',
-            'data' => $model::create($validated),
+            'data' => $item,
         ], 201);
     }
 
@@ -131,16 +231,58 @@ class ContentController extends Controller
 
         $model = $this->modelFor($type);
         $item = $model::findOrFail($id);
-        $item->update($request->validate($this->rulesFor($type, partial: true)));
+        $validated = $request->validate($this->rulesFor($type, partial: true));
+        $before = $item->only(array_keys($validated));
+        $item->update($validated);
+        $this->audit($request, $item, 'updated', 'عدّل عنصر محتوى', $item->only(array_keys($validated)), $before);
+        $this->flushPublic();
 
         return response()->json(['message' => 'حُفظت التعديلات.', 'data' => $item->fresh()]);
+    }
+
+    /**
+     * ترتيب العناصر بالسحب أو بالأسهم: تُرسل المعرّفات بترتيبها الجديد.
+     * كان الترتيب رقماً يُكتب في كل عنصر على حدة، فتبديل اثنين يعني
+     * تحرير الاثنين وتخمين رقمين لا يتصادمان مع غيرهما.
+     */
+    public function reorderSimple(Request $request, string $type): JsonResponse
+    {
+        abort_unless($request->user()->can('content.manage'), 403);
+
+        $model = $this->modelFor($type);
+        $validated = $request->validate([
+            'ids' => ['required', 'array', 'min:1', 'max:500'],
+            'ids.*' => ['integer', 'distinct'],
+        ]);
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($model, $validated): void {
+            foreach ($validated['ids'] as $position => $id) {
+                $model::whereKey($id)->update(['sort_order' => $position + 1]);
+            }
+        });
+
+        activity()->causedBy($request->user())->event('reordered')
+            ->withProperties(['type' => $type, 'ids' => $validated['ids']])
+            ->log('أعاد ترتيب عناصر محتوى');
+        $this->flushPublic();
+
+        return response()->json([
+            'message' => 'حُفظ الترتيب.',
+            'data' => $model::query()->orderBy('sort_order')->get(),
+        ]);
     }
 
     public function destroySimple(Request $request, string $type, int $id): JsonResponse
     {
         abort_unless($request->user()->can('content.manage'), 403);
 
-        $this->modelFor($type)::findOrFail($id)->delete();
+        $item = $this->modelFor($type)::findOrFail($id);
+        $snapshot = $item->toArray();
+        $item->delete();
+
+        // المحذوف يبقى أثره: ما كان نصّه ومن حذفه
+        $this->audit($request, $item, 'deleted', 'حذف عنصر محتوى', [], $snapshot);
+        $this->flushPublic();
 
         return response()->json(['message' => 'حُذف العنصر.']);
     }
@@ -152,8 +294,10 @@ class ContentController extends Controller
         $messages = ContactMessage::query()
             ->with('handler:id,name')
             ->when($request->boolean('open_only'), fn ($q) => $q->open())
-            ->latest()
-            ->paginate($request->integer('per_page', 25));
+            // المفتوحة الأقدم أولاً: هي الأقرب إلى تجاوز وعد الرد خلال 72 ساعة.
+            // كانت الأحدث أولاً، فيغرق ما يوشك أن يتأخر في آخر القائمة
+            ->when($request->boolean('open_only'), fn ($q) => $q->oldest(), fn ($q) => $q->latest())
+            ->paginate($this->perPage($request, 25));
 
         return response()->json([
             'data' => $messages->items(),
@@ -176,6 +320,7 @@ class ContentController extends Controller
         ]);
 
         $closing = $validated['status'] !== ContactStatus::New->value;
+        $old = $contact->status;
 
         $contact->update([
             'status' => $validated['status'],
@@ -183,40 +328,164 @@ class ContentController extends Controller
             'handled_at' => $closing ? now() : null,
         ]);
 
+        // كل انتقال يُسجَّل: إعادة الفتح كانت تمسح من عالجها، فيضيع من أغلقها
+        $this->audit($request, $contact, 'status_changed', 'غيّر حالة رسالة تواصل',
+            ['status' => $validated['status']], ['status' => $old instanceof \BackedEnum ? $old->value : $old]);
+
         return response()->json([
             'message' => 'حُدّثت حالة الرسالة.',
             'data' => $contact->fresh()->load('handler:id,name'),
         ]);
     }
 
+    /**
+     * @param  array<string, mixed>  $after
+     * @param  array<string, mixed>  $before
+     */
+    private function audit(Request $request, \Illuminate\Database\Eloquent\Model $subject, string $event, string $text, array $after = [], array $before = []): void
+    {
+        activity()->performedOn($subject)->causedBy($request->user())->event($event)
+            ->withProperties(['attributes' => $after, 'old' => $before])
+            ->log($text);
+    }
+
+    /** الأسئلة والشهادات والشركاء في ذاكرة الموقع العام؛ كانت تبقى قديمة عشر دقائق */
+    private function flushPublic(): void
+    {
+        \App\Http\Controllers\Api\V1\Public\CatalogController::forgetBootstrap();
+    }
+
     public function settings(Request $request): JsonResponse
     {
         abort_unless($request->user()->can('settings.manage'), 403);
 
-        return response()->json(['data' => Setting::cached()]);
+        return response()->json(['data' => Setting::cached(), 'meta' => $this->settingsContext()]);
+    }
+
+    /**
+     * ما يحتاجه المدير ليقرّر، بجانب كل إعداد.
+     *
+     * نسبة تشغيل مستهدفة بلا الفعلية رقمٌ في فراغ، وإيقاف المراجعة بلا عدد
+     * ما ينتظرها قرارٌ أعمى. ومن غيّر كل إعداد ومتى: لكي لا يُسأل أحد
+     * «من غيّر رقم الهاتف على الموقع؟» فلا يجد جواباً.
+     */
+    private function settingsContext(): array
+    {
+        $year = now()->year;
+        $approved = Disbursement::approved()->whereYear('spent_on', $year);
+        $total = (float) (clone $approved)->sum('amount_base');
+        $overhead = (float) (clone $approved)
+            ->join('disbursement_categories as c', 'c.id', '=', 'disbursements.category_id')
+            ->where('c.is_overhead', true)
+            ->sum('disbursements.amount_base');
+
+        // آخر تغيير لكل مفتاح: يكفي ما في آخر خمسين تعديلاً
+        $last = [];
+        Activity::query()->with('causer:id,name')->where('event', 'settings_updated')->latest('id')->limit(50)->get()
+            ->each(function (Activity $a) use (&$last): void {
+                foreach (array_keys($a->properties['attributes'] ?? []) as $key) {
+                    $last[$key] ??= ['by' => $a->causer?->name ?? 'النظام', 'at' => $a->created_at?->toIso8601String()];
+                }
+            });
+
+        return [
+            'overhead_actual' => $total > 0 ? round($overhead * 100 / $total, 1) : null,
+            'overhead_year' => $year,
+            'messages_pending' => Message::where('status', MessageStatus::PendingReview)->count(),
+            'active_orphans' => Orphan::whereIn('status', [OrphanStatus::Active, OrphanStatus::FullyFunded])->count(),
+            'last_changed' => (object) $last,
+        ];
+    }
+
+    /**
+     * المفاتيح المسموحة ونوع كل منها وقواعده.
+     *
+     * كان الخادم يقبل أي مفتاح وأي قيمة: نسبة تشغيل 500، وسنة تأسيس «abc»
+     * تصير صفراً، ومفاتيح جديدة بلا نوع فيُقرأ «false» نصّاً صحيحاً. والقائمة
+     * هنا لا في الواجهة: أي عميل يستطيع الإرسال.
+     *
+     * @return array<string, array{type: string, rules: array<int, mixed>}>
+     */
+    private function settingsSchema(): array
+    {
+        return [
+            'site.name' => ['type' => 'string', 'rules' => ['required', 'string', 'min:2', 'max:60']],
+            'site.tagline' => ['type' => 'string', 'rules' => ['nullable', 'string', 'max:120']],
+            'site.email' => ['type' => 'string', 'rules' => ['nullable', 'email:rfc', 'max:120']],
+            'site.phone' => ['type' => 'string', 'rules' => ['nullable', 'string', 'max:30']],
+            'site.address' => ['type' => 'string', 'rules' => ['nullable', 'string', 'max:160']],
+            'site.start_year' => ['type' => 'number', 'rules' => ['nullable', 'integer', 'between:1950,'.now()->year]],
+            // عملة الأساس تُثبَّت في الإعداد لا هنا: كل `amount_base` مخزَّن بها،
+            // وتغييرها من شاشة يجعل الأرقام القديمة والجديدة بعملتين تحت اسم واحد
+            'finance.base_currency' => ['type' => 'string', 'rules' => ['required', Rule::in([config('kafala.base_currency')])]],
+            'finance.overhead_target_percent' => ['type' => 'number', 'rules' => ['required', 'integer', 'between:0,30']],
+            'policy.moderate_messages' => ['type' => 'boolean', 'rules' => ['required', 'boolean']],
+            'policy.report_cadence_months' => ['type' => 'number', 'rules' => ['required', 'integer', 'between:1,12']],
+        ];
     }
 
     public function updateSettings(Request $request): JsonResponse
     {
         abort_unless($request->user()->can('settings.manage'), 403);
 
-        $validated = $request->validate([
-            'settings' => ['required', 'array'],
-            'settings.*.group' => ['required', 'string', 'max:40'],
-            'settings.*.key' => ['required', 'string', 'max:80'],
-            'settings.*.value' => ['nullable'],
+        $schema = $this->settingsSchema();
+
+        $request->validate([
+            'settings' => ['required', 'array', 'min:1'],
+            'settings.*.group' => ['required', 'string'],
+            'settings.*.key' => ['required', 'string'],
         ]);
 
-        foreach ($validated['settings'] as $row) {
-            Setting::updateOrCreate(
-                ['group' => $row['group'], 'key' => $row['key']],
-                ['value' => is_array($row['value']) ? json_encode($row['value']) : $row['value']],
-            );
+        // مفتاح لا تعرفه القائمة يُرفض، لا يُنشأ
+        $rows = collect($request->input('settings'))->keyBy(fn ($r) => $r['group'].'.'.$r['key']);
+        $unknown = $rows->keys()->diff(array_keys($schema));
+        if ($unknown->isNotEmpty()) {
+            throw ValidationException::withMessages(['settings' => 'إعداد غير معروف: '.$unknown->implode('، ')]);
         }
 
-        Cache::forget('public.bootstrap');
+        // القواعد على القيم نفسها، بأسماء حقول تعرفها الواجهة (`site.email`)
+        // النصّان «true»/«false» منطقيّان كما ترسلهما خانة الاختيار
+        $values = $rows->map(fn ($r, $name) => ($schema[$name]['type'] === 'boolean' && is_string($r['value'] ?? null))
+            ? filter_var($r['value'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE)
+            : ($r['value'] ?? null))->all();
+        $rules = collect($schema)->only(array_keys($values))->map(fn ($d) => $d['rules'])->all();
+        validator(
+            collect($values)->mapWithKeys(fn ($v, $k) => [str_replace('.', '__', $k) => $v])->all(),
+            collect($rules)->mapWithKeys(fn ($r, $k) => [str_replace('.', '__', $k) => $r])->all(),
+        )->setAttributeNames(collect($rules)->mapWithKeys(fn ($r, $k) => [str_replace('.', '__', $k) => $k])->all())
+            ->validate();
 
-        return response()->json(['message' => 'حُفظت الإعدادات.', 'data' => Setting::cached()]);
+        $before = Setting::cached();
+
+        foreach ($values as $name => $value) {
+            [$group, $key] = explode('.', $name, 2);
+            $type = $schema[$name]['type'];
+
+            Setting::updateOrCreate(['group' => $group, 'key' => $key], [
+                'value' => match ($type) {
+                    'boolean' => filter_var($value, FILTER_VALIDATE_BOOLEAN) ? 'true' : 'false',
+                    default => $value === null ? null : (string) $value,
+                },
+                'type' => $type,
+            ]);
+        }
+
+        \App\Http\Controllers\Api\V1\Public\CatalogController::forgetBootstrap();
+        Cache::forget('transparency.proof');
+
+        $after = Setting::cached();
+        $changed = collect($values)->keys()->filter(fn ($k) => ($before[$k] ?? null) !== ($after[$k] ?? null))->values();
+
+        if ($changed->isNotEmpty()) {
+            activity()->causedBy($request->user())->event('settings_updated')
+                ->withProperties([
+                    'old' => $changed->mapWithKeys(fn ($k) => [$k => $before[$k] ?? null])->all(),
+                    'attributes' => $changed->mapWithKeys(fn ($k) => [$k => $after[$k] ?? null])->all(),
+                ])
+                ->log('عدّل الإعدادات');
+        }
+
+        return response()->json(['message' => 'حُفظت الإعدادات.', 'data' => $after]);
     }
 
     /**
@@ -231,12 +500,37 @@ class ContentController extends Controller
      */
     private function withPublishDate(array $data): array
     {
+        /*
+         * «مجدول» لا يُحفظ حالةً: هو منشورٌ بموعدٍ قادم. كان يُحفظ كما هو،
+         * ولا شيء يحوّله إلى منشور يوم يحلّ، فيبقى المقال مخفياً إلى الأبد.
+         */
+        if (($data['status'] ?? null) === PostStatus::Scheduled->value) {
+            if (empty($data['published_at']) || ! Carbon::parse($data['published_at'])->isFuture()) {
+                throw ValidationException::withMessages(['published_at' => 'اختر تاريخاً قادماً لجدولة النشر.']);
+            }
+            $data['status'] = PostStatus::Published->value;
+        }
+
         if (($data['status'] ?? null) === PostStatus::Published->value
             && empty($data['published_at'])) {
             $data['published_at'] = now();
         }
 
         return $data;
+    }
+
+    /** رسالة الحفظ تسمّي ما حدث فعلاً، لا «حُفظ» لكل شيء */
+    private function outcome(Post $post, ?PostStatus $was): string
+    {
+        $now = $post->displayStatus();
+
+        return match (true) {
+            $now === PostStatus::Scheduled && $was !== PostStatus::Scheduled => 'جُدول المقال، ويُنشر في '.$post->published_at->translatedFormat('j F Y').'.',
+            $now === PostStatus::Published && $was !== PostStatus::Published => 'نُشر المقال على الموقع.',
+            $now === PostStatus::Draft && $was !== null && $was !== PostStatus::Draft => 'أُلغي النشر، وصار المقال مسوّدة لا تظهر على الموقع.',
+            $now === PostStatus::Draft => 'حُفظت المسوّدة. لا تظهر على الموقع حتى تنشرها.',
+            default => 'حُفظت التعديلات.',
+        };
     }
 
     /** @return class-string */

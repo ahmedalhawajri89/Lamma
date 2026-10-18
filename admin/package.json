@@ -13,6 +13,11 @@
     "lint:fix": "eslint . --fix"
   },
   "dependencies": {
+    "@tiptap/extension-image": "3.31.3",
+    "@tiptap/extension-placeholder": "3.31.3",
+    "@tiptap/pm": "3.31.3",
+    "@tiptap/starter-kit": "3.31.3",
+    "@tiptap/vue-3": "3.31.3",
     "axios": "^1.20.0",
     "chart.js": "^4.5.1",
     "pinia": "^4.0.3",

@@ -21,7 +21,7 @@ const props = defineProps({
   item: { type: Object, default: null },
 })
 
-const emit = defineEmits(['close', 'saved'])
+const emit = defineEmits(['close', 'saved', 'remove'])
 
 const SCHEMA = {
   faqs: {
@@ -41,7 +41,7 @@ const SCHEMA = {
       { key: 'role', label: 'الصفة', placeholder: 'كافل منذ ٣ سنوات' },
       {
         key: 'quote', label: 'الشهادة', type: 'textarea', rows: 5, required: true,
-        hint: 'بصيغتها كما قالها — لا تُعاد صياغتها لتبدو أجمل.',
+        hint: 'بصيغتها كما قالها، فلا تُعاد صياغتها لتبدو أجمل.',
       },
     ],
   },
@@ -131,6 +131,13 @@ async function save() {
           @update:model-value="form.touch(schema.publishKey)"
         />
       </div>
+    </div>
+
+    <!-- الحذف داخل التحرير لا في كل صف: يُرى العنصر قبل حذفه -->
+    <div v-if="editing" class="pt-4 border-t border-sand-100">
+      <button type="button" class="text-sm text-rose-700 hover:underline" @click="emit('remove', item)">
+        حذف هذا العنصر من الموقع
+      </button>
     </div>
   </FormModal>
 </template>

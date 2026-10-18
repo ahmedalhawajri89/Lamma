@@ -14,8 +14,8 @@ use App\Models\Country;
 use App\Models\Faq;
 use App\Models\Partner;
 use App\Models\Program;
-use App\Models\Setting;
 use App\Models\Testimonial;
+use App\Support\SiteProfile;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Cache;
 
@@ -30,14 +30,29 @@ class CatalogController extends Controller
 {
     private const CACHE_TTL = 600;
 
+    /** نسخةٌ لكل لغة: الاسم والبرامج والأسئلة تختلف بلغة الطلب */
+    public static function bootstrapKey(?string $locale = null): string
+    {
+        return 'public.bootstrap.'.($locale ?? \App\Support\Locale::current());
+    }
+
+    /** يمحو نسخ كل اللغات، بعد أي تعديلٍ في المحتوى أو الإعدادات */
+    public static function forgetBootstrap(): void
+    {
+        foreach (array_keys(\App\Support\Locale::all()) as $locale) {
+            Cache::forget(self::bootstrapKey($locale));
+        }
+    }
+
     public function bootstrap(): JsonResponse
     {
-        $data = Cache::remember('public.bootstrap', self::CACHE_TTL, fn (): array => [
-            'site' => $this->site(),
+        $data = Cache::remember(self::bootstrapKey(), self::CACHE_TTL, fn (): array => [
+            'site' => SiteProfile::site(),
             'programs' => ProgramResource::collection(
                 Program::active()->with('features')->get(),
             )->resolve(),
-            'countries' => Country::operational()->pluck('name_ar')->all(),
+            'countries' => Country::operational()->get(['name_ar', 'name_en'])
+                ->map(fn ($c) => \App\Support\Locale::pick($c->name_ar, $c->name_en))->all(),
             'partners' => PartnerResource::collection(Partner::active()->get())->resolve(),
             'testimonials' => TestimonialResource::collection(Testimonial::published()->get())->resolve(),
             'faqs' => FaqResource::collection(Faq::published()->get())->resolve(),
@@ -65,19 +80,5 @@ class CatalogController extends Controller
         return response()->json([
             'data' => FaqResource::collection(Faq::published()->get()),
         ]);
-    }
-
-    /** SITE في data.js — من جدول الإعدادات لا من ثابت في الكود. */
-    private function site(): array
-    {
-        $settings = Setting::cached();
-
-        return [
-            'name' => $settings['site.name'] ?? 'كفالة',
-            'tagline' => $settings['site.tagline'] ?? '',
-            'email' => $settings['site.email'] ?? '',
-            'phone' => $settings['site.phone'] ?? '',
-            'address' => $settings['site.address'] ?? '',
-        ];
     }
 }

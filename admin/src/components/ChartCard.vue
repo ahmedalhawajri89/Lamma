@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
 import Chart from 'chart.js/auto'
+import { INK } from '@/utils/palette'
 
 /**
  * غلاف Chart.js.
@@ -37,7 +38,7 @@ const base = {
     tooltip: {
       rtl: true,
       textDirection: 'rtl',
-      backgroundColor: '#1c1917',
+      backgroundColor: INK.primary,
       titleFont: { family: 'IBM Plex Sans Arabic' },
       bodyFont: { family: 'IBM Plex Sans Arabic' },
       padding: 10,
@@ -48,7 +49,7 @@ const base = {
     x: { reverse: true, grid: { display: false }, ticks: { font: { family: 'IBM Plex Sans Arabic', size: 11 } } },
     y: {
       position: 'right',
-      grid: { color: '#e9dfd0' },
+      grid: { color: INK.grid },
       border: { display: false },
       ticks: { font: { family: 'IBM Plex Sans Arabic', size: 11 }, padding: 8 },
     },

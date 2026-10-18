@@ -44,6 +44,9 @@ class UserResource extends JsonResource
                 'employee_code' => $this->staffProfile->employee_code,
                 'title' => $this->staffProfile->title,
                 'assigned_country_id' => $this->staffProfile->assigned_country_id,
+                'assigned_country_name' => $this->staffProfile->relationLoaded('assignedCountry')
+                    ? $this->staffProfile->assignedCountry?->name_ar
+                    : null,
             ]),
         ];
     }

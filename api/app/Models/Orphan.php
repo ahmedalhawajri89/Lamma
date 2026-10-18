@@ -7,6 +7,7 @@ namespace App\Models;
 use App\Enums\Gender;
 use App\Enums\OrphanStatus;
 use App\Enums\SponsorshipStatus;
+use App\Models\Concerns\HasTranslations;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -60,6 +61,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
 class Orphan extends Model
 {
     use HasFactory;
+    use HasTranslations;
     use LogsActivity;
     use SoftDeletes;
 
@@ -198,6 +200,27 @@ class Orphan extends Model
             ->whereNotNull('verified_at');
     }
 
+    /**
+     * من يقبل كفالة الآن: المنشور الذي لم يكتمل تمويله.
+     *
+     * فهرس الموقع والرئيسية يعرضان هؤلاء وحدهم. كان المكفول بالكامل يظهر بزرّ
+     * «اكفل»، فيملأ الزائر بياناته ثم يُرفض في آخر خطوة. صفحته تبقى (public)
+     * لمن يحمل رابطها، وتقول إن كفالته اكتملت.
+     */
+    public function scopeSeekingSponsor(Builder $query): Builder
+    {
+        return $query->public()->where('status', OrphanStatus::Active);
+    }
+
+    /** عدد الكافلين الذين تُحسب كفالاتهم في تمويله الآن، باسم `sponsors_count`. */
+    public function scopeWithSponsorCount(Builder $query): Builder
+    {
+        return $query->withCount(['sponsorships as sponsors_count' => fn (Builder $q) => $q->whereIn(
+            'status',
+            array_filter(SponsorshipStatus::cases(), fn (SponsorshipStatus $s): bool => $s->countsTowardFunding()),
+        )]);
+    }
+
     /** ترتيب شبكة orphans.html: العاجل أولاً، ثم الأقل تمويلاً. */
     public function scopeByNeed(Builder $query): Builder
     {
@@ -228,18 +251,55 @@ class Orphan extends Model
             return $query;
         }
 
+        $like = fn (string $s): string => addcslashes($s, '%_\\');
+
+        // رمز الطفل أو رمز أسرته
         if (preg_match('/\d/', $term) === 1) {
-            return $query->where('reference_code', 'like', "%{$term}%");
+            return $query->where(fn (Builder $q) => $q
+                ->where('reference_code', 'like', '%'.$like($term).'%')
+                ->orWhereHas('family', fn (Builder $f) => $f->where('family_code', 'like', '%'.$like($term).'%')));
         }
 
-        if (mb_strlen($term) >= 4) {
-            return $query->whereFullText(['first_name', 'last_name', 'story'], $term);
+        /*
+         * الاسم: كل كلمة بداية اسمٍ أول أو اسم عائلة، أيّاً كان طولها. كان البحث
+         * يتغيّر بعد الحرف الرابع إلى نصّ كامل بكلمات تامة، فـ«محم» تجد محمداً
+         * و«محمو» لا تجد شيئاً، ويدخل نصّ القصة فيأتي بما لا علاقة له.
+         */
+        foreach (preg_split('/\s+/u', $term) as $word) {
+            $query->where(fn (Builder $q) => $q
+                ->where('first_name', 'like', $like($word).'%')
+                ->orWhere('last_name', 'like', $like($word).'%'));
         }
 
-        return $query->where(function (Builder $q) use ($term): void {
-            $q->where('first_name', 'like', "{$term}%")
-                ->orWhere('last_name', 'like', "{$term}%");
-        });
+        return $query;
+    }
+
+    /**
+     * بحث الموقع العام (الفهرس والبحث السريع): كل كلمة بداية الاسم الأول،
+     * بالعربية أو بترجمته، أو بداية اسم المدينة أو الدولة باللغتين.
+     * بلا اسم العائلة: لا يظهر للعامة، فلا يُستدلّ عليه بالبحث. والرمز كما
+     * في البحث العادي.
+     */
+    public function scopePublicSearch(Builder $query, ?string $term): Builder
+    {
+        $term = trim((string) $term);
+
+        if ($term === '' || preg_match('/\d/', $term) === 1) {
+            return $query->search($term);
+        }
+
+        $like = fn (string $s): string => addcslashes($s, '%_\\').'%';
+        $place = fn (string $word) => fn (Builder $p) => $p->where('name_ar', 'like', $like($word))->orWhere('name_en', 'like', $like($word));
+
+        foreach (preg_split('/\s+/u', $term) as $word) {
+            $query->where(fn (Builder $q) => $q
+                ->where('first_name', 'like', $like($word))
+                ->orWhere('translations->en->first_name', 'like', $like($word))
+                ->orWhereHas('family.city', $place($word))
+                ->orWhereHas('family.country', $place($word)));
+        }
+
+        return $query;
     }
 
     /* ----------------------------------------------------------------- المشتقات */
@@ -262,6 +322,40 @@ class Orphan extends Model
     }
 
     /* -------------------------------------------------------------------- سلوك */
+
+    /**
+     * رسمٌ توضيحي بدل صورة الطفل على الموقع العام.
+     *
+     * صورة طفل يتيم باسمه الأول ومدينته وقصته على صفحة عامة تجعله معروفاً
+     * لأي عابر، وسياسات حماية الطفل تمنع ذلك. فالصورة الحقيقية (يرفعها
+     * المشرف بموافقة الوصي) لا تخرج إلا للكافل في بوابته (SponsorshipResource)
+     * وللإدارة؛ وهنا رسمٌ بنمط Lorelei (رخصة CC0، assets/img/kids/LICENSE.md).
+     *
+     * الرسم ثابت لكل طفل: يُشتق من رمز ملفه، فلا يتبدّل بين زيارة وأخرى.
+     */
+    public function illustrationUrl(): string
+    {
+        $pool = $this->gender === Gender::Female ? 'girl' : 'boy';
+        $n = crc32((string) $this->reference_code) % 12 + 1;
+
+        return asset(sprintf('assets/img/kids/%s-%02d.svg', $pool, $n));
+    }
+
+    /**
+     * ما تبقّى من حاجته الشهرية بالمبالغ الفعلية لا بالنسبة المقرّبة: الحاجة
+     * ناقص مجموع الكفالات التي تُحسب في تمويله (القائمة والمعلّقة والمحجوزة).
+     */
+    public function remainingNeed(): float
+    {
+        $covered = (float) $this->sponsorships()
+            ->whereIn('status', array_filter(
+                SponsorshipStatus::cases(),
+                fn (SponsorshipStatus $s): bool => $s->countsTowardFunding(),
+            ))
+            ->sum('monthly_amount');
+
+        return max(0, round((float) $this->monthly_need - $covered, 2));
+    }
 
     /**
      * إعادة حساب نسبة التمويل من الكفالات الحيّة.

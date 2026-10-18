@@ -32,6 +32,12 @@ const tones = {
   graduated: 'bg-teal-600/10 text-teal-700',
   completed: 'bg-teal-600/10 text-teal-700',
   refunded: 'bg-sand-100 text-sand-600',
+
+  // رسائل التواصل: الجديدة تُرى أولاً، والمغلقة تهدأ
+  new: 'bg-amber-100 text-amber-700',
+  in_progress: 'bg-teal-600/10 text-teal-700',
+  closed: 'bg-sand-100 text-sand-600',
+  archived: 'bg-sand-100 text-sand-600',
 }
 </script>
 

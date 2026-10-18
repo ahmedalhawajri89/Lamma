@@ -20,14 +20,14 @@ class PaymentController extends Controller
 
         $payments = Payment::query()
             ->where('sponsor_id', $sponsor->id)
-            ->with(['sponsorship', 'sponsorship.orphan:id,reference_code,first_name,photo_path,date_of_birth,funded_percent'])
+            ->with(['sponsorship', 'sponsorship.orphan:id,reference_code,first_name,gender,photo_path,date_of_birth,funded_percent'])
             ->when($request->filled('status'), fn ($q) => $q->where('status', $request->string('status')))
             ->when($request->filled('year'), fn ($q) => $q->whereYear('paid_at', $request->integer('year')))
             // الترتيب بتاريخ الحدث لا الإدخال. و`ORDER BY paid_at DESC` وحده
             // يُنزل كل الدفعات الفاشلة إلى القاع لأن paid_at فيها NULL،
             // فتضيع من سياقها الزمني — و COALESCE يبقيها في شهرها.
             ->orderByRaw('COALESCE(paid_at, created_at) DESC')
-            ->paginate($request->integer('per_page', 20));
+            ->paginate($this->perPage($request, 20));
 
         return response()->json([
             'data' => PaymentResource::collection($payments->items()),

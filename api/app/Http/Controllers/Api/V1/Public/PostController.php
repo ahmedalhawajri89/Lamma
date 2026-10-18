@@ -7,21 +7,37 @@ namespace App\Http\Controllers\Api\V1\Public;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PostResource;
 use App\Models\Post;
+use App\Models\PostCategory;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class PostController extends Controller
 {
+    /**
+     * مقالات المدونة: بتصنيف أو بحث، ومقالٌ يُستثنى (المميّز المعروض فوق
+     * الشبكة لا يتكرر فيها). و`facets=1` يُرجع التصنيفات بأعداد المنشور
+     * والمقال المميّز، لصدر الصفحة وشريطها.
+     */
     public function index(Request $request): JsonResponse
     {
+        $request->validate([
+            'q' => ['nullable', 'string', 'max:80'],
+            'exclude' => ['nullable', 'integer'],
+        ]);
+
         $posts = Post::query()
             ->published()
-            ->with('category:id,name_ar')
+            ->with('category:id,name_ar,slug')
             ->when($request->filled('category'), fn ($q) => $q->whereHas(
                 'category',
                 fn ($c) => $c->where('slug', $request->string('category')->toString()),
             ))
-            ->paginate($request->integer('per_page', 9));
+            ->when($request->filled('q'), function ($q) use ($request): void {
+                $term = addcslashes($request->string('q')->toString(), '%_\\');
+                $q->where(fn ($w) => $w->where('title', 'like', "%{$term}%")->orWhere('excerpt', 'like', "%{$term}%"));
+            })
+            ->when($request->filled('exclude'), fn ($q) => $q->whereKeyNot($request->integer('exclude')))
+            ->paginate($this->perPage($request, 9));
 
         return response()->json([
             'data' => PostResource::collection($posts->items()),
@@ -29,8 +45,31 @@ class PostController extends Controller
                 'total' => $posts->total(),
                 'current_page' => $posts->currentPage(),
                 'last_page' => $posts->lastPage(),
+                ...($request->boolean('facets') ? $this->facets() : []),
             ],
         ]);
+    }
+
+    /** @return array<string, mixed> */
+    private function facets(): array
+    {
+        $categories = PostCategory::query()
+            ->withCount(['posts' => fn ($q) => $q->published()])
+            ->orderBy('sort_order')
+            ->get()
+            ->filter(fn ($c) => $c->posts_count > 0)
+            ->map(fn ($c) => ['slug' => $c->slug, 'name' => $c->name_ar, 'count' => $c->posts_count])
+            ->values();
+
+        // المميّز: أحدث مقال منشور معلَّم، وإلا أحدث مقال
+        $featured = Post::query()->published()->with('category:id,name_ar,slug')->where('is_featured', true)->first()
+            ?? Post::query()->published()->with('category:id,name_ar,slug')->first();
+
+        return [
+            'categories' => $categories,
+            'all_count' => Post::query()->published()->count(),
+            'featured' => $featured ? (new PostResource($featured))->resolve() : null,
+        ];
     }
 
     public function show(string $slug): JsonResponse

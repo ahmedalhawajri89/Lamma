@@ -34,6 +34,7 @@ use Spatie\Permission\Traits\HasRoles;
  * @property UserStatus $status
  * @property Carbon|null $email_verified_at
  * @property Carbon|null $last_login_at
+ * @property Carbon|null $previous_login_at
  * @property Carbon|null $two_factor_confirmed_at
  */
 class User extends Authenticatable
@@ -70,6 +71,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'last_login_at' => 'datetime',
+            'previous_login_at' => 'datetime',
             'two_factor_confirmed_at' => 'datetime',
             'password' => 'hashed',
             'status' => UserStatus::class,
@@ -130,11 +132,25 @@ class User extends Authenticatable
     }
 
     /**
-     * البلد المُسنَد للمشرف الميداني — تستعمله السياسات لتقييد ما يراه.
-     * المدير لا بلد له، فيرى كل شيء.
+     * البلد الذي يُقيَّد به ما يراه هذا الموظف، و`null` تعني «كل البلدان».
+     *
+     * مغلقة عند الفشل: المشرف الميداني بلا بلد مُسنَد يأخذ `0`، وهو رقم لا
+     * يطابق أي بلد، فلا يرى شيئاً. كانت `null` فيرى كل البلدان، فصار أي خلل
+     * يمسح البلد (نموذج تعديل، استيراد، تعديل يدوي) يوسّع صلاحيته بصمت.
+     * والمدير لا يُقيَّد ببلد وإن كان له بلد في ملفه.
      */
     public function assignedCountryId(): ?int
     {
-        return $this->staffProfile?->assigned_country_id;
+        if ($this->isAdmin()) {
+            return null;
+        }
+
+        $country = $this->staffProfile?->assigned_country_id;
+
+        if ($country === null && $this->hasRole(UserRole::FieldSupervisor->value)) {
+            return 0;
+        }
+
+        return $country;
     }
 }

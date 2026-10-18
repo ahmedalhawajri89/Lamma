@@ -9,81 +9,76 @@
  */
 
 import { hydrate } from './modules/data.js';
-import { mountLayout } from './modules/layout.js';
+import { mountLayout, refreshLayout } from './modules/layout.js';
+import { initThemeToggle } from './modules/theme.js';
+import { initSearch } from './modules/search.js';
+import { initHowSteps } from './modules/how.js';
 import {
   initReveal,
   initCounters,
   initProgressBars,
   initDonuts,
-  initTilt,
-  initWordReveal,
+  initFooterMark,
   initToTop,
   initActionBar,
 } from './modules/motion.js';
-import { initSliders } from './modules/slider.js';
-import { initHeroSlider } from './modules/hero.js';
 import {
   initAccordions,
-  initTabs,
-  initModals,
   initChipGroups,
   initPasswordToggles,
+  initCharCounts,
+  initToastStack,
 } from './modules/ui.js';
-import { initForms, initCardInput, initPasswordStrength } from './modules/forms.js';
-import {
-  initImpactCalculator,
-  initOrphanFilters,
-  initOrphanDetail,
-  initCheckoutSummary,
-  initThankYou,
-  initPostDetail,
-  initPostsPager,
-  initResetPassword,
-} from './modules/features.js';
+import { initForms, initCardInput } from './modules/forms.js';
+import { initCheckout, initThankYou } from './modules/checkout.js';
+import { initImpactCalculator } from './modules/features.js';
 import { renderHomeSections } from './modules/home.js';
-import { initProofBoard, initCredentials, initFinanceBoard } from './modules/proof.js';
+import { initCatalog } from './modules/catalog.js';
+import { initProfile } from './modules/profile.js';
+import { initFaqPage } from './modules/faq.js';
+import { initSignin } from './modules/signin.js';
+import { initTransparency } from './modules/transparency.js';
+import { initBlog } from './modules/blog.js';
+import { initAbout } from './modules/about.js';
+import { initCredentials } from './modules/proof.js';
 import { initPortal } from './modules/portal.js';
 
 function boot() {
-  // ١) الهيكل أولاً — بقية الوحدات قد تحتاج عناصره
-  mountLayout({ solid: document.body.dataset.header === 'solid' });
+  // ١) الهيكل مركَّب سلفاً من البذرة (انظر start)؛ تُكتب فيه الآن بيانات الخادم
+  refreshLayout();
 
   // ٢) المحتوى المُولَّد من البيانات قبل تشغيل الحركات عليه
   renderHomeSections();
-  initProofBoard();
   initCredentials();
-  initFinanceBoard();
-  initOrphanFilters();
-  initOrphanDetail();
-  initCheckoutSummary();
-  initPostDetail();
-  initPostsPager();
-  initResetPassword();
+  initTransparency();
+  initAbout();
+  initCatalog();
+  initProfile();
+  initFaqPage();
+  initSignin();
+  initCheckout();
+  initBlog();
   initThankYou();
   initPortal();
 
   // ٣) مكونات الواجهة
   initAccordions();
-  initTabs();
-  initModals();
+  initHowSteps();
   initChipGroups();
   initPasswordToggles();
-  initHeroSlider();
-  initSliders();
+  initCharCounts();
 
   // ٤) النماذج
   initForms();
   initCardInput();
-  initPasswordStrength();
   initImpactCalculator();
 
   // ٥) الحركة أخيراً، بعد اكتمال DOM
-  initWordReveal();
   initReveal();
   initCounters();
   initProgressBars();
   initDonuts();
-  initTilt();
+  initFooterMark();
   initToTop();
   initActionBar();
 }
@@ -133,7 +128,17 @@ function lockForms() {
 async function start() {
   const unlock = lockForms();
 
+  /*
+   * الهيدر والفوتر قبل انتظار الشبكة: كانا يُبنيان بعد `hydrate()`، فتبقى
+   * الصفحة حتى أربع ثوانٍ بلا ترويسة ولا تنقّل، ثم تقفز حين يظهران.
+   * يُبنيان من البذرة، و`refreshLayout()` يكتب إعدادات الخادم عند وصولها.
+   */
   try {
+    mountLayout();
+    initThemeToggle();
+    initSearch();
+    initToastStack();
+
     await hydrate();
     boot();
   } finally {

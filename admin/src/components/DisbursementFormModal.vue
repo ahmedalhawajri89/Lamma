@@ -14,9 +14,12 @@
 import { computed, ref, watch } from 'vue'
 import { admin } from '@/api/endpoints'
 import { useForm } from '@/composables/useForm'
+import { confirmDialog } from '@/composables/useConfirm'
 import BaseIcon from './BaseIcon.vue'
 import FormModal from './FormModal.vue'
 import FormField from './FormField.vue'
+import SearchSelect from './SearchSelect.vue'
+import { searchOrphans } from '@/composables/lookups'
 
 const props = defineProps({
   open: { type: Boolean, default: false },
@@ -33,7 +36,13 @@ const emit = defineEmits(['close', 'saved'])
 const receipt = ref(null)
 const receiptInput = ref(null)
 
-const today = new Date().toISOString().slice(0, 10)
+/** اليوم بالتاريخ المحلي: `toISOString` بتوقيت UTC، فبعد منتصف الليل محلياً كان يعطي أمس */
+function localToday() {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+const today = localToday()
 
 const BLANK = {
   orphan_id: '',
@@ -45,7 +54,26 @@ const BLANK = {
   description: '',
 }
 
-const form = useForm(BLANK, (values) => admin.disbursements.create(values, receipt.value))
+/**
+ * الخادم يردّ 409 حين يشبه الصرف صرفاً سجّلته قبل قليل (إعادة إرسال، نقرة
+ * ثانية). نسأل مرة: إن كان صرفاً ثانياً فعلاً يُعاد الإرسال بتأكيد صريح.
+ */
+const form = useForm(BLANK, async (values) => {
+  try {
+    return await admin.disbursements.create(values, receipt.value)
+  } catch (e) {
+    if (e.response?.status !== 409) throw e
+
+    const ok = await confirmDialog({
+      title: 'صرف مطابق سُجّل قبل قليل',
+      message: 'سجّلت صرفاً بالبند والطفل والمبلغ والتاريخ نفسها في آخر ربع ساعة. هل هذا صرف ثانٍ فعلاً؟',
+      confirmLabel: 'نعم، سجّله',
+    })
+    if (!ok) throw Object.assign(e, { userMessage: 'لم يُسجَّل الصرف المكرر.' })
+
+    return admin.disbursements.create({ ...values, confirm_duplicate: true }, receipt.value)
+  }
+})
 
 const categoryOptions = computed(() =>
   props.categories.map((c) => ({
@@ -54,12 +82,6 @@ const categoryOptions = computed(() =>
   })),
 )
 
-const orphanOptions = computed(() =>
-  props.orphans.map((o) => ({
-    value: o.id,
-    label: `${o.reference_code} — ${o.first_name}`,
-  })),
-)
 
 const selected = computed(() =>
   props.categories.find((c) => c.id === Number(form.values.category_id)),
@@ -73,6 +95,13 @@ const selected = computed(() =>
  */
 const needsRate = computed(() => (form.values.currency || '').toUpperCase() !== 'USD')
 
+/** بندٌ تشغيلي لا يخصّ طفلاً: اختياره يُفرغ حقل الطفل، والخادم يرفض الجمع بينهما */
+function onCategoryPicked(id) {
+  form.touch('category_id')
+  const category = props.categories.find((c) => c.id === Number(id))
+  if (category?.is_overhead) form.values.orphan_id = ''
+}
+
 function onReceipt(event) {
   receipt.value = event.target.files?.[0] ?? null
   form.touch('receipt')
@@ -82,7 +111,7 @@ watch(
   () => props.open,
   (isOpen) => {
     if (!isOpen) return
-    form.setValues({ ...BLANK, spent_on: new Date().toISOString().slice(0, 10) })
+    form.setValues({ ...BLANK, spent_on: localToday() })
     receipt.value = null
     if (receiptInput.value) receiptInput.value.value = ''
   },
@@ -98,7 +127,7 @@ async function save() {
 <template>
   <FormModal
     :open="open" wide title="تسجيل صرف"
-    subtitle="يُسجَّل غير معتمَد — والاعتماد لشخص آخر، فمن سجّل لا يعتمد."
+    subtitle="يُسجَّل غير معتمَد، والاعتماد لشخص آخر: من سجّل لا يعتمد."
     :busy="form.submitting.value" :dirty="form.dirty.value"
     @close="emit('close')" @submit="save"
   >
@@ -106,7 +135,7 @@ async function save() {
       <FormField
         v-model="form.values.category_id" label="بند الصرف" required autofocus
         :options="categoryOptions" placeholder="اختر البند"
-        :error="form.errors.value.category_id" @update:model-value="form.touch('category_id')"
+        :error="form.errors.value.category_id" @update:model-value="onCategoryPicked"
       />
       <FormField
         v-model="form.values.spent_on" label="تاريخ الصرف" type="date" required
@@ -129,9 +158,9 @@ async function save() {
 
     <FormField
       v-if="needsRate"
-      v-model="form.values.fx_rate" label="سعر الصرف إلى الدولار" type="number"
+      v-model="form.values.fx_rate" label="سعر الصرف إلى الدولار" type="number" required
       :min="0.000001" :step="0.0001"
-      hint="اتركه فارغاً ليستعمل الخادم سعر اليوم المسجَّل."
+      :hint="`كم دولاراً يساوي ١ ${form.values.currency}، كما في إيصال البنك أو الصرّاف. منه يُحسب المبلغ في تقارير الشفافية.`"
       :error="form.errors.value.fx_rate" @update:model-value="form.touch('fx_rate')"
     />
 
@@ -139,17 +168,17 @@ async function save() {
       الطفل اختياري: الصرف الإداري العام لا يخصّ طفلاً بعينه، وإجباره على
       واحد يفسد نسبة «ما وصل الطفل» في تقرير الشفافية.
     -->
-    <FormField
+    <SearchSelect
       v-model="form.values.orphan_id" label="الطفل"
-      :options="orphanOptions"
-      :placeholder="selected?.is_overhead ? 'بند تشغيلي — لا يخصّ طفلاً' : 'اختياري — اتركه فارغاً للمصروف العام'"
+      :search="searchOrphans"
+      :placeholder="selected?.is_overhead ? 'بند تشغيلي لا يخصّ طفلاً' : 'اختياري، اتركه فارغاً للمصروف العام'"
       :disabled="selected?.is_overhead"
       :error="form.errors.value.orphan_id" @update:model-value="form.touch('orphan_id')"
     />
 
     <FormField
       v-model="form.values.description" label="البيان"
-      placeholder="رسوم فصل دراسي — مدرسة النهضة"
+      placeholder="رسوم فصل دراسي في مدرسة النهضة"
       :error="form.errors.value.description" @update:model-value="form.touch('description')"
     />
 
@@ -164,13 +193,13 @@ async function save() {
       <p id="receiptHelp" class="text-xs text-sand-500 mt-1">
         PDF أو صورة. صرفٌ بلا إيصال يُسجَّل، لكن التدقيق لا يستطيع تأكيده.
       </p>
-      <p v-if="form.errors.value.receipt" class="text-xs text-clay-700 mt-1" role="alert">
+      <p v-if="form.errors.value.receipt" class="text-xs text-rose-700 mt-1" role="alert">
         {{ form.errors.value.receipt[0] }}
       </p>
     </div>
 
-    <template #actions>
-      <button class="btn btn-outline" type="button" :disabled="form.submitting.value" @click="emit('close')">
+    <template #actions="{ close }">
+      <button class="btn btn-outline" type="button" :disabled="form.submitting.value" @click="close">
         إلغاء
       </button>
       <button class="btn btn-primary" type="submit" :disabled="form.submitting.value">

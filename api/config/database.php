@@ -57,6 +57,12 @@ return [
             'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
             'prefix' => '',
             'prefix_indexes' => true,
+            /*
+             * توقيت الجلسة UTC كالتطبيق. أعمدة TIMESTAMP تُحوَّل من توقيت الجلسة،
+             * وكان توقيت الجهاز (غزة)، فوقتٌ يقع في ساعة تقديم التوقيت الصيفي
+             * («2026-03-28 02:00») يُرفض لأنه غير موجود محلياً، وساعة التأخير تلتبس.
+             */
+            'timezone' => env('DB_TIMEZONE', '+00:00'),
             'strict' => true,
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([

@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Api\V1\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\ForgotPasswordRequest;
 use App\Http\Requests\Auth\ResetPasswordRequest;
+use App\Enums\UserStatus;
 use App\Models\User;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\JsonResponse;
@@ -39,12 +40,12 @@ class PasswordResetController extends Controller
         // وإلا ضغط الزرّ مراراً وهو يظن أن شيئاً يحدث
         if ($status === Password::RESET_THROTTLED) {
             throw ValidationException::withMessages([
-                'email' => 'أرسلنا رابطاً قبل قليل. انتظر دقيقة قبل المحاولة مجدداً.',
+                'email' => __('أرسلنا رابطاً قبل قليل. انتظر دقيقة قبل المحاولة مجدداً.'),
             ])->status(429);
         }
 
         return response()->json([
-            'message' => 'إن كان هذا البريد مسجّلاً لدينا فسيصلك رابط إعادة التعيين خلال دقائق.',
+            'message' => __('إن كان هذا البريد مسجّلاً لدينا فسيصلك رابط إعادة التعيين خلال دقائق.'),
         ]);
     }
 
@@ -64,6 +65,13 @@ class PasswordResetController extends Controller
                      * اختُرق؛ فترك الكوكيز القديمة صالحة يُفرغ العملية من معناها.
                      */
                     'remember_token' => Str::random(60),
+
+                    /**
+                     * الموظف الجديد يُنشأ «بانتظار التفعيل» بلا كلمة مرور يعرفها،
+                     * ويفعّل حسابه بتعيين كلمته من رابط الدعوة. بلا هذا يعيّنها
+                     * ثم يُردّ عند الدخول بأن حسابه موقوف. أما الموقوف فيبقى موقوفاً.
+                     */
+                    'status' => $user->status === UserStatus::Pending ? UserStatus::Active : $user->status,
                 ])->save();
 
                 event(new PasswordReset($user));
@@ -72,12 +80,12 @@ class PasswordResetController extends Controller
 
         if ($status !== Password::PASSWORD_RESET) {
             throw ValidationException::withMessages([
-                'email' => 'الرابط منتهي الصلاحية أو مستعمل من قبل. اطلب رابطاً جديداً.',
+                'email' => __('الرابط منتهي الصلاحية أو مستعمل من قبل. اطلب رابطاً جديداً.'),
             ]);
         }
 
         return response()->json([
-            'message' => 'تم تغيير كلمة المرور. يمكنك الدخول الآن.',
+            'message' => __('تم تغيير كلمة المرور. يمكنك الدخول الآن.'),
         ]);
     }
 }

@@ -26,7 +26,15 @@ class ReportResource extends JsonResource
             'visit_date' => $this->visit_date?->toDateString(),
             'status' => $this->status->value,
             'status_label' => $this->status->label(),
+
+            // ملاحظات المراجعة داخلية: لا تصل بوابة الكافل وإن شاركته هذا المورد
+            'review_note' => $this->when($this->isStaff($request), $this->review_note),
+            'returned_at' => $this->when($this->isStaff($request), fn () => $this->returned_at?->toIso8601String()),
             'published_at' => $this->published_at?->toIso8601String(),
+            // آخر تغيير: للمُرسَل هو لحظة الإرسال، ومنه «ينتظر منذ»
+            'updated_at' => $this->when($this->isStaff($request), fn () => $this->updated_at?->toIso8601String()),
+            // كم مرة فُتح من الكفلاء بعد نشره
+            'views_count' => $this->when($this->isStaff($request) && isset($this->views_count), fn () => (int) $this->views_count),
 
             // تُضاف بـ withCount في استعلام بوابة الكافل
             'is_new' => $this->when(
@@ -41,8 +49,16 @@ class ReportResource extends JsonResource
                 'photo_url' => $this->orphan->photo_path
                     ? asset('storage/'.$this->orphan->photo_path)
                     : null,
+                // بديلٌ ثابت حين لا صورة: الرسم نفسه الذي يراه الموقع العام. يُحسب من
+                // الجنس، فلا يظهر حيث جُلب الطفل بأعمدةٍ لا تشمله
+                'illustration_url' => $this->when(
+                    array_key_exists('gender', $this->orphan->getAttributes()),
+                    fn () => $this->orphan->illustrationUrl(),
+                ),
             ]),
             'supervisor' => $this->whenLoaded('supervisor', fn () => $this->supervisor?->name),
+            'supervisor_id' => $this->when($this->isStaff($request), $this->supervisor_id),
+            'approver' => $this->whenLoaded('approver', fn () => $this->approver?->name),
             'media' => $this->whenLoaded('media', fn () => $this->media->map(fn ($m) => [
                 'id' => $m->id,
                 'type' => $m->type,
@@ -50,5 +66,10 @@ class ReportResource extends JsonResource
                 'caption' => $m->caption,
             ])->all()),
         ];
+    }
+
+    private function isStaff(Request $request): bool
+    {
+        return (bool) $request->user()?->can('reports.view');
     }
 }

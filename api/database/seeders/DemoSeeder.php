@@ -85,6 +85,9 @@ class DemoSeeder extends Seeder
         $this->disbursements($orphanIds, $staff);
         $this->reportsAndVisits($orphanIds, $staff, $sponsorIds);
 
+        $this->command->info('  · سجل النشاط…');
+        $this->call(ActivityDemoSeeder::class);
+
         $this->command->info('  · إعادة حساب نسب التمويل…');
         Orphan::query()->chunkById(200, function ($chunk): void {
             foreach ($chunk as $orphan) {
@@ -100,7 +103,7 @@ class DemoSeeder extends Seeder
     {
         $palestine = Country::where('iso2', 'PS')->value('id');
 
-        $admin = User::updateOrCreate(['email' => 'admin@kafala.org'], [
+        $admin = User::updateOrCreate(['email' => 'admin@lamma.org'], [
             'name' => 'أحمد الحواجري',
             'password' => Hash::make('password'),
             'phone' => '+970599000001',
@@ -109,7 +112,7 @@ class DemoSeeder extends Seeder
         ]);
         $admin->syncRoles(UserRole::Admin->value);
 
-        $accountant = User::updateOrCreate(['email' => 'accountant@kafala.org'], [
+        $accountant = User::updateOrCreate(['email' => 'accountant@lamma.org'], [
             'name' => 'هدى النجار',
             'password' => Hash::make('password'),
             'status' => 'active',
@@ -124,8 +127,9 @@ class DemoSeeder extends Seeder
 
         $supervisors = [];
         foreach (Country::operational()->take(4)->get() as $i => $country) {
-            $user = User::updateOrCreate(['email' => "supervisor{$i}@kafala.org"], [
-                'name' => self::LAST_NAMES[$i].' — مشرف '.$country->name_ar,
+            $user = User::updateOrCreate(['email' => "supervisor{$i}@lamma.org"], [
+                // اسمٌ لا مسمّى: البلد في ملف الموظف (المسمّى والبلد المُسنَد) لا في اسمه
+                'name' => self::FIRST_NAMES_MALE[$i + 4].' '.self::LAST_NAMES[$i],
                 'password' => Hash::make('password'),
                 'status' => 'active',
                 'email_verified_at' => now(),
@@ -133,7 +137,7 @@ class DemoSeeder extends Seeder
             $user->syncRoles(UserRole::FieldSupervisor->value);
             $user->staffProfile()->updateOrCreate([], [
                 'employee_code' => 'EMP-'.str_pad((string) (10 + $i), 4, '0', STR_PAD_LEFT),
-                'title' => 'مشرف ميداني',
+                'title' => 'مشرف ميداني في '.$country->name_ar,
                 'assigned_country_id' => $country->id,
                 'hired_at' => now()->subYears(random_int(1, 6)),
             ]);
@@ -357,7 +361,7 @@ class DemoSeeder extends Seeder
         $ids = [];
 
         // كافل تجريبي بحساب معروف — هو عبدالله المطيري في لوحة الكافل الحالية
-        $demo = User::updateOrCreate(['email' => 'sponsor@kafala.org'], [
+        $demo = User::updateOrCreate(['email' => 'sponsor@lamma.org'], [
             'name' => 'عبدالله المطيري',
             'password' => Hash::make('password'),
             'phone' => '+966500000001',
@@ -397,9 +401,14 @@ class DemoSeeder extends Seeder
                 'prefers_zakat' => random_int(0, 100) < 35,
                 'is_anonymous' => random_int(0, 100) < 12,
                 'communication_prefs' => ['email' => true, 'sms' => random_int(0, 1) === 1],
-                'sponsoring_since' => now()->subDays(random_int(20, 1600)),
+                // آخر ثلاثة سجّلوا هذا الأسبوع: «كفلاء جدد» في «منذ آخر دخول»
+                'sponsoring_since' => $i > 177 ? now()->subDays(random_int(0, 4)) : now()->subDays(random_int(20, 1600)),
             ])->id;
         }
+
+        // تاريخ التسجيل تاريخ الكفالة الأولى، لا لحظة البذر: وإلا بدا الكفلاء
+        // كلهم «جدداً» اليوم
+        Sponsor::query()->update(['created_at' => DB::raw('sponsoring_since')]);
 
         return $ids;
     }
@@ -603,6 +612,28 @@ class DemoSeeder extends Seeder
                     DB::table('payments')->insert($part);
                 }
             });
+
+        /*
+         * من دفع آخر قسطٍ ببطاقة له بطاقةٌ محفوظة عند البوابة التجريبية،
+         * فيخصمها billing:run كما يخصم بطاقة من كفل من الموقع. وغيره (تحويل)
+         * يبقى بلا بطاقة، يتابعه المحاسب.
+         */
+        $cards = DB::table('payments as p')
+            ->join('sponsorships as s', 's.id', '=', 'p.sponsorship_id')
+            ->where('s.status', SponsorshipStatus::Active->value)
+            ->where('p.status', PaymentStatus::Succeeded->value)
+            ->whereIn('p.method', [PaymentMethod::Card->value, PaymentMethod::ApplePay->value])
+            ->whereRaw('p.paid_at = (select max(paid_at) from payments where sponsorship_id = s.id and status = ?)', [PaymentStatus::Succeeded->value])
+            ->get(['s.id', 'p.card_brand', 'p.card_last4']);
+
+        foreach ($cards as $card) {
+            DB::table('sponsorships')->where('id', $card->id)->update([
+                'payment_method' => PaymentMethod::Card->value,
+                'gateway_payment_method' => 'pm_demo_seed_'.$card->id,
+                'card_brand' => $card->card_brand,
+                'card_last4' => $card->card_last4,
+            ]);
+        }
     }
 
     /* ==================================================================== */
@@ -629,7 +660,10 @@ class DemoSeeder extends Seeder
             for ($m = 0; $m < $months; $m++) {
                 // startOfMonth قبل الطرح: من ٢٩ أغسطس، subMonths(6) يعطي ٢٩ فبراير
                 // غير الموجود فينزلق إلى مارس، فيخرج شهر فارغ وآخر مضاعف في الرسم
-                $spentOn = Carbon::now()->startOfMonth()->subMonthsNoOverflow($m)->setDay(random_int(1, 28));
+                // الشهر الجاري حتى اليوم وحده: صرفٌ بتاريخ لم يأتِ بعد كان يدخل
+                // «مصروف الشهر» وأرقام الشفافية كأنه وقع
+                $lastDay = $m === 0 ? max(1, min(28, (int) now()->day)) : 28;
+                $spentOn = Carbon::now()->startOfMonth()->subMonthsNoOverflow($m)->setDay(random_int(1, $lastDay));
                 $budget = $orphan['need'] * $orphan['funded'] / 100;
 
                 foreach ($weights as $slug => $weight) {
@@ -646,9 +680,11 @@ class DemoSeeder extends Seeder
                         'amount_base' => $amount,
                         'spent_on' => $spentOn->toDateString(),
                         'description' => null,
-                        'recorded_by' => $staff['supervisors'][array_rand($staff['supervisors'])],
-                        'approved_by' => $staff['accountant'],
-                        'approved_at' => $spentOn->copy()->addDays(random_int(1, 6)),
+                        // المحاسب يسجّل والمدير يعتمد: المشرف لا يملك صلاحية تسجيل الصرف،
+                        // والعينان اثنتان كما تفرضهما DisbursementPolicy
+                        'recorded_by' => $staff['accountant'],
+                        'approved_by' => $staff['admin'],
+                        'approved_at' => $spentOn->copy()->addDays(random_int(1, 6))->min(now()),
                         'created_at' => $spentOn,
                         'updated_at' => $spentOn,
                     ];
@@ -670,7 +706,8 @@ class DemoSeeder extends Seeder
         }
 
         foreach ($childSpendByMonth as $month => $childSpend) {
-            $spentOn = Carbon::parse($month.'-01')->endOfMonth();
+            // آخر الشهر، أو اليوم إن كان الشهر الجاري
+            $spentOn = Carbon::parse($month.'-01')->endOfMonth()->startOfDay()->min(now()->startOfDay());
             $amount = round($childSpend * 7 / 93 * (random_int(92, 108) / 100), 2);
 
             $rows[] = [
@@ -683,7 +720,7 @@ class DemoSeeder extends Seeder
                 'description' => 'مصاريف تشغيل شهرية',
                 'recorded_by' => $staff['accountant'],
                 'approved_by' => $staff['admin'],
-                'approved_at' => $spentOn->copy()->addDays(2),
+                'approved_at' => $spentOn->copy()->addDays(2)->min(now()),
                 'created_at' => $spentOn,
                 'updated_at' => $spentOn,
             ];
@@ -727,7 +764,7 @@ class DemoSeeder extends Seeder
                     'orphan_id' => $orphan['id'],
                     'period_year' => $when->year,
                     'period_quarter' => $when->quarter,
-                    'title' => "تقرير الربع {$when->quarter} — {$when->year}",
+                    'title' => "تقرير الربع {$when->quarter} لعام {$when->year}",
                     'summary' => 'زيارة ميدانية موثّقة، ومتابعة دراسية وصحية ونفسية.',
                     'academic_note' => 'معدّل '.random_int(62, 97).'٪، حضور منتظم.',
                     'health_note' => random_int(0, 100) < 80 ? 'فحص دوري بلا ملاحظات.' : 'يحتاج متابعة تغذية.',
@@ -753,7 +790,7 @@ class DemoSeeder extends Seeder
                     'visited_at' => $when,
                     'findings' => 'الوضع مستقر، والاحتياجات موثّقة في التقرير الربعي.',
                     'needs_flagged' => json_encode(
-                        random_int(0, 100) < 30 ? ['winter_clothes'] : [],
+                        random_int(0, 100) < 30 ? [['ملابس شتوية', 'تعثّر دراسي', 'حاجة صحية', 'دعم نفسي', 'مواصلات'][random_int(0, 4)]] : [],
                         JSON_UNESCAPED_UNICODE,
                     ),
                     'next_visit_due' => $when->copy()->addMonths(2)->toDateString(),

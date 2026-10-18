@@ -6,7 +6,7 @@
  * بدل الاستماع المستمر لحدث scroll حفاظاً على الأداء.
  */
 
-import { $, $$, observeOnce, prefersReducedMotion, rafThrottle, clamp, formatNumber } from './utils.js';
+import { $, $$, observeOnce, prefersReducedMotion, rafThrottle, clamp, formatNumber, presetCount } from './utils.js';
 
 /* -------------------------------------------------------------------------
    1. الكشف عند التمرير
@@ -33,13 +33,16 @@ export function initReveal() {
 /* -------------------------------------------------------------------------
    2. العدّادات الرقمية
    ------------------------------------------------------------------------- */
+const counterText = (el) => formatNumber(Number(el.dataset.count) || 0) + (el.dataset.suffix || '');
+
 function runCounter(el) {
   const target = Number(el.dataset.count) || 0;
   const suffix = el.dataset.suffix || '';
   const duration = Number(el.dataset.duration) || 1600;
+  const vis = presetCount(el, counterText(el));
 
   if (prefersReducedMotion()) {
-    el.textContent = formatNumber(target) + suffix;
+    vis.textContent = formatNumber(target) + suffix;
     return;
   }
 
@@ -49,7 +52,7 @@ function runCounter(el) {
     const progress = clamp((now - start) / duration, 0, 1);
     // تباطؤ في النهاية يجعل الرقم يستقر بدل أن يتوقف فجأة
     const eased = 1 - Math.pow(1 - progress, 4);
-    el.textContent = formatNumber(Math.round(target * eased)) + suffix;
+    vis.textContent = formatNumber(Math.round(target * eased)) + suffix;
     if (progress < 1) requestAnimationFrame(tick);
   };
 
@@ -57,7 +60,10 @@ function runCounter(el) {
 }
 
 export function initCounters() {
-  observeOnce($$('[data-count]'), runCounter, { threshold: 0.4 });
+  const counters = $$('[data-count]');
+  // الرقم النهائي للقارئ الصوتي قبل أن يظهر العدّاد على الشاشة
+  counters.forEach((el) => presetCount(el, counterText(el)));
+  observeOnce(counters, runCounter, { threshold: 0.4 });
 }
 
 /* -------------------------------------------------------------------------
@@ -79,73 +85,12 @@ export function initDonuts() {
   observeOnce($$('.donut'), (el) => el.classList.add('is-visible'), { threshold: 0.3 });
 }
 
-/* -------------------------------------------------------------------------
-   5. ميلان لطيف للقوس مع حركة الفأرة
-   يعمل على المؤشر فقط — لا معنى له باللمس، ويُعطَّل مع تقليل الحركة.
-   ------------------------------------------------------------------------- */
-export function initTilt() {
-  if (prefersReducedMotion()) return;
-  if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
-
-  $$('[data-tilt]').forEach((stage) => {
-    const target = $('[data-tilt-target]', stage) || stage;
-    const max = Number(stage.dataset.tilt) || 5;
-
-    const onMove = rafThrottle((e) => {
-      const rect = stage.getBoundingClientRect();
-      const px = (e.clientX - rect.left) / rect.width - 0.5;
-      const py = (e.clientY - rect.top) / rect.height - 0.5;
-      target.style.transform =
-        `perspective(1000px) rotateY(${px * max * 2}deg) rotateX(${-py * max * 2}deg)`;
-    });
-
-    stage.addEventListener('pointermove', onMove);
-    stage.addEventListener('pointerleave', () => {
-      target.style.transform = '';
-    });
-  });
-}
-
-/* -------------------------------------------------------------------------
-   6. كشف العنوان كلمةً كلمة
-   نُقسّم النص إلى كلمات ونلفّ كلاً منها بـ span، مع الحفاظ على
-   العناصر الداخلية (مثل span التمييز) كما هي.
-   ------------------------------------------------------------------------- */
-export function initWordReveal() {
-  if (prefersReducedMotion()) return;
-
-  $$('[data-words]').forEach((el) => {
-    let index = 0;
-
-    const wrapTextNode = (node) => {
-      const words = node.textContent.split(/(\s+)/);
-      const fragment = document.createDocumentFragment();
-
-      words.forEach((word) => {
-        if (!word.trim()) {
-          fragment.appendChild(document.createTextNode(word));
-          return;
-        }
-        const span = document.createElement('span');
-        span.className = 'reveal-word';
-        span.style.setProperty('--word-index', index++);
-        span.textContent = word;
-        fragment.appendChild(span);
-      });
-
-      node.replaceWith(fragment);
-    };
-
-    // نمر على الأبناء المباشرين: النصوص تُقسّم، والعناصر تُعامل ككتلة واحدة
-    [...el.childNodes].forEach((node) => {
-      if (node.nodeType === Node.TEXT_NODE) {
-        wrapTextNode(node);
-      } else if (node.nodeType === Node.ELEMENT_NODE) {
-        node.classList.add('reveal-word');
-        node.style.setProperty('--word-index', index++);
-      }
-    });
-  });
+/**
+ * اسم الموقع الضخم في الفوتر: يُكتب مرةً واحدة حين يظهر منه شيء.
+ * الحركة كلها في footer.css، وهنا الإشارة وحدها؛ وتقليل الحركة يُسقطها هناك.
+ */
+export function initFooterMark() {
+  observeOnce($$('.kf-footer__mark'), (el) => el.classList.add('is-visible'), { threshold: 0.2, rootMargin: '0px' });
 }
 
 /* -------------------------------------------------------------------------
@@ -154,12 +99,14 @@ export function initWordReveal() {
 export function initToTop() {
   const btn = $('#toTop');
   const root = document.documentElement;
+  const header = $('#siteHeader');
 
   const update = rafThrottle(() => {
     const scrollable = root.scrollHeight - window.innerHeight;
     const progress = scrollable > 0 ? window.scrollY / scrollable : 0;
-    // يُكتب على الجذر فيستفيد منه خط تقدّم القراءة في الهيدر أيضاً
-    root.style.setProperty('--scroll-progress', progress.toFixed(3));
+    // على الهيدر لا الجذر: متغيّرٌ موروث يتبدّل على الجذر مع كل إطار يعيد
+    // حساب أنماط الصفحة كلها، وخط التقدّم وحده من يقرؤه
+    header?.style.setProperty('--scroll-progress', progress.toFixed(3));
     btn?.classList.toggle('is-visible', window.scrollY > 600);
   });
 
@@ -176,15 +123,29 @@ export function initToTop() {
 
 /* -------------------------------------------------------------------------
    8. شريط الإجراء السفلي على الجوال
-   يظهر بعد تجاوز الهيرو حتى لا يزاحم زر "اكفل الآن" الرئيسي.
+   يظهر بعد تجاوز الهيرو، ويختفي حين يكون زر «اكفل» ظاهراً أصلاً على الشاشة
+   (الهيرو والخاتمة والفوتر)، فلا يتزاحم زرّان للفعل نفسه.
    ------------------------------------------------------------------------- */
 export function initActionBar() {
   const bar = $('#actionBar');
   if (!bar) return;
 
+  // ومعها لوحة الكفالة في صفحة الطفل: زرّها ظاهر فلا يتكرر تحته
+  const zones = $$('.hero, .closing, .site-footer, .kf-footer, .kid-panel');
+  const inView = new Set();
+
   const update = rafThrottle(() => {
-    bar.classList.toggle('is-visible', window.scrollY > window.innerHeight * 0.7);
+    const pastHero = window.scrollY > window.innerHeight * 0.7;
+    bar.classList.toggle('is-visible', pastHero && inView.size === 0);
   });
+
+  if ('IntersectionObserver' in window && zones.length) {
+    const watch = new IntersectionObserver((entries) => {
+      entries.forEach((e) => (e.isIntersecting ? inView.add(e.target) : inView.delete(e.target)));
+      update();
+    }, { threshold: 0.15 });
+    zones.forEach((zone) => watch.observe(zone));
+  }
 
   update();
   window.addEventListener('scroll', update, { passive: true });

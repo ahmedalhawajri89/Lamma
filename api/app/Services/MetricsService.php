@@ -48,7 +48,12 @@ class MetricsService
         return Cache::remember('metrics.kpis', self::CACHE_TTL, function (): array {
             $monthStart = now()->startOfMonth();
             $prevStart = now()->subMonthNoOverflow()->startOfMonth();
-            $prevEnd = now()->subMonthNoOverflow()->endOfMonth();
+            /*
+             * المقارنة بالفترة نفسها من الشهر الماضي، لا بالشهر كاملاً: في
+             * اليوم الثاني عشر كان الشهر الجاري يُقارن بشهر مكتمل، فيبدو
+             * هبوطاً بالنصف وهو مجرّد شهر لم ينتهِ بعد.
+             */
+            $prevEnd = now()->subMonthNoOverflow();
 
             $revenueThisMonth = (float) Payment::settled()
                 ->where('paid_at', '>=', $monthStart)
@@ -105,6 +110,40 @@ class MetricsService
                     ->count(),
             ];
         });
+    }
+
+    /**
+     * مؤشرات المشرف الميداني: أيتام بلده وزياراته، بلا أي رقم مالي.
+     *
+     * بلا تخزين مؤقت: عدّادات قليلة على بلد واحد، وتبقى صادقة فور تسجيل
+     * زيارة أو توثيق ملف، بينما مفتاح لكل بلد يتعقّد مسحه.
+     *
+     * @return array<string, int>
+     */
+    public function countryKpis(int $countryId): array
+    {
+        $orphans = fn () => Orphan::query()->whereHas('family', fn ($f) => $f->where('country_id', $countryId));
+        $visits = fn () => FieldVisit::query()->whereHas('orphan.family', fn ($f) => $f->where('country_id', $countryId));
+
+        return [
+            'orphans_total' => $orphans()->count(),
+            'orphans_sponsored' => $orphans()->whereHas(
+                'sponsorships',
+                fn ($q) => $q->where('status', SponsorshipStatus::Active),
+            )->count(),
+            'orphans_awaiting' => $orphans()
+                ->where('status', OrphanStatus::Active)
+                ->where('funded_percent', '<', 100)
+                ->count(),
+            'orphans_pending_verification' => $orphans()
+                ->where('status', OrphanStatus::PendingVerification)
+                ->count(),
+            'urgent_unfunded' => $orphans()->urgentUnfunded()
+                ->where('status', OrphanStatus::Active)
+                ->count(),
+            'visits_month' => $visits()->where('visited_at', '>=', now()->startOfMonth())->count(),
+            'overdue_visits' => $visits()->overdue()->count(),
+        ];
     }
 
     /* ================================================================
@@ -244,8 +283,8 @@ class MetricsService
 
             return [
                 ['label' => 'غير مكفول', 'value' => (int) $row->none],
-                ['label' => 'أقل من ٥٠٪', 'value' => (int) $row->low],
-                ['label' => '٥٠٪ إلى ٩٩٪', 'value' => (int) $row->mid],
+                ['label' => 'أقل من 50%', 'value' => (int) $row->low],
+                ['label' => 'من 50% إلى 99%', 'value' => (int) $row->mid],
                 ['label' => 'مكتمل', 'value' => (int) $row->full],
             ];
         });

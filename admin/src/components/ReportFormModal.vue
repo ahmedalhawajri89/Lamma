@@ -15,10 +15,15 @@ import { useForm } from '@/composables/useForm'
 import BaseIcon from './BaseIcon.vue'
 import FormModal from './FormModal.vue'
 import FormField from './FormField.vue'
+import SearchSelect from './SearchSelect.vue'
+import { searchOrphans } from '@/composables/lookups'
 
 const props = defineProps({
   open: { type: Boolean, default: false },
   orphans: { type: Array, default: () => [] },
+
+  /** تقرير قائم يُعدَّل (مسوّدة، أو مُرجَعة بملاحظة)، و`null` لتقرير جديد */
+  report: { type: Object, default: null },
 })
 
 const emit = defineEmits(['close', 'saved'])
@@ -53,17 +58,18 @@ const BLANK = {
   visit_date: '',
 }
 
-const form = useForm(BLANK, (values) => admin.reports.create(values))
+const form = useForm(BLANK, (values) => (props.report
+  ? admin.reports.update(props.report.id, values)
+  : admin.reports.create(values)))
 
-const orphanOptions = computed(() =>
-  props.orphans.map((o) => ({ value: o.id, label: `${o.reference_code} — ${o.first_name}` })),
-)
+const editing = computed(() => props.report !== null)
+
 
 const quarters = [
-  { value: 1, label: 'الربع الأول (يناير–مارس)' },
-  { value: 2, label: 'الربع الثاني (أبريل–يونيو)' },
-  { value: 3, label: 'الربع الثالث (يوليو–سبتمبر)' },
-  { value: 4, label: 'الربع الرابع (أكتوبر–ديسمبر)' },
+  { value: 1, label: 'الربع الأول (من يناير إلى مارس)' },
+  { value: 2, label: 'الربع الثاني (من أبريل إلى يونيو)' },
+  { value: 3, label: 'الربع الثالث (من يوليو إلى سبتمبر)' },
+  { value: 4, label: 'الربع الرابع (من أكتوبر إلى ديسمبر)' },
 ]
 
 const years = Array.from({ length: 4 }, (_, i) => now.getFullYear() - i)
@@ -71,7 +77,13 @@ const years = Array.from({ length: 4 }, (_, i) => now.getFullYear() - i)
 watch(
   () => props.open,
   (isOpen) => {
-    if (isOpen) form.setValues(BLANK)
+    if (!isOpen) return
+
+    form.setValues(props.report
+      ? Object.fromEntries(Object.keys(BLANK).map((k) => [
+        k, k === 'orphan_id' ? props.report.orphan?.id : (props.report[k] ?? ''),
+      ]))
+      : BLANK)
   },
   { immediate: true },
 )
@@ -84,18 +96,25 @@ async function save() {
 
 <template>
   <FormModal
-    :open="open" wide title="تقرير ربعي جديد"
-    subtitle="يُحفظ مسوّدةً — ثم يُرفع للاعتماد، ولا يصل الكافل قبل النشر."
+    :open="open" wide :title="editing ? 'تعديل التقرير' : 'تقرير ربعي جديد'"
+    :subtitle="editing ? `${report.orphan?.name ?? ''} · ${report.period_label ?? ''}` : 'يُحفظ مسوّدةً ثم يُرفع للاعتماد، ولا يصل الكافل قبل النشر.'"
     :busy="form.submitting.value" :dirty="form.dirty.value"
     @close="emit('close')" @submit="save"
   >
-    <FormField
+    <!-- ما طلبه المراجع، أمام الكاتب وهو يعدّل -->
+    <div v-if="report?.review_note" class="border-s-4 border-amber-500 bg-amber-50 rounded-e-lg px-4 py-3" role="note">
+      <p class="text-xs font-semibold text-amber-800">ملاحظة المراجع</p>
+      <p class="text-sm text-sand-800 mt-1 leading-relaxed whitespace-pre-line">{{ report.review_note }}</p>
+    </div>
+
+    <SearchSelect
+      v-if="!editing"
       v-model="form.values.orphan_id" label="الطفل" required autofocus
-      :options="orphanOptions" placeholder="اختر الطفل"
+      :search="searchOrphans" placeholder="اسم الطفل أو رمزه…"
       :error="form.errors.value.orphan_id" @update:model-value="form.touch('orphan_id')"
     />
 
-    <div class="grid sm:grid-cols-2 gap-4">
+    <div v-if="!editing" class="grid sm:grid-cols-2 gap-4">
       <FormField
         v-model="form.values.period_year" label="السنة" type="number" required
         :options="years"
@@ -110,7 +129,7 @@ async function save() {
 
     <FormField
       v-model="form.values.title" label="العنوان" required
-      placeholder="تقرير الربع الثاني — تحسّن ملحوظ في الرياضيات"
+      placeholder="تقرير الربع الثاني: تحسّن ملحوظ في الرياضيات"
       :error="form.errors.value.title" @update:model-value="form.touch('title')"
     />
 
@@ -143,13 +162,13 @@ async function save() {
       />
     </div>
 
-    <template #actions>
-      <button class="btn btn-outline" type="button" :disabled="form.submitting.value" @click="emit('close')">
+    <template #actions="{ close }">
+      <button class="btn btn-outline" type="button" :disabled="form.submitting.value" @click="close">
         إلغاء
       </button>
       <button class="btn btn-primary" type="submit" :disabled="form.submitting.value">
         <BaseIcon v-if="form.submitting.value" name="loader" :size="15" class="animate-spin" />
-        {{ form.submitting.value ? 'جارٍ الحفظ…' : 'احفظ مسوّدة' }}
+        {{ form.submitting.value ? 'جارٍ الحفظ…' : (editing ? 'احفظ التعديلات' : 'احفظ مسوّدة') }}
       </button>
     </template>
   </FormModal>

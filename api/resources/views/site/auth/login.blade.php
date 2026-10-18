@@ -1,0 +1,155 @@
+@extends('site.layouts.auth')
+
+{{--
+  تسجيل الدخول. النموذج يرسله forms.js (data-action="login") ثم ينتقل إلى
+  ?redirect= إن كانت على الموقع نفسه، وإلا إلى الحساب. واستعادة كلمة المرور
+  في البطاقة نفسها (signin.js) لا في نافذة: البريد ينتقل معها، ورجوعٌ بنقرة.
+
+  ما يطلبه الدخول المتاح (WCAG 2.2): مدير كلمات المرور يملأ الحقلين، واللصق
+  مسموح، وكلمة المرور تُظهَر بزرّ، والأخطاء تحت حقولها بـ aria-describedby.
+  ولا حدّ أدنى لطول كلمة المرور هنا: ذلك شرط التسجيل لا الدخول.
+--}}
+@section('title'){{ __('تسجيل الدخول') }}@endsection
+@section('description'){{ __('ادخل إلى حسابك لمتابعة كفالاتك وتقاريرها.') }}@endsection
+@section('canonical', url(lurl('/login')))
+
+@section('content')
+  <div class="acc">
+
+    {{-- ══ النموذج ══ --}}
+    <main class="acc-main" id="main">
+      <div class="acc-bar">
+        <a class="kf-brand acc-brand" href="{{ lurl('/') }}">
+          <img src="/assets/img/logo.svg" alt="" width="40" height="40">
+          <span class="kf-brand__name"><span>{{ $site['name'] }}</span><span class="kf-brand__tag">{{ $site['tagline'] }}</span></span>
+        </a>
+        <div class="acc-bar__tools">
+          @include('site.partials.lang-switch')
+          <button class="btn btn-icon btn-icon--plain" type="button" id="themeToggle" aria-pressed="false" aria-label="{{ __('الوضع الليلي') }}">
+            <i class="fa-solid fa-moon" aria-hidden="true"></i>
+            <i class="fa-solid fa-sun" aria-hidden="true"></i>
+          </button>
+          <a class="acc-back" href="{{ lurl('/') }}">{{ __('الرئيسية') }} <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <div class="acc-panel">
+        {{-- الدخول --}}
+        <section data-acc-view="login" aria-labelledby="loginTitle">
+          <h1 class="acc-title" id="loginTitle">{{ __('أهلاً بعودتك') }}</h1>
+          <p class="acc-lede">{{ __('ادخل لتتابع كفالاتك، وتقرأ آخر تقاريرها.') }}</p>
+
+          <form class="acc-form" data-validate-form data-action="login" data-redirect="{{ lurl('/dashboard') }}" novalidate>
+            <div class="field">
+              <label class="form-label" for="email">{{ __('البريد الإلكتروني') }}</label>
+              <div class="acc-input">
+                <i class="fa-regular fa-envelope" aria-hidden="true"></i>
+                <input class="form-control form-control-lg" type="email" id="email" name="email" dir="ltr"
+                       autocomplete="username" inputmode="email" autocapitalize="off" spellcheck="false"
+                       data-validate="required|email" aria-describedby="err-email">
+              </div>
+              <p class="field__error" id="err-email" aria-live="polite"></p>
+            </div>
+
+            <div class="field">
+              <div class="acc-label-row">
+                <label class="form-label" for="password">{{ __('كلمة المرور') }}</label>
+                <button class="acc-link" type="button" data-acc-go="forgot">{{ __('نسيت كلمة المرور؟') }}</button>
+              </div>
+              <div class="acc-input">
+                <i class="fa-solid fa-lock" aria-hidden="true"></i>
+                <input class="form-control form-control-lg" type="password" id="password" name="password" dir="ltr"
+                       autocomplete="current-password" data-validate="required"
+                       aria-describedby="caps-password err-password">
+                <button class="acc-input__toggle" type="button" data-password-toggle="password" aria-label="{{ __('إظهار كلمة المرور') }}" aria-pressed="false">
+                  <i class="fa-regular fa-eye" aria-hidden="true"></i>
+                </button>
+              </div>
+              <p class="acc-caps" id="caps-password" data-caps-for="password" hidden><i class="fa-solid fa-arrow-up" aria-hidden="true"></i> {{ __('مفتاح الأحرف الكبيرة (Caps Lock) مفعّل') }}</p>
+              <p class="field__error" id="err-password" aria-live="polite"></p>
+            </div>
+
+            <div class="form-check form-switch acc-remember">
+              <input class="form-check-input" type="checkbox" role="switch" id="remember" name="remember" checked>
+              <label class="form-check-label" for="remember">{{ __('ابقني مسجّلاً على هذا الجهاز') }}</label>
+            </div>
+
+            <button class="btn btn-primary btn-lg w-100" type="submit">{{ __('تسجيل الدخول') }} <i class="fa-solid fa-arrow-left acc-btn__arrow" aria-hidden="true"></i></button>
+          </form>
+
+          <p class="acc-secure"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> {{ __('اتصالٌ مشفّر، ولا نشارك بريدك مع أي جهة.') }}</p>
+
+          <div class="acc-switch">
+            <span>{{ __('جديد على :name؟', ['name' => $site['name']]) }}</span>
+            <a href="{{ lurl('/register') }}">{{ __('أنشئ حساباً') }} <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
+          </div>
+        </section>
+
+        {{-- استعادة كلمة المرور: في البطاقة نفسها --}}
+        <section data-acc-view="forgot" aria-labelledby="forgotTitle" hidden>
+          <button class="acc-backlink" type="button" data-acc-go="login"><i class="fa-solid fa-arrow-right" aria-hidden="true"></i> {{ __('العودة إلى الدخول') }}</button>
+          <span class="acc-view-icon" aria-hidden="true"><i class="fa-solid fa-key"></i></span>
+          <h1 class="acc-title" id="forgotTitle">{{ __('نسيت كلمة المرور؟') }}</h1>
+          <p class="acc-lede">{{ __('اكتب بريدك، ونرسل إليه رابطاً تعيّن منه كلمةً جديدة خلال دقائق.') }}</p>
+
+          <form class="acc-form" data-validate-form data-action="forgot" novalidate>
+            <div class="field">
+              <label class="form-label" for="resetEmail">{{ __('البريد الإلكتروني') }}</label>
+              <div class="acc-input">
+                <i class="fa-regular fa-envelope" aria-hidden="true"></i>
+                <input class="form-control form-control-lg" type="email" id="resetEmail" name="email" dir="ltr"
+                       autocomplete="email" inputmode="email" autocapitalize="off" spellcheck="false"
+                       data-validate="required|email" aria-describedby="err-resetEmail">
+              </div>
+              <p class="field__error" id="err-resetEmail" aria-live="polite"></p>
+            </div>
+            <button class="btn btn-primary btn-lg w-100" type="submit">{{ __('أرسل الرابط') }} <i class="fa-regular fa-paper-plane acc-btn__arrow" aria-hidden="true"></i></button>
+          </form>
+        </section>
+
+        {{-- بعد الإرسال: الجملة نفسها أكان البريد مسجّلاً أم لا، فلا تكشف الصفحة من له حساب --}}
+        <section data-acc-view="sent" aria-labelledby="sentTitle" hidden>
+          <span class="acc-view-icon acc-view-icon--ok" aria-hidden="true"><i class="fa-solid fa-envelope-circle-check"></i></span>
+          <h1 class="acc-title" id="sentTitle" tabindex="-1">{{ __('تحقّق من بريدك') }}</h1>
+          <p class="acc-lede">{{ __('إن كان') }} <b dir="ltr" data-acc-email></b> {{ __('مسجّلاً لدينا، فسيصله رابط تعيين كلمة المرور خلال دقائق.') }}</p>
+          <ul class="acc-tips">
+            <li><i class="fa-regular fa-folder-open" aria-hidden="true"></i> {{ __('لم يصل؟ انظر في مجلد الرسائل غير المرغوب فيها.') }}</li>
+            <li><i class="fa-regular fa-clock" aria-hidden="true"></i> {{ __('الرابط صالحٌ ساعةً واحدة، فاستعمله قريباً.') }}</li>
+          </ul>
+          <button class="btn btn-outline-primary btn-lg w-100" type="button" data-acc-go="login">{{ __('العودة إلى الدخول') }}</button>
+        </section>
+      </div>
+    </main>
+
+    {{-- ══ الجانب: ما ينتظرك في حسابك (توضيحي) ══ --}}
+    <aside class="acc-aside" aria-label="{{ __('ما ينتظرك في حسابك') }}">
+      <div class="acc-aside__inner">
+        <p class="acc-aside__kicker">{{ __('ما ينتظرك في حسابك') }}</p>
+        <h2 class="acc-aside__title">{{ __('طفلك، وأخباره،') }}<br>{{ __('وأين ذهب كل دولار.') }}</h2>
+
+        <div class="acc-mock" aria-hidden="true">
+          <div class="acc-mock__card acc-mock__card--main">
+            <div class="acc-mock__who">
+              <img src="/assets/img/kids/girl-08.svg" alt="" width="56" height="56">
+              <div><b>{{ __('أمنية، 8 سنوات') }}</b><span>{{ __('الكفالة التعليمية') }}</span></div>
+              <span class="acc-mock__tag">{{ __('تقرير جديد') }}</span>
+            </div>
+            <div class="acc-mock__row"><span>{{ __('اللغة العربية') }}</span><span class="acc-mock__bar"><span style="--v:92%"></span></span><b>92</b></div>
+            <div class="acc-mock__row"><span>{{ __('الرياضيات') }}</span><span class="acc-mock__bar"><span style="--v:85%"></span></span><b>85</b></div>
+            <div class="acc-mock__split"><span style="--w:40%;--c:var(--color-brand)"></span><span style="--w:34%;--c:var(--color-cta)"></span><span style="--w:26%;--c:var(--color-brand-border)"></span></div>
+            <p class="acc-mock__note">{{ __('كيف صُرفت كفالتك هذا الربع') }}</p>
+          </div>
+          <div class="acc-mock__chip acc-mock__chip--a"><i class="fa-solid fa-house-user"></i><span><b>{{ __('زيارة ميدانية') }}</b>{{ __('قبل 3 أيام') }}</span></div>
+          <div class="acc-mock__chip acc-mock__chip--b"><i class="fa-solid fa-envelope-open-text"></i><span><b>{{ __('رسالة من أمنية') }}</b>{{ __('راجعها المشرف') }}</span></div>
+        </div>
+
+        <ul class="acc-aside__points">
+          <li><i class="fa-solid fa-file-lines" aria-hidden="true"></i> {{ __('تقرير مصوّر كل ثلاثة أشهر') }}</li>
+          <li><i class="fa-solid fa-receipt" aria-hidden="true"></i> {{ __('إيصالات كل دفعاتك') }}</li>
+          <li><i class="fa-solid fa-hand" aria-hidden="true"></i> {{ __('إيقافٌ أو تعديلٌ بنقرة') }}</li>
+        </ul>
+        <p class="acc-aside__demo">{{ __('نموذجٌ توضيحي بأسماء غير حقيقية') }}</p>
+      </div>
+    </aside>
+  </div>
+@endsection

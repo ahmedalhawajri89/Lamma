@@ -22,12 +22,12 @@ import {
 } from './api.js';
 
 export let SITE = {
-  name: 'كفالة',
-  tagline: 'منصة كفالة الأيتام',
-  email: 'info@kafala.org',
-  phone: '+970 599 000 000',
-  phoneHref: '+970599000000',
-  address: 'غزة، فلسطين',
+  name: 'لمّة',
+  tagline: 'كل طفلٍ في لمّة أهله',
+  email: 'hello@lamma.org',
+  phone: '+44 20 4000 0000',
+  phoneHref: '+442040000000',
+  address: 'لندن، المملكة المتحدة',
   social: [
     { label: 'إكس', icon: 'fa-x-twitter', url: '#' },
     { label: 'إنستغرام', icon: 'fa-instagram', url: '#' },
@@ -36,14 +36,17 @@ export let SITE = {
   ],
 };
 
+/**
+ * التنقل الرئيسي: خمسة روابط بترتيب نية الزائر، الأيتام أولاً.
+ * الشعار يكفي للعودة للرئيسية، والمدونة في الفوتر.
+ */
 export const NAV_LINKS = [
-  { label: 'الرئيسية', href: 'index.html' },
-  { label: 'من نحن', href: 'about.html' },
-  { label: 'برامج الكفالة', href: 'programs.html' },
-  { label: 'الأيتام', href: 'orphans.html' },
-  { label: 'الشفافية', href: 'transparency.html' },
-  { label: 'المدونة', href: 'blog.html' },
-  { label: 'تواصل معنا', href: 'contact.html' },
+  { label: 'الأيتام', href: '/orphans' },
+  { label: 'برامج الكفالة', href: '/programs' },
+  { label: 'الشفافية', href: '/transparency' },
+  { label: 'المدونة', href: '/blog' },
+  { label: 'من نحن', href: '/about' },
+  { label: 'تواصل معنا', href: '/contact' },
 ];
 
 /** برامج الكفالة — المصدر الوحيد للأسعار في الموقع. */
@@ -52,7 +55,7 @@ export let PROGRAMS = [
     id: 'comprehensive',
     name: 'الكفالة الشاملة',
     icon: 'fa-hands-holding-child',
-    accent: 'var(--gradient-brand)',
+    accent: 'var(--program-full)',
     price: 65,
     summary: 'رعاية كاملة تغطي كل جوانب حياة اليتيم: المعيشة والتعليم والصحة والدعم النفسي.',
     features: ['غذاء وكسوة شهرية', 'رسوم ومستلزمات دراسية', 'تأمين صحي ومتابعة طبية', 'دعم نفسي واجتماعي', 'تقرير مصوّر كل ٣ أشهر'],
@@ -62,7 +65,7 @@ export let PROGRAMS = [
     id: 'education',
     name: 'الكفالة التعليمية',
     icon: 'fa-book-open-reader',
-    accent: 'linear-gradient(135deg, var(--teal-700), var(--teal-600))',
+    accent: 'var(--program-education)',
     price: 35,
     summary: 'تبقي الطفل على مقعد الدراسة: رسوم، كتب، زي، ودروس تقوية عند الحاجة.',
     features: ['الرسوم الدراسية', 'حقيبة وقرطاسية', 'الزي المدرسي', 'دروس تقوية', 'تقرير أكاديمي فصلي'],
@@ -71,7 +74,7 @@ export let PROGRAMS = [
     id: 'health',
     name: 'الكفالة الصحية',
     icon: 'fa-heart-pulse',
-    accent: 'linear-gradient(135deg, var(--rose-700), var(--rose-600))',
+    accent: 'var(--program-health)',
     price: 45,
     summary: 'رعاية طبية لأيتام يواجهون ظروفاً صحية تحتاج متابعة مستمرة أو تدخلاً عاجلاً.',
     features: ['فحص دوري شامل', 'الأدوية والمستلزمات', 'جلسات علاج طبيعي', 'تغطية العمليات', 'ملف طبي محدّث'],
@@ -80,7 +83,7 @@ export let PROGRAMS = [
     id: 'family',
     name: 'كفالة الأسرة',
     icon: 'fa-house-chimney-user',
-    accent: 'linear-gradient(135deg, var(--olive-600), var(--olive-500))',
+    accent: 'var(--program-family)',
     price: 90,
     summary: 'دعم الأسرة كاملةً حتى تبقى مجتمعة، فبقاء الطفل بين أهله خيرٌ من أي بديل.',
     features: ['سلة غذائية شهرية', 'مساهمة في الإيجار', 'مشروع صغير مدرّ للدخل', 'تعليم كل الأبناء', 'زيارة ميدانية شهرية'],
@@ -100,7 +103,7 @@ export let ORPHANS = [
     monthly: 35,
     funded: 62,
     urgent: true,
-    photo: 'assets/img/orphan-omnia.webp',
+    photo: 'assets/img/kids/girl-01.svg',
     grade: 'الصف الثالث',
     health: 'سليمة',
     dream: 'أن تصبح معلمة',
@@ -117,7 +120,7 @@ export let ORPHANS = [
     monthly: 65,
     funded: 24,
     urgent: true,
-    photo: 'assets/img/orphan-ahmad.webp',
+    photo: 'assets/img/kids/boy-01.svg',
     grade: 'الصف الخامس',
     health: 'يحتاج متابعة تغذية',
     dream: 'أن يصبح طبيباً',
@@ -134,7 +137,7 @@ export let ORPHANS = [
     monthly: 45,
     funded: 78,
     urgent: false,
-    photo: 'assets/img/orphan-aisha.webp',
+    photo: 'assets/img/kids/girl-02.svg',
     grade: 'الروضة',
     health: 'تحتاج جلسات علاج طبيعي',
     dream: 'أن ترسم كل يوم',
@@ -151,7 +154,7 @@ export let ORPHANS = [
     monthly: 65,
     funded: 91,
     urgent: false,
-    photo: 'assets/img/orphan-saeed.webp',
+    photo: 'assets/img/kids/boy-02.svg',
     grade: 'الصف الرابع',
     health: 'سليم',
     dream: 'أن يصبح مهندساً',
@@ -168,7 +171,7 @@ export let ORPHANS = [
     monthly: 35,
     funded: 40,
     urgent: true,
-    photo: 'assets/img/orphan-mariam.webp',
+    photo: 'assets/img/kids/girl-03.svg',
     grade: 'الصف السابع',
     health: 'سليمة',
     dream: 'أن تدرس الصيدلة',
@@ -185,7 +188,7 @@ export let ORPHANS = [
     monthly: 90,
     funded: 15,
     urgent: true,
-    photo: 'assets/img/orphan-yousef.webp',
+    photo: 'assets/img/kids/boy-03.svg',
     grade: 'الصف الثاني',
     health: 'سليم',
     dream: 'أن يلعب في نادٍ للكرة',
@@ -202,7 +205,7 @@ export let ORPHANS = [
     monthly: 65,
     funded: 55,
     urgent: false,
-    photo: 'assets/img/orphan-layan.webp',
+    photo: 'assets/img/kids/girl-04.svg',
     grade: 'تمهيدي',
     health: 'سليمة',
     dream: 'أن تحفظ القرآن',
@@ -219,7 +222,7 @@ export let ORPHANS = [
     monthly: 45,
     funded: 33,
     urgent: false,
-    photo: 'assets/img/orphan-khaled.webp',
+    photo: 'assets/img/kids/boy-04.svg',
     grade: 'الصف السادس',
     health: 'يعاني من ضعف نظر شديد',
     dream: 'أن يقرأ بلا نظارة مكسورة',
@@ -229,11 +232,11 @@ export let ORPHANS = [
 
 /** توزيع الإنفاق — تُستعمل في حلقة الشفافية. */
 export let SPENDING = [
-  { label: 'معيشة وغذاء', value: 38, color: 'var(--clay-600)' },
-  { label: 'تعليم', value: 27, color: 'var(--amber-500)' },
-  { label: 'صحة', value: 19, color: 'var(--olive-600)' },
-  { label: 'دعم نفسي وأنشطة', value: 9, color: 'var(--teal-700)' },
-  { label: 'مصاريف إدارية', value: 7, color: 'var(--sand-400)' },
+  { label: 'معيشة وغذاء', value: 38, color: 'var(--chart-1)' },
+  { label: 'تعليم', value: 27, color: 'var(--chart-4)' },
+  { label: 'صحة', value: 19, color: 'var(--chart-2)' },
+  { label: 'دعم نفسي وأنشطة', value: 9, color: 'var(--chart-5)' },
+  { label: 'مصاريف إدارية', value: 7, color: 'var(--chart-muted)' },
 ];
 
 /** ما يوفّره المبلغ الشهري — تعتمد عليه حاسبة الأثر. */
@@ -249,7 +252,7 @@ export const IMPACT_TIERS = [
 /** شهادات الكفلاء. */
 export let STORIES = [
   {
-    quote: 'كنت أظن أن الكفالة مجرد مبلغ يُخصم شهرياً. أول تقرير وصلني كان فيديو لأحمد يقرأ نصاً كتبه بنفسه — يومها فهمت ما الذي أشارك فيه فعلاً.',
+    quote: 'كنت أظن أن الكفالة مجرد مبلغ يُخصم شهرياً. أول تقرير وصلني كان فيديو لأحمد يقرأ نصاً كتبه بنفسه. يومها فهمت في ماذا أشارك.',
     name: 'عبدالله المطيري',
     role: 'كافل منذ ٣ سنوات',
   },
@@ -306,7 +309,7 @@ export let POSTS = [
     date: '2026-07-28',
     dateLabel: '٢٨ يوليو ٢٠٢٦',
     readMin: 6,
-    excerpt: 'ثلاث مراحل تحقّق ميدانية ووثائقية تمرّ بها كل حالة قبل أن تظهر على المنصة — نشرحها بالتفصيل خطوةً بخطوة.',
+    excerpt: 'ثلاث مراحل تحقّق ميدانية ووثائقية تمرّ بها كل حالة قبل أن تظهر على المنصة، نشرحها هنا خطوةً بخطوة.',
     image: 'assets/img/post-01.webp',
     featured: true,
   },
@@ -430,10 +433,13 @@ export async function hydrate() {
    */
   const has = (selectors) => selectors.some((s) => document.querySelector(s) !== null);
 
+  // صفحة الأيتام (#catalogGrid) تطلب صفحتها بنفسها من الخادم، فلا تحتاج القائمة هنا
   const needsOrphans = has([
-    '#orphansGrid', '#urgentOrphans', '#orphanDetail', '#similarOrphans', '#checkoutSummary',
+    // صفحة الكفالة تطلب طفلها برمزه (checkout.js)
+    '#homeOrphans',
   ]);
-  const needsTransparency = has(['#spendingDonut', '#spendingLegend', '#financeBoard', '#proofBoard']);
+  // #heroStats و#moneyDonut في الرئيسية: أرقام الهيرو والحلقة من الشفافية نفسها
+  const needsTransparency = has(['#spendingDonut', '#spendingLegend', '#proofBoard', '#heroStats', '#moneyDonut']);
   const needsPosts = has(['#postsGrid']);
 
   const [bootstrap, orphans, transparency, posts] = (
@@ -457,6 +463,7 @@ export async function hydrate() {
   }
 
   if (orphans) ORPHANS = take(orphans, ORPHANS);
+
   if (posts) POSTS = take(posts, POSTS);
 
   if (transparency) {

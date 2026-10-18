@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Requests\Admin;
 
 use App\Enums\Gender;
-use App\Enums\OrphanStatus;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -32,7 +31,9 @@ class UpdateOrphanRequest extends FormRequest
             'health_status' => ['sometimes', 'nullable', 'string', 'max:160'],
             'dream' => ['sometimes', 'nullable', 'string', 'max:160'],
             'story' => ['sometimes', 'nullable', 'string', 'max:4000'],
-            'status' => ['sometimes', Rule::in(OrphanStatus::values())],
+            // لا `status` هنا: الحالة تتغيّر بإجراءاتها (التوثيق، النشر، تغيير
+            // المسار للمدير). كانت تُقبل أي قيمة، فيجعل المشرف ملفاً غير موثّق
+            // «نشطاً» قابلاً للكفالة بطلب تعديل واحد.
             'photo' => ['sometimes', 'nullable', 'image', 'mimes:jpeg,png,webp', 'max:'.config('kafala.uploads.max_size_kb')],
         ];
     }

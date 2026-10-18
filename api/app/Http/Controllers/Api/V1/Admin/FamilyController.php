@@ -18,41 +18,85 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class FamilyController extends Controller
 {
+    /** الترتيب المسموح؛ «دخل الفرد» مشتقّ فيُحسب في الاستعلام */
+    private const SORTS = ['id', 'members_count', 'monthly_income', 'per_capita', 'orphans_count'];
+
     public function index(Request $request): JsonResponse
     {
         abort_unless($request->user()->can('families.manage') || $request->user()->can('orphans.view'), 403);
 
-        $query = Family::query()
+        $query = $this->filtered($request)
             ->with(['country', 'city:id,name_ar', 'guardian'])
-            ->withCount('orphans');
+            ->withCount('orphans')
+            ->when($request->filled('housing_status'), fn ($q) => $q->where('housing_status', $request->string('housing_status')));
+
+        $sort = in_array($request->string('sort')->toString(), self::SORTS, true) ? $request->string('sort')->toString() : 'id';
+        $dir = $request->string('dir')->toString() === 'asc' ? 'asc' : 'desc';
+
+        $query = $sort === 'per_capita'
+            // الدخل المجهول آخراً في الاتجاهين: ليس «صفراً»
+            ? $query->orderByRaw('monthly_income IS NULL')->orderByRaw("monthly_income / GREATEST(members_count, 1) {$dir}")
+            : $query->orderBy($sort, $dir);
+
+        $families = $query->orderBy('id', 'desc')->paginate($this->perPage($request, 20));
+
+        $base = $this->filtered($request);
+
+        return response()->json([
+            'data' => FamilyResource::collection($families->items()),
+            'meta' => [
+                'total' => $families->total(), 'current_page' => $families->currentPage(), 'last_page' => $families->lastPage(),
+                // تبويبات السكن بأعدادها تحت الفلاتر الأخرى، وما يحتاج متابعة
+                'housing_counts' => (clone $base)->toBase()->select('housing_status', DB::raw('COUNT(*) as aggregate'))
+                    ->groupBy('housing_status')->pluck('aggregate', 'housing_status')->map(fn ($n) => (int) $n),
+                'all_count' => (clone $base)->count(),
+                'without_orphans_count' => (clone $base)->doesntHave('orphans')->count(),
+            ],
+        ]);
+    }
+
+    /**
+     * الفلاتر المشتركة بين الجدول وعدّاداته، عدا السكن. والمشرف مقيّد ببلده
+     * في الاستعلام نفسه، فلا يتسرّب عددٌ من بلد آخر.
+     */
+    private function filtered(Request $request): \Illuminate\Database\Eloquent\Builder
+    {
+        $query = Family::query();
 
         if (($countryId = $request->user()->assignedCountryId()) !== null && ! $request->user()->isAdmin()) {
             $query->where('country_id', $countryId);
         }
 
-        $families = $query
+        return $query
             ->when($request->filled('q'), fn ($q) => $q->where(function ($w) use ($request): void {
-                $term = $request->string('q')->toString();
+                $term = addcslashes($request->string('q')->toString(), '%_\\');
                 $w->where('family_code', 'like', "%{$term}%")
-                    ->orWhereHas('guardian', fn ($g) => $g->where('full_name', 'like', "%{$term}%"));
+                    ->orWhereHas('guardian', fn ($g) => $g->where('full_name', 'like', "%{$term}%"))
+                    // اسم أحد أيتامها: من يبحث عن «أمنية» يجد أسرتها
+                    ->orWhereHas('orphans', fn ($o) => $o->where('first_name', 'like', "{$term}%"));
             }))
             ->when($request->filled('country_id'), fn ($q) => $q->where('country_id', $request->integer('country_id')))
-            ->latest('id')
-            ->paginate($request->integer('per_page', 20));
-
-        return response()->json([
-            'data' => FamilyResource::collection($families->items()),
-            'meta' => ['total' => $families->total(), 'current_page' => $families->currentPage(), 'last_page' => $families->lastPage()],
-        ]);
+            ->when($request->boolean('without_orphans'), fn ($q) => $q->doesntHave('orphans'));
     }
 
-    public function show(Family $family): JsonResponse
+    public function show(Request $request, Family $family): JsonResponse
     {
+        abort_unless($request->user()->can('families.manage') || $request->user()->can('orphans.view'), 403);
+
+        // المشرف الميداني لا يرى أسرة خارج بلده، وفيها بيانات الوصي وهاتفه.
+        // 404 لا 403: لا نؤكّد وجود سجل لمن لا يحقّ له رؤيته
+        abort_unless($this->inScope($request, $family->country_id), 404);
+
         return response()->json([
-            'data' => new FamilyResource($family->load(['country', 'city', 'guardian', 'orphans.program'])),
+            'data' => new FamilyResource($family->load([
+                'country', 'city', 'guardian',
+                'orphans' => fn ($q) => $q->orderBy('date_of_birth'),
+                'orphans.program',
+            ])),
         ]);
     }
 
@@ -73,7 +117,8 @@ class FamilyController extends Controller
             'guardian.monthly_income' => ['nullable', 'numeric', 'min:0', 'max:100000'],
 
             'country_id' => ['required', 'integer', 'exists:countries,id'],
-            'city_id' => ['nullable', 'integer', 'exists:cities,id'],
+            // المدينة من الدولة المختارة: كان يُقبل حفظ أسرة في غزة بمدينة القاهرة
+            'city_id' => ['nullable', 'integer', Rule::exists('cities', 'id')->where('country_id', $request->integer('country_id'))],
             'address' => ['nullable', 'string', 'max:200'],
             'members_count' => ['required', 'integer', 'min:1', 'max:30'],
             'monthly_income' => ['nullable', 'numeric', 'min:0', 'max:100000'],
@@ -82,7 +127,26 @@ class FamilyController extends Controller
             'guardian.full_name.required' => 'اسم الوصي مطلوب.',
             'guardian.relation.required' => 'صلة الوصي بالطفل مطلوبة.',
             'country_id.required' => 'الدولة مطلوبة.',
+            'city_id.exists' => 'هذه المدينة ليست في الدولة المختارة.',
         ]);
+
+        $this->ensureCountryAllowed($request, (int) $validated['country_id']);
+
+        /*
+         * كشف التكرار الذي يَعِد به النموذج: الوصيّ نفسه برقم هويته مسجَّل في
+         * أسرة أخرى. بلا هذا تُسجَّل الأسرة مرتين وتُموَّل مرتين.
+         */
+        if (! empty($validated['guardian']['national_id'])) {
+            $probe = new Guardian();
+            $probe->setNationalId($validated['guardian']['national_id']);
+            $existing = Family::whereHas('guardian', fn ($g) => $g->where('national_id_hash', $probe->national_id_hash))->first();
+
+            if ($existing !== null) {
+                throw ValidationException::withMessages([
+                    'guardian.national_id' => "رقم الهوية هذا مسجَّل لوصيّ الأسرة {$existing->family_code}. افتحها بدل إنشاء أسرة جديدة.",
+                ]);
+            }
+        }
 
         $family = DB::transaction(function () use ($validated): Family {
             /**
@@ -114,26 +178,49 @@ class FamilyController extends Controller
     public function update(Request $request, Family $family): JsonResponse
     {
         abort_unless($request->user()->can('families.manage'), 403);
+        abort_unless($this->inScope($request, $family->country_id), 404);
 
         $validated = $request->validate([
             'country_id' => ['sometimes', 'integer', 'exists:countries,id'],
-            'city_id' => ['sometimes', 'nullable', 'integer', 'exists:cities,id'],
+            'city_id' => ['sometimes', 'nullable', 'integer', Rule::exists('cities', 'id')->where('country_id', $request->integer('country_id', $family->country_id))],
             'address' => ['sometimes', 'nullable', 'string', 'max:200'],
             'members_count' => ['sometimes', 'integer', 'min:1', 'max:30'],
-            'monthly_income' => ['sometimes', 'nullable', 'numeric', 'min:0'],
+            'monthly_income' => ['sometimes', 'nullable', 'numeric', 'min:0', 'max:100000'],
             'housing_status' => ['sometimes', Rule::in(HousingStatus::values())],
             'guardian.full_name' => ['sometimes', 'string', 'min:3', 'max:120'],
             'guardian.relation' => ['sometimes', Rule::in(GuardianRelation::values())],
             'guardian.phone' => ['sometimes', 'nullable', 'string', 'max:24'],
             'guardian.occupation' => ['sometimes', 'nullable', 'string', 'max:80'],
-            'guardian.monthly_income' => ['sometimes', 'nullable', 'numeric', 'min:0'],
+            'guardian.monthly_income' => ['sometimes', 'nullable', 'numeric', 'min:0', 'max:100000'],
+        ], [
+            'city_id.exists' => 'هذه المدينة ليست في الدولة المختارة.',
         ]);
 
-        DB::transaction(function () use ($validated, $family): void {
+        if (isset($validated['country_id'])) {
+            $this->ensureCountryAllowed($request, (int) $validated['country_id']);
+        }
+
+        DB::transaction(function () use ($validated, $family, $request): void {
             $family->update(collect($validated)->except('guardian')->all());
 
             if (isset($validated['guardian'])) {
-                $family->guardian->update($validated['guardian']);
+                $guardian = $family->guardian;
+                $guardian->fill($validated['guardian']);
+                $dirty = $guardian->getDirty();
+
+                /*
+                 * الوصيّ جزءٌ من ملف الأسرة في السجل: من غيّر اسمه أو صلته.
+                 * والهاتف يُسجَّل أنه تغيّر دون قيمته، فالسجل يقرؤه من لا يرى الهاتف.
+                 */
+                if ($dirty !== []) {
+                    $old = collect($dirty)->keys()->mapWithKeys(fn ($k) => ["guardian.{$k}" => $k === 'phone' ? '•••' : $guardian->getOriginal($k)])->all();
+                    $new = collect($dirty)->mapWithKeys(fn ($v, $k) => ["guardian.{$k}" => $k === 'phone' ? '•••' : $v])->all();
+                    $guardian->save();
+
+                    activity('families')->performedOn($family)->causedBy($request->user())->event('updated')
+                        ->withProperties(['old' => $old, 'attributes' => $new])
+                        ->log('updated');
+                }
             }
         });
 
@@ -181,9 +268,31 @@ class FamilyController extends Controller
 
     private function nextCode(): string
     {
-        $last = Family::query()->lockForUpdate()->max('family_code');
-        $next = $last ? ((int) substr($last, 4)) + 1 : 1;
+        // الأكبر رقماً لا نصّاً، كي لا يتكرر الرمز بعد FAM-9999
+        $next = (int) Family::query()->lockForUpdate()->max(DB::raw('CAST(SUBSTRING(family_code, 5) AS UNSIGNED)')) + 1;
 
         return 'FAM-'.str_pad((string) $next, 4, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * المشرف الميداني مقيَّد ببلده المُسنَد، كما في `OrphanPolicy`.
+     * المدير والمحاسب بلا بلد مُسنَد، فيريان الجميع.
+     */
+    private function inScope(Request $request, ?int $countryId): bool
+    {
+        $user = $request->user();
+        $assigned = $user->assignedCountryId();
+
+        return $assigned === null || $user->isAdmin() || $countryId === $assigned;
+    }
+
+    /** لا يُنشئ المشرف أسرة في بلد آخر، ولا ينقل أسرة إليه. */
+    private function ensureCountryAllowed(Request $request, int $countryId): void
+    {
+        if (! $this->inScope($request, $countryId)) {
+            throw ValidationException::withMessages([
+                'country_id' => 'لا يمكنك إضافة أسرة أو نقلها إلى بلد خارج منطقتك.',
+            ]);
+        }
     }
 }

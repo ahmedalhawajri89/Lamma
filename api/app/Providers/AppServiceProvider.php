@@ -12,18 +12,32 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        // البوابة من الإعداد؛ والتجريبية افتراضاً حتى تُربط بوابة حقيقية
+        $this->app->bind(\App\Payments\PaymentGateway::class, fn () => match (config('kafala.gateway')) {
+            default => new \App\Payments\DemoGateway(),
+        });
+
         //
     }
 
     public function boot(): void
     {
         Sponsorship::observe(SponsorshipObserver::class);
+
+        // هوية الموقع وتنقّله لقوالب الموقع العام: الترويسة والفوتر يُرسمان من الخادم.
+        // والصفحات نفسها تحتاج الاسم (وصفها وJSON-LD ونصوص المشاركة)، لا القالب وحده
+        View::composer(['site.layouts.*', 'site.pages.*', 'site.auth.*', 'site.portal.*', 'errors.*'], fn ($view) => $view->with([
+            'site' => \App\Support\SiteProfile::forViews(),
+            'nav' => \App\Support\SiteProfile::nav(request()->path()),
+            'navFlat' => \App\Support\SiteProfile::flatNav(request()->path()),
+        ]));
 
         /**
          * انضباط Eloquent — يحوّل ثلاثة أخطاء صامتة إلى استثناءات صريحة

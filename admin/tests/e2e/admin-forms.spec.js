@@ -13,9 +13,9 @@ import os from 'node:os'
  * يصيب الـ API الحقيقي — محاكاة الاستجابات هنا تُلغي كل قيمته.
  */
 
-const ADMIN = { email: 'admin@kafala.org', password: 'password' }
-const ACCOUNTANT = { email: 'accountant@kafala.org', password: 'password' }
-const SUPERVISOR = { email: 'supervisor0@kafala.org', password: 'password' }
+const ADMIN = { email: 'admin@lamma.org', password: 'password' }
+const ACCOUNTANT = { email: 'accountant@lamma.org', password: 'password' }
+const SUPERVISOR = { email: 'supervisor0@lamma.org', password: 'password' }
 
 async function login(page, user = ADMIN) {
   await page.goto('/login')
@@ -33,6 +33,17 @@ function field(page, labelText, prop = 'value') {
         .find((x) => x.textContent.trim().startsWith(label))
       if (!el) return null
       const input = document.getElementById(el.getAttribute('for'))
+
+      /*
+       * حقل البحث (SearchSelect) يعدّ نتائجه كما تُعدّ خيارات القائمة، مع
+       * خانة لعنصرها النائب كي يبقى «أكثر من واحد» يعني «توجد نتائج». والتركيز
+       * عليه يجلب النتائج الأولى، كما يفعل المستخدم.
+       */
+      if (key === 'options' && input.getAttribute('role') === 'combobox') {
+        if (document.activeElement !== input) input.focus()
+        return document.querySelectorAll(`[id="${input.getAttribute('aria-controls')}"] [role=option]`).length + 1
+      }
+
       return key === 'options' ? input.options.length : input[key]
     },
     [labelText, prop],
@@ -94,6 +105,22 @@ async function selectValue(page, labelText, value) {
 }
 
 async function pick(page, labelText, index) {
+  // حقل البحث: يُختار الخيار بالنقر كما يفعل المستخدم (index 1 = أول نتيجة)
+  const listId = await page.evaluate((label) => {
+    const el = [...document.querySelectorAll('[role=dialog] label')]
+      .find((x) => x.textContent.trim().startsWith(label))
+    const input = document.getElementById(el.getAttribute('for'))
+    return input.getAttribute('role') === 'combobox' ? input.getAttribute('aria-controls') : null
+  }, labelText)
+
+  if (listId) {
+    await page.locator(`[aria-controls="${listId}"]`).focus()
+    const option = page.locator(`[id="${listId}"] [role=option]`).nth(index - 1)
+    await option.waitFor({ timeout: 20_000 })
+    await option.dispatchEvent('mousedown')
+    return
+  }
+
   await page.evaluate(
     ([label, i]) => {
       const el = [...document.querySelectorAll('[role=dialog] label')]
@@ -107,7 +134,7 @@ async function pick(page, labelText, index) {
 }
 
 test.describe('نموذج اليتيم', () => {
-  test('ينشئ ملفاً ثم يرفع مستنداً ويتحقق منه', async ({ page }) => {
+  test('ينشئ ملفاً ويرفع مستنداً، ورافعه لا يتحقق منه', async ({ page }) => {
     await login(page)
     await page.goto('/orphans')
     await expect(page.locator('table tbody tr').first()).toBeVisible({ timeout: 20_000 })
@@ -154,14 +181,15 @@ test.describe('نموذج اليتيم', () => {
     await page.waitForURL(/\/orphans\/\d+/, { timeout: 25_000 })
     await expect(page.locator('h1')).toContainText(name)
 
-    const documents = page.locator('.card', { hasText: 'مستندات التحقق' })
-
     /**
-     * «توثيق الملف» معطّل ما دامت المستندات ناقصة.
-     *
-     * الخادم يرفضه بخطأ، وزرٌّ يُعرض ليُرفض فخٌّ لا واجهة.
+     * لا زرّ توثيق ما دامت المستندات ناقصة: مسار الملف يقول ما ينقص ويأخذ
+     * إليه. الخادم يرفض التوثيق بخطأ، وزرٌّ يُعرض ليُرفض فخٌّ لا واجهة.
      */
-    await expect(page.getByRole('button', { name: 'توثيق الملف' })).toBeDisabled()
+    await expect(page.getByText('تنتظر الرفع أو التحقق قبل التوثيق')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'وثّق الملف' })).toHaveCount(0)
+    await page.getByRole('button', { name: 'إلى المستندات' }).click()
+
+    const documents = page.locator('.card', { hasText: 'مستندات التحقق' })
 
     // ── رفع ──
     await documents.getByRole('button', { name: 'رفع' }).click()
@@ -171,15 +199,23 @@ test.describe('نموذج اليتيم', () => {
 
     await expect(documents.getByText('مرفوع، ينتظر التحقق')).toBeVisible({ timeout: 20_000 })
 
-    // ── تحقّق ──
-    await documents.locator('button[title="تحقّق من هذا المستند"]').first().click()
-    await expect(documents.getByText('مرفوع، ينتظر التحقق')).toBeHidden({ timeout: 20_000 })
-
     /**
-     * المُتحقَّق منه لا يُحذف: توثيق الملف قائم عليه، والخادم يردّ ٤٢٢.
-     * إخفاء الزرّ يمنع نقرةً مصيرها الرفض.
+     * ── فصل المهام: من رفع المستند لا يتحقق منه ──
+     *
+     * كان المرفوع يُتحقَّق منه بيد رافعه، فيمرّر شخص واحد الملف كله. زرّ
+     * التحقق لا يظهر لرافعه، والمستند ينتظر في طابور التحقق مع سبب واضح.
      */
-    await expect(documents.locator('button[title="حذف"]')).toHaveCount(0)
+    await expect(documents.locator('button[title="تحقّق من هذا المستند"]')).toHaveCount(0)
+    await expect(documents.locator('button[title="حذف"]')).toHaveCount(1)
+
+    // في الطابور: مجموعة الطفل، ولوحة المراجعة لا تعطي رافعه قراراً
+    await page.goto('/documents')
+    const group = page.locator('aside section', { hasText: name })
+    await expect(group).toBeVisible({ timeout: 20_000 })
+    await expect(group.getByText('رفعته أنت')).toBeVisible()
+    await group.locator('li button').first().click()
+    await expect(page.getByText('رفعت هذا المستند بنفسك، فيتحقق منه غيرك.')).toBeVisible()
+    await expect(page.getByRole('button', { name: /تحقّقت منه/ })).toHaveCount(0)
   })
 
   test('نافذة التحرير تُملأ وتُغلق بـEscape', async ({ page }) => {
@@ -259,18 +295,26 @@ test.describe('نموذج الأسرة', () => {
     await pick(page, 'وضع السكن', 1)
     await pick(page, 'المدينة', 1)
 
-    // رقم الهوية يُقبل ويُخزَّن بصمةً — وتمريره كان يُسقط الطلب بـ٥٠٠
-    await fill(page, 'رقم الهوية', '900112233')
+    // رقم الهوية يُقبل ويُخزَّن بصمةً — وتمريره كان يُسقط الطلب بـ٥٠٠.
+    // رقمٌ جديد في كل تشغيل: الخادم يكشف الوصيّ المسجَّل من قبل برقمه
+    const nationalId = `9${Date.now().toString().slice(-8)}`
+    await fill(page, 'رقم الهوية', nationalId)
 
     await page.getByRole('button', { name: 'حفظ' }).click()
     await expect(page.locator('[role=dialog]')).toBeHidden({ timeout: 20_000 })
     await expect(page.getByText('أُنشئت الأسرة.')).toBeVisible()
 
-    // ── التحرير: الصفّ يفتح النافذة مملوءة ──
-    const row = page.locator('table tbody tr', { hasText: guardian }).first()
-    await expect(row).toBeVisible({ timeout: 20_000 })
-    await row.locator('td').first().click()
+    // ── الأسرة الجديدة تُفتح صفحتها، وخطوتها التالية إضافة أيتامها ──
+    await page.waitForURL(/\/families\/\d+/, { timeout: 20_000 })
+    await expect(page.locator('h1')).toContainText(guardian)
+    await page.getByRole('button', { name: 'أضف أول يتيم' }).click()
+    // الأسرة مختارة سلفاً في نموذج اليتيم
+    await expect(page.locator('[role=dialog]').getByLabel('الأسرة')).toHaveValue(new RegExp(guardian))
+    await page.keyboard.press('Escape')
+    await expect(page.locator('[role=dialog]')).toHaveCount(0)
 
+    // ── التحرير من صفحتها: النافذة مملوءة، والتعديل يظهر في سجلّها ──
+    await page.getByRole('button', { name: 'تحرير' }).click()
     await expect(page.locator('[role=dialog]')).toBeVisible()
     expect(await page.evaluate(() => {
       const el = [...document.querySelectorAll('[role=dialog] label')]
@@ -285,6 +329,29 @@ test.describe('نموذج الأسرة', () => {
      * يوحي بأن الرقم ضاع.
      */
     await expect(page.locator('[role=dialog] label').filter({ hasText: 'رقم الهوية' })).toHaveCount(0)
+
+    await fill(page, 'عدد الأفراد', '7')
+    await page.getByRole('button', { name: 'حفظ' }).click()
+    await expect(page.locator('[role=dialog]')).toBeHidden({ timeout: 20_000 })
+    await expect(page.locator('[data-history]')).toContainText('عدد الأفراد', { timeout: 20_000 })
+
+    // ── الرقم نفسه لأسرة ثانية يُكشف تحت حقله، لا يُنشئ أسرة مكررة ──
+    await page.goto('/families')
+    // القوائم المرجعية حُمّلت (فلتر الدولة يظهر بها) قبل فتح النموذج
+    await expect(page.getByLabel('الدولة')).toBeVisible({ timeout: 20_000 })
+    await page.getByRole('button', { name: 'أسرة جديدة' }).click()
+    await pick(page, 'الدولة', 1)
+    await fill(page, 'الاسم الكامل', `${guardian} مكرر`)
+    await pick(page, 'صلته بالأطفال', 1)
+    await fill(page, 'عدد الأفراد', '6')
+    await pick(page, 'وضع السكن', 1)
+    await fill(page, 'رقم الهوية', nationalId)
+    await page.getByRole('button', { name: 'حفظ' }).click()
+    await expect(page.locator('[role=dialog]').getByText(/رقم الهوية هذا مسجَّل/)).toBeVisible({ timeout: 20_000 })
+    // الإغلاق والنموذج معدَّل يسأل بنافذة اللوحة لا بنافذة المتصفح
+    await page.keyboard.press('Escape')
+    await page.getByRole('button', { name: 'أغلق دون حفظ' }).click()
+    await expect(page.locator('[role=dialog]')).toHaveCount(0)
   })
 })
 
@@ -346,17 +413,42 @@ test.describe('تسجيل الصرف', () => {
 
     await pick(page, 'بند الصرف', 1)
     await fill(page, 'المبلغ', '125.50')
-    await fill(page, 'البيان', `اختبار ${Date.now().toString().slice(-5)}`)
+    const statement = `اختبار ${Date.now().toString().slice(-5)}`
+    await fill(page, 'البيان', statement)
     await page.setInputFiles('#receiptFile', samplePdf())
 
     await page.getByRole('button', { name: 'سجّل الصرف' }).click()
     await expect(page.locator('[role=dialog]')).toBeHidden({ timeout: 25_000 })
     await expect(page.getByText(/يحتاج اعتماداً/)).toBeVisible()
+
+    // ── مبدأ العينين: من سجّله لا يعتمده ──
+    await page.goto(`/disbursements?status=pending&q=${encodeURIComponent(statement)}`)
+    const mine = page.locator('table tbody tr', { hasText: '125.50' }).first()
+    await expect(mine).toBeVisible({ timeout: 20_000 })
+    await mine.click()
+    await expect(page.getByText('سجّلته أنت، فيعتمده غيرك.')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'اعتمد الصرف' })).toHaveCount(0)
+
+    // ── والمدير يعتمده من الدرج بعد رؤية الإيصال ──
+    await page.keyboard.press('Escape')
+    await page.getByRole('button', { name: 'تسجيل الخروج' }).click()
+    await page.waitForURL('**/login')
+    await login(page, ADMIN)
+    await page.goto(`/disbursements?status=pending&q=${encodeURIComponent(statement)}`)
+    const row = page.locator('table tbody tr', { hasText: '125.50' }).first()
+    await expect(row).toBeVisible({ timeout: 20_000 })
+    await row.click()
+
+    const drawer = page.getByRole('dialog')
+    await drawer.getByRole('button', { name: 'عرض الإيصال' }).click()
+    await expect(drawer.locator('iframe[src^="blob:"]')).toBeVisible({ timeout: 20_000 })
+    await drawer.getByRole('button', { name: 'اعتمد الصرف' }).click()
+    await expect(page.getByText(/اعتُمد الصرف/)).toBeVisible({ timeout: 20_000 })
   })
 })
 
 test.describe('الدفعة اليدوية', () => {
-  test('تُسجَّل، ويظهر لها زرّ استرداد', async ({ page }) => {
+  test('تُسجَّل، والاسترداد في تفاصيلها لا في الصف', async ({ page }) => {
     await login(page, ACCOUNTANT)
     await page.goto('/payments')
     await expect(page.locator('table tbody tr td').first()).toBeVisible({ timeout: 20_000 })
@@ -381,9 +473,15 @@ test.describe('الدفعة اليدوية', () => {
     await expect(page.locator('[role=dialog]')).toBeHidden({ timeout: 25_000 })
     await expect(page.getByText('سُجّلت الدفعة.')).toBeVisible()
 
-    // الاسترداد للناجحة وحدها — `PaymentPolicy::refund` تشترط ذلك
-    await expect(page.locator('table tbody button', { hasText: 'استرداد' }).first())
-      .toBeVisible({ timeout: 20_000 })
+    /**
+     * الاسترداد في تفاصيل الدفعة لا في الصف: إجراءٌ لا يُتراجع عنه لا يكون
+     * على بعد نقرة من كل دفعة. وللناجحة وحدها (`PaymentPolicy::refund`).
+     */
+    await expect(page.locator('table tbody button', { hasText: 'استرداد' })).toHaveCount(0)
+    await page.locator('table tbody tr').filter({ hasText: 'مكتملة' }).first().click()
+    const details = page.locator('[role=dialog]')
+    await expect(details.getByText(/رقم الحوالة أو/)).toBeVisible()
+    await expect(details.getByRole('button', { name: 'استرداد' })).toBeVisible()
   })
 })
 
@@ -537,51 +635,58 @@ test.describe('المستخدمون', () => {
     await expect(label('البلد المُسنَد')).toHaveCount(0)
 
     await fill(page, 'الاسم', 'موظف اختباري')
-    await fill(page, 'البريد', `staff${Date.now().toString().slice(-7)}@kafala.org`)
+    await fill(page, 'البريد', `staff${Date.now().toString().slice(-7)}@lamma.org`)
     await page.getByRole('button', { name: 'حفظ' }).click()
 
-    await expect(page.locator('[role=dialog]')).toBeHidden({ timeout: 25_000 })
-    await expect(page.getByText(/رابط تعيين كلمة المرور/)).toBeVisible()
+    await expect(page.getByRole('dialog', { name: 'موظف جديد' })).toBeHidden({ timeout: 25_000 })
+    await expect(page.getByText(/رابط تعيين كلمة المرور/).first()).toBeVisible()
+
+    // يُفتح درج الموظف الجديد: ينتظر التفعيل، وما يقدر عليه دوره ظاهر
+    const drawer = page.getByRole('dialog', { name: 'موظف اختباري' })
+    await expect(drawer).toContainText('لم يفعّل حسابه بعد', { timeout: 15_000 })
+    await expect(drawer.getByText('تسجيل دفعة يدوية')).toBeVisible()
+    await expect(drawer.getByText('تعديل ملف يتيم')).toHaveCount(0)
   })
 })
 
 test.describe('الإعدادات', () => {
-  test('تُحمَّل من الخادم وتُحفظ، والزرّ صامت حتى يتغيّر شيء', async ({ page }) => {
+  test('لوحة تُقرأ بسياقها، والتعديل في درج يُحفظ وحده ويُسجَّل', async ({ page }) => {
     await login(page)
     await page.goto('/settings')
 
-    await expect(page.locator('section.card')).toHaveCount(3, { timeout: 20_000 })
+    // تُقرأ: الهوية وحالة كل سياسة بأثرها الآن
+    await expect(page.locator('#idName')).not.toHaveText('', { timeout: 20_000 })
+    await expect(page.getByText(/الفعلي في \d{4}/)).toBeVisible()
+    await expect(page.getByText(/رسالة تنتظر المراجعة الآن/)).toBeVisible()
 
-    // القيم من قاعدة البيانات لا فارغة
-    await expect
-      .poll(() => page.evaluate(() => {
-        const el = [...document.querySelectorAll('label')]
-          .find((x) => x.textContent.trim().startsWith('اسم المنصة'))
-        return document.getElementById(el.getAttribute('for')).value
-      }), { timeout: 20_000 })
-      .not.toBe('')
+    // التعديل في درج: بلا تغيير لا زرّ حفظ
+    await page.getByRole('button', { name: /تعديل الهوية/ }).click()
+    const drawer = page.getByRole('dialog', { name: 'هوية المنصة والتواصل' })
+    const tagline = drawer.getByLabel('الوصف المختصر')
+    const original = await tagline.inputValue()
+    await expect(drawer.getByRole('button', { name: 'إغلاق' }).last()).toBeVisible()
+    await expect(drawer.getByRole('button', { name: /حفظ التغييرات/ })).toHaveCount(0)
 
     /**
-     * الزرّ معطّل حتى يتغيّر شيء.
-     *
-     * حفظٌ بلا تعديل يكتب الصفوف كلها ويمسح ذاكرة الموقع العام بلا سبب —
-     * ويجعل سجل النشاط يمتلئ بتغييرات لم تقع.
+     * كتابة القيمة نفسها ليست تغييراً: حفظٌ بلا تعديل يكتب الصفوف ويمسح
+     * ذاكرة الموقع العام بلا سبب، ويملأ السجل بتغييرات لم تقع.
      */
-    const save = page.getByRole('button', { name: 'حفظ الإعدادات' })
-    await expect(save).toBeDisabled()
+    await tagline.fill(original)
+    await expect(drawer.getByRole('button', { name: /حفظ التغييرات/ })).toHaveCount(0)
 
-    await page.evaluate(() => {
-      const el = [...document.querySelectorAll('label')]
-        .find((x) => x.textContent.trim().startsWith('الوصف المختصر'))
-      const input = document.getElementById(el.getAttribute('for'))
-      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set
-        .call(input, 'منصة كفالة الأيتام')
-      input.dispatchEvent(new Event('input', { bubbles: true }))
-    })
+    // تغيير فعلي يُحفظ، ويظهر في اللوحة وفي السجل
+    await tagline.fill(`${original} (اختبار)`)
+    await drawer.getByRole('button', { name: /حفظ التغييرات/ }).click()
+    await expect(page.getByText(/حُفظت هوية المنصة/)).toBeVisible({ timeout: 20_000 })
+    await expect(drawer).toHaveCount(0)
+    await expect(page.locator('#idName ~ p')).toHaveText(`${original} (اختبار)`)
+    await expect(page.locator('section[aria-labelledby=hTitle]')).toContainText('الوصف المختصر', { timeout: 15_000 })
 
-    await expect(save).toBeEnabled()
-    await save.click()
-    await expect(page.getByText('حُفظت الإعدادات.')).toBeVisible({ timeout: 20_000 })
+    // وتُعاد القيمة
+    await page.getByRole('button', { name: /تعديل الهوية/ }).click()
+    await drawer.getByLabel('الوصف المختصر').fill(original)
+    await drawer.getByRole('button', { name: /حفظ التغييرات/ }).click()
+    await expect(drawer).toHaveCount(0, { timeout: 20_000 })
   })
 })
 
@@ -593,116 +698,141 @@ test.describe('الإعدادات', () => {
  * يمحو نصّه، لأن قائمة اللوحة لا تحمل `body` فتُرسله النافذة فارغاً.
  */
 test.describe('محتوى الموقع', () => {
+  /**
+   * «انشر الآن» بلا عنوان كان يقلب المقال «منشوراً» في النموذج قبل الفحص،
+   * فيصير «حفظ» بعده نشراً بلا قصد. الحالة الآن لا تتغيّر إلا بإجراءٍ ناجح.
+   */
+  test('النشر بلا عنوان لا يغيّر شيئاً، والزرّ يقول ما سيفعله', async ({ page }) => {
+    await login(page)
+    await page.goto('/content/posts/new')
+    const publish = page.getByRole('button', { name: 'انشر الآن' })
+    await expect(publish).toBeVisible({ timeout: 20_000 })
+
+    await publish.click()
+    await expect(page.getByText('العنوان مطلوب.')).toBeVisible()
+    await expect(page.locator('#postTitle')).toBeFocused()
+    // ما زالت مسوّدة: الزرّان كما كانا، والملاحظة تقول ذلك
+    await expect(publish).toBeVisible()
+    await expect(page.getByRole('button', { name: /حفظ المسوّدة/ })).toBeVisible()
+    await expect(page.locator('[data-status-note]')).toContainText('مسوّدة')
+
+    // تاريخٌ قادم يجعل النشر جدولة، ويسمّيها الزرّ
+    await page.fill('#postDate', '2099-01-15')
+    await expect(page.getByRole('button', { name: /جدولة لـ/ })).toBeVisible()
+  })
+
   test('مسوّدة ← نشر ← تظهر على الموقع بنصّها كاملاً', async ({ page }) => {
+    const SITE = process.env.E2E_SITE ?? 'http://127.0.0.1:8000'
     await login(page)
     await page.goto('/content')
+    // المقالات والأسئلة والشهادات والشركاء ووثائق الشفافية
+    await expect(page.locator('[role=tab]')).toHaveCount(5)
 
-    await expect(page.locator('[role=tab]')).toHaveCount(4)
-    await tableReady(page)
-    await page.waitForTimeout(1000)
-
+    // المقال يُكتب في صفحة محرّر كاملة لا في نافذة
     const title = `مقال اختباري ${Date.now().toString().slice(-6)}`
     await page.getByRole('button', { name: 'مقال جديد' }).click()
+    await page.waitForURL(/\/content\/posts\/new/)
 
-    await fill(page, 'العنوان', title)
-    await fill(page, 'المقتطف', 'مقتطف قصير.')
-    await fill(page, 'النصّ', ['الفقرة الأولى.', 'الفقرة الثانية.', 'والثالثة.'].join('\n\n'))
-    await page.setInputFiles('#coverFile', sampleImage())
+    await page.locator('#postTitle').fill(title)
+    await page.locator('#postExcerpt').fill('مقتطف قصير.')
+    // المحرّر المنسّق: Enter يصنع فقرة، وعنوان من الشريط
+    await page.locator('#postBody .ProseMirror').click()
+    await page.getByRole('button', { name: 'عنوان فرعي' }).click()
+    await page.keyboard.type('عنوان داخل المقال')
+    for (const p of ['الفقرة الأولى.', 'الفقرة الثانية.', 'والثالثة.']) {
+      await page.keyboard.press('Enter')
+      await page.keyboard.type(p)
+    }
+    await page.locator('#postCover').setInputFiles(sampleImage())
 
-    // زمن القراءة يُقترح من طول النصّ — رقمٌ يُكتب باليد يكذب أول تحرير
-    await expect.poll(() => field(page, 'زمن القراءة')).not.toBe('')
+    // العدّ والمعاينة بقواعد الموقع: ثلاث فقرات
+    await expect(page.getByText(/3 فقرة/)).toBeVisible()
+    await page.getByRole('tab', { name: /معاينة/ }).click()
+    await expect(page.locator('article .prose-admin > p')).toHaveCount(3)
+    await expect(page.locator('article .prose-admin > h2')).toHaveText('عنوان داخل المقال')
 
-    await page.getByRole('button', { name: 'حفظ' }).click()
-    await expect(page.locator('[role=dialog]')).toBeHidden({ timeout: 25_000 })
-
-    await expect(page.locator('table tbody tr', { hasText: title }).first())
-      .toBeVisible({ timeout: 20_000 })
+    await page.getByRole('button', { name: /^حفظ/ }).click()
+    await page.waitForURL(/\/content\/posts\/\d+/, { timeout: 25_000 })
+    const editorUrl = page.url()
 
     /**
      * المسوّدة لا تظهر على الموقع.
      *
-     * وهذا نصف الاختبار: النصف الآخر أنها تظهر بعد النشر — ولو غاب أحدهما
+     * وهذا نصف الاختبار: النصف الآخر أنها تظهر بعد النشر، ولو غاب أحدهما
      * لمرّ عيبٌ يجعل كل مقال ظاهراً أو كلّه مخفياً.
      */
-    await page.goto('http://127.0.0.1:8000/blog')
-    await expect(page.locator('.post-card').first()).toBeVisible({ timeout: 20_000 })
-    await expect(page.locator('.post-card', { hasText: title })).toHaveCount(0)
+    await page.goto(`${SITE}/blog`)
+    await expect(page.locator('#blogGrid .mag-card').first()).toBeVisible({ timeout: 20_000 })
+    await expect(page.locator('.mag-card, .feature', { hasText: title })).toHaveCount(0)
 
-    // ── النشر من نافذة التحرير ──
-    await page.goto('/content')
-    await expect(page.locator('table tbody tr', { hasText: title }).first())
-      .toBeVisible({ timeout: 20_000 })
-    await page.locator('table tbody tr', { hasText: title }).first().locator('td').first().click()
-
-    /**
-     * النصّ يصل نافذة التحرير.
-     *
-     * كان `PostResource` يحجب `body` عن كل ما ليس `*.show`، فتفتح النافذة
-     * بحقلٍ فارغ وتحفظه فارغاً: من فتح مقالاً ليغيّر حالته فقد نصّه كلّه.
-     */
-    await expect.poll(async () => ((await field(page, 'النصّ')) ?? '').length)
-      .toBeGreaterThan(20)
-
-    await selectValue(page, 'الحالة', 'published')
-    await page.getByRole('button', { name: 'حفظ' }).click()
-    await expect(page.locator('[role=dialog]')).toBeHidden({ timeout: 25_000 })
+    // ── النشر من المحرّر، والنصّ محفوظ فيه لا يُمحى ──
+    await page.goto(editorUrl)
+    await expect.poll(async () => (await page.locator('#postBody .ProseMirror').innerText()).length, { timeout: 20_000 }).toBeGreaterThan(20)
+    await page.getByRole('button', { name: /انشر الآن/ }).click()
+    await expect(page.getByRole('link', { name: /على الموقع/ })).toBeVisible({ timeout: 25_000 })
 
     // ── وعلى الموقع العام ──
-    await page.goto('http://127.0.0.1:8000/blog')
-    const card = page.locator('.post-card', { hasText: title })
+    await page.goto(`${SITE}/blog`)
+    // في الشبكة، أو المقال المميّز فوقها إن صار الأحدث بلا مميّز غيره
+    const card = page.locator('.mag-card, .feature', { hasText: title })
     await expect(card).toHaveCount(1, { timeout: 20_000 })
 
+    // صفحة المقال يرسمها الخادم: لا انتظار لتحميلٍ بعد الفتح
     await card.locator('a').first().click()
-    await page.waitForSelector('#postDetail:not([aria-busy])', { timeout: 20_000 })
-    await expect(page.locator('h1')).toHaveText(title)
+    await expect(page.locator('h1#postTitle')).toHaveText(title, { timeout: 20_000 })
 
-    /**
-     * ثلاث فقرات لا واحدة.
-     *
-     * مربّع النصّ يُطبّع أسطره إلى CRLF، فيصير فاصل الفقرات سطرين غير
-     * متجاورين — ولا يطابقهما تعبيرٌ يبحث عن `\n` مرتين متتاليتين، فتنهار
-     * المقالة إلى فقرة واحدة طويلة بلا سبب ظاهر.
-     */
-    await expect(page.locator('.prose p')).toHaveCount(3)
-    expect(await page.locator('.frame__img').evaluate((e) => e.naturalWidth)).toBeGreaterThan(0)
+    // التنسيق يصل الموقع كما كُتب: العنوان عنوان، والفقرات ثلاث
+    await expect(page.locator('.post-body h2')).toHaveText('عنوان داخل المقال')
+    await expect(page.locator('.post-body > p')).toHaveCount(3)
+    expect(await page.locator('.post-cover img').evaluate((e) => e.naturalWidth)).toBeGreaterThan(0)
   })
 
-  test('سؤال شائع يُضاف ويُحرَّر ويُحذف', async ({ page }) => {
+  test('وثيقة شفافية تُرفع من اللوحة فيظهر رابطها على صفحة الشفافية', async ({ page }) => {
+    const SITE = process.env.E2E_SITE ?? 'http://127.0.0.1:8000'
     await login(page)
-    await page.goto('/content')
-    await page.locator('[role=tab]', { hasText: 'الأسئلة' }).click()
+    await page.goto('/content?tab=documents')
 
-    /**
-     * ننتظر جدول الأسئلة نفسه لا أي جدول.
-     *
-     * تبديل اللسان يُفرغ الصفوف ثم يجلب، وبين النقرة وإعادة الرسم تبقى
-     * صفوف اللسان السابق معروضة بلا أي مؤشّر تحميل. فالانتظار العام يمرّ
-     * فوق بيانات لسانٍ آخر.
-     */
-    await expect(page.locator('table thead')).toContainText('السؤال', { timeout: 20_000 })
-    await tableReady(page)
+    // التراخيص بلا سنة: رفعٌ واحد يُنشر
+    const input = page.locator('input[type=file][data-kind="licenses"]')
+    await expect(input).toBeAttached({ timeout: 20_000 })
+    await input.setInputFiles(samplePdf())
+    await expect(page.getByText('نُشرت الوثيقة على صفحة الشفافية.')).toBeVisible({ timeout: 20_000 })
+    await expect(page.getByText('منشورة على الموقع: التراخيص والاعتمادات')).toBeVisible()
+
+    // على الموقع: زرّ تحميل حقيقي، والبقية «يُنشر بعد اعتماد المدقق»
+    await page.goto(`${SITE}/transparency.html`)
+    const doc = page.locator('#tpDocs .tp-doc', { hasText: 'التراخيص والاعتمادات' })
+    await expect(doc.getByRole('link', { name: /تحميل PDF/ })).toHaveAttribute('href', /\/storage\/transparency\/.+\.pdf$/, { timeout: 20_000 })
+    await expect(page.locator('#tpDocs .tp-doc.is-pending').first()).toContainText('يُنشر بعد اعتماد المدقق')
+  })
+
+  test('سؤال شائع يُضاف، ويُخفى بمفتاح، ويُحذف من نافذته', async ({ page }) => {
+    await login(page)
+    await page.goto('/content?tab=faqs')
+    await expect(page.getByRole('list', { name: 'الأسئلة الشائعة' })).toBeVisible({ timeout: 20_000 })
 
     const question = `سؤال اختباري ${Date.now().toString().slice(-5)}؟`
-
     await page.getByRole('button', { name: 'إضافة' }).click()
     await fill(page, 'السؤال', question)
     await fill(page, 'الإجابة', 'جواب اختباري.')
     await page.getByRole('button', { name: 'حفظ' }).click()
-
     await expect(page.locator('[role=dialog]')).toBeHidden({ timeout: 25_000 })
 
-    // الصفّ نفسه لا عددُ الصفوف: العدد يتغيّر بين التشغيلات، والصفّ لا
-    const row = page.locator('table tbody tr', { hasText: question })
+    const row = page.locator('ol li', { hasText: question })
     await expect(row).toHaveCount(1, { timeout: 20_000 })
 
-    // التحرير يفتح النافذة مملوءة
-    await row.first().locator('td').first().click()
-    expect(await field(page, 'السؤال')).toBe(question)
-    await page.keyboard.press('Escape')
-    await expect(page.locator('[role=dialog]')).toBeHidden()
+    // الإخفاء والإظهار بمفتاح في الصف، بلا نافذة
+    const toggle = row.getByRole('switch')
+    const was = await toggle.getAttribute('aria-checked')
+    await toggle.click()
+    await expect(toggle).toHaveAttribute('aria-checked', was === 'true' ? 'false' : 'true', { timeout: 20_000 })
 
-    page.once('dialog', (d) => d.accept())
-    await row.first().locator('button[title="حذف"]').click()
+    // التحرير يفتح النافذة مملوءة، والحذف فيها بعد رؤية العنصر
+    await row.locator('button').filter({ hasText: question }).click()
+    expect(await field(page, 'السؤال')).toBe(question)
+    await page.getByRole('button', { name: 'حذف هذا العنصر من الموقع' }).click()
+    const confirm = page.locator('[role=dialog]', { hasText: 'حذف العنصر' })
+    await confirm.getByRole('button', { name: 'احذف' }).click()
 
     await expect(row).toHaveCount(0, { timeout: 20_000 })
   })

@@ -32,10 +32,20 @@ class PostResource extends JsonResource
                 fn () => $this->body,
             ),
             'category' => $this->whenLoaded('category', fn () => $this->category?->name_ar),
+            // نافذة التحرير تختار التصنيف برقمه؛ كان غائباً فيُرسَل فارغاً مع
+            // كل تعديل ويُمسح تصنيف المقال
+            'category_id' => $this->category_id,
+            // لروابط تصنيف المدونة (?cat=): الاسم للعرض والـ slug للفلتر
+            // يُقرأ إن حُمِّل وحده: نقاط أخرى تحمّل `category:id,name_ar`، والوضع الصارم
+            // يرمي على سمةٍ لم تُجلب (كسر صفحة المقال حين أُضيف الحقل)
+            'category_slug' => $this->whenLoaded('category', fn () => $this->category
+                && array_key_exists('slug', $this->category->getAttributes()) ? $this->category->slug : null),
             'image' => $this->cover_path ? asset('storage/'.$this->cover_path) : null,
             'readMin' => $this->read_minutes,
             'featured' => $this->is_featured,
-            'status' => $this->status->value,
+            // «مجدول» منشورٌ بموعدٍ قادم (Post::displayStatus)
+            'status' => $this->displayStatus()->value,
+            'status_label' => $this->displayStatus()->label(),
             'date' => $this->published_at?->toDateString(),
             'dateLabel' => $this->published_at?->translatedFormat('j F Y'),
             'views_count' => $this->views_count,

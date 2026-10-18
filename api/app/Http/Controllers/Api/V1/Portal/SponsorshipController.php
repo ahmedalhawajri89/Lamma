@@ -7,11 +7,14 @@ namespace App\Http\Controllers\Api\V1\Portal;
 use App\Actions\Sponsorships\CancelSponsorship;
 use App\Actions\Sponsorships\CreateSponsorship;
 use App\Http\Controllers\Controller;
+use App\Enums\SponsorshipStatus;
 use App\Http\Resources\SponsorshipResource;
 use App\Models\Orphan;
 use App\Models\Sponsorship;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class SponsorshipController extends Controller
 {
@@ -21,11 +24,11 @@ class SponsorshipController extends Controller
         abort_if($sponsor === null, 403);
 
         $items = $sponsor->sponsorships()
-            ->with(['orphan:id,reference_code,first_name,photo_path,date_of_birth,funded_percent', 'program'])
-            ->withCount('payments')
-            ->withSum('payments', 'amount_base')
+            ->with(['orphan:id,reference_code,first_name,gender,photo_path,date_of_birth,funded_percent', 'program'])
+            ->withCount(['payments' => fn ($q) => $q->settled()])
+            ->withSum(['payments' => fn ($q) => $q->settled()], 'amount_base')
             ->latest('started_at')
-            ->paginate($request->integer('per_page', 15));
+            ->paginate($this->perPage($request, 15));
 
         return response()->json([
             'data' => SponsorshipResource::collection($items->items()),
@@ -65,14 +68,71 @@ class SponsorshipController extends Controller
         ], 201);
     }
 
+    /**
+     * إيقاف مؤقت واستئناف بيد الكافل.
+     *
+     * كان الخيار الوحيد في لوحته «إيقاف الكفالة» وهو إلغاءٌ نهائي، فمن
+     * أراد استراحة شهرين خسر مكانه عند الطفل. الإيقاف يُبقي الطفل محجوزاً له
+     * ولا يُخصم شيء، والاستئناف يبدأ من يوم الفوترة القادم لا من موعد فات.
+     */
+    public function update(Request $request, Sponsorship $sponsorship): JsonResponse
+    {
+        $this->authorize('pause', $sponsorship);
+
+        $validated = $request->validate([
+            'status' => ['required', Rule::in([SponsorshipStatus::Active->value, SponsorshipStatus::Paused->value])],
+        ]);
+        $target = SponsorshipStatus::from($validated['status']);
+
+        $sponsorship = DB::transaction(function () use ($sponsorship, $target): Sponsorship {
+            $locked = Sponsorship::query()->lockForUpdate()->findOrFail($sponsorship->id);
+
+            $allowed = [
+                SponsorshipStatus::Active->value => SponsorshipStatus::Paused,
+                SponsorshipStatus::Paused->value => SponsorshipStatus::Active,
+            ];
+            abort_unless(
+                ($allowed[$locked->status->value] ?? null) === $target,
+                409,
+                $locked->status === SponsorshipStatus::Pending
+                    ? 'الكفالة لم تبدأ بعد. تبدأ بأول دفعة تصل.'
+                    : 'حالة الكفالة تغيّرت. حدّث الصفحة.',
+            );
+
+            $locked->update($target === SponsorshipStatus::Paused
+                ? ['status' => $target, 'paused_at' => now()]
+                : ['status' => $target, 'paused_at' => null, 'next_due_at' => $locked->upcomingBillingDate()]);
+
+            return $locked;
+        });
+
+        activity('sponsorships')
+            ->performedOn($sponsorship)
+            ->causedBy($request->user())
+            ->withProperties(['status' => $target->value, 'by' => 'sponsor'])
+            ->log($target === SponsorshipStatus::Paused ? 'أوقف الكافل كفالته مؤقتاً' : 'استأنف الكافل كفالته');
+
+        return response()->json([
+            'message' => $target === SponsorshipStatus::Paused
+                ? 'أوقفنا الخصم مؤقتاً. يبقى الطفل محجوزاً لك، واستأنف متى شئت.'
+                : 'استأنفت الكفالة. أول قسط في '.$sponsorship->next_due_at?->toDateString().'.',
+            'data' => new SponsorshipResource($sponsorship->load(['orphan', 'program'])),
+        ]);
+    }
+
     public function destroy(Request $request, Sponsorship $sponsorship, CancelSponsorship $action): JsonResponse
     {
         $this->authorize('cancel', $sponsorship);
 
-        $action->handle($sponsorship, $request->string('reason')->toString() ?: null);
+        // العمود 255 حرفاً: سببٌ أطول كان يُسقط الطلب فيظهر «الخدمة غير متاحة»
+        $validated = $request->validate(['reason' => ['nullable', 'string', 'max:255']], [
+            'reason.max' => 'اختصر السبب إلى 255 حرفاً.',
+        ]);
+
+        $action->handle($sponsorship, $validated['reason'] ?? null);
 
         return response()->json([
-            'message' => 'أُلغيت الكفالة. شكراً لما قدّمته — سنؤمّن كافلاً بديلاً للطفل.',
+            'message' => 'أُلغيت الكفالة. شكراً لما قدّمته، وسنؤمّن كافلاً بديلاً للطفل.',
         ]);
     }
 }

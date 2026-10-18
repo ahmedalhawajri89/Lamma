@@ -23,14 +23,14 @@ enum GuardianRelation: string
     public function label(): string
     {
         return match ($this) {
-            self::Mother => 'الأم',
-            self::Father => 'الأب',
-            self::Grandmother => 'الجدة',
-            self::Grandfather => 'الجد',
-            self::Uncle => 'العم أو الخال',
-            self::Aunt => 'العمة أو الخالة',
-            self::Sibling => 'أخ أو أخت',
-            self::Other => 'أخرى',
+            self::Mother => __('الأم'),
+            self::Father => __('الأب'),
+            self::Grandmother => __('الجدة'),
+            self::Grandfather => __('الجد'),
+            self::Uncle => __('العم أو الخال'),
+            self::Aunt => __('العمة أو الخالة'),
+            self::Sibling => __('أخ أو أخت'),
+            self::Other => __('أخرى'),
         };
     }
 }

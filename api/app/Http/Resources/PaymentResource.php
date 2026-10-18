@@ -12,6 +12,8 @@ class PaymentResource extends JsonResource
     /** @return array<string, mixed> */
     public function toArray(Request $request): array
     {
+        $staff = (bool) $request->user()?->can('payments.view');
+
         return [
             'id' => $this->id,
             'reference_code' => $this->reference_code,
@@ -27,7 +29,12 @@ class PaymentResource extends JsonResource
             'card' => $this->maskedCard(),
 
             'paid_at' => $this->paid_at?->toIso8601String(),
-            'failure_reason' => $this->failure_reason,
+            // للموظفين النصّ كما وصل والمرجع الداخلي؛ وللكافل جملة مفهومة بلا تفاصيل البوابة
+            'failure_reason' => $this->failure_reason === null ? null
+                : ($staff ? $this->failure_reason : 'تعذّر إتمام الدفع من البطاقة. جرّب بطاقة أخرى أو تواصل مع بنكك.'),
+            'gateway_reference' => $this->when($staff, $this->gateway_reference),
+            'refunded_at' => $this->refunded_at?->toIso8601String(),
+            'refund_reason' => $this->refund_reason,
             'receipt_number' => $this->receipt_number,
             'created_at' => $this->created_at?->toIso8601String(),
 

@@ -19,10 +19,10 @@ enum PaymentMethod: string
     public function label(): string
     {
         return match ($this) {
-            self::Card => 'بطاقة ائتمان',
+            self::Card => __('بطاقة ائتمان'),
             self::ApplePay => 'Apple Pay',
-            self::BankTransfer => 'تحويل بنكي',
-            self::Cash => 'نقداً',
+            self::BankTransfer => __('تحويل بنكي'),
+            self::Cash => __('نقداً'),
         };
     }
 }

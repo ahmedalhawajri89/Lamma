@@ -12,10 +12,15 @@ import { useForm } from '@/composables/useForm'
 import BaseIcon from './BaseIcon.vue'
 import FormModal from './FormModal.vue'
 import FormField from './FormField.vue'
+import SearchSelect from './SearchSelect.vue'
+import { searchOrphans } from '@/composables/lookups'
 
 const props = defineProps({
   open: { type: Boolean, default: false },
   orphans: { type: Array, default: () => [] },
+
+  /** طفلٌ مختار سلفاً من خطة الزيارات: `{ id, label }` */
+  presetOrphan: { type: Object, default: null },
 })
 
 const emit = defineEmits(['close', 'saved'])
@@ -69,9 +74,6 @@ const form = useForm(BLANK, ({ visited_at: visitedAt, ...rest }) =>
   }),
 )
 
-const orphanOptions = computed(() =>
-  props.orphans.map((o) => ({ value: o.id, label: `${o.reference_code} — ${o.first_name}` })),
-)
 
 const tomorrow = computed(() => {
   const d = new Date()
@@ -89,7 +91,7 @@ watch(
   () => props.open,
   (isOpen) => {
     if (!isOpen) return
-    form.setValues({ ...BLANK, visited_at: localNow() })
+    form.setValues({ ...BLANK, orphan_id: props.presetOrphan?.id ?? '', visited_at: localNow() })
     flags.value = []
   },
   { immediate: true },
@@ -108,9 +110,14 @@ async function save() {
     :busy="form.submitting.value" :dirty="form.dirty.value"
     @close="emit('close')" @submit="save"
   >
-    <FormField
-      v-model="form.values.orphan_id" label="الطفل" required autofocus
-      :options="orphanOptions" placeholder="اختر الطفل"
+    <!--
+      كل ملف مفتوح يُزار (نشط، مكتمل التمويل، بانتظار التوثيق)؛ كان البحث في
+      «نشط» وحده فيغيب الطفل المكتمل تمويله، وهو أحوج للمتابعة لا أقل.
+    -->
+    <SearchSelect
+      v-model="form.values.orphan_id" label="الطفل" required :autofocus="!presetOrphan"
+      :search="(q) => searchOrphans(q, { visitable: 1 })" :initial-label="presetOrphan?.label ?? ''"
+      placeholder="اسم الطفل أو رمزه…"
       :error="form.errors.value.orphan_id" @update:model-value="form.touch('orphan_id')"
     />
 
@@ -131,7 +138,7 @@ async function save() {
 
     <FormField
       v-model="form.values.findings" label="الملاحظات" type="textarea" :rows="6" required
-      hint="ما رأيتَه وما سمعتَه. سطرٌ واحد لا يوثّق شيئاً — والخادم يرفضه."
+      hint="ما رأيتَه وما سمعتَه. سطرٌ واحد لا يوثّق شيئاً."
       :error="form.errors.value.findings" @update:model-value="form.touch('findings')"
     />
 
@@ -156,13 +163,13 @@ async function save() {
           {{ need }}
         </button>
       </div>
-      <p v-if="form.errors.value.needs_flagged" class="text-xs text-clay-700 mt-1" role="alert">
+      <p v-if="form.errors.value.needs_flagged" class="text-xs text-rose-700 mt-1" role="alert">
         {{ form.errors.value.needs_flagged[0] }}
       </p>
     </fieldset>
 
-    <template #actions>
-      <button class="btn btn-outline" type="button" :disabled="form.submitting.value" @click="emit('close')">
+    <template #actions="{ close }">
+      <button class="btn btn-outline" type="button" :disabled="form.submitting.value" @click="close">
         إلغاء
       </button>
       <button class="btn btn-primary" type="submit" :disabled="form.submitting.value">

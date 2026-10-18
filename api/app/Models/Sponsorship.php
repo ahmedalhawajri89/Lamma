@@ -50,7 +50,7 @@ class Sponsorship extends Model
     protected $fillable = [
         'reference_code', 'sponsor_id', 'orphan_id', 'program_id',
         'monthly_amount', 'currency', 'share_percent', 'is_zakat',
-        'status', 'billing_day', 'started_at', 'next_due_at',
+        'status', 'billing_day', 'interval_months', 'payment_method', 'started_at', 'next_due_at',
 
         // تُسندها CancelSponsorship و SponsorshipController لا طلب المستخدم
         'paused_at', 'ended_at', 'cancellation_reason',
@@ -62,12 +62,19 @@ class Sponsorship extends Model
      */
     protected $guarded = ['active_key'];
 
+    /**
+     * مرجع البطاقة المحفوظة عند البوابة: يُخصم به ولا يُعرض. لا يُسند من طلب
+     * (ليس في fillable)، تكتبه صفحة الكفالة بعد خصمٍ ناجح بـ forceFill.
+     */
+    protected $hidden = ['gateway_payment_method'];
+
     protected function casts(): array
     {
         return [
             'monthly_amount' => 'decimal:2',
             'share_percent' => 'integer',
             'billing_day' => 'integer',
+            'interval_months' => 'integer',
             'is_zakat' => 'boolean',
             'status' => SponsorshipStatus::class,
             'started_at' => 'date',
@@ -120,6 +127,16 @@ class Sponsorship extends Model
         ]);
     }
 
+    /**
+     * كفالة دُفع لها: نشطة أو موقوفة مؤقتاً. منها يُفتح للكافل ما يخصّ الطفل
+     * (التقارير والرسائل). الحجز المعلّق بانتظار أول دفعة ليس منها: كان يفتح
+     * تقارير الطفل الصحية والنفسية لمن سجّل وحجز ولم يدفع شيئاً.
+     */
+    public function scopeFunded(Builder $query): Builder
+    {
+        return $query->whereIn('status', [SponsorshipStatus::Active, SponsorshipStatus::Paused]);
+    }
+
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('status', SponsorshipStatus::Active);
@@ -136,16 +153,53 @@ class Sponsorship extends Model
     /* -------------------------------------------------------------------- سلوك */
 
     /**
-     * موعد القسط التالي.
-     * billing_day مقيَّد بـ 1..28 في التحقق، فلا حاجة لمعالجة فبراير هنا —
-     * وهذا بالضبط سبب ذلك القيد.
+     * أقرب يوم فوترة قادم (بعد اليوم). يُستعمل عند الاستئناف وتغيير اليوم:
+     * موعدٌ قديم كان يُخصم فوراً ويُبقي الجدول كله متأخراً.
      */
-    public function advanceDueDate(): void
+    public function upcomingBillingDate(?int $day = null): string
     {
-        $this->next_due_at = ($this->next_due_at ?? now())
-            ->copy()
-            ->addMonthNoOverflow()
-            ->setDay($this->billing_day);
+        $day ??= $this->billing_day;
+        $candidate = now()->startOfDay()->setDay(min($day, now()->daysInMonth));
+
+        return ($candidate->isPast() ? now()->addMonthNoOverflow()->setDay($day) : $candidate)->toDateString();
+    }
+
+    /**
+     * يقدّم موعد القسط بعدد من الأشهر، على يوم الفوترة. الافتراضي دورة الكفالة
+     * نفسها (شهر، أو 3، أو 12)، فدفعة سنوية لا تجعل الكفالة متأخرة بعد شهر.
+     */
+    public function advanceDueDate(?int $months = null): void
+    {
+        $months ??= max(1, (int) ($this->interval_months ?? 1));
+        $from = ($this->next_due_at ?? now())->copy()->startOfMonth()->addMonthsNoOverflow($months);
+
+        $this->next_due_at = $from->setDay(min($this->billing_day, $from->daysInMonth));
+    }
+
+    /** عكس advanceDueDate: يعيد الموعد أشهراً، على يوم الفوترة نفسه. */
+    public function rewindDueDate(int $months): void
+    {
+        if ($this->next_due_at === null) {
+            return;
+        }
+
+        $from = $this->next_due_at->copy()->startOfMonth()->subMonthsNoOverflow(max(1, $months));
+        $this->next_due_at = $from->setDay(min($this->billing_day, $from->daysInMonth));
+    }
+
+    /**
+     * كم شهراً يغطي مبلغٌ ما من هذه الكفالة: دفعة سنوية 12، ويدوية بستة
+     * أقساط 6. القاعدة واحدة للتسجيل (يقدّم بها الموعد) وللاسترداد (يعيده بها).
+     */
+    public function monthsCoveredBy(float $amount): int
+    {
+        return max(1, (int) floor(($amount + 0.005) / max(0.01, (float) $this->monthly_amount)));
+    }
+
+    /** ما يُخصم في الدورة الواحدة: القسط الشهري × أشهر الدورة */
+    public function cycleAmount(): float
+    {
+        return round((float) $this->monthly_amount * max(1, (int) ($this->interval_months ?? 1)), 2);
     }
 
     public function getActivitylogOptions(): LogOptions

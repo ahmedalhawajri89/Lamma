@@ -55,6 +55,14 @@ const control = computed(() => {
   return 'input'
 })
 
+/**
+ * الأرقام والتواريخ بأرقام لاتينية كبقية اللوحة؛ كانت تظهر «٢٠١٢» و«٦».
+ * حقل الرقم يُرسم نصّاً بلوحة أرقام (`inputmode`): Chrome يرسم أرقام
+ * `type=number` بلغة الصفحة أيّاً كانت `lang` الحقل، والتحويل إلى رقم
+ * باقٍ في `onInput`. والتاريخ يتبع `lang` فيكفيه.
+ */
+const LATIN = ['number', 'date', 'datetime-local', 'time', 'tel', 'email', 'url']
+
 const normalized = computed(() =>
   (props.options ?? []).map((o) => (typeof o === 'object' ? o : { value: o, label: o })),
 )
@@ -75,7 +83,14 @@ function onInput(event) {
    * `0`: الصفر قيمة يقصدها المستخدم، والفراغ غيابها.
    */
   if (props.type === 'number') {
-    emit('update:modelValue', el.value === '' ? null : Number(el.value))
+    // ما يُكتب من لوحة عربية (٠-٩ و«٫») يصير أرقاماً لاتينية، وغير الأرقام يُحذف
+    const clean = el.value
+      .replace(/[٠-٩]/g, (d) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)))
+      .replace(/[٫,]/g, '.')
+      .replace(/[^\d.-]/g, '')
+    if (clean !== el.value) el.value = clean
+
+    emit('update:modelValue', clean === '' || clean === '-' || clean === '.' ? null : Number(clean))
     return
   }
 
@@ -107,7 +122,7 @@ function onInput(event) {
         :aria-invalid="message ? 'true' : undefined" :aria-describedby="describedBy"
         :data-autofocus="autofocus || undefined" @change="onInput"
       >
-        <option value="">{{ placeholder || '—' }}</option>
+        <option value="">{{ placeholder || 'اختر…' }}</option>
         <option v-for="o in normalized" :key="o.value" :value="o.value">{{ o.label }}</option>
       </select>
 
@@ -119,7 +134,11 @@ function onInput(event) {
       />
 
       <input
-        v-else :id="id" class="input" :type="type"
+        v-else :id="id" class="input"
+        :type="type === 'number' ? 'text' : type"
+        :inputmode="type === 'number' ? 'decimal' : undefined"
+        :dir="type === 'number' ? 'ltr' : undefined"
+        :lang="LATIN.includes(type) ? 'en' : undefined"
         :value="modelValue" :disabled="disabled" :required="required" :placeholder="placeholder"
         :min="min" :max="max" :step="step"
         :aria-invalid="message ? 'true' : undefined" :aria-describedby="describedBy"
@@ -128,6 +147,6 @@ function onInput(event) {
     </template>
 
     <p v-if="hint && !message" :id="hintId" class="text-xs text-sand-500 mt-1">{{ hint }}</p>
-    <p v-if="message" :id="errorId" class="text-xs text-clay-700 mt-1" role="alert">{{ message }}</p>
+    <p v-if="message" :id="errorId" class="text-xs text-rose-700 mt-1" role="alert">{{ message }}</p>
   </div>
 </template>

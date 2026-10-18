@@ -30,17 +30,72 @@ export const forgotPassword = (email) =>
 export const resetPassword = (payload) =>
   request('/auth/reset-password', { method: 'POST', body: payload });
 
+/**
+ * هل الحساب حساب كافل؟
+ *
+ * الدخول نقطة واحدة لكل الحسابات، لكن لوحة الكافل للكفلاء وحدهم، وفريق
+ * العمل يدخل من لوحة الإدارة. الخادم يرفض /portal/* لغير الكافل على أي حال.
+ */
+export const isSponsor = (user) =>
+  Boolean(user?.sponsor) || (user?.roles ?? []).includes('sponsor');
+
 /** يُرجع المستخدم أو `null` — والـ 401 هنا حالة طبيعية لا خطأ. */
-export async function me() {
+export async function me({ strict = false } = {}) {
   try {
     const { data } = await request('/auth/me');
     return data;
-  } catch {
+  } catch (error) {
+    /*
+     * في `strict` لا يُعدّ انقطاع الشبكة أو عطل الخادم خروجاً: كانت اللوحة
+     * تُرسل الكافل إلى صفحة الدخول ويُمسح تلميحه كلما تعثّر الخادم ثانية.
+     */
+    if (strict && !isAuthLoss(error)) throw error;
     return null;
   }
+}
+
+/** الجلسة انتهت أو رُفض رمزها: 401 أو 419 (CSRF). */
+export const isAuthLoss = (error) => error?.status === 401 || error?.status === 419;
+
+/**
+ * تلميح «سبق له الدخول» للهيدر.
+ *
+ * ليس حالة دخول: الجلسة يملكها الخادم وحده. هو فقط يجنّب كل زائر طلب
+ * `me()` في كل صفحة. من عنده التلميح نسأل الخادم عنه، ومن ليس عنده لا نسأل.
+ */
+const HINT = 'kafala-signed-in';
+
+export function markSignedIn() {
+  try { localStorage.setItem(HINT, '1'); } catch { /* تخزين محجوب */ }
+}
+
+export function clearSignedIn() {
+  try { localStorage.removeItem(HINT); } catch { /* تخزين محجوب */ }
+}
+
+export function hasSignedInHint() {
+  try { return localStorage.getItem(HINT) === '1'; } catch { return false; }
 }
 
 export const portalOverview = () => request('/portal/overview');
 export const portalPayments = (params = '') => request(`/portal/payments${params}`);
 export const portalReports = () => request('/portal/reports');
 export const markReportSeen = (id) => request(`/portal/reports/${id}`);
+
+export const portalMessages = (sponsorshipId) =>
+  request(`/portal/sponsorships/${sponsorshipId}/messages`);
+export const sendPortalMessage = (sponsorshipId, body) =>
+  request(`/portal/sponsorships/${sponsorshipId}/messages`, { method: 'POST', body: { body } });
+
+/** الإنهاء إلغاءٌ نهائي على الخادم: يتوقف الخصم، ويُؤمَّن للطفل كافل بديل. */
+export const cancelSponsorship = (sponsorshipId, reason = '') =>
+  request(`/portal/sponsorships/${sponsorshipId}`, { method: 'DELETE', body: { reason } });
+
+/** إيقاف مؤقت (`paused`) أو استئناف (`active`): الطفل يبقى محجوزاً للكافل. */
+export const setSponsorshipStatus = (sponsorshipId, status) =>
+  request(`/portal/sponsorships/${sponsorshipId}`, { method: 'PATCH', body: { status } });
+
+export const updateProfile = (payload) =>
+  request('/portal/profile', { method: 'PATCH', body: payload });
+export const updatePassword = (payload) =>
+  request('/portal/profile/password', { method: 'PUT', body: payload });

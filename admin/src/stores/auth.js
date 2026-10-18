@@ -14,6 +14,10 @@ export const useAuthStore = defineStore('auth', () => {
   const loading = ref(false)
   const checked = ref(false)
 
+  /** الخادم لم يردّ أصلاً (متوقف أو بطيء جداً)، لا أن الجلسة غير موجودة */
+  const offline = ref(false)
+  let pending = null
+
   const isAuthenticated = computed(() => user.value !== null)
   const roles = computed(() => user.value?.roles ?? [])
   const permissions = computed(() => user.value?.permissions ?? [])
@@ -40,19 +44,23 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   /** يُستدعى مرة عند الإقلاع: يستعيد الجلسة إن كان الكوكي ما يزال صالحاً. */
-  async function fetchUser() {
-    if (checked.value) return user.value
+  /**
+   * استعادة الجلسة. يُستدعى من الموجّه ومن `App.vue` معاً عند الفتح، فيتشاركان
+   * طلباً واحداً بدل طلبين على خادم يعالج طلباً واحداً في المرة.
+   */
+  function fetchUser() {
+    if (checked.value) return Promise.resolve(user.value)
 
-    try {
-      const { data } = await api.auth.me()
-      user.value = data.data
-    } catch {
-      user.value = null            // 401 هنا حالة طبيعية لا خطأ
-    } finally {
-      checked.value = true
-    }
+    pending ??= api.auth.me()
+      .then(({ data }) => { user.value = data.data; offline.value = false })
+      .catch((e) => {
+        user.value = null            // 401 هنا حالة طبيعية لا خطأ
+        offline.value = !e.response  // بلا استجابة: الخادم لا يردّ
+      })
+      .finally(() => { checked.value = true; pending = null })
+      .then(() => user.value)
 
-    return user.value
+    return pending
   }
 
   async function logout() {
@@ -65,7 +73,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   return {
-    user, loading, checked,
+    user, loading, checked, offline,
     isAuthenticated, isStaff, isAdmin, roles, permissions,
     can, login, fetchUser, logout,
   }

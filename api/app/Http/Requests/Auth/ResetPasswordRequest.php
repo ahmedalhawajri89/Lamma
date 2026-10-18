@@ -24,7 +24,17 @@ class ResetPasswordRequest extends FormRequest
             // `confirmed` تطلب `password_confirmation` — والتأكيد هنا ليس
             // زخرفة: من يخطئ في كتابة كلمةٍ لا يراها يُقفل على نفسه الباب
             // الذي فتحه للتوّ.
-            'password' => ['required', 'confirmed', Password::min(8)->letters()->numbers()],
+            'password' => ['required', 'confirmed', Password::min(8)->letters()->numbers()->uncompromised()],
+        ];
+    }
+
+    /** @return array<string, string> */
+    public function messages(): array
+    {
+        return [
+            'password.confirmed' => __('كلمتا المرور غير متطابقتين.'),
+            // كما في التسجيل: كلمةٌ في تسريبٍ معروف تُجرَّب أولاً على أي حساب
+            'password.uncompromised' => __('هذه الكلمة ظهرت في تسريبات معروفة. اختر غيرها.'),
         ];
     }
 
@@ -32,8 +42,8 @@ class ResetPasswordRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'email' => 'البريد الإلكتروني',
-            'password' => 'كلمة المرور',
+            'email' => __('البريد الإلكتروني'),
+            'password' => __('كلمة المرور'),
         ];
     }
 }

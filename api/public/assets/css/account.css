@@ -1,0 +1,306 @@
+/* =========================================================================
+   صفحات الحساب: النموذج في نصف، ولوحٌ فاتح في النصف الآخر يُري ما ينتظر
+   الكافل في حسابه. على الجوال النموذج وحده.
+   ========================================================================= */
+
+.acc-body { min-block-size: 100dvh; background: var(--color-canvas); }
+.acc { --acc-pad: clamp(1.25rem, 3vw, 2rem); position: relative; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); min-block-size: 100dvh; }
+
+/* ── النموذج ── */
+.acc-main { display: flex; flex-direction: column; padding: var(--acc-pad) clamp(1.25rem, 5vw, 4rem); }
+.acc-bar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; min-block-size: 2.75rem; z-index: 2; }
+.acc-brand .kf-brand__name { font-size: 1.35rem; color: var(--color-brand); }
+.acc-bar__tools { display: flex; align-items: center; gap: 0.5rem; view-transition-name: acc-tools; }
+/* على الشاشة العريضة: الشعار يفتتح الصفحة يميناً، والأدوات تختمها في الزاوية
+   اليسرى فوق اللوح، كما يتوقعها الزائر في أي موقع. على الجوال تبقى في الشريط. */
+@media (min-width: 62rem) {
+  .acc-bar__tools { position: absolute; z-index: 2; inset-block-start: var(--acc-pad); inset-inline-end: clamp(1.25rem, 3vw, 2.5rem); block-size: 2.75rem; }
+}
+.acc-back { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.9rem; font-weight: 600; color: var(--color-text-muted); text-decoration: none; }
+.acc-back:hover { color: var(--color-brand); }
+
+.acc-panel { flex: 1; display: grid; align-content: center; inline-size: min(100%, 27rem); margin-inline: auto; padding-block: clamp(2rem, 6vh, 4rem); }
+.acc-title { margin: 0; font-size: clamp(2rem, 4vw, 2.6rem); line-height: 1.2; color: var(--color-text); }
+.acc-title:focus { outline: none; }
+.acc-lede { margin: 0.6rem 0 0; font-size: 1.05rem; line-height: 1.8; color: var(--color-text-muted); }
+.acc-lede b { color: var(--color-text); }
+
+.acc-form { display: grid; gap: 1.1rem; margin-block-start: 2rem; }
+.acc-form .field { margin: 0; }
+.acc-form .form-label { margin-block-end: 0.4rem; font-weight: 600; }
+.acc-label-row { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
+.acc-link { padding: 0; border: 0; background: none; font-size: 0.875rem; font-weight: 600; color: var(--color-brand); }
+.acc-link:hover { text-decoration: underline; text-underline-offset: 0.25em; }
+.acc-link:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; border-radius: 0.25rem; }
+
+/* الحقل: أبيض بحدٍّ داخلي رقيق، والأيقونة في مربّعٍ صغير يتلوّن بلون الهوية
+   حين يُركَّز الحقل، وهالةٌ ناعمة بدل الإطار الأزرق الافتراضي */
+.acc-input { position: relative; }
+.acc-input > i {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 0.6rem;
+  translate: 0 -50%;
+  display: inline-grid;
+  place-items: center;
+  inline-size: 2.4rem;
+  block-size: 2.4rem;
+  border-radius: 0.75rem;
+  background: var(--color-surface-alt);
+  color: var(--color-text-muted);
+  pointer-events: none;
+  transition: background-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+}
+.acc-input:focus-within > i { background: var(--color-brand); color: var(--color-brand-contrast); }
+.acc-input .form-control {
+  min-block-size: 3.6rem;
+  padding-inline-start: 3.6rem;
+  border: 0;
+  border-radius: 1rem;
+  background: var(--color-surface);
+  box-shadow: inset 0 0 0 1px var(--color-border), 0 1px 2px rgb(15 40 40 / 0.04);
+  font-size: 1.05rem;
+  color: var(--color-text);
+  transition: box-shadow var(--dur-fast) var(--ease-out);
+}
+.acc-input .form-control[dir="ltr"] { text-align: left; }
+.acc-input .form-control:hover { box-shadow: inset 0 0 0 1px var(--color-brand-border), 0 1px 2px rgb(15 40 40 / 0.04); }
+.acc-input .form-control:focus { box-shadow: inset 0 0 0 1.5px var(--color-brand), 0 0 0 5px var(--color-brand-soft); }
+.acc-input:has(.acc-input__toggle) .form-control { padding-inline-end: 3.2rem; }
+.acc-input__toggle {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-end: 0.55rem;
+  translate: 0 -50%;
+  display: inline-grid;
+  place-items: center;
+  inline-size: 2.4rem;
+  block-size: 2.4rem;
+  border: 0;
+  border-radius: 0.75rem;
+  background: none;
+  color: var(--color-text-muted);
+}
+.acc-input__toggle:hover { background: var(--color-surface-alt); color: var(--color-brand); }
+.acc-input__toggle[aria-pressed="true"] { color: var(--color-brand); }
+.acc-input__toggle:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 1px; }
+.field.is-invalid .acc-input .form-control { box-shadow: inset 0 0 0 1.5px var(--color-urgent), 0 0 0 5px var(--color-urgent-soft); }
+.field.is-invalid .acc-input > i { background: var(--color-urgent-soft); color: var(--color-urgent); }
+
+.acc-caps { display: flex; align-items: center; gap: 0.4rem; margin: 0.45rem 0 0; font-size: 0.85rem; font-weight: 600; color: var(--color-cta-strong); }
+.acc-caps[hidden] { display: none; }
+
+.acc-remember { display: flex; align-items: center; gap: 0.6rem; margin: 0; padding: 0; }
+.acc-remember .form-check-input { flex-shrink: 0; margin: 0; inline-size: 2.4em; block-size: 1.3em; cursor: pointer; }
+.acc-remember .form-check-label { font-size: 0.925rem; color: var(--color-text-muted); cursor: pointer; }
+
+/* الزرّ: بزوايا الحقول نفسها، وظلٌّ بلون الهوية، وسهمٌ يتقدّم عند المرور */
+.acc-form .btn-lg,
+.acc-panel > section > .btn-lg {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  min-block-size: 3.6rem;
+  border-radius: 1rem;
+  font-weight: 700;
+  transition: translate var(--dur-fast) var(--ease-out), box-shadow var(--dur-normal) var(--ease-out), background-color var(--dur-fast);
+}
+.acc-form .btn-lg { margin-block-start: 0.35rem; }
+.acc-form .btn-primary { box-shadow: 0 10px 24px -12px rgb(15 92 92 / 0.6); }
+.acc-form .btn-primary:hover { translate: 0 -1px; box-shadow: 0 14px 28px -12px rgb(15 92 92 / 0.65); }
+.acc-form .btn-primary:active { translate: 0 0; box-shadow: 0 6px 14px -10px rgb(15 92 92 / 0.6); }
+.acc-btn__arrow { transition: translate var(--dur-fast) var(--ease-out); }
+.acc-form .btn:hover .acc-btn__arrow { translate: calc(-0.3rem * var(--kf-dir, 1)) 0; }
+.acc-secure { display: flex; align-items: flex-start; gap: 0.5rem; margin: 1.1rem 0 0; font-size: 0.85rem; line-height: 1.7; color: var(--color-text-muted); }
+.acc-secure i { margin-block-start: 0.25rem; color: var(--color-success); }
+
+.acc-switch { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 0.5rem; margin-block-start: 2rem; padding-block-start: 1.5rem; border-block-start: 1px solid var(--color-border); font-size: 0.95rem; color: var(--color-text-muted); }
+.acc-switch a { display: inline-flex; align-items: center; gap: 0.35rem; font-weight: 700; color: var(--color-brand); text-decoration: none; }
+.acc-switch a:hover { text-decoration: underline; text-underline-offset: 0.25em; }
+
+/* الاستعادة وحالة الإرسال */
+.acc-backlink { display: inline-flex; align-items: center; gap: 0.45rem; margin-block-end: 1.5rem; padding: 0; border: 0; background: none; font-size: 0.9rem; font-weight: 600; color: var(--color-text-muted); }
+.acc-backlink:hover { color: var(--color-brand); }
+.acc-view-icon { display: inline-grid; place-items: center; inline-size: 3.5rem; block-size: 3.5rem; margin-block-end: 1.25rem; border-radius: var(--radius-lg); background: var(--color-brand-soft); color: var(--color-brand); font-size: 1.4rem; }
+.acc-view-icon--warn { background: var(--color-cta-soft); color: var(--color-cta-strong); }
+.acc-view-icon--ok { background: var(--color-success-soft, var(--color-brand-soft)); color: var(--color-success, var(--color-brand)); }
+.acc-tips { display: grid; gap: 0.6rem; margin: 1.5rem 0; padding: 1rem 1.1rem; border-radius: var(--radius-lg); background: var(--color-surface); list-style: none; font-size: 0.9rem; color: var(--color-text-muted); }
+.acc-tips i { inline-size: 1.1rem; margin-inline-end: 0.4rem; color: var(--color-brand); }
+
+/* ── اللوح الجانبي: يذوب في أرضية الصفحة ──
+   طلب صاحب المشروع دمج اللونين بدل الحدّ الفاصل (استثناءٌ مقصود من قاعدة
+   «بلا تدرّجات»، كقناع صورة الهيرو): يبدأ بلون الأرضية عند حافة النموذج،
+   ويصير تركوازياً فاتحاً نحو الطرف، ومعه وهجان ناعمان للعمق. */
+.acc-aside { position: relative; }
+.acc-aside__inner {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  block-size: 100%;
+  overflow: hidden;
+  padding: clamp(2.5rem, 5vw, 4.5rem);
+  text-align: center;
+  background:
+    radial-gradient(38rem 32rem at 12% 18%, color-mix(in srgb, var(--color-brand) 16%, transparent), transparent 70%),
+    radial-gradient(30rem 26rem at 22% 92%, color-mix(in srgb, var(--color-cta) 14%, transparent), transparent 70%),
+    /* اليسار تركوازي، ويذوب نحو اليمين حيث النموذج حتى لون الأرضية تماماً */
+    linear-gradient(to right, var(--color-brand-soft) 0%, var(--color-brand-soft) 40%, var(--color-canvas) 100%);
+}
+.acc-aside__inner > * { position: relative; max-inline-size: 32rem; }
+.acc-aside__kicker { margin: 0; font-family: var(--font-display); font-size: 0.9rem; font-weight: 700; color: var(--color-cta-strong); }
+.acc-aside__title { margin: 0.6rem 0 0; font-size: clamp(1.8rem, 3vw, 2.5rem); line-height: 1.3; color: var(--color-text); }
+
+.acc-mock { position: relative; z-index: 0; inline-size: min(100%, 24rem); margin: clamp(2.5rem, 5vw, 3.5rem) auto clamp(3.5rem, 6vw, 4.5rem); text-align: start; }
+/* حلقاتٌ متحدة المركز خلف البطاقة تربط التكوين، كخلفية الهاتف في الرئيسية */
+.acc-mock::before,
+.acc-mock::after {
+  content: "";
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  z-index: -1;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-brand-border);
+  translate: 50% -50%;
+  pointer-events: none;
+}
+.acc-mock::before { inline-size: 30rem; block-size: 30rem; }
+.acc-mock::after { inline-size: 44rem; block-size: 44rem; border-style: dashed; opacity: 0.6; }
+.acc-mock__card { padding: 1.4rem; border-radius: var(--radius-xl); background: var(--color-surface); box-shadow: var(--shadow-lg); }
+.acc-mock__who { display: flex; align-items: center; gap: 0.75rem; margin-block-end: 1.1rem; }
+.acc-mock__who img { inline-size: 3.25rem; block-size: 3.25rem; border-radius: 50%; background: var(--color-surface-alt); }
+.acc-mock__who b { display: block; font-family: var(--font-display); color: var(--color-text); }
+.acc-mock__who span { font-size: 0.8rem; color: var(--color-text-muted); }
+.acc-mock__tag { margin-inline-start: auto; padding: 0.25rem 0.65rem; border-radius: var(--radius-pill); background: var(--color-cta-soft); font-size: 0.75rem; font-weight: 700; color: var(--color-cta-strong) !important; }
+.acc-mock__row { display: grid; grid-template-columns: 6.5rem minmax(0, 1fr) 2rem; align-items: center; gap: 0.75rem; margin-block-end: 0.6rem; font-size: 0.85rem; color: var(--color-text-muted); }
+.acc-mock__row b { font-family: var(--font-display); color: var(--color-text); text-align: end; }
+.acc-mock__bar { block-size: 0.45rem; overflow: hidden; border-radius: var(--radius-pill); background: var(--color-surface-alt); }
+.acc-mock__bar span { display: block; block-size: 100%; inline-size: var(--v); border-radius: inherit; background: var(--color-brand); }
+.acc-mock__split { display: flex; gap: 3px; block-size: 0.6rem; margin-block-start: 1.1rem; overflow: hidden; border-radius: var(--radius-pill); }
+.acc-mock__split span { inline-size: var(--w); background: var(--c); }
+.acc-mock__note { margin: 0.5rem 0 0; font-size: 0.8rem; color: var(--color-text-muted); }
+.acc-mock__chip { position: absolute; display: flex; align-items: center; gap: 0.6rem; padding: 0.65rem 0.9rem; border-radius: var(--radius-lg); background: var(--color-surface); box-shadow: var(--shadow-md); font-size: 0.75rem; color: var(--color-text-muted); }
+.acc-mock__chip i { display: inline-grid; place-items: center; inline-size: 2rem; block-size: 2rem; border-radius: 50%; background: var(--color-brand-soft); color: var(--color-brand); }
+.acc-mock__chip b { display: block; font-size: 0.85rem; color: var(--color-text); }
+/* البطاقتان على الطرف الآخر من اسم الطفل، فلا تغطيانه */
+.acc-mock__chip--a { inset-block-start: -1.75rem; inset-inline-end: -2.25rem; }
+.acc-mock__chip--b { inset-block-end: -3.25rem; inset-inline-start: -2rem; }
+.acc-mock__chip--b i { background: var(--color-cta-soft); color: var(--color-cta-strong); }
+
+/* تظهر البطاقتان العائمتان مرة واحدة */
+@media (prefers-reduced-motion: no-preference) {
+  .acc-mock__card { animation: acc-rise 0.7s var(--ease-out) 0.15s both; }
+  .acc-mock__chip--a { animation: acc-rise 0.6s var(--ease-out) 0.55s both; }
+  .acc-mock__chip--b { animation: acc-rise 0.6s var(--ease-out) 0.75s both; }
+}
+@keyframes acc-rise { from { opacity: 0; translate: 0 14px; } }
+
+.acc-aside__inner > .acc-aside__points { max-inline-size: 40rem; }
+.acc-aside__points { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem; margin: 0; padding: 0; list-style: none; font-size: 0.875rem; font-weight: 600; color: var(--color-text); }
+.acc-aside__points li { padding: 0.45rem 0.9rem; border-radius: var(--radius-pill); background: color-mix(in srgb, var(--color-surface) 75%, transparent); box-shadow: inset 0 0 0 1px var(--color-brand-border); }
+.acc-aside__points i { margin-inline-end: 0.35rem; color: var(--color-brand); }
+.acc-aside__demo { margin: 1rem 0 0; font-size: 0.75rem; color: var(--color-text-muted); }
+
+
+/* ── التسجيل ── */
+.acc-panel--wide { inline-size: min(100%, 30rem); }
+.acc-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.acc-optional { margin-inline-start: 0.35rem; padding: 0.1rem 0.5rem; border-radius: var(--radius-pill); background: var(--color-surface-alt); font-size: 0.75rem; font-weight: 500; color: var(--color-text-muted); }
+.acc-hint { margin: 0.4rem 0 0; font-size: 0.825rem; }
+
+.acc-strength { display: flex; align-items: center; gap: 0.75rem; margin-block-start: 0.65rem; }
+.acc-strength__bars { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0.25rem; flex: 0 0 8rem; }
+.acc-strength .strength__bar { block-size: 0.3rem; border-radius: var(--radius-pill); background: var(--color-surface-alt); transition: background-color var(--dur-fast); }
+.acc-strength .strength__bar.is-on { background: var(--strength-color, var(--color-brand)); }
+.acc-strength .strength__label { margin: 0; font-size: 0.8rem; color: var(--color-text-muted); }
+
+.acc-rules { display: flex; flex-wrap: wrap; gap: 0.35rem 1rem; margin: 0.6rem 0 0; padding: 0; list-style: none; font-size: 0.825rem; color: var(--color-text-muted); }
+.acc-rules li { display: inline-flex; align-items: center; gap: 0.35rem; transition: color var(--dur-fast); }
+.acc-rules i { color: var(--color-border); transition: color var(--dur-fast); }
+.acc-rules li.is-met { color: var(--color-text); }
+.acc-rules li.is-met i { color: var(--color-success); }
+
+.acc-consent { margin: 0.25rem 0 0; font-size: 0.825rem; line-height: 1.7; color: var(--color-text-muted); text-align: center; }
+.acc-consent a { color: var(--color-brand); }
+.acc-terms { display: flex; gap: 0.6rem; margin: 0; padding: 0; }
+.acc-terms .form-check-input { flex-shrink: 0; margin: 0.2rem 0 0; }
+.acc-terms .form-check-label { font-size: 0.9rem; line-height: 1.7; color: var(--color-text-muted); }
+.acc-terms a { color: var(--color-brand); }
+
+/* لوح التسجيل: ثلاث خطوات، والأولى «الآن» */
+.acc-aside__verse { font-family: var(--font-quote, var(--font-display)); font-size: 1.05rem; font-weight: 400; line-height: 1.9; }
+.acc-journey { display: grid; gap: 1rem; margin: 0; padding: 0; list-style: none; position: relative; }
+.acc-journey::before { content: ""; position: absolute; inset-block: 1.1rem; inset-inline-start: 1.05rem; border-inline-start: 2px dashed var(--color-brand-border); }
+.acc-journey li { position: relative; display: flex; align-items: center; gap: 0.85rem; }
+.acc-journey li > span { display: inline-grid; place-items: center; flex-shrink: 0; inline-size: 2.2rem; block-size: 2.2rem; border-radius: 50%; background: var(--color-surface); box-shadow: inset 0 0 0 1.5px var(--color-brand-border); font-family: var(--font-display); font-weight: 700; color: var(--color-brand); }
+.acc-journey li.is-now > span { background: var(--color-brand); box-shadow: 0 0 0 5px var(--color-brand-soft); color: var(--color-brand-contrast); }
+.acc-journey b { display: block; font-family: var(--font-display); color: var(--color-text); }
+.acc-journey small { font-size: 0.8rem; color: var(--color-text-muted); }
+@media (max-width: 35.98rem) {
+  .acc-pair { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* شاشات قصيرة (حواسيب 768، والجوال): كل شيء في شاشةٍ واحدة بلا تمرير.
+   تضيق المسافات لا الحقول: الحقل والزرّ يبقيان بحجمٍ يُلمس بسهولة. */
+@media (max-height: 920px), (max-width: 35.98rem) {
+  .acc { --acc-pad: 1rem; }
+  .acc-panel { padding-block: 1rem; }
+  .acc-title { font-size: clamp(1.7rem, 3.4vw, 2.2rem); }
+  .acc-lede { margin-block-start: 0.35rem; font-size: 0.975rem; }
+  .acc-form { gap: 0.8rem; margin-block-start: 1.25rem; }
+  .acc-form .form-label { margin-block-end: 0.3rem; }
+  .acc-input .form-control { min-block-size: 3.25rem; }
+  .acc-form .btn-lg { min-block-size: 3.25rem; }
+  .acc-rules { margin-block-start: 0.45rem; }
+  .acc-switch { margin-block-start: 1.1rem; padding-block-start: 1rem; }
+  .acc-secure { margin-block-start: 0.75rem; }
+}
+@media (max-height: 800px) {
+  .acc-lede { display: none; }
+  .acc-panel { padding-block: 0.5rem; }
+  .acc-aside__points { display: none; }
+  .acc-mock { margin-block: 1.75rem 2.75rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .acc-input > i, .acc-input .form-control, .acc-form .btn-lg, .acc-btn__arrow { transition: none; }
+}
+@media (max-width: 61.98rem) {
+  .acc { grid-template-columns: minmax(0, 1fr); }
+  .acc-aside { display: none; }
+}
+
+/* =========================================================================
+   الانتقال بين الدخول والتسجيل (View Transitions بين المستندات)
+   -------------------------------------------------------------------------
+   الشريط واللوح الجانبي باقيان ويتحوّلان بهدوء، والنموذج القديم ينزلق
+   ويخفت والجديد يدخل من الجهة الأخرى، باتجاه القراءة: إلى التسجيل تقدّمٌ
+   نحو اليسار، والعودة إلى الدخول عكسه (الاتجاه من theme-init.js). وحيث لا
+   يدعمه المتصفح، أو طلب الزائر تقليل الحركة، تنتقل الصفحة كالمعتاد.
+   ========================================================================= */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition { navigation: auto; }
+}
+.acc-bar { view-transition-name: acc-bar; }
+.acc-panel { view-transition-name: acc-form; }
+.acc-aside__inner { view-transition-name: acc-aside; }
+
+::view-transition-old(root),
+::view-transition-new(root) { animation: none; }
+::view-transition-group(acc-aside),
+::view-transition-group(acc-bar) { animation-duration: 0.55s; animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1); }
+::view-transition-old(acc-aside),
+::view-transition-new(acc-aside) { animation-duration: 0.55s; }
+
+::view-transition-old(acc-form) { animation: acc-out 0.32s cubic-bezier(0.4, 0, 1, 1) both; }
+::view-transition-new(acc-form) { animation: acc-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both; }
+/* التقدّم في صفحةٍ عربية: يمضي القديم يساراً ويأتي الجديد من اليمين */
+@keyframes acc-out { to { opacity: 0; translate: calc(-2.5rem * var(--kf-dir, 1)) 0; filter: blur(4px); } }
+@keyframes acc-in { from { opacity: 0; translate: calc(2.5rem * var(--kf-dir, 1)) 0; filter: blur(4px); } }
+html:active-view-transition-type(acc-back)::view-transition-old(acc-form) { animation-name: acc-out-back; }
+html:active-view-transition-type(acc-back)::view-transition-new(acc-form) { animation-name: acc-in-back; }
+@keyframes acc-out-back { to { opacity: 0; translate: calc(2.5rem * var(--kf-dir, 1)) 0; filter: blur(4px); } }
+@keyframes acc-in-back { from { opacity: 0; translate: calc(-2.5rem * var(--kf-dir, 1)) 0; filter: blur(4px); } }

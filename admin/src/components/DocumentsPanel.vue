@@ -12,6 +12,7 @@
  * الأدوار لا هنا.
  */
 import { computed, onMounted, ref } from 'vue'
+import { confirmDialog } from '@/composables/useConfirm'
 import { admin } from '@/api/endpoints'
 import { useAuthStore } from '@/stores/auth'
 import { useUiStore } from '@/stores/ui'
@@ -46,6 +47,9 @@ const fileInput = ref(null)
 
 const can = computed(() => auth.can('documents.manage'))
 
+/** التحقق لمن يوثّق، ولا يتحقق أحد مما رفعه بنفسه (يفرضه الخادم أيضاً) */
+const canVerify = (d) => auth.can('orphans.verify') && d.uploaded_by !== auth.user?.id
+
 /**
  * الأنواع الثلاثة التي يشترطها التوثيق.
  *
@@ -56,11 +60,14 @@ const REQUIRED = ['birth_certificate', 'death_certificate', 'guardianship_proof'
 
 const checklist = computed(() =>
   REQUIRED.map((type) => {
-    const found = documents.value.find((d) => d.type === type)
+    // المرفوض لا يُحسب: النوع ناقص حتى يُرفع بدلاً منه مستند جديد
+    const live = documents.value.filter((d) => d.type === type && !d.is_rejected)
+    const found = live.find((d) => d.is_verified) ?? live[0]
+    const rejected = !found && documents.value.some((d) => d.type === type && d.is_rejected)
     return {
       type,
       label: props.types.find((t) => t.value === type)?.label ?? type,
-      state: !found ? 'missing' : found.is_verified ? 'done' : 'pending',
+      state: !found ? (rejected ? 'rejected' : 'missing') : found.is_verified ? 'done' : 'pending',
     }
   }),
 )
@@ -139,7 +146,13 @@ async function verify(document) {
 }
 
 async function remove(document) {
-  if (!window.confirm(`حذف «${document.type_label}»؟ لا يمكن التراجع.`)) return
+  const answer = await confirmDialog({
+    title: 'حذف المستند',
+    message: `سيُحذف «${document.type_label}» من ملف الطفل، ولا يمكن التراجع.`,
+    confirmLabel: 'احذف',
+    danger: true,
+  })
+  if (!answer) return
 
   busyId.value = document.id
   try {
@@ -190,8 +203,8 @@ defineExpose({ load })
           class="flex items-center gap-2 text-sm px-1 py-1.5 rounded-lg hover:bg-sand-50"
         >
           <BaseIcon
-            :name="d.is_verified ? 'check' : 'clock'" :size="15"
-            :class="d.is_verified ? 'text-olive-600' : 'text-amber-600'"
+            :name="d.is_verified ? 'check' : d.is_rejected ? 'close' : 'clock'" :size="15"
+            :class="d.is_verified ? 'text-olive-600' : d.is_rejected ? 'text-rose-600' : 'text-amber-600'"
           />
 
           <span class="flex-1 min-w-0">
@@ -200,19 +213,24 @@ defineExpose({ load })
               {{ d.original_name }} · {{ size(d.size_bytes) }}
               <template v-if="d.is_verified"> · تُحقِّق {{ dateTime(d.verified_at) }}</template>
             </span>
+            <!-- سبب الرفض لمن رفعه: يرفع بدلاً منه مستنداً جديداً -->
+            <span v-if="d.is_rejected" class="block text-xs text-rose-700 mt-0.5">
+              مرفوض: {{ d.rejection_reason }}
+            </span>
           </span>
 
           <span class="flex items-center gap-0.5 shrink-0">
             <a
               v-if="can" class="btn btn-ghost p-1.5" :href="d.download_url"
-              :title="`تنزيل ${d.original_name}`"
+              :title="`تنزيل ${d.original_name}`" :aria-label="`تنزيل ${d.original_name}`"
             >
               <BaseIcon name="download" :size="14" />
             </a>
 
             <button
-              v-if="can && !d.is_verified" class="btn btn-ghost p-1.5 text-olive-700"
+              v-if="canVerify(d) && !d.is_verified && !d.is_rejected" class="btn btn-ghost p-1.5 text-olive-700"
               type="button" :disabled="busyId === d.id" title="تحقّق من هذا المستند"
+              :aria-label="`تحقّق من ${d.type_label ?? 'المستند'}`"
               @click="verify(d)"
             >
               <BaseIcon name="check" :size="14" />
@@ -223,8 +241,8 @@ defineExpose({ load })
               بـ422. إخفاء الزرّ يمنع نقرةً مصيرها الرفض.
             -->
             <button
-              v-if="can && !d.is_verified" class="btn btn-ghost p-1.5 text-clay-700"
-              type="button" :disabled="busyId === d.id" title="حذف"
+              v-if="can && !d.is_verified" class="btn btn-ghost p-1.5 text-rose-700 hover:bg-rose-600/10"
+              type="button" :disabled="busyId === d.id" title="حذف" :aria-label="`حذف ${d.type_label ?? 'المستند'}`"
               @click="remove(d)"
             >
               <BaseIcon name="trash" :size="14" />
@@ -238,7 +256,7 @@ defineExpose({ load })
       <!-- قائمة النواقص: تظهر ما دام الملف غير موثّق -->
       <div v-if="!verified" class="mt-3 pt-3 border-t border-sand-100">
         <p class="text-xs text-sand-600 mb-2">
-          {{ ready ? 'المستندات مكتملة — يمكن توثيق الملف.' : 'التوثيق يحتاج:' }}
+          {{ ready ? 'المستندات مكتملة، ويمكن توثيق الملف.' : 'التوثيق يحتاج:' }}
         </p>
 
         <ul v-if="!ready" class="space-y-1">
@@ -250,10 +268,11 @@ defineExpose({ load })
             <BaseIcon
               :name="c.state === 'done' ? 'check' : c.state === 'pending' ? 'clock' : 'close'"
               :size="12"
-              :class="{ 'text-amber-600': c.state === 'pending', 'text-sand-400': c.state === 'missing' }"
+              :class="{ 'text-amber-600': c.state === 'pending', 'text-sand-400': c.state === 'missing', 'text-rose-600': c.state === 'rejected' }"
             />
             {{ c.label }}
             <span v-if="c.state === 'pending'" class="text-amber-700">(مرفوع، ينتظر التحقق)</span>
+            <span v-else-if="c.state === 'rejected'" class="text-rose-700">(رُفض، ارفع بدلاً منه)</span>
           </li>
         </ul>
       </div>
@@ -282,7 +301,7 @@ defineExpose({ load })
         <p id="documentFileHelp" class="text-xs text-sand-500 mt-1">
           PDF أو صورة. يُخزَّن خارج المجلد العام ولا يُقدَّم إلا عبر مسار محمي.
         </p>
-        <p v-if="uploadErrors.file" class="text-xs text-clay-700 mt-1" role="alert">
+        <p v-if="uploadErrors.file" class="text-xs text-rose-700 mt-1" role="alert">
           {{ uploadErrors.file[0] }}
         </p>
       </div>

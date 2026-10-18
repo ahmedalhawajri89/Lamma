@@ -19,10 +19,10 @@ enum HousingStatus: string
     public function label(): string
     {
         return match ($this) {
-            self::Owned => 'ملك',
-            self::Rented => 'إيجار',
-            self::Hosted => 'استضافة',
-            self::Displaced => 'نزوح',
+            self::Owned => __('ملك'),
+            self::Rented => __('إيجار'),
+            self::Hosted => __('استضافة'),
+            self::Displaced => __('نزوح'),
         };
     }
 }

@@ -52,9 +52,37 @@ class FieldVisit extends Model
         return $this->belongsTo(User::class, 'supervisor_id');
     }
 
-    /** الزيارات المتأخرة — تغذّي تنبيهات لوحة الإدارة. */
+    /**
+     * الزيارات المتأخرة: **آخر** زيارة للطفل تجاوزت موعد الزيارة التالية.
+     *
+     * كانت تعدّ كل زيارة قديمة فات موعدها، ولو تلتها زيارة أحدث للطفل نفسه،
+     * فتظهر «231 متأخرة» والمتأخر فعلاً أقل بكثير. الزيارة التي جاءت بعدها
+     * زيارةٌ أخرى قد أُنجز ما بعدها.
+     */
     public function scopeOverdue(Builder $query): Builder
     {
-        return $query->whereDate('next_visit_due', '<', now()->toDateString());
+        return $query
+            // «اليوم» يوم المنظمة لا يوم UTC
+            ->whereDate('field_visits.next_visit_due', '<', now(config('kafala.display_timezone'))->toDateString())
+            ->whereNotExists(fn ($later) => $later
+                ->from('field_visits as later')
+                ->whereColumn('later.orphan_id', 'field_visits.orphan_id')
+                ->whereColumn('later.visited_at', '>', 'field_visits.visited_at'));
+    }
+
+    /**
+     * هل تلتها زيارة أحدث للطفل نفسه؟ منها تُحسب «متأخرة» في كل صف بالقاعدة
+     * نفسها التي يُعدّ بها العدّاد. كل استعلام يمرّ بـ FieldVisitResource
+     * يحتاجها: كان ملف الطفل يحمّل زياراته بدونها فيسقط بخطأ ٥٠٠.
+     */
+    public function scopeWithHasLater(Builder $query): Builder
+    {
+        return $query
+            ->select('field_visits.*')
+            ->addSelect(['has_later' => static::from('field_visits as later')
+                ->selectRaw('1')
+                ->whereColumn('later.orphan_id', 'field_visits.orphan_id')
+                ->whereColumn('later.visited_at', '>', 'field_visits.visited_at')
+                ->limit(1)]);
     }
 }

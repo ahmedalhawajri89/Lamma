@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="docs/cover.png" alt="Kafala — كفالة" width="900">
+  <img src="docs/cover.png" alt="Lamma — لمّة" width="900">
 </p>
 
-# Kafala — كفالة
+# Lamma — لمّة
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-Open%20the%20site-c2410c?style=for-the-badge&logo=vercel&logoColor=white)](https://kafala-orphan-sponsorship.vercel.app/)
 
@@ -10,6 +10,8 @@
 The deployed link is a **static snapshot of the public site only**, so you can see the design and the motion. The API, the admin console and the sponsor portal need PHP and MySQL, and run locally in the two steps under [Running it](#running-it).
 
 *Arabic README: [README.ar.md](README.ar.md)*
+
+*Every child in the circle of their family.* Formerly “Kafala”; renamed because that name is shared by many charities and projects (technical identifiers such as `config/kafala.php` keep the old name).
 
 An orphan sponsorship platform, built end to end: an Arabic-first public site, a Laravel 12 API on MySQL, a Vue 3 admin console, and a portal where a sponsor follows the child they support.
 

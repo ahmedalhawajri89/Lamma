@@ -18,9 +18,9 @@ enum PostStatus: string
     public function label(): string
     {
         return match ($this) {
-            self::Draft => 'مسوّدة',
-            self::Scheduled => 'مجدول',
-            self::Published => 'منشور',
+            self::Draft => __('مسوّدة'),
+            self::Scheduled => __('مجدول'),
+            self::Published => __('منشور'),
         };
     }
 }

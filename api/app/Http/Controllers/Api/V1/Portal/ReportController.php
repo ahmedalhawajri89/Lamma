@@ -20,11 +20,11 @@ class ReportController extends Controller
 
         $reports = Report::query()
             ->published()
-            ->whereIn('orphan_id', $sponsor->sponsorships()->live()->select('orphan_id'))
-            ->with(['orphan:id,reference_code,first_name,photo_path', 'media'])
+            ->whereIn('orphan_id', $sponsor->sponsorships()->funded()->select('orphan_id'))
+            ->with(['orphan:id,reference_code,first_name,gender,photo_path', 'media'])
             ->withCount(['views' => fn ($q) => $q->where('sponsor_id', $sponsor->id)])
             ->latest('published_at')
-            ->paginate($request->integer('per_page', 12));
+            ->paginate($this->perPage($request, 12));
 
         return response()->json([
             'data' => ReportResource::collection($reports->items()),
@@ -54,7 +54,7 @@ class ReportController extends Controller
 
         return response()->json([
             'data' => new ReportResource(
-                $report->load(['orphan:id,reference_code,first_name,photo_path', 'media', 'supervisor:id,name']),
+                $report->load(['orphan:id,reference_code,first_name,gender,photo_path', 'media', 'supervisor:id,name']),
             ),
         ]);
     }

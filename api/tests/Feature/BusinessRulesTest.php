@@ -43,13 +43,16 @@ it('يرفض الكفالة على ملف لم يُوثَّق بعد', function 
         ->toThrow(ValidationException::class);
 });
 
-it('يقصر المبلغ على ما تبقّى من حاجة الطفل', function () {
-    // كافلان يضغطان «اكفل» معاً كانا يتجاوزان الحاجة لولا قفل الصف
+it('لا يتجاوز المبلغ ما تبقّى من حاجة الطفل: الأكبر يُرفض بوضوح، والافتراضي يُقصر عليه', function () {
+    // كافلان يضغطان «اكفل» معاً كانا يتجاوزان الحاجة لولا قفل الصف.
+    // والمبلغ الأكبر كان يُخفَّض بصمت، فيُخصم غير ما رآه الكافل.
     $orphan = Orphan::factory()->create(['monthly_need' => 100]);
     Sponsorship::factory()->for($orphan)->create(['monthly_amount' => 70]);
 
-    $sponsorship = app(CreateSponsorship::class)
-        ->handle(Sponsor::factory()->create(), $orphan->fresh(), 100.0);
+    expect(fn () => app(CreateSponsorship::class)->handle(Sponsor::factory()->create(), $orphan->fresh(), 100.0))
+        ->toThrow(\Illuminate\Validation\ValidationException::class);
+
+    $sponsorship = app(CreateSponsorship::class)->handle(Sponsor::factory()->create(), $orphan->fresh());
 
     expect((float) $sponsorship->monthly_amount)->toBe(30.0)
         ->and($orphan->fresh()->funded_percent)->toBe(100);

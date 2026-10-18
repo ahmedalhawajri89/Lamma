@@ -39,6 +39,11 @@ function toFormData(payload, files = {}) {
   return body
 }
 
+/** ما يقرؤه الموقع العام: اسم المنصة وهويتها من الإعدادات */
+export const publicSite = {
+  bootstrap: () => client.get(`${v1}/public/bootstrap`),
+}
+
 export const auth = {
   csrf: () => client.get('/sanctum/csrf-cookie'),
   login: (payload) => client.post(`${v1}/auth/login`, payload),
@@ -48,9 +53,13 @@ export const auth = {
 
 export const admin = {
   dashboard: (params) => client.get(`${v1}/admin/dashboard`, { params }),
+  queue: () => client.get(`${v1}/admin/queue`),
+  since: () => client.get(`${v1}/admin/since`),
 
   orphans: {
     list: (params) => client.get(`${v1}/admin/orphans`, { params }),
+    /** القائمة بفلاترها CSV؛ يُحفظ بـ saveBlob */
+    export: (params) => client.get(`${v1}/admin/orphans/export`, { params, responseType: 'blob' }),
     show: (id) => client.get(`${v1}/admin/orphans/${id}`),
     create: (payload, photo = null) => client.post(
       `${v1}/admin/orphans`,
@@ -70,6 +79,8 @@ export const admin = {
     verify: (id) => client.post(`${v1}/admin/orphans/${id}/verify`),
     publish: (id) => client.post(`${v1}/admin/orphans/${id}/publish`),
     unpublish: (id) => client.post(`${v1}/admin/orphans/${id}/unpublish`),
+    /** تغيير المسار (تخرّج أو وفاة) للمدير، بسبب يبقى في السجل */
+    changeStatus: (id, status, reason) => client.post(`${v1}/admin/orphans/${id}/status`, { status, reason }),
     documents: (id) => client.get(`${v1}/admin/orphans/${id}/documents`),
     remove: (id) => client.delete(`${v1}/admin/orphans/${id}`),
   },
@@ -84,7 +95,13 @@ export const admin = {
       toFormData({ type: payload.type }, { file: payload.file }),
     ),
 
+    /** طابور التحقق: غير المُتحقَّق منها من كل الملفات، الأقدم أولاً */
+    queue: (params) => client.get(`${v1}/admin/documents`, { params }),
     verify: (id) => client.post(`${v1}/admin/documents/${id}/verify`),
+    /** رفض بسبب يقرؤه رافع المستند في ملف الطفل */
+    reject: (id, reason) => client.post(`${v1}/admin/documents/${id}/reject`, { reason }),
+    /** الملف نفسه للعرض داخل اللوحة (blob بجلسة المستخدم) */
+    preview: (id) => client.get(`${v1}/admin/documents/${id}/download`, { params: { inline: 1 }, responseType: 'blob' }),
     remove: (id) => client.delete(`${v1}/admin/documents/${id}`),
     downloadUrl: (id) => `${v1}/admin/documents/${id}/download`,
   },
@@ -102,6 +119,7 @@ export const admin = {
   sponsors: {
     list: (params) => client.get(`${v1}/admin/sponsors`, { params }),
     show: (id) => client.get(`${v1}/admin/sponsors/${id}`),
+    update: (id, payload) => client.patch(`${v1}/admin/sponsors/${id}`, payload),
   },
 
   sponsorships: {
@@ -113,6 +131,8 @@ export const admin = {
 
   payments: {
     list: (params) => client.get(`${v1}/admin/payments`, { params }),
+    /** المدفوعات بفلاترها CSV للمطابقة المحاسبية */
+    export: (params) => client.get(`${v1}/admin/payments/export`, { params, responseType: 'blob' }),
     record: (payload) => client.post(`${v1}/admin/payments`, payload),
     refund: (id, reason) => client.post(`${v1}/admin/payments/${id}/refund`, { reason }),
   },
@@ -132,6 +152,10 @@ export const admin = {
     ),
 
     approve: (id) => client.post(`${v1}/admin/disbursements/${id}/approve`),
+    /** الإيصال للعرض داخل اللوحة (blob بجلسة المستخدم) */
+    receipt: (id) => client.get(`${v1}/admin/disbursements/${id}/receipt`, { responseType: 'blob' }),
+    /** الصرف بفلاتره CSV للمراجعة المحاسبية */
+    export: (params) => client.get(`${v1}/admin/disbursements/export`, { params, responseType: 'blob' }),
   },
 
   reports: {
@@ -141,30 +165,51 @@ export const admin = {
     update: (id, payload) => client.patch(`${v1}/admin/reports/${id}`, payload),
     submit: (id) => client.post(`${v1}/admin/reports/${id}/submit`),
     approve: (id) => client.post(`${v1}/admin/reports/${id}/approve`),
+    /** إرجاع لكاتبه مسوّدةً مع ملاحظة إلزامية */
+    sendBack: (id, note) => client.post(`${v1}/admin/reports/${id}/return`, { note }),
     publish: (id) => client.post(`${v1}/admin/reports/${id}/publish`),
   },
 
   visits: {
     list: (params) => client.get(`${v1}/admin/visits`, { params }),
+    /** خطة الزيارات: كل طفل مفتوح الملف بموعد زيارته القادمة */
+    schedule: (params) => client.get(`${v1}/admin/visits/schedule`, { params }),
     create: (payload) => client.post(`${v1}/admin/visits`, payload),
   },
 
   messages: {
     list: (params) => client.get(`${v1}/admin/messages`, { params }),
     review: (id, payload) => client.post(`${v1}/admin/messages/${id}/review`, payload),
+    /** ما دار قبلها في الكفالة نفسها */
+    thread: (id) => client.get(`${v1}/admin/messages/${id}/thread`),
+    /** رسالة معتمدة سُلّمت للطفل في زيارة */
+    deliver: (id) => client.post(`${v1}/admin/messages/${id}/deliver`),
   },
 
   users: {
     list: (params) => client.get(`${v1}/admin/users`, { params }),
+    show: (id) => client.get(`${v1}/admin/users/${id}`),
     create: (payload) => client.post(`${v1}/admin/users`, payload),
     update: (id, payload) => client.patch(`${v1}/admin/users/${id}`, payload),
+    /** إعادة إرسال رابط تعيين كلمة المرور لموظف لم يفعّل حسابه */
+    invite: (id) => client.post(`${v1}/admin/users/${id}/invite`),
     roles: () => client.get(`${v1}/admin/roles`),
   },
 
+  transparencyDocs: {
+    list: () => client.get(`${v1}/admin/transparency-documents`),
+    upload: (payload, file) => client.post(`${v1}/admin/transparency-documents`, toFormData(payload, { file })),
+    remove: (id) => client.delete(`${v1}/admin/transparency-documents/${id}`),
+  },
   activity: (params) => client.get(`${v1}/admin/activity`, { params }),
+  activityExport: (params) => client.get(`${v1}/admin/activity/export`, { params, responseType: 'blob' }),
 
   posts: {
     list: (params) => client.get(`${v1}/admin/posts`, { params }),
+    /** صورة داخل نصّ المقال: تُرفع ويُرجع رابطها */
+    uploadImage: (file) => client.post(`${v1}/admin/posts/images`, toFormData({}, { image: file })),
+    /** مقالٌ واحد بنصّه، مع التصنيفات والحالات للمحرّر */
+    show: (id) => client.get(`${v1}/admin/posts/${id}`),
 
     /**
      * الغلاف صورة، فالإنشاء `multipart` عند وجودها وJSON بدونها.
@@ -178,7 +223,13 @@ export const admin = {
       cover ? toFormData(payload, { cover }) : payload,
     ),
 
-    update: (id, payload) => client.patch(`${v1}/admin/posts/${id}`, payload),
+    /**
+     * والتحرير JSON إلا حين يُستبدل الغلاف: عندها `POST` بـ`_method=PATCH`
+     * (كما في صورة اليتيم)، لأن PHP لا يحلّل جسم `multipart` في `PATCH`.
+     */
+    update: (id, payload, cover = null) => (cover
+      ? client.post(`${v1}/admin/posts/${id}`, toFormData({ ...payload, _method: 'PATCH' }, { cover }))
+      : client.patch(`${v1}/admin/posts/${id}`, payload)),
   },
 
   /** الأسئلة الشائعة والشهادات والشركاء — بنية واحدة وقواعد مختلفة. */
@@ -187,9 +238,15 @@ export const admin = {
     create: (type, payload) => client.post(`${v1}/admin/content/${type}`, payload),
     update: (type, id, payload) => client.patch(`${v1}/admin/content/${type}/${id}`, payload),
     remove: (type, id) => client.delete(`${v1}/admin/content/${type}/${id}`),
+    /** الترتيب الجديد كاملاً: المعرّفات بترتيبها */
+    reorder: (type, ids) => client.post(`${v1}/admin/content/${type}/reorder`, { ids }),
   },
   contacts: (params) => client.get(`${v1}/admin/contacts`, { params }),
   updateContact: (id, status) => client.patch(`${v1}/admin/contacts/${id}`, { status }),
+  /** رسالة التواصل بردودها */
+  contact: (id) => client.get(`${v1}/admin/contacts/${id}`),
+  /** الرد من المنصة: بريدٌ للمرسل ويُحفظ؛ `close` يغلقها معه */
+  replyContact: (id, body, close = false) => client.post(`${v1}/admin/contacts/${id}/reply`, { body, close }),
   settings: () => client.get(`${v1}/admin/settings`),
   updateSettings: (settings) => client.put(`${v1}/admin/settings`, { settings }),
 }

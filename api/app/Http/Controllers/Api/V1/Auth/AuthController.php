@@ -37,7 +37,7 @@ class AuthController extends Controller
             // رسالة واحدة للبريد الخاطئ ولكلمة المرور الخاطئة معاً،
             // فلا يصلح النموذج أداةً لكشف البريد المسجَّل من غيره
             throw ValidationException::withMessages([
-                'email' => 'بيانات الدخول غير صحيحة.',
+                'email' => __('بيانات الدخول غير صحيحة.'),
             ]);
         }
 
@@ -55,7 +55,7 @@ class AuthController extends Controller
             }
 
             throw ValidationException::withMessages([
-                'email' => 'هذا الحساب موقوف. تواصل مع الإدارة.',
+                'email' => __('هذا الحساب موقوف. تواصل مع الإدارة.'),
             ]);
         }
 
@@ -67,12 +67,14 @@ class AuthController extends Controller
         }
 
         $user->forceFill([
+            // السابق يُحفظ قبل أن يُكتب الحالي: منه تُحسب «منذ آخر دخول»
+            'previous_login_at' => $user->last_login_at,
             'last_login_at' => now(),
             'last_login_ip' => $request->ip(),
         ])->saveQuietly();
 
         return response()->json([
-            'message' => 'أهلاً بعودتك.',
+            'message' => __('أهلاً بعودتك.'),
             'data' => new UserResource($user->load(['sponsor', 'staffProfile', 'roles'])),
         ]);
     }
@@ -80,27 +82,12 @@ class AuthController extends Controller
     /** تسجيل كافل جديد. الموظفون يُنشأون من لوحة الإدارة لا من هنا. */
     public function register(RegisterRequest $request): JsonResponse
     {
-        $user = DB::transaction(function () use ($request): User {
-            $user = User::create([
-                'name' => $request->string('name')->toString(),
-                'email' => $request->string('email')->toString(),
-                'password' => Hash::make($request->string('password')->toString()),
-                'phone' => $request->input('phone'),
-                'status' => UserStatus::Active,
-            ]);
-
-            $user->assignRole(UserRole::Sponsor->value);
-
-            Sponsor::create([
-                'user_id' => $user->id,
-                'sponsor_code' => $this->nextSponsorCode(),
-                'preferred_currency' => 'USD',
-                'sponsoring_since' => now()->toDateString(),
-                'communication_prefs' => ['email' => true, 'sms' => false],
-            ]);
-
-            return $user;
-        });
+        $user = app(\App\Actions\Sponsors\RegisterSponsor::class)->handle(
+            name: $request->string('name')->toString(),
+            email: $request->string('email')->toString(),
+            phone: $request->input('phone'),
+            password: $request->string('password')->toString(),
+        );
 
         Auth::login($user);
 
@@ -109,7 +96,7 @@ class AuthController extends Controller
         }
 
         return response()->json([
-            'message' => 'تم إنشاء حسابك.',
+            'message' => __('تم إنشاء حسابك.'),
             'data' => new UserResource($user->load(['sponsor', 'staffProfile', 'roles'])),
         ], 201);
     }
@@ -130,18 +117,6 @@ class AuthController extends Controller
             $request->session()->regenerateToken();
         }
 
-        return response()->json(['message' => 'تم تسجيل الخروج.']);
-    }
-
-    /**
-     * ترقيم الكفلاء داخل معاملة مقفلة.
-     * بلا القفل يحصل كافلان متزامنان على الرقم نفسه، فيفشل القيد الفريد.
-     */
-    private function nextSponsorCode(): string
-    {
-        $last = Sponsor::query()->lockForUpdate()->max('sponsor_code');
-        $next = $last ? ((int) substr($last, 4)) + 1 : 1;
-
-        return 'SPN-'.str_pad((string) $next, 5, '0', STR_PAD_LEFT);
+        return response()->json(['message' => __('تم تسجيل الخروج.')]);
     }
 }

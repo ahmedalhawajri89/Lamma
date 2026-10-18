@@ -37,6 +37,8 @@ class OrphanResource extends JsonResource
 
             'monthly_need' => (float) $this->monthly_need,
             'funded_percent' => $this->funded_percent,
+            // المغطّى فعلاً بالدولار (حين يُحمَّل): «ينقصه $13.30» أوضح من «62٪»
+            'funded_amount' => $this->when(isset($this->funded_amount), fn () => round((float) $this->funded_amount, 2)),
 
             'verified_at' => $this->verified_at?->toIso8601String(),
             'published_at' => $this->published_at?->toIso8601String(),

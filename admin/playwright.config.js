@@ -7,10 +7,20 @@ import { defineConfig, devices } from '@playwright/test'
  * الغرض كشف ما لا تكشفه اختبارات الوحدة — كوكي الجلسة عبر الأصول،
  * وحرس الموجّه، ورسم Chart.js على canvas حقيقي.
  *
- * يفترض تشغيل خادم Laravel على 8000 (‏php artisan serve).
+ * وتعمل على بيئة خاصة بها: خادم لارافل على 8001 بقاعدة `kafala_e2e` تُبذر
+ * من الصفر قبل كل تشغيل (global-setup.js)، ولوحة Vite على 5175 توجّه إليه.
+ * فلا تكتب شيئاً في قاعدة التطوير، ولا تتعارض مع خادمَي التطوير القائمين.
  */
+// يُغيَّران حين يشغل المنفذَ مشروعٌ آخر: E2E_API_PORT=8011 npx playwright test
+const API_PORT = Number(process.env.E2E_API_PORT ?? 8001)
+const UI_PORT = Number(process.env.E2E_UI_PORT ?? 5175)
+
+// عناوين البيئة للاختبارات نفسها (الموقع العام واللوحة)، بدل عناوين التطوير مكتوبةً فيها
+process.env.E2E_SITE = `http://127.0.0.1:${API_PORT}`
+process.env.E2E_UI = `http://localhost:${UI_PORT}`
 export default defineConfig({
   testDir: './tests/e2e',
+  globalSetup: './tests/e2e/global-setup.js',
   fullyParallel: false,
 
   /**
@@ -43,7 +53,7 @@ export default defineConfig({
   expect: { timeout: 15_000 },
 
   use: {
-    baseURL: 'http://localhost:5173',
+    baseURL: `http://localhost:${UI_PORT}`,
     locale: 'ar',
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
@@ -51,16 +61,28 @@ export default defineConfig({
 
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
 
-  /**
-   * خادم واحد: لوحة Vue على 5173.
-   *
-   * الموقع العام لم يعد يحتاج خادماً خاصاً به — صار يُقدَّم من خادم لارافل
-   * على 8000، وهو مفترضٌ قائماً (‏`php artisan serve` في api/).
-   */
-  webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:5173',
-    reuseExistingServer: true,
-    timeout: 60_000,
-  },
+  webServer: [
+    {
+      // لارافل على قاعدة الاختبارات (يقرأ .env.e2e حين APP_ENV=e2e)
+      command: `php artisan serve --host=127.0.0.1 --port=${API_PORT}`,
+      cwd: '../api',
+      // عنوان التطبيق ونطاقات الجلسة تتبع المنفذين (متغيرات البيئة تتقدّم على .env.e2e)
+      env: {
+        APP_ENV: 'e2e',
+        APP_URL: `http://127.0.0.1:${API_PORT}`,
+        SANCTUM_STATEFUL_DOMAINS: `localhost:${API_PORT},127.0.0.1:${API_PORT},localhost:${UI_PORT},127.0.0.1:${UI_PORT}`,
+      },
+      url: `http://127.0.0.1:${API_PORT}/up`,
+      reuseExistingServer: false,
+      timeout: 60_000,
+    },
+    {
+      command: `npx vite --port ${UI_PORT} --strictPort`,
+      env: { KAFALA_API: `http://127.0.0.1:${API_PORT}`, VITE_PORT: String(UI_PORT) },
+      url: `http://localhost:${UI_PORT}`,
+      reuseExistingServer: false,
+      timeout: 60_000,
+    },
+  ],
+
 })

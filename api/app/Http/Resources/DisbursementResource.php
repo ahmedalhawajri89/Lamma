@@ -17,6 +17,11 @@ class DisbursementResource extends JsonResource
             'amount' => (float) $this->amount,
             'currency' => $this->currency,
             'amount_base' => (float) $this->amount_base,
+            'fx_rate' => $this->fx_rate !== null ? (float) $this->fx_rate : null,
+
+            // رابط محمي للإيصال: المراجع يرى ما يعتمده
+            'has_receipt' => $this->receipt_path !== null,
+            'receipt_url' => $this->receipt_path ? route('api.v1.admin.disbursements.receipt', $this->id, false) : null,
             'spent_on' => $this->spent_on?->toDateString(),
             'description' => $this->description,
             'is_approved' => $this->approved_at !== null,
@@ -43,6 +48,7 @@ class DisbursementResource extends JsonResource
              * فتعرضه ليردّه الخادم بـ٤٠٣: زرٌّ يُعرض ليُرفض فخّ لا واجهة.
              */
             'recorded_by' => $this->recorded_by,
+            'updated_by' => $this->updated_by,
             'recorder' => $this->whenLoaded('recorder', fn () => $this->recorder?->name),
             'approver' => $this->whenLoaded('approver', fn () => $this->approver?->name),
         ];

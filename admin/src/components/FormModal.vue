@@ -13,8 +13,9 @@
  *  4. **تأكيد الإغلاق إن كان النموذج معدَّلاً** — نقرة على الخلفية لا تبتلع
  *     نصف ساعة من الإدخال.
  */
-import { nextTick, onBeforeUnmount, ref, watch } from 'vue'
+import { nextTick, onBeforeUnmount, ref, useId, watch } from 'vue'
 import BaseIcon from './BaseIcon.vue'
+import { confirmDialog, confirmState } from '@/composables/useConfirm'
 
 const props = defineProps({
   open: { type: Boolean, default: false },
@@ -23,11 +24,18 @@ const props = defineProps({
   dirty: { type: Boolean, default: false },
   busy: { type: Boolean, default: false },
   wide: { type: Boolean, default: false },
+
+  /** نافذة التأكيد نفسها (ConfirmDialog): تملك Escape وTab حين تُفتح فوق غيرها */
+  isConfirm: { type: Boolean, default: false },
 })
 
 const emit = defineEmits(['close', 'submit'])
 
 const panel = ref(null)
+
+// معرّف ثابت للعنوان: كان يُبنى من العنوان نفسه، والعناوين فيها مسافات،
+// و`aria-labelledby` قائمة معرّفات مفصولة بالمسافات، فلا تُسمّى النافذة
+const titleId = useId()
 let opener = null
 
 const FOCUSABLE =
@@ -38,6 +46,9 @@ function focusables() {
 }
 
 function onKeydown(event) {
+  // نافذة تأكيد مفتوحة فوق هذه تملك لوحة المفاتيح وحدها
+  if (confirmState.open && !props.isConfirm) return
+
   if (event.key === 'Escape') {
     event.preventDefault()
     attemptClose()
@@ -63,11 +74,21 @@ function onKeydown(event) {
   }
 }
 
-function attemptClose() {
+/**
+ * التأكيد بنافذة اللوحة لا بـ`window.confirm`: نافذة المتصفح بلغة نظامه
+ * واتجاهه، وتوقف الصفحة كلها، وكانت الوحيدة الباقية بعد استبدال البقية.
+ */
+async function attemptClose() {
   if (props.busy) return
 
-  if (props.dirty && !window.confirm('لديك تعديلات غير محفوظة. أتريد إغلاق النافذة؟')) {
-    return
+  if (props.dirty) {
+    const ok = await confirmDialog({
+      title: 'تعديلات غير محفوظة',
+      message: 'ما كتبته في هذه النافذة لم يُحفظ بعد، ويضيع إن أغلقتها.',
+      confirmLabel: 'أغلق دون حفظ',
+      danger: true,
+    })
+    if (!ok) return
   }
 
   emit('close')
@@ -116,11 +137,11 @@ onBeforeUnmount(() => {
           :class="wide ? 'max-w-3xl' : 'max-w-xl'"
           role="dialog"
           aria-modal="true"
-          :aria-labelledby="`modal-title-${title}`"
+          :aria-labelledby="titleId"
         >
           <header class="flex items-start gap-3 p-5 border-b border-sand-100">
             <div class="flex-1 min-w-0">
-              <h2 :id="`modal-title-${title}`" class="font-semibold">{{ title }}</h2>
+              <h2 :id="titleId" class="font-semibold">{{ title }}</h2>
               <p v-if="subtitle" class="text-sm text-sand-500 mt-0.5">{{ subtitle }}</p>
             </div>
 
@@ -139,7 +160,8 @@ onBeforeUnmount(() => {
             </div>
 
             <footer class="flex items-center justify-end gap-2 p-5 pt-0">
-              <slot name="actions">
+              <!-- `close` يمرّ بفحص التعديلات غير المحفوظة؛ زرّ إلغاء يُطلق `close` مباشرة يتجاوزه -->
+              <slot name="actions" :close="attemptClose">
                 <button class="btn btn-outline" type="button" :disabled="busy" @click="attemptClose">
                   إلغاء
                 </button>

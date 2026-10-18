@@ -20,11 +20,11 @@ enum SponsorshipStatus: string
     public function label(): string
     {
         return match ($this) {
-            self::Pending => 'بانتظار أول دفعة',
-            self::Active => 'نشطة',
-            self::Paused => 'موقوفة مؤقتاً',
-            self::Cancelled => 'ملغاة',
-            self::Completed => 'منتهية',
+            self::Pending => __('بانتظار أول دفعة'),
+            self::Active => __('نشطة'),
+            self::Paused => __('موقوفة مؤقتاً'),
+            self::Cancelled => __('ملغاة'),
+            self::Completed => __('منتهية'),
         };
     }
 

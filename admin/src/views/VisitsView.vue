@@ -1,90 +1,91 @@
 <script setup>
-import { onMounted, ref } from 'vue'
-import { admin } from '@/api/endpoints'
-import { useResource } from '@/composables/useResource'
+/**
+ * الزيارات الميدانية: عرضان لشاشة واحدة.
+ *
+ * «الخطة» تجيب سؤال المشرف كل صباح: من أزور الآن؟ كل طفل مفتوح الملف بموعد
+ * زيارته، ومن فات موعده أو لم يُزر قط أولاً. و«السجل» يجيب: ماذا رأينا؟
+ * الزيارات السابقة بملاحظاتها، والاحتياجات المرصودة مجمّعة.
+ */
+import { computed, onMounted, ref } from 'vue'
+import { useRoute, useRouter, RouterLink } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { date, dateTime } from '@/utils/format'
-import PageHeader from '@/components/PageHeader.vue'
-import FilterBar from '@/components/FilterBar.vue'
-import DataTable from '@/components/DataTable.vue'
-import PaginationBar from '@/components/PaginationBar.vue'
 import BaseIcon from '@/components/BaseIcon.vue'
 import VisitFormModal from '@/components/VisitFormModal.vue'
+import VisitsPlan from '@/components/visits/VisitsPlan.vue'
+import VisitsLog from '@/components/visits/VisitsLog.vue'
 
+const route = useRoute()
+const router = useRouter()
 const auth = useAuthStore()
 
-const { items, meta, loading, filters, reset, load } = useResource(admin.visits.list, { overdue: false })
-
-const columns = [
-  { key: 'visited_at', label: 'تاريخ الزيارة' },
-  { key: 'orphan', label: 'الطفل' },
-  { key: 'supervisor', label: 'المشرف' },
-  { key: 'findings', label: 'الملاحظات' },
-  { key: 'next_visit_due', label: 'الزيارة القادمة' },
-]
+const isLog = computed(() => route.params.view === 'log')
 
 const formOpen = ref(false)
-const orphans = ref([])
+const preset = ref(null)
+const plan = ref(null)
+const log = ref(null)
 
-async function loadOrphans() {
-  if (!auth.can('visits.record')) return
-
-  try {
-    const { data } = await admin.orphans.list({ per_page: 200, sort: 'first_name', dir: 'asc' })
-    orphans.value = data.data ?? []
-  } catch {
-    // فشل القائمة لا يمنع تصفّح الجدول — النافذة وحدها تتعطّل
-  }
+/** من الخطة: الطفل مختار سلفاً؛ ومن الرأس: نموذج فارغ */
+function record(orphan = null) {
+  preset.value = orphan ? { id: orphan.id, label: `${orphan.name} · ${orphan.reference_code}` } : null
+  formOpen.value = true
 }
+
+/**
+ * من النظرة العامة: «سجّل زيارة» لطفل بعينه يفتح النموذج مختاراً فيه
+ * (?record=<id>&name=<الاسم>&ref=<الرمز>)، ثم يُزال من الرابط فلا يُفتح ثانيةً.
+ */
+onMounted(() => {
+  if (!route.query.record) return
+  record({ id: Number(route.query.record), name: route.query.name ?? 'طفل', reference_code: route.query.ref ?? `رقم ${route.query.record}` })
+  const { record: _, name: __, ref: ___, ...rest } = route.query
+  router.replace({ query: rest })
+})
 
 function onSaved() {
   formOpen.value = false
-  load()
+  plan.value?.load()
+  log.value?.load()
 }
-
-onMounted(loadOrphans)
 </script>
 
 <template>
   <div>
-    <PageHeader title="الزيارات الميدانية" :subtitle="`${meta.total} زيارة موثّقة · ${meta.overdue ?? 0} متأخرة`">
-      <template #actions>
-        <button
-          v-if="auth.can('visits.record')" class="btn btn-primary" type="button"
-          @click="formOpen = true"
-        >
+    <header class="flex flex-wrap items-end justify-between gap-3 mb-5">
+      <div>
+        <h1 class="text-2xl font-bold text-sand-900">الزيارات الميدانية</h1>
+        <p class="text-sm text-sand-500 mt-0.5">
+          {{ isLog ? 'ما رُصد في الزيارات السابقة.' : 'من يحتاج زيارة، ومتى.' }}
+        </p>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <!-- العرضان: رابطان حقيقيان، فيُفتح كلٌّ في تبويب ويُرسل رابطه -->
+        <nav class="inline-flex rounded-xl bg-sand-100 p-1 text-sm" aria-label="عرض الزيارات">
+          <RouterLink
+            :to="{ name: 'visits' }" class="px-3.5 py-1.5 rounded-lg transition-colors"
+            :class="!isLog ? 'bg-sand-0 shadow-sm text-sand-900 font-medium' : 'text-sand-600 hover:text-sand-900'"
+            :aria-current="!isLog ? 'page' : undefined"
+          >الخطة</RouterLink>
+          <RouterLink
+            :to="{ name: 'visits', params: { view: 'log' } }" class="px-3.5 py-1.5 rounded-lg transition-colors"
+            :class="isLog ? 'bg-sand-0 shadow-sm text-sand-900 font-medium' : 'text-sand-600 hover:text-sand-900'"
+            :aria-current="isLog ? 'page' : undefined"
+          >السجل</RouterLink>
+        </nav>
+
+        <button v-if="auth.can('visits.record')" class="btn btn-primary" type="button" @click="record()">
           <BaseIcon name="plus" :size="16" />
           تسجيل زيارة
         </button>
-      </template>
-    </PageHeader>
+      </div>
+    </header>
 
-    <FilterBar :has-search="false" @reset="reset">
-      <label class="flex items-center gap-1.5 text-sm cursor-pointer">
-        <input v-model="filters.overdue" type="checkbox" class="accent-clay-600" /> المتأخرة فقط
-      </label>
-    </FilterBar>
-
-    <DataTable :columns="columns" :rows="items" :loading="loading">
-      <template #visited_at="{ row }">{{ dateTime(row.visited_at) }}</template>
-      <template #orphan="{ row }">
-        <RouterLink :to="`/orphans/${row.orphan?.id}`" class="text-clay-700 hover:underline">
-          {{ row.orphan?.name }}
-        </RouterLink>
-      </template>
-      <template #supervisor="{ row }">{{ row.supervisor ?? '—' }}</template>
-      <template #findings="{ row }">
-        <span class="line-clamp-1 max-w-md text-sand-700">{{ row.findings }}</span>
-      </template>
-      <template #next_visit_due="{ row }">
-        <span :class="row.is_overdue ? 'text-rose-700 font-medium' : ''">{{ date(row.next_visit_due) }}</span>
-      </template>
-    </DataTable>
-
-    <PaginationBar v-model="filters.page" :meta="meta" />
+    <VisitsLog v-if="isLog" ref="log" :key="'log'" />
+    <VisitsPlan v-else ref="plan" :key="'plan'" @record="record" />
 
     <VisitFormModal
-      :open="formOpen" :orphans="orphans"
+      :open="formOpen" :preset-orphan="preset"
       @close="formOpen = false" @saved="onSaved"
     />
   </div>

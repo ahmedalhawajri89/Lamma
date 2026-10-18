@@ -41,6 +41,9 @@ class Report extends Model
 
         // تُسندها PublishReport بعد الاعتماد
         'approved_by', 'published_at',
+
+        // يُسندها ReportController::return حين يُرجع المراجع التقرير
+        'review_note', 'returned_at',
     ];
 
     protected function casts(): array
@@ -52,6 +55,7 @@ class Report extends Model
             'visit_date' => 'date',
             'status' => ReportStatus::class,
             'published_at' => 'datetime',
+            'returned_at' => 'datetime',
         ];
     }
 
@@ -108,6 +112,6 @@ class Report extends Model
 
     public function periodLabel(): string
     {
-        return "الربع {$this->period_quarter} — {$this->period_year}";
+        return "الربع {$this->period_quarter} من {$this->period_year}";
     }
 }

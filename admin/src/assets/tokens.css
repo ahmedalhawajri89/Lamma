@@ -1,58 +1,65 @@
 /* ==========================================================================
-   توكنز اللوحة — منقولة من web/assets/css/tokens.css
-   حرفياً حتى لا تبدو اللوحة وكأنها من مشروع آخر.
-   طين وعنبر وزيتوني على أرضية رملية، لا رمادي بارد.
+   توكنز اللوحة — بالهوية المعتمدة نفسها في الموقع (api/public/assets/css/tokens.css)
+   تركوازي داكن أساسي، وذهبي للتمييز، على أرضية رملية فاتحة.
+
+   أسماء المقاييس (clay وamber وolive) باقية كما هي لأن الشاشات كلها تستعملها
+   أصنافاً في Tailwind، لكن قيمها صارت ألوان الهوية الجديدة:
+   clay = التركوازي (الأساسي)، amber = الذهبي، olive = أخضر النجاح.
    ========================================================================== */
 
 @import 'tailwindcss';
 
 @theme {
-  /* الطين — الأساسي */
-  --color-clay-50: #fdf5f1;
-  --color-clay-100: #fae7dd;
-  --color-clay-200: #f4cbb8;
-  --color-clay-300: #eca88a;
-  --color-clay-400: #e07a53;
-  --color-clay-500: #d35a30;
-  --color-clay-600: #c2410c;
-  --color-clay-700: #9a3412;
-  --color-clay-800: #7c2d12;
-  --color-clay-900: #5c220f;
+  /* الأساسي: التركوازي الداكن (clay-600 هو #0f5c5c لون العلامة) */
+  --color-clay-50: #eef7f6;
+  --color-clay-100: #d3ebe8;
+  --color-clay-200: #a8d6d0;
+  --color-clay-300: #74bbb2;
+  --color-clay-400: #3fa095;
+  --color-clay-500: #1e8a7a;
+  --color-clay-600: #0f5c5c;
+  --color-clay-700: #0c4a4a;
+  --color-clay-800: #093a3a;
+  --color-clay-900: #062727;
 
-  /* العنبر — الثانوي */
-  --color-amber-50: #fffaeb;
-  --color-amber-100: #fef0c7;
-  --color-amber-200: #fde08a;
-  --color-amber-300: #fcca4d;
-  --color-amber-400: #fab225;
-  --color-amber-500: #f0910c;
-  --color-amber-600: #d97706;
-  --color-amber-700: #b45309;
+  /* الثانوي: الذهبي */
+  --color-amber-50: #fdf8ec;
+  --color-amber-100: #faedcc;
+  --color-amber-200: #f4da9a;
+  --color-amber-300: #edc56a;
+  --color-amber-400: #e7b450;
+  --color-amber-500: #e0a63b;
+  --color-amber-600: #c48a25;
+  --color-amber-700: #9c6b1a;
 
-  /* الزيتوني — النمو */
-  --color-olive-50: #f6f9ec;
-  --color-olive-100: #e9f2d1;
-  --color-olive-200: #d4e5a8;
-  --color-olive-400: #96ba4c;
-  --color-olive-600: #4d7c0f;
-  --color-olive-700: #3f630f;
+  /* النجاح */
+  --color-olive-50: #effbf3;
+  --color-olive-100: #d6f3e0;
+  --color-olive-200: #aee6c2;
+  --color-olive-400: #4cc47c;
+  --color-olive-600: #1f8048;
+  --color-olive-700: #186638;
 
-  /* الرمل — المحايد الدافئ */
+  /* المحايد: رمل فاتح ونصّ حبري */
   --color-sand-0: #ffffff;
-  --color-sand-25: #fefbf7;
-  --color-sand-50: #fbf7f0;
-  --color-sand-100: #f5eee2;
-  --color-sand-200: #e9dfd0;
-  --color-sand-300: #d6c8b4;
-  --color-sand-400: #b3a596;
-  --color-sand-500: #756a5c;
-  --color-sand-600: #6b6053;
-  --color-sand-700: #4e463c;
-  --color-sand-900: #1c1917;
+  --color-sand-25: #fbfaf7;
+  --color-sand-50: #f7f5f0;
+  --color-sand-100: #efece4;
+  --color-sand-200: #e4e0d6;
+  --color-sand-300: #cfcabe;
+  --color-sand-400: #9ea3a1;
+  --color-sand-500: #5f6b6f;
+  --color-sand-600: #4e5b5f;
+  --color-sand-700: #3a474b;
+  --color-sand-800: #2b373b;
+  --color-sand-900: #1f2a2e;
+
+  /* الحبر: لوحات داكنة كجانب صفحة الدخول */
+  --color-ink: #093a3a;
 
   /* ألوان الحالات */
-  --color-teal-600: #0d9488;
-  --color-teal-700: #0f766e;
+  --color-teal-600: #157266;
+  --color-teal-700: #0f5c5c;
   --color-rose-600: #e11d48;
   --color-rose-700: #be123c;
 
@@ -63,12 +70,33 @@
   --shadow-card: 0 1px 2px rgb(28 25 23 / 0.04), 0 8px 24px -12px rgb(28 25 23 / 0.12);
 }
 
+/*
+ * ألوان بنود الصرف كما يحفظها الخادم (`var(--chart-1)`…): هي ألوان صفحة
+ * الشفافية نفسها، فتُعرَّف هنا بالقيم ذاتها. بدونها كان شريط «أين ذهب
+ * المال» فارغاً ومربّعات البنود بلا لون.
+ */
+:root {
+  --chart-1: #0f5c5c;
+  --chart-2: #c9694b;
+  --chart-3: #edc56a;
+  --chart-4: #e0a63b;
+  --chart-5: #6366d9;
+  --chart-muted: #9ea3a1;
+}
+
 @layer base {
   html {
     font-family: var(--font-sans);
     background: var(--color-sand-50);
     color: var(--color-sand-900);
     -webkit-text-size-adjust: 100%;
+
+    /*
+     * مكان شريط التمرير محجوز دائماً. النوافذ تقفل تمرير الصفحة
+     * (overflow: hidden) فيختفي الشريط، وكان عرض الصفحة يتّسع بعرضه فجأة
+     * فيقفز الشريط الجانبي والمحتوى عند كل فتح وإغلاق.
+     */
+    scrollbar-gutter: stable;
   }
 
   h1, h2, h3, h4 {
@@ -85,6 +113,13 @@
     direction: ltr;
     display: inline-block;
   }
+
+  /*
+   * رمزٌ في سطره تحت اسم (KFL-2007، PAY-0001494): اتجاهه من اليسار لكن
+   * مكانه بداية السطر العربي، أي اليمين. بلا هذا ينجرف إلى يسار الخلية
+   * بعيداً عن الاسم الذي يخصّه حين تتّسع الخلية.
+   */
+  .num.block { text-align: right; }
 
   :focus-visible {
     outline: 2px solid var(--color-clay-600);
@@ -148,10 +183,64 @@
     font-size: 0.875rem;
     transition: border-color 0.15s;
   }
+  /* الحقل الخاطئ يُعلَّم بحدّ أحمر، لا بالتركوازي الذي هو لون الأساس */
+  .input[aria-invalid="true"] { border-color: var(--color-rose-600); }
+
   .input:focus {
     outline: none;
     border-color: var(--color-clay-400);
-    box-shadow: 0 0 0 3px rgb(194 65 12 / 0.08);
+    box-shadow: 0 0 0 3px rgb(15 92 92 / 0.12);
+  }
+
+  /* مفتاح فلتر يُشغَّل ويُطفأ: حالته في aria-pressed، فالشكل يتبع المعنى */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.375rem 0.75rem;
+    border: 1px solid var(--color-sand-200);
+    border-radius: 99px;
+    background: var(--color-sand-0);
+    color: var(--color-sand-700);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+  }
+  .chip:hover { border-color: var(--color-clay-300); color: var(--color-clay-700); }
+  .chip[aria-pressed="true"] {
+    background: var(--color-clay-50);
+    border-color: var(--color-clay-400);
+    color: var(--color-clay-700);
+  }
+  .chip__count {
+    font-variant-numeric: tabular-nums;
+    font-size: 0.75rem;
+    color: var(--color-sand-500);
+  }
+  .chip[aria-pressed="true"] .chip__count { color: var(--color-clay-600); }
+
+  /* اختصار لوحة مفاتيح يُذكر بجانب زرّه */
+  .kbd {
+    /* لا لوحة مفاتيح على الجوال: الاختصار يظهر على الشاشة العريضة وحدها */
+    display: none;
+    place-items: center;
+    min-width: 1.25rem;
+    height: 1.25rem;
+    padding-inline: 0.3rem;
+    border: 1px solid var(--color-sand-200);
+    border-radius: 0.3rem;
+    background: var(--color-sand-0);
+    color: var(--color-sand-600);
+    font-family: ui-monospace, monospace;
+    font-size: 0.7rem;
+    line-height: 1;
+  }
+  /* داخل زرٍّ مصمت: إطارٌ شفاف بلون نصّه، لا رقعة بيضاء */
+  .kbd--on-dark { border-color: rgb(255 255 255 / 0.35); background: transparent; color: inherit; }
+  @media (min-width: 1024px) {
+    .kbd { display: inline-grid; }
   }
 
   .badge {

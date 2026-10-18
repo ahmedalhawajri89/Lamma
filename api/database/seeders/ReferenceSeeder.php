@@ -81,25 +81,25 @@ class ReferenceSeeder extends Seeder
         $rows = [
             [
                 'comprehensive', 'الكفالة الشاملة', 'Comprehensive Sponsorship',
-                'fa-hands-holding-child', 'var(--gradient-brand)', 65.00, true,
+                'fa-hands-holding-child', 'var(--program-full)', 65.00, true,
                 'رعاية كاملة تغطي كل جوانب حياة اليتيم: المعيشة والتعليم والصحة والدعم النفسي.',
                 ['غذاء وكسوة شهرية', 'رسوم ومستلزمات دراسية', 'تأمين صحي ومتابعة طبية', 'دعم نفسي واجتماعي', 'تقرير مصوّر كل ٣ أشهر'],
             ],
             [
                 'education', 'الكفالة التعليمية', 'Education Sponsorship',
-                'fa-book-open-reader', 'linear-gradient(135deg, var(--teal-700), var(--teal-600))', 35.00, false,
+                'fa-book-open-reader', 'var(--program-education)', 35.00, false,
                 'تبقي الطفل على مقعد الدراسة: رسوم، كتب، زي، ودروس تقوية عند الحاجة.',
                 ['الرسوم الدراسية', 'حقيبة وقرطاسية', 'الزي المدرسي', 'دروس تقوية', 'تقرير أكاديمي فصلي'],
             ],
             [
                 'health', 'الكفالة الصحية', 'Health Sponsorship',
-                'fa-heart-pulse', 'linear-gradient(135deg, var(--rose-700), var(--rose-600))', 45.00, false,
+                'fa-heart-pulse', 'var(--program-health)', 45.00, false,
                 'رعاية طبية لأيتام يواجهون ظروفاً صحية تحتاج متابعة مستمرة أو تدخلاً عاجلاً.',
                 ['فحص دوري شامل', 'الأدوية والمستلزمات', 'جلسات علاج طبيعي', 'تغطية العمليات', 'ملف طبي محدّث'],
             ],
             [
                 'family', 'كفالة الأسرة', 'Family Sponsorship',
-                'fa-house-chimney-user', 'linear-gradient(135deg, var(--olive-600), var(--olive-500))', 90.00, false,
+                'fa-house-chimney-user', 'var(--program-family)', 90.00, false,
                 'دعم الأسرة كاملةً حتى تبقى مجتمعة، فبقاء الطفل بين أهله خيرٌ من أي بديل.',
                 ['سلة غذائية شهرية', 'مساهمة في الإيجار', 'مشروع صغير مدرّ للدخل', 'تعليم كل الأبناء', 'زيارة ميدانية شهرية'],
             ],
@@ -137,11 +137,11 @@ class ReferenceSeeder extends Seeder
     private function disbursementCategories(): void
     {
         $rows = [
-            ['living', 'معيشة وغذاء', 'var(--clay-600)', false],
-            ['education', 'تعليم', 'var(--amber-500)', false],
-            ['health', 'صحة', 'var(--olive-600)', false],
-            ['psychosocial', 'دعم نفسي وأنشطة', 'var(--teal-700)', false],
-            ['overhead', 'مصاريف إدارية', 'var(--sand-400)', true],
+            ['living', 'معيشة وغذاء', 'var(--chart-1)', false],
+            ['education', 'تعليم', 'var(--chart-4)', false],
+            ['health', 'صحة', 'var(--chart-2)', false],
+            ['psychosocial', 'دعم نفسي وأنشطة', 'var(--chart-5)', false],
+            ['overhead', 'مصاريف إدارية', 'var(--chart-muted)', true],
         ];
 
         foreach ($rows as $i => [$slug, $name, $color, $isOverhead]) {
@@ -159,11 +159,15 @@ class ReferenceSeeder extends Seeder
     private function settings(): void
     {
         $rows = [
-            ['site', 'name', 'كفالة', 'string'],
-            ['site', 'tagline', 'منصة كفالة الأيتام', 'string'],
-            ['site', 'email', 'info@kafala.org', 'string'],
-            ['site', 'phone', '+970 599 000 000', 'string'],
-            ['site', 'address', 'غزة، فلسطين', 'string'],
+            ['site', 'name', 'لمّة', 'string'],
+            ['site', 'tagline', 'كل طفلٍ في لمّة أهله', 'string'],
+            ['site', 'email', 'hello@lamma.org', 'string'],
+            ['site', 'phone', '+44 20 4000 0000', 'string'],
+            ['site', 'address', 'لندن، المملكة المتحدة', 'string'],
+            // مقابلاتها في الإنجليزية (SiteProfile::site)
+            ['site', 'name_en', 'Lamma', 'string'],
+            ['site', 'tagline_en', 'Every child in the circle of their family', 'string'],
+            ['site', 'address_en', 'London, United Kingdom', 'string'],
             ['site', 'start_year', '2012', 'number'],
             ['finance', 'base_currency', 'USD', 'string'],
             ['finance', 'overhead_target_percent', '7', 'number'],
