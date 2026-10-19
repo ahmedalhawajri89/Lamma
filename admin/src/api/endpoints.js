@@ -186,6 +186,15 @@ export const admin = {
     deliver: (id) => client.post(`${v1}/admin/messages/${id}/deliver`),
   },
 
+  /** التحويلات الشهرية للجمعيات: تُجهَّز، فتُرسل بمرجع الحوالة، فيُؤكَّد وصولها */
+  transfers: {
+    list: (params) => client.get(`${v1}/admin/transfers`, { params }),
+    show: (id) => client.get(`${v1}/admin/transfers/${id}`),
+    prepare: (period) => client.post(`${v1}/admin/transfers/prepare`, { period }),
+    send: (id, bankReference) => client.post(`${v1}/admin/transfers/${id}/send`, { bank_reference: bankReference }),
+    confirm: (id) => client.post(`${v1}/admin/transfers/${id}/confirm`),
+  },
+
   /** الجمعيات الشريكة: التسجيل والتوثيق والإيقاف (للمدير) */
   associations: {
     list: (params) => client.get(`${v1}/admin/associations`, { params }),

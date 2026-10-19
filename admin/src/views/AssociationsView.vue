@@ -67,10 +67,10 @@ async function verify(row) {
   if (!ok) return
   try {
     const { data } = await admin.associations.verify(row.id, { safeguarding_signed: true, family_care_attested: true })
-    ui.toast(data.message)
+    ui.success(data.message)
     load()
   } catch (e) {
-    ui.toast(e.response?.data?.errors?.status?.[0] ?? e.response?.data?.message ?? 'تعذّر التوثيق.', 'error')
+    ui.error(e.fieldErrors?.status?.[0] ?? e.userMessage)
   }
 }
 
@@ -84,10 +84,10 @@ async function suspend(row) {
   if (!answer) return
   try {
     const { data } = await admin.associations.suspend(row.id, answer.reason)
-    ui.toast(data.message)
+    ui.success(data.message)
     load()
   } catch (e) {
-    ui.toast(e.response?.data?.message ?? 'تعذّر الإيقاف.', 'error')
+    ui.error(e.fieldErrors?.reason?.[0] ?? e.userMessage)
   }
 }
 </script>

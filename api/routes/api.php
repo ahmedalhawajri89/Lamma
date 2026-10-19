@@ -284,6 +284,13 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
             Route::get('settings', [Admin\ContentController::class, 'settings'])->name('settings.index');
             Route::put('settings', [Admin\ContentController::class, 'updateSettings'])->name('settings.update');
 
+            /* --- التحويلات الشهرية للجمعيات: تُجهَّز، فتُرسل، فيُؤكَّد وصولها --- */
+            Route::get('transfers', [Admin\TransferController::class, 'index'])->name('transfers.index');
+            Route::post('transfers/prepare', [Admin\TransferController::class, 'prepare'])->middleware('throttle:10,1')->name('transfers.prepare');
+            Route::get('transfers/{transfer}', [Admin\TransferController::class, 'show'])->name('transfers.show');
+            Route::post('transfers/{transfer}/send', [Admin\TransferController::class, 'send'])->name('transfers.send');
+            Route::post('transfers/{transfer}/confirm', [Admin\TransferController::class, 'confirm'])->name('transfers.confirm');
+
             /* --- الجمعيات الشريكة: التسجيل والتوثيق والإيقاف (للمدير) --- */
             Route::get('associations', [Admin\AssociationController::class, 'index'])->name('associations.index');
             Route::post('associations', [Admin\AssociationController::class, 'store'])->name('associations.store');
