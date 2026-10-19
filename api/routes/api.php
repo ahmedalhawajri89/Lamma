@@ -127,6 +127,8 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
                 ->middleware('throttle:5,1')
                 ->name('sponsorships.store');
             Route::delete('sponsorships/{sponsorship}', [Portal\SponsorshipController::class, 'destroy'])->name('sponsorships.destroy');
+            // «أين ذهب مالك»: سجلّ الطفل المالي شهراً بشهر
+            Route::get('sponsorships/{sponsorship}/ledger', [Portal\SponsorshipController::class, 'ledger'])->name('sponsorships.ledger');
             Route::patch('sponsorships/{sponsorship}', [Portal\SponsorshipController::class, 'update'])
                 ->middleware('throttle:10,1')
                 ->name('sponsorships.update');

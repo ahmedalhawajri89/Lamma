@@ -11,6 +11,7 @@ use App\Enums\SponsorshipStatus;
 use App\Http\Resources\SponsorshipResource;
 use App\Models\Orphan;
 use App\Models\Sponsorship;
+use App\Services\ChildLedgerService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -118,6 +119,16 @@ class SponsorshipController extends Controller
                 : 'استأنفت الكفالة. أول قسط في '.$sponsorship->next_due_at?->toDateString().'.',
             'data' => new SponsorshipResource($sponsorship->load(['orphan', 'program'])),
         ]);
+    }
+
+    /** «أين ذهب مالك»: سجلّ الطفل شهراً بشهر (ChildLedgerService). */
+    public function ledger(Request $request, Sponsorship $sponsorship, ChildLedgerService $ledger): JsonResponse
+    {
+        $this->authorize('viewLedger', $sponsorship);
+
+        $months = min(24, max(3, $request->integer('months', 12)));
+
+        return response()->json(['data' => $ledger->forSponsorship($sponsorship, $months)]);
     }
 
     public function destroy(Request $request, Sponsorship $sponsorship, CancelSponsorship $action): JsonResponse

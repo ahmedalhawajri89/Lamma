@@ -36,6 +36,15 @@ class SponsorshipPolicy
         return $this->owns($user, $sponsorship);
     }
 
+    /**
+     * سجلّ الطفل المالي («أين ذهب مالك»): لصاحب الكفالة، ولمن يرى الكفالات
+     * من الموظفين. فيه ما دفعه كفلاء آخرون مجموعاً لا بأسمائهم.
+     */
+    public function viewLedger(User $user, Sponsorship $sponsorship): bool
+    {
+        return $this->owns($user, $sponsorship) || $user->can('sponsorships.view');
+    }
+
     /** الرسائل تخصّ صاحب الكفالة وحده. */
     public function message(User $user, Sponsorship $sponsorship): bool
     {
