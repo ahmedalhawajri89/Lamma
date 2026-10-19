@@ -188,3 +188,31 @@ body:has(.kf-header.is-hidden) .co-summary { inset-block-start: 1rem; }
 @media (prefers-reduced-motion: reduce) {
   .co-preset, .co-cycle, .co-method, .co-summary { transition: none; }
 }
+
+/* ── الإفصاح: أين يذهب المبلغ، وموافقةٌ قبل الزرّ ── */
+.co-disclose .co-card__title i { color: var(--color-brand); }
+.co-disclose__list { display: grid; gap: 0.75rem; margin: 0 0 1.1rem; padding: 0; list-style: none; }
+.co-disclose__list li { display: flex; gap: 0.75rem; align-items: flex-start; line-height: 1.7; color: var(--color-text); }
+.co-disclose__list i {
+  flex: none;
+  display: grid;
+  place-items: center;
+  inline-size: 2rem;
+  block-size: 2rem;
+  margin-block-start: 0.1rem;
+  border-radius: var(--radius-md);
+  background: var(--color-brand-soft);
+  color: var(--color-brand);
+  font-size: 0.9rem;
+}
+.co-consent {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0.85rem 1.1rem;
+  border-radius: var(--radius-lg);
+  background: var(--color-canvas);
+}
+.co-consent .form-check-input { float: none; margin: 0; flex: none; inline-size: 1.15rem; block-size: 1.15rem; }
+.co-consent .form-check-label { font-weight: 600; }

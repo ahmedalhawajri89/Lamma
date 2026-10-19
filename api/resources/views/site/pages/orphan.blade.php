@@ -153,6 +153,11 @@
 
               <div @class(['kid-panel', 'kid-panel--done' => $state === 'done'])>
                 <p class="kid-panel__price"><strong class="num">{{ $money($kid['monthly']) }}</strong> <span>{{ $g('كفالتها في الشهر', 'كفالته في الشهر') }}</span></p>
+                {{-- الإفصاح المختصر: أين يذهب المبلغ (والكامل في صفحة الكفالة قبل الدفع) --}}
+                <p class="kid-panel__where">
+                  <i class="fa-solid fa-route" aria-hidden="true"></i>
+                  {{ $g('يصلها مبلغك عبر جمعيتها بعد :fee٪ للتشغيل، وتراه بنداً بنداً في حسابك.', 'يصله مبلغك عبر جمعيته بعد :fee٪ للتشغيل، وتراه بنداً بنداً في حسابك.', ['fee' => rtrim(rtrim(number_format(\App\Models\Payment::currentFeePercent(), 2, '.', ''), '0'), '.')]) }}
+                </p>
 
                 <div class="kid-panel__fund">
                   <span class="kid-panel__track" role="progressbar" aria-label="{{ __('نسبة كفالة :name', ['name' => $kid['name']]) }}" aria-valuenow="{{ $funded }}" aria-valuemin="0" aria-valuemax="100"><span style="--v: {{ $funded }}%"></span></span>

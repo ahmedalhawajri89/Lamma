@@ -25,6 +25,8 @@ async function fillCard(page, number) {
   await page.fill('#cardNumber', number)
   await page.fill('#cardExpiry', '1230')
   await page.fill('#cardCvc', '123')
+  // الإفصاح قبل الكفالة: لا تُقبل بلا موافقة
+  await page.check('#disclosure')
 }
 
 test.describe('الكفالة من الموقع', () => {

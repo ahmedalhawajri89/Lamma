@@ -134,4 +134,9 @@ return [
     'تعذّر تحميل الأطفال الآن' => 'We couldn’t load the children right now',
     'تحقّق من اتصالك، ثم حاول مجدداً.' => 'Check your connection, then try again.',
     'حاول مجدداً' => 'Try again',
+    'تغطي {pct}٪ من حاجة {name} الشهرية ({amount} من {need})، ويكمل غيرك الباقي.' => 'You cover {pct}% of {name}’s monthly need ({amount} of {need}); others will cover the rest.',
+    'ستكون كافل {name} الوحيد: مبلغك يغطي حاجته الشهرية كاملة.' => 'You will be {name}’s only sponsor: your gift covers his full monthly need.',
+    'ستكون كافل {name} الوحيد: مبلغك يغطي حاجتها الشهرية كاملة.' => 'You will be {name}’s only sponsor: your gift covers her full monthly need.',
+    'يشاركك في كفالة {name} غيرك. تغطي أنت {pct}٪ من حاجته الشهرية ({amount} من {need}).' => 'Others already sponsor {name}. You cover {pct}% of his monthly need ({amount} of {need}).',
+    'يشاركك في كفالة {name} غيرك. تغطي أنت {pct}٪ من حاجتها الشهرية ({amount} من {need}).' => 'Others already sponsor {name}. You cover {pct}% of her monthly need ({amount} of {need}).',
 ];

@@ -227,6 +227,8 @@ function renderTotals() {
   const method = $$('input[name="method"]').find((r) => r.checked)?.value ?? 'card';
   const day = new Date().getDate();
 
+  renderShare(o, amount);
+
   $$('[data-checkout="price"]').forEach((el) => { el.textContent = money(amount, o.currency); });
   $$('[data-checkout="total"]').forEach((el) => { el.textContent = money(total, o.currency); });
   // على كل خيار دورية مجموعه، فيُرى الفرق قبل الاختيار
@@ -300,6 +302,34 @@ function attemptKey() {
   }
 }
 
+/**
+ * الإفصاح بالمبلغ المكتوب: كافلٌ وحيد يغطي الحاجة كاملة، أم يغطي نسبةً منها
+ * ويكملها غيره، أم يشارك من بدأ قبله. يتبدّل مع المبلغ، والنص كله يُحفظ
+ * إقراره مع الكفالة (disclosure_version).
+ */
+function renderShare(o, amount) {
+  const el = $('[data-checkout="share"]');
+  const need = Number(o.monthly) || 0;
+  if (!el || !need) return;
+
+  const her = (o.gender_code ?? o.gender) === 'female' || o.gender === 'أنثى';
+  const others = Math.max(0, need - (Number(o.remaining) || 0));
+  const pct = Math.min(100, Math.round((amount / need) * 100));
+  // المبلغ معزولاً باتجاهه (U+2066…U+2069): «$35» لا «35$» وسط جملة عربية، والنص textContent لا HTML
+  const ltr = (v) => `⁦${money(v, o.currency)}⁩`;
+  const vars = { name: o.name, pct, amount: ltr(amount), need: ltr(need) };
+
+  let text;
+  if (others === 0 && amount >= need) {
+    text = t(her ? 'ستكون كافل {name} الوحيد: مبلغك يغطي حاجتها الشهرية كاملة.' : 'ستكون كافل {name} الوحيد: مبلغك يغطي حاجته الشهرية كاملة.', vars);
+  } else if (others > 0) {
+    text = t(her ? 'يشاركك في كفالة {name} غيرك. تغطي أنت {pct}٪ من حاجتها الشهرية ({amount} من {need}).' : 'يشاركك في كفالة {name} غيرك. تغطي أنت {pct}٪ من حاجته الشهرية ({amount} من {need}).', vars);
+  } else {
+    text = t(her ? 'تغطي {pct}٪ من حاجة {name} الشهرية ({amount} من {need})، ويكمل غيرك الباقي.' : 'تغطي {pct}٪ من حاجة {name} الشهرية ({amount} من {need})، ويكمل غيرك الباقي.', vars);
+  }
+  el.textContent = text;
+}
+
 /** يُستدعى من forms.js بعد نجاح التحقق في المتصفح */
 export async function submitCheckoutForm(form) {
   const values = Object.fromEntries(new FormData(form).entries());
@@ -315,6 +345,8 @@ export async function submitCheckoutForm(form) {
     interval_months: state.interval,
     is_zakat: Boolean($('[name="is_zakat"]', form)?.checked),
     method,
+    // قرأ كيف يُصرف مبلغه ووافق (الخادم يرفض بدونه، ويحفظ نسخة النص)
+    disclosure: Boolean($('[name="disclosure"]', form)?.checked),
   };
 
   if (!(state.user && isSponsor(state.user))) {

@@ -677,5 +677,17 @@
     "الجمعية التي تعرفها وتزورها": "The association that knows and visits her",
     "الجمعية التي تعرفه وتزوره": "The association that knows and visits him",
     "أُرسل": "Sent",
-    "وصل": "Received"
+    "وصل": "Received",
+    "اقرأ كيف يُصرف مبلغك ووافق عليه للمتابعة.": "Please read how your money is used and agree to continue.",
+    "جمعيته الشريكة": "their partner association",
+    "قرأتُ كيف يُصرف مبلغي، وأوافق.": "I have read how my money is used, and I agree.",
+    "كيف يُصرف مبلغك": "How your money is used",
+    "ما لا يُصرف في شهره يبقى للطفل نفسه عند جمعيته، وتراه في حسابك تحت «أين ذهب مالك» بنداً بنداً.": "Anything not spent in its month stays with the same child at their association, and you can see it item by item in your account under “Where your money went”.",
+    "مبلغك لـ:name وحده.": "Your money goes to :name alone.",
+    "مبلغك لـ:name وحدها.": "Your money goes to :name alone.",
+    "يُقتطع :fee٪ من كل دفعة لتشغيل المنصة (الدفع والمتابعة والتقارير)، والباقي يُحوَّل كل شهر إلى :association التي تعرف أسرته وتزوره.": ":fee% of each payment covers running the platform (payments, follow-up and reports); the rest is transferred every month to :association, which knows the family and visits them.",
+    "يصلها مبلغك عبر جمعيتها بعد :fee٪ للتشغيل، وتراه بنداً بنداً في حسابك.": "Your money reaches her through her association after :fee% running costs, and you can see it item by item in your account.",
+    "يصله مبلغك عبر جمعيته بعد :fee٪ للتشغيل، وتراه بنداً بنداً في حسابك.": "Your money reaches him through his association after :fee% running costs, and you can see it item by item in your account.",
+    "رسوم فوق المبلغ": "Added on top",
+    "منه للتشغيل": "Of it, running costs"
 }

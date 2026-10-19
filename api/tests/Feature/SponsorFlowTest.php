@@ -34,7 +34,7 @@ it('الزائر يكفل بالبطاقة: يُنشأ حسابه ويدخل، �
     $orphan = sponsorableOrphan();
 
     $res = $this->postJson('/api/v1/public/checkout', [
-        'orphan_reference' => $orphan->reference_code, 'monthly_amount' => 30, 'interval_months' => 3,
+        'disclosure' => true, 'orphan_reference' => $orphan->reference_code, 'monthly_amount' => 30, 'interval_months' => 3,
         'method' => 'card', 'name' => 'متبرع جديد', 'email' => 'donor@example.com',
         'card_token' => 'tok_demo_ok', 'card_brand' => 'فيزا', 'card_last4' => '4242',
     ])->assertCreated();
@@ -60,7 +60,7 @@ it('رفض البطاقة يلغي الحجز فوراً فلا يُمسك ال�
     $orphan = sponsorableOrphan();
 
     $this->postJson('/api/v1/public/checkout', [
-        'orphan_reference' => $orphan->reference_code, 'interval_months' => 1, 'method' => 'card',
+        'disclosure' => true, 'orphan_reference' => $orphan->reference_code, 'interval_months' => 1, 'method' => 'card',
         'name' => 'متبرع', 'email' => 'declined@example.com', 'card_token' => 'tok_demo_decline',
     ])->assertStatus(402)->assertJsonPath('code', 'payment_failed');
 
@@ -72,7 +72,7 @@ it('التحويل البنكي حجزٌ بانتظار التحويل مع تع
     $orphan = sponsorableOrphan();
 
     $res = $this->postJson('/api/v1/public/checkout', [
-        'orphan_reference' => $orphan->reference_code, 'interval_months' => 12, 'method' => 'bank_transfer',
+        'disclosure' => true, 'orphan_reference' => $orphan->reference_code, 'interval_months' => 12, 'method' => 'bank_transfer',
         'name' => 'متبرع', 'email' => 'bank@example.com',
     ])->assertCreated();
 
@@ -87,7 +87,7 @@ it('البريد المسجَّل يُطلب منه الدخول، ولا تُن
     Sponsor::factory()->create()->user->update(['email' => 'taken@example.com']);
 
     $this->postJson('/api/v1/public/checkout', [
-        'orphan_reference' => sponsorableOrphan()->reference_code, 'interval_months' => 1, 'method' => 'bank_transfer',
+        'disclosure' => true, 'orphan_reference' => sponsorableOrphan()->reference_code, 'interval_months' => 1, 'method' => 'bank_transfer',
         'name' => 'منتحل', 'email' => 'taken@example.com',
     ])->assertStatus(409)->assertJsonPath('code', 'login_required');
 });
@@ -97,11 +97,11 @@ it('المبلغ الأكبر من المتبقي يُرفض بوضوح، وال
     $orphan = sponsorableOrphan(50);
 
     $this->actingAs($sponsor->user)->postJson('/api/v1/public/checkout', [
-        'orphan_reference' => $orphan->reference_code, 'monthly_amount' => 80, 'interval_months' => 1, 'method' => 'bank_transfer',
+        'disclosure' => true, 'orphan_reference' => $orphan->reference_code, 'monthly_amount' => 80, 'interval_months' => 1, 'method' => 'bank_transfer',
     ])->assertUnprocessable()->assertJsonValidationErrors('monthly_amount');
 
     $hold = fn (Orphan $o) => $this->actingAs($sponsor->user)->postJson('/api/v1/public/checkout', [
-        'orphan_reference' => $o->reference_code, 'interval_months' => 1, 'method' => 'bank_transfer',
+        'disclosure' => true, 'orphan_reference' => $o->reference_code, 'interval_months' => 1, 'method' => 'bank_transfer',
     ]);
 
     $hold($orphan)->assertCreated();
@@ -240,7 +240,7 @@ it('كفالةٌ مرفوضة لا تترك حساباً ولا جلسة للز�
     Sponsorship::factory()->for($orphan)->create(['monthly_amount' => 50]);
 
     $this->postJson('/api/v1/public/checkout', [
-        'orphan_reference' => $orphan->reference_code, 'interval_months' => 1,
+        'disclosure' => true, 'orphan_reference' => $orphan->reference_code, 'interval_months' => 1,
         'method' => 'card', 'name' => 'زائر جديد', 'email' => 'late@example.com', 'card_token' => 'tok_demo_ok',
     ])->assertUnprocessable()->assertJsonValidationErrors('orphan_reference');
 
@@ -251,7 +251,7 @@ it('كفالةٌ مرفوضة لا تترك حساباً ولا جلسة للز�
 it('حجوزات التحويل البنكي من العنوان نفسه محدودة في اليوم أياً كان الحساب', function () {
     // زائرٌ جديد في كل مرة: لا جلسة الحجز السابق
     $hold = fn (int $i) => $this->flushSession()->postJson('/api/v1/public/checkout', [
-        'orphan_reference' => sponsorableOrphan()->reference_code, 'interval_months' => 1,
+        'disclosure' => true, 'orphan_reference' => sponsorableOrphan()->reference_code, 'interval_months' => 1,
         'method' => 'bank_transfer', 'name' => 'حاجز '.$i, 'email' => "hold{$i}@example.com",
     ]);
 
@@ -271,7 +271,7 @@ it('ردّ الكفالة يحمل رسم الطفل وجنسه لصفحة ال�
     $orphan->update(['gender' => 'female', 'photo_path' => 'orphans/real.webp']);
 
     $res = $this->postJson('/api/v1/public/checkout', [
-        'orphan_reference' => $orphan->reference_code, 'interval_months' => 1, 'method' => 'bank_transfer',
+        'disclosure' => true, 'orphan_reference' => $orphan->reference_code, 'interval_months' => 1, 'method' => 'bank_transfer',
         'name' => 'متبرع', 'email' => 'thanks@example.com',
     ])->assertCreated();
 

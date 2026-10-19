@@ -51,6 +51,9 @@ class CheckoutController extends Controller
             'intervals' => CreateSponsorship::INTERVALS,
             'grace_days' => (int) config('kafala.billing.grace_days'),
             'bank' => config('kafala.bank'),
+            // للإفصاح قبل الكفالة: ما يُقتطع للتشغيل من كل دفعة، ونسخة النص
+            'fee_percent' => Payment::currentFeePercent(),
+            'disclosure_version' => config('kafala.disclosure_version'),
         ]]);
     }
 
@@ -75,7 +78,11 @@ class CheckoutController extends Controller
             'card_token' => ['required_if:method,card', 'nullable', 'string', 'max:120'],
             'card_brand' => ['nullable', 'string', 'max:20'],
             'card_last4' => ['nullable', 'digits:4'],
+
+            // الإفصاح: قرأ كيف يُصرف مبلغه (وحيدٌ أم مشترك، والتشغيل، وما لا يُصرف) ووافق
+            'disclosure' => ['accepted'],
         ], [
+            'disclosure.accepted' => __('اقرأ كيف يُصرف مبلغك ووافق عليه للمتابعة.'),
             'orphan_reference.exists' => __('لم نجد هذه الحالة.'),
             'name.required' => __('اكتب اسمك الكامل.'),
             'email.required' => __('اكتب بريدك الإلكتروني، إليه يصل الإيصال.'),
@@ -117,14 +124,22 @@ class CheckoutController extends Controller
         [$user, $sponsorship] = DB::transaction(function () use ($user, $validated, $register, $create, $orphan): array {
             $user ??= $register->handle($validated['name'], $validated['email'], $validated['phone'] ?? null);
 
-            return [$user, $create->handle(
+            $sponsorship = $create->handle(
                 sponsor: $user->sponsor,
                 orphan: $orphan,
                 monthlyAmount: isset($validated['monthly_amount']) ? (float) $validated['monthly_amount'] : null,
                 isZakat: (bool) ($validated['is_zakat'] ?? false),
                 intervalMonths: (int) $validated['interval_months'],
                 paymentMethod: $validated['method'],
-            )];
+            );
+
+            // أيّ نصّ إفصاحٍ قرأ ووافق عليه، ومتى
+            $sponsorship->forceFill([
+                'disclosure_version' => config('kafala.disclosure_version'),
+                'disclosure_accepted_at' => now(),
+            ])->save();
+
+            return [$user, $sponsorship];
         });
         $sponsor = $user->sponsor;
 

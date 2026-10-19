@@ -147,7 +147,7 @@ it('الكفالة بالبطاقة تحفظ مرجع البطاقة للأقس�
     ]);
 
     $ref = $this->postJson('/api/v1/public/checkout', [
-        'orphan_reference' => $orphan->reference_code, 'monthly_amount' => 30, 'interval_months' => 1,
+        'disclosure' => true, 'orphan_reference' => $orphan->reference_code, 'monthly_amount' => 30, 'interval_months' => 1,
         'method' => 'card', 'name' => 'متبرع', 'email' => 'saved@example.com',
         'card_token' => 'tok_demo_ok', 'card_brand' => 'فيزا', 'card_last4' => '4242',
     ])->assertCreated()->json('data.reference');

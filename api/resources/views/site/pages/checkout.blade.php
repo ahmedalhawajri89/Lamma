@@ -218,6 +218,28 @@
               </p>
             </section>
 
+            {{-- الإفصاح: أين يذهب المبلغ، قبل القرار لا بعده (يُحفظ مع الكفالة) --}}
+            <section class="co-card co-disclose" aria-labelledby="coDisclose">
+              <h2 class="co-card__title" id="coDisclose"><i class="fa-solid fa-scale-balanced" aria-hidden="true"></i> {{ __('كيف يُصرف مبلغك') }}</h2>
+              <ul class="co-disclose__list">
+                <li><i class="fa-solid fa-child-reaching" aria-hidden="true"></i> <span data-checkout="share">{{ $her ? __('مبلغك لـ:name وحدها.', ['name' => $kid['name']]) : __('مبلغك لـ:name وحده.', ['name' => $kid['name']]) }}</span></li>
+                <li><i class="fa-solid fa-building-columns" aria-hidden="true"></i>
+                  <span>{{ __('يُقتطع :fee٪ من كل دفعة لتشغيل المنصة (الدفع والمتابعة والتقارير)، والباقي يُحوَّل كل شهر إلى :association التي تعرف أسرته وتزوره.', [
+                      'fee' => rtrim(rtrim(number_format(\App\Models\Payment::currentFeePercent(), 2, '.', ''), '0'), '.'),
+                      'association' => $kid['association']['name'] ?? __('جمعيته الشريكة'),
+                  ]) }}</span></li>
+                <li><i class="fa-solid fa-piggy-bank" aria-hidden="true"></i> <span>{{ __('ما لا يُصرف في شهره يبقى للطفل نفسه عند جمعيته، وتراه في حسابك تحت «أين ذهب مالك» بنداً بنداً.') }}</span></li>
+              </ul>
+              <div class="field">
+                <div class="form-check co-consent">
+                  <input class="form-check-input" type="checkbox" id="disclosure" name="disclosure" value="1" data-validate="required"
+                         data-required-message="{{ __('اقرأ كيف يُصرف مبلغك ووافق عليه للمتابعة.') }}" aria-describedby="err-disclosure">
+                  <label class="form-check-label" for="disclosure">{{ __('قرأتُ كيف يُصرف مبلغي، وأوافق.') }}</label>
+                </div>
+                <p class="field__error" id="err-disclosure" aria-live="polite"></p>
+              </div>
+            </section>
+
             {{-- الإرسال: ما سيُخصم ومتى، قبل الزرّ لا بعده --}}
             <div class="co-submit">
               <p class="co-plan" data-checkout="plan" aria-live="polite"></p>
@@ -242,7 +264,9 @@
             <dl class="co-summary__lines">
               <div><dt>{{ __($shared ? ($her ? 'المتبقي من حاجتها' : 'المتبقي من حاجته') : ($her ? 'حاجتها الشهرية' : 'حاجته الشهرية')) }}</dt><dd class="num" data-checkout="remaining">{{ \App\Support\PublicChild::money($remaining) }}</dd></div>
               <div><dt>{{ __('كفالتك الشهرية') }}</dt><dd class="num" data-checkout="price">{{ \App\Support\PublicChild::money($suggested) }}</dd></div>
-              <div><dt>{{ __('رسوم المنصة') }}</dt><dd class="co-summary__free">{{ __('بلا رسوم') }}</dd></div>
+              {{-- لا يُضاف شيءٌ فوق المبلغ؛ والتشغيل منه لا عليه (الإفصاح في النموذج) --}}
+              <div><dt>{{ __('رسوم فوق المبلغ') }}</dt><dd class="co-summary__free">{{ __('بلا رسوم') }}</dd></div>
+              <div><dt>{{ __('منه للتشغيل') }}</dt><dd class="num">{{ rtrim(rtrim(number_format(\App\Models\Payment::currentFeePercent(), 2, '.', ''), '0'), '.') }}{{ \App\Support\Locale::isDefault() ? '٪' : '%' }}</dd></div>
             </dl>
 
             {{-- للمجموع خطّافه: الدورية تغيّره (سنوية = 12 شهراً)، لا السطر الشهري --}}
