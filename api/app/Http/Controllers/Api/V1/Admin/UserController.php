@@ -10,6 +10,7 @@ use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
+use App\Models\Association;
 use App\Models\FieldVisit;
 use App\Models\Orphan;
 use App\Models\Report;
@@ -18,15 +19,15 @@ use App\Models\User;
 use App\Support\Permissions;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Carbon;
-use Spatie\Activitylog\Models\Activity;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use Spatie\Activitylog\Models\Activity;
 
 class UserController extends Controller
 {
@@ -51,7 +52,7 @@ class UserController extends Controller
         $users = $this->filtered($request)
             // getAllPermissions() في UserResource يقرأ الصلاحيات المباشرة وصلاحيات
             // الأدوار معاً، فتُحمَّل العلاقتان هنا وإلا وقع lazy load لكل صف
-            ->with(['roles.permissions', 'permissions', 'staffProfile.assignedCountry'])
+            ->with(['roles.permissions', 'permissions', 'staffProfile.assignedCountry', 'staffProfile.association:id,name_ar'])
             ->when($request->filled('role'), fn ($q) => $q->role($request->string('role')->toString()))
             ->when($request->filled('status'), fn ($q) => $q->where('status', $request->string('status')->toString()))
             // من ينتظر التفعيل أولاً (عليه إجراء)، ثم الأحدث دخولاً
@@ -95,7 +96,7 @@ class UserController extends Controller
         abort_unless($request->user()->can('users.manage'), 403);
         abort_unless($user->isStaff(), 404);
 
-        $user->load(['roles.permissions', 'permissions', 'staffProfile.assignedCountry']);
+        $user->load(['roles.permissions', 'permissions', 'staffProfile.assignedCountry', 'staffProfile.association:id,name_ar']);
         $role = $user->roles->first()?->name;
         $country = $user->staffProfile?->assigned_country_id;
 
@@ -160,12 +161,22 @@ class UserController extends Controller
             'phone' => ['nullable', 'string', 'max:24'],
             'role' => ['required', Rule::in(array_column(UserRole::staff(), 'value'))],
             'title' => ['nullable', 'string', 'max:80'],
-            // المشرف الميداني بلا بلد لا يرى شيئاً، فلا يُنشأ بلا بلد
-            'assigned_country_id' => ['nullable', 'required_if:role,'.UserRole::FieldSupervisor->value, 'integer', 'exists:countries,id'],
+            // موظف الجمعية الشريكة: نطاقه أسر جمعيته، وبلده بلدها (StaffScope)
+            'association_id' => ['nullable', 'integer', 'exists:associations,id'],
+            // المشرف الميداني بلا بلد ولا جمعية لا يرى شيئاً، فلا يُنشأ بلا أحدهما
+            'assigned_country_id' => [
+                'nullable', 'integer', 'exists:countries,id',
+                Rule::requiredIf(fn () => $request->input('role') === UserRole::FieldSupervisor->value && ! $request->filled('association_id')),
+            ],
         ], [
             'role.in' => 'هذه الشاشة لإنشاء الموظفين. الكفلاء يسجّلون أنفسهم من الموقع.',
-            'assigned_country_id.required_if' => 'المشرف الميداني يعمل في بلد واحد. اختر بلده.',
+            'assigned_country_id.required' => 'المشرف الميداني يعمل في بلد واحد أو لجمعية. اختر أحدهما.',
         ]);
+
+        // بلد موظف الجمعية بلدها، لا ما كُتب
+        if (! empty($validated['association_id'])) {
+            $validated['assigned_country_id'] = Association::whereKey($validated['association_id'])->value('country_id');
+        }
 
         $user = DB::transaction(function () use ($validated): User {
             $user = User::create([
@@ -186,6 +197,7 @@ class UserController extends Controller
                 'employee_code' => $this->nextEmployeeCode(),
                 'title' => $validated['title'] ?? null,
                 'assigned_country_id' => $validated['assigned_country_id'] ?? null,
+                'association_id' => $validated['association_id'] ?? null,
                 'hired_at' => now()->toDateString(),
             ]);
 
@@ -220,7 +232,13 @@ class UserController extends Controller
             'role' => ['sometimes', Rule::in(array_column(UserRole::staff(), 'value'))],
             'title' => ['sometimes', 'nullable', 'string', 'max:80'],
             'assigned_country_id' => ['sometimes', 'nullable', 'integer', 'exists:countries,id'],
+            'association_id' => ['sometimes', 'nullable', 'integer', 'exists:associations,id'],
         ]);
+
+        // بلد موظف الجمعية بلدها
+        if (! empty($validated['association_id'])) {
+            $validated['assigned_country_id'] = Association::whereKey($validated['association_id'])->value('country_id');
+        }
 
         $self = $user->id === $request->user()->id;
         $currentRole = $user->roles->first()?->name;
@@ -235,9 +253,13 @@ class UserController extends Controller
             ? $validated['assigned_country_id']
             : $user->staffProfile?->assigned_country_id;
 
-        if ($role === UserRole::FieldSupervisor->value && $country === null) {
+        $association = array_key_exists('association_id', $validated)
+            ? $validated['association_id']
+            : $user->staffProfile?->association_id;
+
+        if ($role === UserRole::FieldSupervisor->value && $country === null && $association === null) {
             throw ValidationException::withMessages([
-                'assigned_country_id' => 'المشرف الميداني يعمل في بلد واحد. اختر بلده.',
+                'assigned_country_id' => 'المشرف الميداني يعمل في بلد واحد أو لجمعية. اختر أحدهما.',
             ]);
         }
 
@@ -263,7 +285,7 @@ class UserController extends Controller
                 $user->syncRoles($role);
             }
 
-            $profile = collect($validated)->only(['assigned_country_id', 'title'])->all();
+            $profile = collect($validated)->only(['assigned_country_id', 'association_id', 'title'])->all();
             if ($profile !== []) {
                 $user->staffProfile()->updateOrCreate(['user_id' => $user->id], $profile + [
                     'employee_code' => $user->staffProfile?->employee_code ?? $this->nextEmployeeCode(),
@@ -290,7 +312,7 @@ class UserController extends Controller
 
         return response()->json([
             'message' => 'حُفظت التعديلات.',
-            'data' => new UserResource($user->fresh()->load(['roles', 'staffProfile.assignedCountry'])),
+            'data' => new UserResource($user->fresh()->load(['roles', 'staffProfile.assignedCountry', 'staffProfile.association:id,name_ar'])),
         ]);
     }
 

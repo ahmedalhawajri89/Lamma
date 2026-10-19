@@ -11,10 +11,10 @@ use App\Models\Orphan;
 use App\Models\OrphanDocument;
 use App\Models\Report;
 use App\Models\User;
+use App\Support\StaffScope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
-use App\Support\StaffScope;
 
 /**
  * لوحة المشرف الميداني: عمل الأسبوع في بلده.

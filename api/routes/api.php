@@ -282,6 +282,14 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
             Route::get('settings', [Admin\ContentController::class, 'settings'])->name('settings.index');
             Route::put('settings', [Admin\ContentController::class, 'updateSettings'])->name('settings.update');
 
+            /* --- الجمعيات الشريكة: التسجيل والتوثيق والإيقاف (للمدير) --- */
+            Route::get('associations', [Admin\AssociationController::class, 'index'])->name('associations.index');
+            Route::post('associations', [Admin\AssociationController::class, 'store'])->name('associations.store');
+            Route::get('associations/{association}', [Admin\AssociationController::class, 'show'])->name('associations.show');
+            Route::match(['put', 'patch'], 'associations/{association}', [Admin\AssociationController::class, 'update'])->name('associations.update');
+            Route::post('associations/{association}/verify', [Admin\AssociationController::class, 'verify'])->name('associations.verify');
+            Route::post('associations/{association}/suspend', [Admin\AssociationController::class, 'suspend'])->name('associations.suspend');
+
             /* --- المستخدمون والسجل --- */
             Route::get('users', [Admin\UserController::class, 'index'])->name('users.index');
             Route::post('users', [Admin\UserController::class, 'store'])->name('users.store');

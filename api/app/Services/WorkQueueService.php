@@ -18,8 +18,8 @@ use App\Models\Payment;
 use App\Models\Report;
 use App\Models\Sponsorship;
 use App\Models\User;
-use Illuminate\Database\Eloquent\Builder;
 use App\Support\StaffScope;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
  * «بانتظارك»: ما ينتظر قراراً من هذا الموظف بالذات اليوم.

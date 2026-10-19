@@ -4,22 +4,25 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1\Admin;
 
+use App\Enums\AssociationStatus;
+use App\Enums\CareArrangement;
 use App\Enums\DocumentType;
 use App\Enums\Gender;
 use App\Enums\GuardianRelation;
 use App\Enums\HousingStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\FamilyResource;
+use App\Models\Association;
 use App\Models\Country;
 use App\Models\Family;
 use App\Models\Guardian;
 use App\Models\Program;
+use App\Support\StaffScope;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
-use App\Support\StaffScope;
 
 class FamilyController extends Controller
 {
@@ -90,7 +93,7 @@ class FamilyController extends Controller
 
         return response()->json([
             'data' => new FamilyResource($family->load([
-                'country', 'city', 'guardian',
+                'country', 'city', 'guardian', 'association', 'careAttester:id,name',
                 'orphans' => fn ($q) => $q->orderBy('date_of_birth'),
                 'orphans.program',
             ])),
@@ -120,6 +123,7 @@ class FamilyController extends Controller
             'members_count' => ['required', 'integer', 'min:1', 'max:30'],
             'monthly_income' => ['nullable', 'numeric', 'min:0', 'max:100000'],
             'housing_status' => ['required', Rule::in(HousingStatus::values())],
+            ...$this->careRules($request, $request->integer('country_id')),
         ], [
             'guardian.full_name.required' => 'اسم الوصي مطلوب.',
             'guardian.relation.required' => 'صلة الوصي بالطفل مطلوبة.',
@@ -128,6 +132,7 @@ class FamilyController extends Controller
         ]);
 
         $this->ensureCountryAllowed($request, (int) $validated['country_id']);
+        $this->ensureAssociationAllowed($request, $validated['association_id'] ?? null);
 
         /*
          * كشف التكرار الذي يَعِد به النموذج: الوصيّ نفسه برقم هويته مسجَّل في
@@ -145,7 +150,7 @@ class FamilyController extends Controller
             }
         }
 
-        $family = DB::transaction(function () use ($validated): Family {
+        $family = DB::transaction(function () use ($validated, $request): Family {
             /**
              * `national_id` يُستثنى من الإسناد الجماعي بقصد.
              *
@@ -159,16 +164,19 @@ class FamilyController extends Controller
             $guardian->setNationalId($validated['guardian']['national_id'] ?? null);
             $guardian->save();
 
-            return Family::create([
-                ...collect($validated)->except('guardian')->all(),
+            $family = Family::create([
+                ...collect($validated)->except(['guardian', 'care_attest'])->all(),
                 'guardian_id' => $guardian->id,
                 'family_code' => $this->nextCode(),
             ]);
+            $this->applyCareAttestation($family, $validated, $request);
+
+            return $family;
         });
 
         return response()->json([
             'message' => 'أُنشئت الأسرة.',
-            'data' => new FamilyResource($family->load(['country', 'city', 'guardian'])),
+            'data' => new FamilyResource($family->load(['country', 'city', 'guardian', 'association'])),
         ], 201);
     }
 
@@ -189,6 +197,7 @@ class FamilyController extends Controller
             'guardian.phone' => ['sometimes', 'nullable', 'string', 'max:24'],
             'guardian.occupation' => ['sometimes', 'nullable', 'string', 'max:80'],
             'guardian.monthly_income' => ['sometimes', 'nullable', 'numeric', 'min:0', 'max:100000'],
+            ...$this->careRules($request, $request->integer('country_id', $family->country_id), partial: true),
         ], [
             'city_id.exists' => 'هذه المدينة ليست في الدولة المختارة.',
         ]);
@@ -196,9 +205,19 @@ class FamilyController extends Controller
         if (isset($validated['country_id'])) {
             $this->ensureCountryAllowed($request, (int) $validated['country_id']);
         }
+        if (array_key_exists('association_id', $validated)) {
+            $this->ensureAssociationAllowed($request, $validated['association_id']);
+        }
 
         DB::transaction(function () use ($validated, $family, $request): void {
-            $family->update(collect($validated)->except('guardian')->all());
+            $arrangementBefore = $family->care_arrangement;
+            $family->update(collect($validated)->except(['guardian', 'care_attest'])->all());
+
+            // ترتيبٌ تغيّر بلا إقرار: الإقرار القديم كان عن ترتيبٍ آخر، فيسقط
+            if ($family->care_arrangement !== $arrangementBefore && empty($validated['care_attest'])) {
+                $family->forceFill(['care_attested_at' => null, 'care_attested_by' => null, 'care_review_due_at' => null])->save();
+            }
+            $this->applyCareAttestation($family, $validated, $request);
 
             if (isset($validated['guardian'])) {
                 $guardian = $family->guardian;
@@ -223,7 +242,7 @@ class FamilyController extends Controller
 
         return response()->json([
             'message' => 'حُفظت التعديلات.',
-            'data' => new FamilyResource($family->fresh()->load(['country', 'city', 'guardian'])),
+            'data' => new FamilyResource($family->fresh()->load(['country', 'city', 'guardian', 'association', 'careAttester:id,name'])),
         ]);
     }
 
@@ -255,6 +274,16 @@ class FamilyController extends Controller
                     'price' => (float) $p->monthly_price,
                 ]),
 
+                // الجمعيات لنموذج الأسرة والموظف: الموقوفة لا تُسنَد إليها أسرٌ جديدة
+                'associations' => Association::query()
+                    ->where('status', '!=', AssociationStatus::Suspended)
+                    ->orderBy('name_ar')
+                    ->get(['id', 'name_ar', 'country_id', 'status'])
+                    ->map(fn (Association $a): array => [
+                        'id' => $a->id, 'name' => $a->name_ar, 'country_id' => $a->country_id,
+                        'status' => $a->status->value, 'status_label' => $a->status->label(),
+                    ]),
+                'care_arrangements' => CareArrangement::options(),
                 'relations' => GuardianRelation::options(),
                 'housing' => HousingStatus::options(),
                 'genders' => Gender::options(),
@@ -275,6 +304,43 @@ class FamilyController extends Controller
      * المشرف الميداني مقيَّد ببلده المُسنَد، كما في `OrphanPolicy`.
      * المدير والمحاسب بلا بلد مُسنَد، فيريان الجميع.
      */
+
+    /**
+     * الجمعية وترتيب الرعاية في نموذج الأسرة: الجمعية من بلد الأسرة، والإقرار
+     * («أؤكّد الآن») يسجّل من أقرّ ومتى يُراجَع.
+     *
+     * @return array<string, array<int, mixed>>
+     */
+    private function careRules(Request $request, int $countryId, bool $partial = false): array
+    {
+        $opt = $partial ? ['sometimes'] : [];
+
+        return [
+            'association_id' => [...$opt, 'nullable', 'integer', Rule::exists('associations', 'id')
+                ->where('country_id', $countryId)
+                ->whereNot('status', AssociationStatus::Suspended->value)],
+            'care_arrangement' => [...$opt, 'nullable', Rule::in(CareArrangement::values())],
+            'care_attest' => ['sometimes', 'boolean'],
+        ];
+    }
+
+    /** موظف الجمعية لا يُسند أسرةً إلى جمعية غير جمعيته. */
+    private function ensureAssociationAllowed(Request $request, ?int $associationId): void
+    {
+        $own = StaffScope::for($request->user())->associationId;
+
+        if ($own !== null && $associationId !== null && $associationId !== $own) {
+            throw ValidationException::withMessages(['association_id' => 'تُسند أسرك إلى جمعيتك وحدها.']);
+        }
+    }
+
+    /** @param array<string, mixed> $validated */
+    private function applyCareAttestation(Family $family, array $validated, Request $request): void
+    {
+        if (! empty($validated['care_attest']) && $family->care_arrangement !== null) {
+            $family->attestCare($family->care_arrangement, $request->user());
+        }
+    }
 
     /** لا يُنشئ المشرف أسرة في بلد آخر، ولا ينقل أسرة إليه. */
     private function ensureCountryAllowed(Request $request, int $countryId): void

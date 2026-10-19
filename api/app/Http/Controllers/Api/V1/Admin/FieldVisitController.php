@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1\Admin;
 
+use App\Enums\OrphanStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\FieldVisitResource;
 use App\Models\FieldVisit;
 use App\Models\Orphan;
 use App\Models\Setting;
-use App\Enums\OrphanStatus;
+use App\Support\StaffScope;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
-use App\Support\StaffScope;
 
 class FieldVisitController extends Controller
 {

@@ -10,14 +10,14 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\OrphanDocumentResource;
 use App\Models\Orphan;
 use App\Models\OrphanDocument;
+use App\Support\StaffScope;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Symfony\Component\HttpFoundation\StreamedResponse;
-use App\Support\StaffScope;
 
 /**
  * مستندات التحقق.

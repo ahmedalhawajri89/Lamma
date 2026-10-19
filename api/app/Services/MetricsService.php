@@ -19,10 +19,10 @@ use App\Models\Payment;
 use App\Models\Report;
 use App\Models\Sponsor;
 use App\Models\Sponsorship;
+use App\Support\StaffScope;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use App\Support\StaffScope;
 
 /**
  * تحليلات لوحة الإدارة.

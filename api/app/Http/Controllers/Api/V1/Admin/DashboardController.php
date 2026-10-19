@@ -17,10 +17,10 @@ use App\Services\SinceLastVisitService;
 use App\Services\SupervisorDashboardService;
 use App\Services\TransparencyService;
 use App\Services\WorkQueueService;
+use App\Support\StaffScope;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Spatie\Activitylog\Models\Activity;
-use App\Support\StaffScope;
 
 /**
  * لوحة الإدارة.

@@ -26,6 +26,21 @@ class FamilyResource extends JsonResource
             'housing_status' => $this->housing_status->value,
             'housing_status_label' => $this->housing_status->label(),
 
+            // الجمعية الشريكة وترتيب الرعاية (المرحلة 2)
+            'association_id' => $this->association_id,
+            'association' => $this->whenLoaded('association', fn () => $this->association ? [
+                'id' => $this->association->id,
+                'name' => $this->association->name_ar,
+                'status' => $this->association->status->value,
+                'status_label' => $this->association->status->label(),
+            ] : null),
+            'care_arrangement' => $this->care_arrangement?->value,
+            'care_arrangement_label' => $this->care_arrangement?->label(),
+            'care_attested_at' => $this->care_attested_at?->toIso8601String(),
+            'care_attested_by' => $this->whenLoaded('careAttester', fn () => $this->careAttester?->name),
+            'care_review_due_at' => $this->care_review_due_at?->toDateString(),
+            'care_current' => $this->resource->hasCurrentCareAttestation(),
+
             'country' => new CountryResource($this->whenLoaded('country')),
             'city' => $this->whenLoaded('city', fn () => [
                 'id' => $this->city?->id,

@@ -13,11 +13,11 @@ use App\Http\Resources\ReportResource;
 use App\Models\Orphan;
 use App\Models\Report;
 use App\Models\User;
+use App\Support\StaffScope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use App\Support\StaffScope;
 
 class ReportController extends Controller
 {

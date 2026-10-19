@@ -42,6 +42,11 @@ class OrphanResource extends JsonResource
 
             'verified_at' => $this->verified_at?->toIso8601String(),
             'published_at' => $this->published_at?->toIso8601String(),
+            // لماذا لا يُنشر بعد، بلغة من سيصلحه (صفحة الطفل في اللوحة وحدها)
+            'publish_blockers' => $this->when(
+                $request->routeIs('api.v1.admin.orphans.show') && $this->published_at === null,
+                fn () => $this->resource->publishBlockers(),
+            ),
             'created_at' => $this->created_at?->toIso8601String(),
 
             'program' => new ProgramResource($this->whenLoaded('program')),

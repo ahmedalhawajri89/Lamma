@@ -47,6 +47,11 @@ class UserResource extends JsonResource
                 'assigned_country_name' => $this->staffProfile->relationLoaded('assignedCountry')
                     ? $this->staffProfile->assignedCountry?->name_ar
                     : null,
+                // موظف الجمعية الشريكة (فارغ لموظف المنصة)
+                'association_id' => $this->staffProfile->association_id,
+                'association_name' => $this->staffProfile->relationLoaded('association')
+                    ? $this->staffProfile->association?->name_ar
+                    : null,
             ]),
         ];
     }
