@@ -448,7 +448,7 @@
             <span data-card="issue-text"></span>
           </p>
           <dl class="pt-bank pt-card-sum">
-            <div><dt>يُخصم الآن</dt><dd class="num" data-card="amount"></dd></div>
+            <div><dt data-card="when">يُخصم الآن</dt><dd class="num" data-card="amount"></dd></div>
             <div><dt>ثم كل شهر</dt><dd>بهذه البطاقة، يوم <span class="num" data-card="day"></span> من الشهر</dd></div>
           </dl>
           <p class="co-demo" data-card="demo" role="note" hidden>

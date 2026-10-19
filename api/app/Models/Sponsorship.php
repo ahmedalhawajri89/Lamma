@@ -189,8 +189,11 @@ class Sponsorship extends Model
         $this->payment_issue_since ??= now()->startOfDay();
         $this->payment_failures = (int) $this->payment_failures + 1;
 
-        $gap = ((array) config('kafala.billing.retry_after_days', [3, 7]))[$this->payment_failures - 1] ?? null;
-        $this->next_retry_at = $gap === null ? null : $this->payment_issue_since->copy()->addDays((int) $gap);
+        // الفجوات من أول رفضٍ في الدورة (3 ثم 7)، تُحسب من اليوم: بعد تغطية الصندوق
+        // يبدأ رفض الشهر التالي دورةً جديدة وإن بقي التعثّر قديماً
+        $gaps = (array) config('kafala.billing.retry_after_days', [3, 7]);
+        $gap = $gaps[$this->payment_failures - 1] ?? null;
+        $this->next_retry_at = $gap === null ? null : today()->addDays((int) $gap - (int) ($gaps[$this->payment_failures - 2] ?? 0));
         $this->save();
 
         return $first;

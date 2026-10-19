@@ -39,7 +39,7 @@ class AssociationTransfer extends Model
 
     protected $fillable = [
         'reference_code', 'association_id', 'period', 'currency',
-        'received_base', 'fee_base', 'amount_base',
+        'received_base', 'fee_base', 'fund_base', 'amount_base',
         'status', 'bank_reference', 'sent_at', 'sent_by', 'confirmed_at', 'confirmed_by', 'note',
     ];
 
@@ -50,6 +50,7 @@ class AssociationTransfer extends Model
             'status' => TransferStatus::class,
             'received_base' => 'decimal:2',
             'fee_base' => 'decimal:2',
+            'fund_base' => 'decimal:2',
             'amount_base' => 'decimal:2',
             'sent_at' => 'datetime',
             'confirmed_at' => 'datetime',

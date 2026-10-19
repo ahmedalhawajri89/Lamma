@@ -396,6 +396,13 @@ function renderAttention() {
     return;
   }
 
+  const covered = sponsorships.find((x) => x.fund_cover);
+  if (covered) {
+    attention('wait', 'fa-shield-heart', `صندوق الاستمرارية يغطّي ${covered.orphan?.name ?? 'الطفل'}`, fundText(covered),
+      `<button class="btn btn-cta btn-sm" type="button" data-card-open="${covered.id}">حدّث البطاقة</button>`);
+    return;
+  }
+
   if (fresh.length) {
     attention('report', 'fa-file-lines', fresh.length === 1 ? 'تقريرٌ جديد لم تقرأه' : `${formatNumber(fresh.length)} تقارير جديدة`, fresh.length === 1
       ? `زيارة ${fresh[0].orphan?.name ?? ''} الميدانية عن ${fresh[0].period_label}.`
@@ -457,7 +464,8 @@ const STATUS_CHIP = {
 };
 
 /** شارة الكفالة: المتعثّرة نشطةٌ لكنها تحتاج الكافل، فتقول ذلك. */
-const chipFor = (s) => (s.payment_issue ? '<span class="pt-chip pt-chip--bad">القسط متعثّر</span>' : STATUS_CHIP[s.status] ?? '');
+const chipFor = (s) => (s.payment_issue ? '<span class="pt-chip pt-chip--bad">القسط متعثّر</span>'
+  : s.fund_cover ? '<span class="pt-chip pt-chip--wait">يغطّيه الصندوق</span>' : STATUS_CHIP[s.status] ?? '');
 
 /** ما جرى للقسط ومتى المحاولة التالية، بلغة الكافل. */
 function issueText(s) {
@@ -468,8 +476,23 @@ function issueText(s) {
   return `لم يُخصم قسط ${fmtShort(s.next_due_at ?? issue.since)}${issue.card_last4 ? ` من البطاقة المنتهية بـ⁦${issue.card_last4}⁩` : ''}. ${next}`;
 }
 
+/** ما غطّاه صندوق الاستمرارية منذ آخر قسطٍ وصل، وكم بقي. */
+function fundText(s) {
+  const { months, max } = s.fund_cover;
+  const left = max - months;
+  return `تعذّر قسطك، فغطّى صندوق الاستمرارية ${months === 1 ? 'شهراً' : months === 2 ? 'شهرين' : `${formatNumber(months)} أشهر`} لـ${s.orphan?.name ?? 'الطفل'} ولم ينقطع عنه شيء. ${left > 0
+    ? `حدّث بطاقتك قبل أن تنفد ${left === 1 ? 'آخر شهرٍ' : left === 2 ? 'الشهرين الباقيين' : `الأشهر الـ${formatNumber(left)} الباقية`} من التغطية.`
+    : 'هذا آخر ما يغطّيه الصندوق: إن لم يصل القسط القادم تنتهي الكفالة.'}`;
+}
+
 /** ما تعنيه الحالة للكافل، حين تحتاج شرحاً. */
 function statusLine(s) {
+  if (!s.payment_issue && s.fund_cover) {
+    return `<p class="pt-kid__state pt-kid__state--wait">
+      <i class="fa-solid fa-shield-heart" aria-hidden="true"></i>
+      <span>${escapeHtml(fundText(s))}</span>
+    </p>`;
+  }
   if (s.payment_issue) {
     return `<p class="pt-kid__state pt-kid__state--bad">
       <i class="fa-solid fa-credit-card" aria-hidden="true"></i>
@@ -582,12 +605,12 @@ function renderSponsorships() {
         </button>
         <a class="btn btn-soft btn-sm" href="${profile}">ملفه</a>
         <button class="pt-kid__stop" type="button" data-cancel-open="${s.id}">ألغِ الحجز</button>`
-      : `${s.payment_issue ? `<button class="btn btn-cta btn-sm" type="button" data-card-open="${s.id}">
+      : `${s.payment_issue || s.fund_cover ? `<button class="btn btn-cta btn-sm" type="button" data-card-open="${s.id}">
           <i class="fa-solid fa-credit-card" aria-hidden="true"></i> حدّث البطاقة
         </button>` : ''}${paused ? `<button class="btn btn-primary btn-sm" type="button" data-resume="${s.id}">
           <i class="fa-solid fa-play" aria-hidden="true"></i> استأنف
         </button>` : ''}
-        <button class="btn ${paused || s.payment_issue ? 'btn-soft' : 'btn-primary'} btn-sm" type="button" data-message-open="${s.id}">
+        <button class="btn ${paused || s.payment_issue || s.fund_cover ? 'btn-soft' : 'btn-primary'} btn-sm" type="button" data-message-open="${s.id}">
           <i class="fa-regular fa-envelope" aria-hidden="true"></i> رسالة
         </button>
         <button class="btn btn-soft btn-sm" type="button" data-ledger-open="${s.id}">
@@ -851,7 +874,7 @@ function openLedgerModal(d) {
   const assoc = d.association
     ? `<a href="${url(`/partners/${encodeURIComponent(d.association.slug)}`)}">${escapeHtml(d.association.name)}</a>`
     : 'جمعيته';
-  const months = (d.months ?? []).filter((m) => m.received || m.transfer || m.spent_total);
+  const months = (d.months ?? []).filter((m) => m.received || m.fund || m.transfer || m.spent_total);
 
   // الشهر الجاري يُحوَّل أوله التالي، والماضي ينتظر الإرسال؛ وما قبلهما بلا تحويلٍ مسجّل لا وعد له
   const [current, previous] = [0, 1].map((back) => {
@@ -863,7 +886,7 @@ function openLedgerModal(d) {
   const transferChip = (m) => {
     if (m.transfer?.status === 'confirmed') return `<span class="pt-chip pt-chip--ok">وصل للجمعية ${money(m.transfer.amount)}</span>`;
     if (m.transfer?.status === 'sent') return `<span class="pt-chip pt-chip--wait">أُرسل للجمعية ${money(m.transfer.amount)}</span>`;
-    if (!m.received) return '<span></span>';
+    if (!m.received && !m.fund) return '<span></span>';
     if (m.period === current) return '<span class="pt-chip">يُحوَّل أول الشهر التالي</span>';
     if (m.period === previous) return '<span class="pt-chip">بانتظار الإرسال</span>';
     return '<span></span>';
@@ -899,7 +922,8 @@ function openLedgerModal(d) {
   </li>
 </ol>
 
-${t.transferred > 0 && t.balance > 0 ? `<p class="pt-led__balance"><i class="fa-solid fa-piggy-bank" aria-hidden="true"></i> عند الجمعية لـ${name} <b>${money(t.balance)}</b> لم تُصرف بعد، وتُصرف عليه في الأشهر القادمة.</p>` : ''}
+${t.fund > 0 ? `<p class="pt-led__balance pt-led__balance--fund"><i class="fa-solid fa-shield-heart" aria-hidden="true"></i> <span>حين تعذّر قسطٌ، غطّى صندوق الاستمرارية لـ${name} <b>${money(t.fund)}</b>، فلم ينقطع عنه شيء. والصندوق من حصةٍ صغيرة من التشغيل، لا من مال أطفالٍ آخرين.</span></p>` : ''}
+${t.transferred > 0 && t.balance > 0 ? `<p class="pt-led__balance"><i class="fa-solid fa-piggy-bank" aria-hidden="true"></i> <span>عند الجمعية لـ${name} <b>${money(t.balance)}</b> لم تُصرف بعد، وتُصرف عليه في الأشهر القادمة.</span></p>` : ''}
 ${t.transferred === 0 && t.received > 0 ? '<p class="pt-led__balance"><i class="fa-regular fa-clock" aria-hidden="true"></i> يُحوَّل ما يصل كل شهر لجمعية الطفل في أول الشهر التالي، ويظهر هنا حين يُرسل.</p>' : ''}
 
 ${cats.length ? `<section class="pt-rep__spend">
@@ -917,7 +941,7 @@ ${months.length ? `<section class="pt-led__months">
   <ol role="list">
     ${months.map((m) => `<li>
       <strong>${escapeHtml(m.label)}</strong>
-      <span>وصل <b>${money(m.received)}</b>${m.mine && m.mine !== m.received ? ` <small>منك ${money(m.mine)}</small>` : ''}</span>
+      <span>وصل <b>${money(m.received)}</b>${m.mine && m.mine !== m.received ? ` <small>منك ${money(m.mine)}</small>` : ''}${m.fund ? ` <small class="pt-led__fund">والصندوق ${money(m.fund)}</small>` : ''}</span>
       ${transferChip(m)}
       <span>صُرف <b>${money(m.spent_total)}</b></span>
     </li>`).join('')}
@@ -1153,14 +1177,20 @@ function initCard() {
     const trigger = e.target.closest('[data-card-open]');
     if (!trigger) return;
     cardFor = sponsorships.find((x) => x.id === Number(trigger.dataset.cardOpen));
-    if (!cardFor?.payment_issue) return;
+    if (!cardFor?.payment_issue && !cardFor?.fund_cover) return;
 
     form.reset();
     clearFieldErrors(form);
     inputs.forEach((input) => input.closest('.field')?.classList.remove('is-invalid'));
     setText('[data-card="name"]', cardFor.orphan?.name ?? '');
-    setText('[data-card="issue-text"]', issueText(cardFor));
-    setText('[data-card="amount"]', formatMoney(cardFor.payment_issue.amount, cardFor.currency));
+    setText('[data-card="issue-text"]', cardFor.payment_issue ? issueText(cardFor) : fundText(cardFor));
+    const box = $('[data-card="issue"]');
+    box?.classList.toggle('pt-kid__state--bad', Boolean(cardFor.payment_issue));
+    box?.classList.toggle('pt-kid__state--wait', !cardFor.payment_issue);
+    const icon = $('i', box);
+    if (icon) icon.className = `fa-solid ${cardFor.payment_issue ? 'fa-credit-card' : 'fa-shield-heart'}`;
+    setText('[data-card="amount"]', formatMoney(cardFor.payment_issue?.amount ?? cardFor.cycle_amount ?? cardFor.monthly_amount, cardFor.currency));
+    setText('[data-card="when"]', cardFor.payment_issue ? 'يُخصم الآن' : `قسط ${fmtShort(cardFor.next_due_at)}، يُخصم الآن`);
     setText('[data-card="day"]', formatNumber(cardFor.billing_day ?? 1));
     openModal('cardModal');
 

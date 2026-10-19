@@ -12,7 +12,7 @@ class AssociationTransferLine extends Model
 {
     protected $fillable = [
         'association_transfer_id', 'orphan_id', 'payments_count',
-        'received_base', 'fee_base', 'amount_base',
+        'received_base', 'fee_base', 'fund_base', 'amount_base',
     ];
 
     protected function casts(): array
@@ -21,6 +21,7 @@ class AssociationTransferLine extends Model
             'payments_count' => 'integer',
             'received_base' => 'decimal:2',
             'fee_base' => 'decimal:2',
+            'fund_base' => 'decimal:2',
             'amount_base' => 'decimal:2',
         ];
     }

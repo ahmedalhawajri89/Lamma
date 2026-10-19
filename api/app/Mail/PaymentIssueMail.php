@@ -13,19 +13,32 @@ use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
 /**
- * تعذّر خصم قسط الكافل: يُرسل مرة واحدة عند أول رفض في التعثّر، لا مع كل
- * محاولة. بلغة الكافل، ومعه رابط البوابة حيث يحدّث بطاقته.
+ * القسط المتعثّر، بلغة الكافل ومعه رابط البوابة، في ثلاث محطات:
+ *  · failed: أول رفضٍ في التعثّر (لا مع كل محاولة)؛
+ *  · covered: غطّى صندوق الاستمرارية شهر الطفل، وكم شهراً بقي؛
+ *  · ended: انتهت الكفالة بعد أن نفدت التغطية، والطفل عاد ينتظر.
  */
 class PaymentIssueMail extends Mailable
 {
     use Queueable;
     use SerializesModels;
 
-    public function __construct(public Sponsorship $sponsorship, public string $reason) {}
+    public function __construct(
+        public Sponsorship $sponsorship,
+        public string $reason = '',
+        public string $stage = 'failed',
+        public ?int $monthsLeft = null,
+    ) {}
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: __('تعذّر خصم قسط :name هذا الشهر', ['name' => $this->child()]));
+        $child = $this->child();
+
+        return new Envelope(subject: match ($this->stage) {
+            'covered' => __('غطّى صندوق الاستمرارية قسط :name', ['name' => $child]),
+            'ended' => __('انتهت كفالتك لـ:name', ['name' => $child]),
+            default => __('تعذّر خصم قسط :name هذا الشهر', ['name' => $child]),
+        });
     }
 
     public function content(): Content
@@ -35,6 +48,7 @@ class PaymentIssueMail extends Mailable
             'child' => $this->child(),
             // مطلقٌ لا نسبي: البريد يُقرأ خارج الموقع
             'portal' => url(lurl('/dashboard', $this->locale)).'#children',
+            'profile' => url(lurl('/orphan?id='.$this->sponsorship->orphan?->reference_code, $this->locale)),
         ]);
     }
 

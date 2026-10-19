@@ -705,5 +705,20 @@
     "البطاقة المحفوظة غير صالحة.": "The saved card is no longer valid.",
     "لا بطاقة محفوظة لهذه الكفالة. تواصل مع الكافل ليحدّث وسيلة الدفع.": "There is no saved card for this sponsorship.",
     "رصيد غير كافٍ": "Insufficient funds",
-    "وصل قسط هذا الموعد من قبل. حدّث الصفحة.": "This payment has already been received. Refresh the page."
+    "وصل قسط هذا الموعد من قبل. حدّث الصفحة.": "This payment has already been received. Refresh the page.",
+    "غطّى صندوق الاستمرارية قسط :name": "The continuity fund covered :name's payment",
+    "انتهت كفالتك لـ:name": "Your sponsorship of :name has ended",
+    "لم نتمكّن من خصم قسط :child رغم المحاولات، فغطّاه صندوق الاستمرارية هذا الشهر، ووصل :child ما يحتاجه كاملاً.": "We couldn't collect the payment for :child despite several tries, so the continuity fund covered it this month and :child received everything they need.",
+    "يغطّي الصندوق :months على الأكثر. حدّث بطاقتك قبلها لتبقى كفالتك قائمة:": "The fund can cover :months at most. Update your card before then to keep your sponsorship going:",
+    "شهراً واحداً آخر": "one more month",
+    "شهرين آخرين": "two more months",
+    ":n أشهر أخرى": ":n more months",
+    "كان هذا آخر شهرٍ يغطّيه الصندوق. إن لم يصل القسط القادم تنتهي الكفالة. حدّث بطاقتك من هنا:": "This was the last month the fund can cover. If the next payment doesn't arrive, the sponsorship ends. Update your card here:",
+    "تعذّر تحصيل قسط :child مدةً طويلة، فانتهت كفالتك له. لم ينقطع عنه شيء: غطّى صندوق الاستمرارية أشهره الأخيرة.": "We couldn't collect the payment for :child for a long time, so your sponsorship has ended. Nothing was cut off: the continuity fund covered the last months.",
+    "تعذّر تحصيل قسط :child رغم المحاولات، فانتهت كفالتك له.": "We couldn't collect the payment for :child despite several tries, so your sponsorship has ended.",
+    "عاد :child إلى الموقع ينتظر من يقف معه. وإن أردت العودة إليه فملفّه هنا:": ":child is back on the site waiting for someone to stand with them. If you'd like to come back, their profile is here:",
+    "شكراً لكل ما قدّمته له.": "Thank you for everything you gave.",
+    "حصة من التشغيل": "Share of running costs",
+    "تبرّع للصندوق": "Donation to the fund",
+    "تغطية قسط": "Payment covered"
 }

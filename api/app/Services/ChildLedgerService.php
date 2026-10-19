@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Enums\FundEntryKind;
 use App\Enums\PaymentStatus;
 use App\Enums\TransferStatus;
 use App\Models\AssociationTransferLine;
+use App\Models\ContinuityFundEntry;
 use App\Models\Disbursement;
 use App\Models\Payment;
 use App\Models\Sponsorship;
@@ -19,6 +21,7 @@ use Illuminate\Support\Carbon;
  * لكل شهر:
  *  · ما وصل لهذا الطفل من كل كفلائه، وحصة هذا الكافل منه؛
  *  · نسبة التشغيل منه (المحفوظة على كل دفعة)؛
+ *  · ما غطّاه صندوق الاستمرارية له إن تعثّر قسط؛
  *  · ما حُوِّل لجمعيته عنه (من تحويل الشهر المُرسَل أو المؤكَّد وحده)؛
  *  · ما صُرف عليه فعلاً، بنداً بنداً (الصرف المعتمَد بتاريخ صرفه)، ومنه ما
  *    له إيصالٌ موثّق؛
@@ -51,6 +54,13 @@ final class ChildLedgerService
             ->with('transfer:id,reference_code,period,status,sent_at,confirmed_at')
             ->get();
 
+        // ما غطّاه صندوق الاستمرارية للطفل حين تعثّر قسطٌ لأحد كفلائه
+        $grants = ContinuityFundEntry::query()
+            ->where('kind', FundEntryKind::Grant)
+            ->where('orphan_id', $orphan->id)
+            ->whereBetween('created_at', [$from, $to])
+            ->get(['amount_base', 'created_at']);
+
         $spending = Disbursement::query()
             ->approved()
             ->where('orphan_id', $orphan->id)
@@ -73,6 +83,7 @@ final class ChildLedgerService
                 'received' => round((float) $paid->sum('amount_base'), 2),
                 'mine' => round((float) $paid->where('sponsor_id', $sponsorship->sponsor_id)->sum('amount_base'), 2),
                 'fee' => round($paid->sum(fn (Payment $p) => $p->feeBase()), 2),
+                'fund' => round((float) $grants->filter(fn ($g) => $inMonth($g->created_at))->sum('amount_base'), 2),
                 'transfer' => $line ? [
                     'amount' => round((float) $line->amount_base, 2),
                     'status' => $line->transfer->status->value,
@@ -105,6 +116,7 @@ final class ChildLedgerService
                 'received' => $received,
                 'mine' => $mine,
                 'fee' => round($payments->sum(fn (Payment $p) => $p->feeBase()), 2),
+                'fund' => round((float) $grants->sum('amount_base'), 2),
                 'transferred' => $transferred,
                 'spent' => $spentTotal,
                 // ما حُوِّل ولم يُصرف بعد: عند الجمعية للطفل

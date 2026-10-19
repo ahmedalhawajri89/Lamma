@@ -50,6 +50,13 @@ class SponsorshipResource extends JsonResource
                 'card_last4' => $this->card_last4,
                 'reason' => $this->payments()->where('status', \App\Enums\PaymentStatus::Failed)->latest('id')->value('failure_reason'),
             ]),
+            // أشهرٌ غطّاها صندوق الاستمرارية منذ آخر دفعة: يعرف الكافل أن الطفل لم ينقطع عنه شيء.
+            // للكافل في بوابته وحده: استعلامان لكل صفّ لا تحتاجهما قوائم اللوحة
+            'fund_cover' => $this->when($user?->sponsor !== null && $this->status === \App\Enums\SponsorshipStatus::Active, function () {
+                $months = app(\App\Services\ContinuityFund::class)->monthsCovered($this->resource);
+
+                return $months > 0 ? ['months' => $months, 'max' => \App\Services\ContinuityFund::maxMonths()] : null;
+            }),
             'ended_at' => $this->ended_at?->toIso8601String(),
             'cancellation_reason' => $this->cancellation_reason,
 

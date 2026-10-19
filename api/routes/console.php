@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Console\Commands\CheckDataIntegrity;
+use App\Console\Commands\CoverWithContinuityFund;
 use App\Console\Commands\PrepareTransfers;
 use App\Console\Commands\RollupMetrics;
 use App\Console\Commands\RunBilling;
@@ -21,6 +22,13 @@ Schedule::command(RunBilling::class)
     ->withoutOverlapping(30)
     ->onOneServer()
     ->runInBackground();
+
+// بعد التحصيل: ما استنفد محاولاته ومضت مهلته يغطّيه صندوق الاستمرارية
+Schedule::command(CoverWithContinuityFund::class)
+    ->dailyAt('02:30')
+    ->timezone(config('kafala.display_timezone'))
+    ->withoutOverlapping(30)
+    ->onOneServer();
 
 Schedule::command(RollupMetrics::class)
     ->dailyAt('03:00')

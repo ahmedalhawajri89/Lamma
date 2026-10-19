@@ -1,0 +1,60 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Models;
+
+use App\Enums\FundEntryKind;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+/**
+ * قيدٌ في صندوق الاستمرارية. الرصيد مجموع الداخل ناقص الخارج، من القيود
+ * نفسها لا من رقمٍ محفوظ.
+ *
+ * @property FundEntryKind $kind
+ * @property \Illuminate\Support\Carbon $period
+ */
+class ContinuityFundEntry extends Model
+{
+    protected $fillable = [
+        'kind', 'amount_base', 'period', 'sponsorship_id', 'orphan_id', 'association_id', 'note', 'recorded_by',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'kind' => FundEntryKind::class,
+            'amount_base' => 'decimal:2',
+            'period' => 'date',
+        ];
+    }
+
+    public static function balance(): float
+    {
+        $in = (float) self::query()->whereIn('kind', [FundEntryKind::Share, FundEntryKind::Donation])->sum('amount_base');
+        $out = (float) self::query()->where('kind', FundEntryKind::Grant)->sum('amount_base');
+
+        return round($in - $out, 2);
+    }
+
+    public function sponsorship(): BelongsTo
+    {
+        return $this->belongsTo(Sponsorship::class);
+    }
+
+    public function orphan(): BelongsTo
+    {
+        return $this->belongsTo(Orphan::class);
+    }
+
+    public function association(): BelongsTo
+    {
+        return $this->belongsTo(Association::class);
+    }
+
+    public function recorder(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'recorded_by');
+    }
+}

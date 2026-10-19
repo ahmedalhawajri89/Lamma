@@ -17,6 +17,7 @@ use App\Models\Payment;
 use App\Models\Sponsorship;
 use App\Payments\PaymentGateway;
 use App\Services\ChildLedgerService;
+use App\Services\ContinuityFund;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -143,7 +144,9 @@ class SponsorshipController extends Controller
         ], ['card_token.required' => __('أكمل بيانات البطاقة.')]);
 
         abort_unless(
-            $sponsorship->status === SponsorshipStatus::Active && ($sponsorship->hasPaymentIssue() || $sponsorship->next_due_at?->lte(today())),
+            // وما غطّاه الصندوق: يدفع الكافل قسطه القادم مقدّماً فيعود العدّ من جديد
+            $sponsorship->status === SponsorshipStatus::Active
+                && ($sponsorship->hasPaymentIssue() || $sponsorship->next_due_at?->lte(today()) || app(ContinuityFund::class)->monthsCovered($sponsorship) > 0),
             409,
             __('لا قسط متأخر على هذه الكفالة.'),
         );
