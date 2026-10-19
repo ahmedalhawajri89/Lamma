@@ -16,8 +16,10 @@ use App\Enums\PaymentMethod;
 use App\Enums\PaymentStatus;
 use App\Enums\ReportStatus;
 use App\Enums\SponsorshipStatus;
+use App\Enums\TransferStatus;
 use App\Enums\UserRole;
 use App\Models\Association;
+use App\Models\AssociationTransfer;
 use App\Models\City;
 use App\Models\Country;
 use App\Models\DisbursementCategory;
@@ -26,6 +28,7 @@ use App\Models\Orphan;
 use App\Models\Program;
 use App\Models\Sponsor;
 use App\Models\User;
+use App\Services\TransferPreparer;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -91,6 +94,9 @@ class DemoSeeder extends Seeder
         $this->command->info('  · الصرف والتقارير والزيارات…');
         $this->disbursements($orphanIds, $staff);
         $this->reportsAndVisits($orphanIds, $staff, $sponsorIds);
+
+        $this->command->info('  · التحويلات للجمعيات…');
+        $this->transfers($staff);
 
         $this->command->info('  · سجل النشاط…');
         $this->call(ActivityDemoSeeder::class);
@@ -688,6 +694,40 @@ class DemoSeeder extends Seeder
                 'card_last4' => $card->card_last4,
             ]);
         }
+    }
+
+    /* ==================================================================== */
+
+    /**
+     * التحويلات الشهرية للجمعيات، من الدفعات المزروعة نفسها: كل شهرٍ مكتمل
+     * يُجهَّز كما يجهّزه الأمر المجدول، والأقدم وصل، والشهر الماضي أُرسل وينتظر
+     * تأكيد الجمعية. فيقرأ الكافل في «أين ذهب مالك» سجلاً كما سيكون فعلاً.
+     *
+     * @param  array{admin:int, accountant:int, supervisors:array<int,int>}  $staff
+     */
+    private function transfers(array $staff): void
+    {
+        $preparer = app(TransferPreparer::class);
+        $lastMonth = Carbon::now()->startOfMonth()->subMonthNoOverflow();
+
+        for ($m = self::MONTHS_OF_HISTORY; $m >= 1; $m--) {
+            $preparer->prepare(Carbon::now()->startOfMonth()->subMonthsNoOverflow($m));
+        }
+
+        AssociationTransfer::query()->where('status', TransferStatus::Draft->value)->where('amount_base', '>', 0)->get()
+            ->each(function (AssociationTransfer $t) use ($staff, $lastMonth): void {
+                $sentAt = $t->period->copy()->addMonthNoOverflow()->setDay(random_int(2, 5))->setTime(random_int(9, 14), random_int(0, 59));
+                $arrived = $t->period->lt($lastMonth);
+
+                $t->update([
+                    'status' => $arrived ? TransferStatus::Confirmed : TransferStatus::Sent,
+                    'bank_reference' => 'SWIFT-'.$t->period->format('ym').'-'.str_pad((string) $t->association_id, 3, '0', STR_PAD_LEFT),
+                    'sent_at' => $sentAt,
+                    'sent_by' => $staff['accountant'],
+                    'confirmed_at' => $arrived ? $sentAt->copy()->addDays(random_int(2, 6)) : null,
+                    'confirmed_by' => $arrived ? $staff['accountant'] : null,
+                ]);
+            });
     }
 
     /* ==================================================================== */
