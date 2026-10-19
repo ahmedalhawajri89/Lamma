@@ -195,6 +195,13 @@ export const admin = {
     confirm: (id) => client.post(`${v1}/admin/transfers/${id}/confirm`),
   },
 
+  /** صندوق الاستمرارية: رصيده وقيوده، والمتعثّر الآن، والتبرّع له */
+  fund: {
+    list: (params) => client.get(`${v1}/admin/fund`, { params }),
+    atRisk: () => client.get(`${v1}/admin/fund/at-risk`),
+    donate: (payload) => client.post(`${v1}/admin/fund/donations`, payload),
+  },
+
   /** الجمعيات الشريكة: التسجيل والتوثيق والإيقاف (للمدير) */
   associations: {
     list: (params) => client.get(`${v1}/admin/associations`, { params }),

@@ -294,6 +294,10 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
             Route::get('transfers/{transfer}', [Admin\TransferController::class, 'show'])->name('transfers.show');
             Route::post('transfers/{transfer}/send', [Admin\TransferController::class, 'send'])->name('transfers.send');
             Route::post('transfers/{transfer}/confirm', [Admin\TransferController::class, 'confirm'])->name('transfers.confirm');
+            // صندوق الاستمرارية: رصيده وقيوده، والمتعثّر الآن، والتبرّع له
+            Route::get('fund', [Admin\ContinuityFundController::class, 'index'])->name('fund.index');
+            Route::get('fund/at-risk', [Admin\ContinuityFundController::class, 'atRisk'])->name('fund.at-risk');
+            Route::post('fund/donations', [Admin\ContinuityFundController::class, 'donate'])->middleware('throttle:20,1')->name('fund.donate');
 
             /* --- الجمعيات الشريكة: التسجيل والتوثيق والإيقاف (للمدير) --- */
             Route::get('associations', [Admin\AssociationController::class, 'index'])->name('associations.index');

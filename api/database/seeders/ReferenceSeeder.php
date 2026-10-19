@@ -172,6 +172,7 @@ class ReferenceSeeder extends Seeder
             ['finance', 'base_currency', 'USD', 'string'],
             ['finance', 'overhead_target_percent', '7', 'number'],
             ['finance', 'platform_fee_percent', '7', 'number'],
+            ['finance', 'continuity_fund_percent', '1', 'number'],
             ['policy', 'moderate_messages', 'true', 'boolean'],
             ['policy', 'report_cadence_months', '3', 'number'],
         ];

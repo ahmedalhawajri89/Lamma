@@ -88,6 +88,7 @@ class ActivityFormatter
             'Sponsorship' => ['label' => 'كفالة', 'path' => fn ($m, $id) => '/sponsorships?q='.urlencode((string) ($m?->reference_code ?? ''))],
             'Payment' => ['label' => 'دفعة', 'path' => fn ($m, $id) => '/payments?q='.urlencode((string) ($m?->reference_code ?? ''))],
             'Disbursement' => ['label' => 'صرف', 'path' => fn () => '/disbursements'],
+            'ContinuityFundEntry' => ['label' => 'صندوق الاستمرارية', 'path' => fn () => '/fund'],
             'Report' => ['label' => 'تقرير', 'path' => fn ($m, $id) => "/reports?review={$id}"],
             'Message' => ['label' => 'رسالة', 'path' => fn () => '/messages'],
             'User' => ['label' => 'حساب', 'path' => fn () => '/users'],
@@ -113,7 +114,7 @@ class ActivityFormatter
      */
     public const GROUPS = [
         'children' => ['label' => 'الأطفال والأسر', 'types' => ['Orphan', 'Family', 'Report']],
-        'money' => ['label' => 'المال', 'types' => ['Sponsorship', 'Payment', 'Disbursement']],
+        'money' => ['label' => 'المال', 'types' => ['Sponsorship', 'Payment', 'Disbursement', 'ContinuityFundEntry']],
         'comms' => ['label' => 'التواصل', 'types' => ['Message', 'ContactMessage']],
         'content' => ['label' => 'المحتوى', 'types' => ['Post', 'Faq', 'Testimonial', 'Partner']],
         'system' => ['label' => 'الحسابات والإعدادات', 'types' => ['User']],
@@ -330,6 +331,7 @@ class ActivityFormatter
             'site.start_year' => 'سنة التأسيس',
             'finance.overhead_target_percent' => 'نسبة التشغيل المستهدفة',
             'finance.platform_fee_percent' => 'نسبة التشغيل من كل دفعة',
+            'finance.continuity_fund_percent' => 'حصة صندوق الاستمرارية من التشغيل',
             'policy.moderate_messages' => 'مراجعة رسائل الكفلاء',
             'policy.report_cadence_months' => 'دورية التقارير بالأشهر',
         ][$field] ?? $field;

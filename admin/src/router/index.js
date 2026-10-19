@@ -117,6 +117,12 @@ const routes = [
     meta: { group: 'money', title: 'التحويلات للجمعيات', icon: 'handshake', permission: 'disbursements.view' },
   },
   {
+    path: '/fund',
+    name: 'fund',
+    component: () => import('@/views/FundView.vue'),
+    meta: { group: 'money', title: 'صندوق الاستمرارية', icon: 'shield', permission: 'disbursements.view' },
+  },
+  {
     path: '/associations',
     name: 'associations',
     component: () => import('@/views/AssociationsView.vue'),

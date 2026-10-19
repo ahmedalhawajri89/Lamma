@@ -38,7 +38,7 @@ const STATUSES = [
 
 const columns = [
   { key: 'association', label: 'الجمعية والشهر' },
-  { key: 'money', label: 'وصل ← التشغيل ← المحوَّل' },
+  { key: 'money', label: 'وصل − التشغيل (+ الصندوق) = المحوَّل' },
   { key: 'status', label: 'الحالة' },
   { key: 'actions', label: '' },
 ]
@@ -158,6 +158,10 @@ async function openTransfer(row) {
         <span class="num text-sand-500">{{ money(row.received) }}</span>
         <span class="text-sand-400 mx-1.5">−</span>
         <span class="num text-sand-500">{{ money(row.fee) }}</span>
+        <template v-if="row.fund">
+          <span class="text-sand-400 mx-1.5">+</span>
+          <span class="num text-amber-800" title="ما غطّاه صندوق الاستمرارية">{{ money(row.fund) }}</span>
+        </template>
         <span class="text-sand-400 mx-1.5">=</span>
         <span class="num font-semibold text-sand-900">{{ money(row.amount) }}</span>
       </template>
@@ -191,7 +195,7 @@ async function openTransfer(row) {
           <div class="flex-1 min-w-0">
             <p class="text-xs text-sand-500">{{ monthLabel(openRow.period) }} · <span class="num" dir="ltr">{{ openRow.reference_code }}</span></p>
             <h2 id="trTitle" class="text-xl font-bold text-sand-900">{{ openRow.association }}</h2>
-            <p class="text-sm mt-1"><span class="num font-semibold">{{ money(openRow.amount) }}</span> <span class="text-sand-500">بعد تشغيل <span class="num">{{ money(openRow.fee) }}</span> من <span class="num">{{ money(openRow.received) }}</span></span></p>
+            <p class="text-sm mt-1"><span class="num font-semibold">{{ money(openRow.amount) }}</span> <span class="text-sand-500">بعد تشغيل <span class="num">{{ money(openRow.fee) }}</span> من <span class="num">{{ money(openRow.received) }}</span><template v-if="openRow.fund">، ومنه <span class="num">{{ money(openRow.fund) }}</span> من صندوق الاستمرارية</template></span></p>
           </div>
           <button class="btn btn-ghost !p-2" type="button" aria-label="إغلاق" @click="openRow = null"><BaseIcon name="close" :size="18" /></button>
         </header>
@@ -208,7 +212,7 @@ async function openTransfer(row) {
             <ul class="divide-y divide-sand-100 border border-sand-100 rounded-xl">
               <li v-for="l in detail.lines" :key="l.orphan_id" class="flex items-center gap-3 px-4 py-2.5 text-sm">
                 <RouterLink :to="`/orphans/${l.orphan_id}`" class="flex-1 min-w-0 truncate hover:underline">{{ l.orphan }}</RouterLink>
-                <span class="text-xs text-sand-500"><span class="num">{{ num(l.payments_count) }}</span> دفعة</span>
+                <span class="text-xs text-sand-500"><span class="num">{{ num(l.payments_count) }}</span> دفعة<template v-if="l.fund"> · والصندوق <span class="num">{{ money(l.fund) }}</span></template></span>
                 <span class="num font-semibold w-24 text-end">{{ money(l.amount) }}</span>
               </li>
             </ul>

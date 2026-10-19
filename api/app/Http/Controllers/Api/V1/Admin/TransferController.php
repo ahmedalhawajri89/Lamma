@@ -74,6 +74,7 @@ class TransferController extends Controller
                 'payments_count' => $l->payments_count,
                 'received' => (float) $l->received_base,
                 'fee' => (float) $l->fee_base,
+                'fund' => (float) $l->fund_base,
                 'amount' => (float) $l->amount_base,
             ])->all(),
         ]]);
@@ -154,6 +155,8 @@ class TransferController extends Controller
             'currency' => $t->currency,
             'received' => (float) $t->received_base,
             'fee' => (float) $t->fee_base,
+            // ما غطّاه صندوق الاستمرارية لأطفالها في الشهر، مضافاً للمحوَّل
+            'fund' => (float) $t->fund_base,
             'amount' => (float) $t->amount_base,
             'children' => $t->lines_count ?? $t->lines()->count(),
             'status' => $t->status->value,

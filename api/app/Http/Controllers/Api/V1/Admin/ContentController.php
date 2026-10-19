@@ -425,6 +425,8 @@ class ContentController extends Controller
             'finance.overhead_target_percent' => ['type' => 'number', 'rules' => ['required', 'integer', 'between:0,30']],
             // تُحفظ لقطةً على كل دفعة (Payment::booted)؛ تغييرها للجديد وحده
             'finance.platform_fee_percent' => ['type' => 'number', 'rules' => ['required', 'numeric', 'between:0,30']],
+            // داخل نسبة التشغيل لا فوقها: ContinuityFund::percent() لا يتجاوزها
+            'finance.continuity_fund_percent' => ['type' => 'number', 'rules' => ['required', 'numeric', 'between:0,10']],
             'policy.moderate_messages' => ['type' => 'boolean', 'rules' => ['required', 'boolean']],
             'policy.report_cadence_months' => ['type' => 'number', 'rules' => ['required', 'integer', 'between:1,12']],
         ];
