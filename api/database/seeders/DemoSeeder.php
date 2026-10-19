@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
+use App\Enums\AssociationStatus;
+use App\Enums\CareArrangement;
 use App\Enums\DocumentType;
 use App\Enums\Gender;
 use App\Enums\GuardianRelation;
@@ -15,9 +17,11 @@ use App\Enums\PaymentStatus;
 use App\Enums\ReportStatus;
 use App\Enums\SponsorshipStatus;
 use App\Enums\UserRole;
+use App\Models\Association;
 use App\Models\City;
 use App\Models\Country;
 use App\Models\DisbursementCategory;
+use App\Models\Family;
 use App\Models\Orphan;
 use App\Models\Program;
 use App\Models\Sponsor;
@@ -71,6 +75,9 @@ class DemoSeeder extends Seeder
     {
         $this->command->info('  · المستخدمون والأدوار…');
         $staff = $this->staff();
+
+        $this->command->info('  · الجمعيات الشريكة…');
+        $this->associations($staff['admin']);
 
         $this->command->info('  · الأسر والأيتام…');
         $orphanIds = $this->orphans();
@@ -301,11 +308,47 @@ class DemoSeeder extends Seeder
         };
     }
 
+    /** جمعية شريكة موثّقة لكل بلد عامل، تُسند إليها أسره. */
+    private array $associationByCountry = [];
+
+    private int $adminId = 0;
+
+    /**
+     * جمعية تجريبية لكل بلد. الاسم عامٌّ مقصود («جمعية لمّة الشريكة في …») كي
+     * لا يُظنّ جمعيةً حقيقية بعينها.
+     */
+    private function associations(int $adminId): void
+    {
+        $this->adminId = $adminId;
+
+        foreach (Country::operational()->get() as $i => $country) {
+            $association = Association::updateOrCreate(['slug' => 'lamma-'.strtolower($country->iso2)], [
+                'name_ar' => 'جمعية لمّة الشريكة في '.$country->name_ar,
+                'name_en' => 'Lamma Partner Association, '.$country->name_en,
+                'country_id' => $country->id,
+                'registration_number' => 'REG-'.$country->iso2.'-'.(2010 + $i),
+                'registration_authority' => 'سجل الجمعيات الأهلية',
+                'status' => AssociationStatus::Verified,
+                'verified_at' => now()->subMonths(random_int(2, 18)),
+                'verified_by' => $adminId,
+                'safeguarding_signed_at' => now()->subMonths(random_int(19, 30)),
+                'family_care_attested_at' => now()->subMonths(random_int(19, 30)),
+                'about_ar' => 'جمعية محلية تعرف أسر الأيتام في '.$country->name_ar.' وتزورها، وتتابع كل طفل في بيته ومدرسته.',
+                'about_en' => "A local association that knows orphans' families in {$country->name_en}, visits them, and follows each child at home and at school.",
+                'transfer_currency' => $country->currency_code,
+            ]);
+            $this->associationByCountry[$country->id] = $association->id;
+        }
+    }
+
     private function makeFamily(int $n, int $countryId, ?int $cityId, int $members): int
     {
+        $relation = [GuardianRelation::Mother, GuardianRelation::Mother, GuardianRelation::Grandmother, GuardianRelation::Uncle, GuardianRelation::Aunt][random_int(0, 4)];
+        $attested = now()->subDays(random_int(10, 300));
+
         $guardianId = DB::table('guardians')->insertGetId([
             'full_name' => self::FIRST_NAMES_FEMALE[array_rand(self::FIRST_NAMES_FEMALE)].' '.self::LAST_NAMES[array_rand(self::LAST_NAMES)],
-            'relation' => [GuardianRelation::Mother, GuardianRelation::Grandmother, GuardianRelation::Uncle, GuardianRelation::Aunt][random_int(0, 3)]->value,
+            'relation' => $relation->value,
             'phone' => '+9705'.random_int(10000000, 99999999),
             'national_id_hash' => hash('sha256', "demo-{$n}".config('kafala.guardian_id_pepper')),
             'occupation' => ['ربة منزل', 'خياطة', 'عاملة نظافة', 'بائع متجول', 'بلا عمل'][random_int(0, 4)],
@@ -323,6 +366,11 @@ class DemoSeeder extends Seeder
             'members_count' => $members,
             'monthly_income' => random_int(0, 220),
             'housing_status' => [HousingStatus::Rented, HousingStatus::Hosted, HousingStatus::Displaced, HousingStatus::Owned][random_int(0, 3)]->value,
+            'association_id' => $this->associationByCountry[$countryId] ?? null,
+            'care_arrangement' => CareArrangement::fromGuardianRelation($relation)?->value,
+            'care_attested_at' => $attested,
+            'care_attested_by' => $this->adminId ?: null,
+            'care_review_due_at' => $attested->copy()->addMonths(Family::CARE_REVIEW_MONTHS)->toDateString(),
             'created_at' => now(),
             'updated_at' => now(),
         ]);

@@ -13,7 +13,7 @@ class StaffProfile extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'employee_code', 'title', 'assigned_country_id', 'hired_at'];
+    protected $fillable = ['user_id', 'employee_code', 'title', 'assigned_country_id', 'association_id', 'hired_at'];
 
     protected function casts(): array
     {
@@ -24,6 +24,12 @@ class StaffProfile extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /** الجمعية التي يعمل لها الموظف؛ فارغة لموظف المنصة. @return BelongsTo<Association, $this> */
+    public function association(): BelongsTo
+    {
+        return $this->belongsTo(Association::class);
     }
 
     /** @return BelongsTo<Country, $this> */
