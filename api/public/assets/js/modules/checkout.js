@@ -36,7 +36,23 @@ const state = {
   config: null,
   user: null,
   interval: 1,
+  currency: 'USD',
+  rate: 1,
 };
+
+const CURRENCY_KEY = 'kafala.currency';
+const SYMBOLS = { USD: '$', EUR: '€', GBP: '£' };
+
+/**
+ * مبلغ الطفل (بعملة الأساس) بعملة الكافل، مقرَّباً لأعلى إلى وحدةٍ كاملة كما
+ * يقرّبه الخادم (Fx::friendly): «$65» تصير «52 GBP» لا «51.18».
+ */
+const inCurrency = (base) => (state.currency === state.config?.base_currency
+  ? base
+  : Math.ceil(Math.round((base / state.rate) * 10000) / 10000));
+const baseOf = (amount) => Math.round(amount * state.rate * 100) / 100;
+// معزولاً باتجاهه (U+2066…U+2069): «28 GBP» لا «GBP 28» وسط جملة عربية
+const cur = (v) => `⁦${money(v, state.currency)}⁩`;
 
 export async function initCheckout() {
   const root = $('#checkoutSummary');
@@ -77,6 +93,7 @@ export async function initCheckout() {
     return;
   }
 
+  setupCurrency();
   renderChild();
   setupAmount();
   setupIdentity();
@@ -115,7 +132,7 @@ function renderChild() {
   $$('[data-checkout="name"]').forEach((el) => { el.textContent = o.name; });
   $$('[data-checkout="program"]').forEach((el) => { el.textContent = o.program_name ?? ''; });
   $$('[data-checkout="id"]').forEach((el) => { el.textContent = o.id; });
-  $$('[data-checkout="remaining"]').forEach((el) => { el.textContent = money(o.remaining, o.currency); });
+  $$('[data-checkout="remaining"]').forEach((el) => { el.textContent = cur(inCurrency(o.remaining)); });
 
   // بلا صورة: الحرف الأول بدل صورة مكسورة
   const photo = $('[data-checkout="photo"]');
@@ -129,35 +146,87 @@ function renderChild() {
   }
 }
 
-/** المبلغ: سعر البرنامج أو المتبقي أيّهما أقل، ولا يتجاوز المتبقي */
-function setupAmount() {
+/**
+ * عملة الكافل: محفوظته في حسابه، ثم آخر ما اختاره في هذا المتصفح، ثم الأساس.
+ * تغييرها يعيد كتابة المبالغ كلها بها.
+ */
+function setupCurrency() {
+  const list = state.config?.currencies ?? [];
+  const select = $('#coCurrency');
+  const base = state.config?.base_currency ?? 'USD';
+  let saved = null;
+  try { saved = localStorage.getItem(CURRENCY_KEY); } catch { /* التخزين معطّل */ }
+  const wanted = [state.user?.sponsor?.preferred_currency, saved, base].find((c) => list.some((x) => x.code === c)) ?? base;
+
+  const apply = (code) => {
+    const entry = list.find((x) => x.code === code) ?? { code: base, rate: 1 };
+    state.currency = entry.code;
+    state.rate = Number(entry.rate) || 1;
+  };
+  apply(wanted);
+
+  if (!select || list.length < 2) return;
+  select.innerHTML = list.map((x) => `<option value="${x.code}"${x.code === state.currency ? ' selected' : ''}>${x.code}</option>`).join('');
+  select.closest('label').hidden = false;
+  select.addEventListener('change', () => {
+    // المبلغ المكتوب يُنقل بما يعادله، فلا يقفز من 40 جنيهاً إلى 40 دولاراً
+    const typed = baseOf(Number($('#monthlyAmount')?.value) || 0);
+    apply(select.value);
+    try { localStorage.setItem(CURRENCY_KEY, state.currency); } catch { /* لا شيء */ }
+    renderChild();
+    setupAmount(typed || null);
+    renderTotals();
+  });
+}
+
+/** المبلغ: سعر البرنامج أو المتبقي أيّهما أقل، ولا يتجاوز المتبقي، بعملة الكافل */
+function setupAmount(keepBase = null) {
   const o = state.orphan;
   const input = $('#monthlyAmount');
   if (!input) return;
 
-  const suggested = Math.min(o.program_price ?? o.remaining, o.remaining);
-  input.value = suggested;
-  input.max = o.remaining;
-  input.min = Math.min(5, o.remaining);
-  input.dataset.validate = `required|range:${input.min}:${o.remaining}`;
+  const max = inCurrency(o.remaining);
+  const min = Math.min(inCurrency(5), max);
+  const suggestedBase = keepBase ?? Math.min(o.program_price ?? o.remaining, o.remaining);
+  input.value = Math.min(max, keepBase ? inCurrency(keepBase) : inCurrency(suggestedBase));
+  input.max = max;
+  input.min = min;
+  input.dataset.validate = `required|range:${min}:${max}`;
+
+  const symbol = $('[data-checkout="symbol"]');
+  if (symbol) symbol.textContent = SYMBOLS[state.currency] ?? state.currency;
+  const range = $('[data-checkout="range"]');
+  if (range) {
+    range.textContent = `(${max > min
+      ? t('من {min} حتى {max}', { min: cur(min), max: cur(max) })
+      : t('المتبقي {amount} كاملاً', { amount: cur(max) })})`;
+  }
+  $$('[data-usd]').forEach((b) => {
+    const v = inCurrency(Number(b.dataset.usd));
+    b.dataset.amount = String(v);
+    $('b', b).textContent = cur(v);
+  });
 
   const hint = $('#hint-amount');
   const her = ['أنثى', 'female'].includes(o.gender);
   if (hint) {
     hint.textContent = o.remaining < (o.monthly ?? o.remaining)
-      ? t('بدأ غيرك كفالة {name}، وتبقّى {amount} في الشهر تكملها أنت أو جزءاً منها.', { name: o.name, amount: money(o.remaining, o.currency) })
+      ? t('بدأ غيرك كفالة {name}، وتبقّى {amount} في الشهر تكملها أنت أو جزءاً منها.', { name: o.name, amount: cur(inCurrency(o.remaining)) })
       : t(her ? 'يمكنك كفالة {name} كاملة أو جزءاً من حاجتها، ويكمل غيرك الباقي.' : 'يمكنك كفالة {name} كاملة أو جزءاً من حاجته، ويكمل غيرك الباقي.', { name: o.name });
   }
 
-  // المبالغ الجاهزة تكتب في الحقل، والحقل يعلّم الجاهز المطابق له
+  // المبالغ الجاهزة تكتب في الحقل، والحقل يعلّم الجاهز المطابق له. الربط مرة
+  // واحدة: تغيير العملة يعيد استدعاء هذه الدالة
   const presets = $$('[data-amount]');
   const sync = () => presets.forEach((b) => b.setAttribute('aria-pressed', String(Number(b.dataset.amount) === Number(input.value))));
-  presets.forEach((b) => b.addEventListener('click', () => {
-    input.value = b.dataset.amount;
-    input.dispatchEvent(new Event('input', { bubbles: true }));
-  }));
-
-  input.addEventListener('input', () => { sync(); renderTotals(); });
+  if (!input.dataset.bound) {
+    input.dataset.bound = '1';
+    presets.forEach((b) => b.addEventListener('click', () => {
+      input.value = b.dataset.amount;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    }));
+    input.addEventListener('input', () => { sync(); renderTotals(); });
+  }
   sync();
 }
 
@@ -230,17 +299,27 @@ function renderTotals() {
 
   renderShare(o, amount);
 
-  $$('[data-checkout="price"]').forEach((el) => { el.textContent = money(amount, o.currency); });
-  $$('[data-checkout="total"]').forEach((el) => { el.textContent = money(total, o.currency); });
+  // بغير الأساس: ما يعادل مبلغه بالأساس اليوم، وأنه ثابتٌ بعملته
+  const fx = $('[data-checkout="fx"]');
+  if (fx) {
+    const foreign = state.currency !== state.config?.base_currency;
+    fx.hidden = !foreign || !amount;
+    if (foreign && amount) {
+      fx.textContent = t('يعادل اليوم {base} للطفل. يُخصم منك {amount} كل شهر لا يتغيّر، ويتغيّر ما يعادله مع سعر الصرف.', { base: `⁦${money(baseOf(amount), state.config.base_currency)}⁩`, amount: cur(amount) });
+    }
+  }
+
+  $$('[data-checkout="price"]').forEach((el) => { el.textContent = cur(amount); });
+  $$('[data-checkout="total"]').forEach((el) => { el.textContent = cur(total); });
   // على كل خيار دورية مجموعه، فيُرى الفرق قبل الاختيار
-  $$('[data-cycle-sum]').forEach((el) => { el.textContent = amount ? money(amount * Number(el.dataset.cycleSum), o.currency) : ''; });
+  $$('[data-cycle-sum]').forEach((el) => { el.textContent = amount ? cur(amount * Number(el.dataset.cycleSum)) : ''; });
   $$('[data-checkout="cycle"]').forEach((el) => {
     el.textContent = state.interval === 1 ? '' : t(state.interval === 3 ? 'عن ثلاثة أشهر' : 'عن سنة');
   });
 
   const plan = method === 'card'
-    ? t('تُخصم {total} اليوم، ثم {cycle} يوم {day} من الشهر. تستطيع الإيقاف متى شئت.', { total: money(total, o.currency), cycle: CYCLE_WORDS[state.interval], day: Math.min(day, 28) })
-    : t('بعد تحويلك {total} تتفعّل الكفالة، ثم يتكرر التحويل {cycle}.', { total: money(total, o.currency), cycle: CYCLE_WORDS[state.interval] });
+    ? t('تُخصم {total} اليوم، ثم {cycle} يوم {day} من الشهر. تستطيع الإيقاف متى شئت.', { total: cur(total), cycle: CYCLE_WORDS[state.interval], day: Math.min(day, 28) })
+    : t('بعد تحويلك {total} تتفعّل الكفالة، ثم يتكرر التحويل {cycle}.', { total: cur(total), cycle: CYCLE_WORDS[state.interval] });
   $$('[data-checkout="plan"]').forEach((el) => { el.textContent = plan; });
 }
 
@@ -251,6 +330,7 @@ function saveDraft(form) {
     sessionStorage.setItem(DRAFT_KEY, JSON.stringify({
       orphan: state.orphan.id,
       amount: $('#monthlyAmount')?.value,
+      currency: state.currency,
       interval: state.interval,
       zakat: $('[name="is_zakat"]', form)?.checked ?? false,
       method: $$('input[name="method"]').find((r) => r.checked)?.value,
@@ -263,7 +343,11 @@ function restoreDraft() {
   try { draft = JSON.parse(sessionStorage.getItem(DRAFT_KEY) || 'null'); } catch { /* لا شيء */ }
   if (!draft || draft.orphan !== state.orphan.id) return;
 
-  if (draft.amount) $('#monthlyAmount').value = Math.min(Number(draft.amount), state.orphan.remaining);
+  if (draft.currency && draft.currency !== state.currency && $('#coCurrency')) {
+    $('#coCurrency').value = draft.currency;
+    $('#coCurrency').dispatchEvent(new Event('change'));
+  }
+  if (draft.amount) $('#monthlyAmount').value = Math.min(Number(draft.amount), inCurrency(state.orphan.remaining));
   const chip = $(`[data-chips] .chip[data-value="${Object.keys(INTERVALS).find((k) => INTERVALS[k] === draft.interval)}"]`);
   chip?.click();
   const zakat = $('[name="is_zakat"]');
@@ -302,13 +386,12 @@ function renderShare(o, amount) {
 
   const her = (o.gender_code ?? o.gender) === 'female' || o.gender === 'أنثى';
   const others = Math.max(0, need - (Number(o.remaining) || 0));
-  const pct = Math.min(100, Math.round((amount / need) * 100));
-  // المبلغ معزولاً باتجاهه (U+2066…U+2069): «$35» لا «35$» وسط جملة عربية، والنص textContent لا HTML
-  const ltr = (v) => `⁦${money(v, o.currency)}⁩`;
-  const vars = { name: o.name, pct, amount: ltr(amount), need: ltr(need) };
+  // النسبة بما يعادل مبلغه بالأساس، والمبالغ تُعرض بعملته
+  const pct = Math.min(100, Math.round((baseOf(amount) / need) * 100));
+  const vars = { name: o.name, pct, amount: cur(amount), need: cur(inCurrency(need)) };
 
   let text;
-  if (others === 0 && amount >= need) {
+  if (others === 0 && baseOf(amount) >= need - 1) {
     text = t(her ? 'ستكون كافل {name} الوحيد: مبلغك يغطي حاجتها الشهرية كاملة.' : 'ستكون كافل {name} الوحيد: مبلغك يغطي حاجته الشهرية كاملة.', vars);
   } else if (others > 0) {
     text = t(her ? 'يشاركك في كفالة {name} غيرك. تغطي أنت {pct}٪ من حاجتها الشهرية ({amount} من {need}).' : 'يشاركك في كفالة {name} غيرك. تغطي أنت {pct}٪ من حاجته الشهرية ({amount} من {need}).', vars);
@@ -330,6 +413,7 @@ export async function submitCheckoutForm(form) {
   const payload = {
     orphan_reference: state.orphan.id,
     monthly_amount: Number($('#monthlyAmount').value),
+    currency: state.currency,
     interval_months: state.interval,
     is_zakat: Boolean($('[name="is_zakat"]', form)?.checked),
     method,

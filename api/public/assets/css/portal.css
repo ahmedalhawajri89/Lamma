@@ -275,6 +275,7 @@ a.pt-row:hover { background: var(--color-canvas); }
 .pt-kid__who p { margin: 0.1rem 0 0; font-size: 0.825rem; color: var(--color-text-muted); }
 .pt-kid__head .pt-chip { margin-inline-start: auto; align-self: flex-start; }
 
+.pt-kid__facts dd.pt-kid__fx { margin: 0.15rem 0 0; font-family: inherit; font-size: 0.72rem; font-weight: 400; color: var(--color-text-muted); }
 .pt-kid__state { display: flex; gap: 0.6rem; margin: 0; padding: 0.7rem 0.85rem; border-radius: var(--radius-md); background: var(--color-surface-alt); font-size: 0.85rem; line-height: 1.7; }
 .pt-kid__state i { margin-block-start: 0.3rem; }
 .pt-kid__state--wait { background: var(--color-cta-soft); color: var(--color-cta-strong); }

@@ -139,4 +139,7 @@ return [
     'ستكون كافل {name} الوحيد: مبلغك يغطي حاجتها الشهرية كاملة.' => 'You will be {name}’s only sponsor: your gift covers her full monthly need.',
     'يشاركك في كفالة {name} غيرك. تغطي أنت {pct}٪ من حاجته الشهرية ({amount} من {need}).' => 'Others already sponsor {name}. You cover {pct}% of his monthly need ({amount} of {need}).',
     'يشاركك في كفالة {name} غيرك. تغطي أنت {pct}٪ من حاجتها الشهرية ({amount} من {need}).' => 'Others already sponsor {name}. You cover {pct}% of her monthly need ({amount} of {need}).',
+    'من {min} حتى {max}' => 'from {min} to {max}',
+    'المتبقي {amount} كاملاً' => 'the full remaining {amount}',
+    'يعادل اليوم {base} للطفل. يُخصم منك {amount} كل شهر لا يتغيّر، ويتغيّر ما يعادله مع سعر الصرف.' => 'Worth {base} for the child today. You are charged {amount} every month, always the same; its dollar value moves with the exchange rate.',
 ];

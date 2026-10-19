@@ -80,11 +80,18 @@
 
             {{-- ١. المبلغ --}}
             <section class="co-card" aria-labelledby="coAmount">
-              <h2 class="co-card__title" id="coAmount"><span class="co-card__num num">1</span> {{ __('مبلغ الكفالة الشهري') }}</h2>
+              <div class="co-card__head">
+                <h2 class="co-card__title" id="coAmount"><span class="co-card__num num">1</span> {{ __('مبلغ الكفالة الشهري') }}</h2>
+                {{-- عملة الكافل: يُخصم منه بها مبلغٌ ثابت كل شهر. تملؤها checkout.js من الإعدادات --}}
+                <label class="co-currency" for="coCurrency" hidden>
+                  <span class="visually-hidden">{{ __('العملة') }}</span>
+                  <select class="form-select form-select-sm" id="coCurrency" dir="ltr"></select>
+                </label>
+              </div>
 
               <div class="co-presets" role="group" aria-label="{{ __('مبالغ مقترحة') }}">
                 @foreach ($presets as $v)
-                  <button type="button" class="co-preset" data-amount="{{ $v }}" aria-pressed="{{ $v == $suggested ? 'true' : 'false' }}">
+                  <button type="button" class="co-preset" data-amount="{{ $v }}" data-usd="{{ $v }}" aria-pressed="{{ $v == $suggested ? 'true' : 'false' }}">
                     <b class="num">{{ \App\Support\PublicChild::money($v) }}</b>
                     <span>{{ __($v == $remaining ? ($shared ? 'المتبقي كاملاً' : 'الكفالة كاملة') : ($v == $price ? 'سعر البرنامج' : 'نصف المتبقي')) }}</span>
                   </button>
@@ -92,14 +99,15 @@
               </div>
 
               <div class="field">
-                <label class="form-label" for="monthlyAmount">{{ __('أو اكتب مبلغاً') }} <span class="text-muted fw-normal">({{ $remaining > 5 ? __('من $5 حتى :max', ['max' => \App\Support\PublicChild::money($remaining)]) : __('المتبقي :amount كاملاً', ['amount' => \App\Support\PublicChild::money($remaining)]) }})</span></label>
+                <label class="form-label" for="monthlyAmount">{{ __('أو اكتب مبلغاً') }} <span class="text-muted fw-normal" data-checkout="range">({{ $remaining > 5 ? __('من $5 حتى :max', ['max' => \App\Support\PublicChild::money($remaining)]) : __('المتبقي :amount كاملاً', ['amount' => \App\Support\PublicChild::money($remaining)]) }})</span></label>
                 <div class="input-group input-group-lg co-amount">
-                  <span class="input-group-text">$</span>
+                  <span class="input-group-text num" data-checkout="symbol">$</span>
                   <input class="form-control num" type="text" id="monthlyAmount" inputmode="decimal" dir="ltr" lang="en"
                          value="{{ $suggested }}" data-validate="required" aria-describedby="hint-amount err-monthlyAmount">
                   <span class="input-group-text">{{ __('في الشهر') }}</span>
                 </div>
                 <p class="form-text" id="hint-amount"></p>
+                <p class="form-text co-fx" data-checkout="fx" hidden></p>
                 <p class="field__error" id="err-monthlyAmount" aria-live="polite"></p>
               </div>
             </section>

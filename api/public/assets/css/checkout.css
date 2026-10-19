@@ -51,6 +51,11 @@
 .co .field__error:not(:empty) { margin-block-start: 0.4rem; }
 
 /* المبالغ الجاهزة: أزرار بقيمتها ومعناها */
+.co-card__head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.co-card__head .co-card__title { margin-block-end: 0; }
+.co-card__head { margin-block-end: 1.1rem; }
+.co-currency .form-select { min-inline-size: 6.5rem; font-size: 0.95rem; font-weight: 600; }
+.co-fx { color: var(--color-text-muted); }
 .co-presets { display: grid; grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr)); gap: 0.6rem; margin-block-end: 1.25rem; }
 .co-preset,
 .co-cycle {

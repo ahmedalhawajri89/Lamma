@@ -536,7 +536,7 @@ function renderKids() {
   <span class="pt-row__who"><b>${escapeHtml(o.name ?? '')}${o.age ? `، ${ageLabel(o.age)}` : ''}</b><span>${escapeHtml(s.program?.name ?? '')}</span></span>
   ${s.status === 'pending' ? '' : `<span class="pt-row__fund"><span>مغطّاة <b class="num">${funded}٪</b></span><span class="pt-bar"><span style="--v:${funded}%"></span></span></span>`}
   <span class="pt-row__end">
-    <span class="num">${formatMoney(interval > 1 ? s.cycle_amount : s.monthly_amount, s.currency)}</span>
+    <span class="num">${formatMoney(interval > 1 ? s.charge_cycle_amount : s.charge_amount, s.charge_currency)}</span>
     ${chipFor(s)}
   </span>
 </a></li>`;
@@ -637,7 +637,8 @@ function renderSponsorships() {
 
   <dl class="pt-kid__facts">
     <div><dt>${interval > 1 ? CYCLE[interval] : 'شهرياً'}</dt>
-      <dd class="num">${formatMoney(interval > 1 ? s.cycle_amount : s.monthly_amount, s.currency)}</dd></div>
+      <dd class="num">${formatMoney(interval > 1 ? s.charge_cycle_amount : s.charge_amount, s.charge_currency)}</dd>
+      ${s.charge_currency !== s.currency ? `<dd class="pt-kid__fx" title="ما يعادله اليوم بالدولار، ويتغيّر مع سعر الصرف">≈ <bdi class="num" dir="ltr">${formatMoney(s.monthly_amount, s.currency)}</bdi></dd>` : ''}</div>
     <div><dt>${pending ? 'أول دفعة' : s.payment_issue ? 'مستحق منذ' : 'القسط القادم'}</dt><dd>${pending ? 'عند التحويل' : paused ? 'بعد الاستئناف' : fmtShort(s.next_due_at)}</dd></div>
     <div><dt>قدّمتَ له</dt><dd class="num">${formatMoney(s.total_paid ?? 0, s.currency)}</dd></div>
   </dl>
@@ -1189,7 +1190,7 @@ function initCard() {
     box?.classList.toggle('pt-kid__state--wait', !cardFor.payment_issue);
     const icon = $('i', box);
     if (icon) icon.className = `fa-solid ${cardFor.payment_issue ? 'fa-credit-card' : 'fa-shield-heart'}`;
-    setText('[data-card="amount"]', formatMoney(cardFor.payment_issue?.amount ?? cardFor.cycle_amount ?? cardFor.monthly_amount, cardFor.currency));
+    setText('[data-card="amount"]', formatMoney(cardFor.payment_issue?.amount ?? cardFor.charge_cycle_amount, cardFor.payment_issue?.currency ?? cardFor.charge_currency));
     setText('[data-card="when"]', cardFor.payment_issue ? 'يُخصم الآن' : `قسط ${fmtShort(cardFor.next_due_at)}، يُخصم الآن`);
     setText('[data-card="day"]', formatNumber(cardFor.billing_day ?? 1));
     openModal('cardModal');
@@ -1257,7 +1258,7 @@ function initBank() {
     setText('[data-bank="iban"]', bank.iban ?? '');
     setText('[data-bank="swift"]', bank.swift ?? '');
     setText('[data-bank="reference"]', s.reference_code ?? '');
-    setText('[data-bank="amount"]', formatMoney(s.cycle_amount ?? s.monthly_amount, s.currency));
+    setText('[data-bank="amount"]', formatMoney(s.charge_cycle_amount, s.charge_currency));
     setText('[data-bank="until"]', fmtDate(s.hold_expires_at));
     openModal('bankModal');
   });

@@ -68,9 +68,9 @@ class OverviewController extends Controller
                 'next_payment' => $nextDue === null ? null : [
                     'due_at' => $nextDue->next_due_at?->toDateString(),
                     // ما يُخصم فعلاً في ذلك الموعد: القسط الربعي أو السنوي كاملاً
-                    'amount' => $nextDue->cycleAmount(),
+                    'amount' => $nextDue->chargeCycleAmount(),
                     'interval_months' => (int) $nextDue->interval_months,
-                    'currency' => $nextDue->currency,
+                    'currency' => $nextDue->chargeCurrency(),
                 ],
 
                 'sponsorships' => SponsorshipResource::collection(

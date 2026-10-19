@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Models\Orphan;
 use App\Models\Sponsorship;
 use App\Support\Fx;
 
@@ -27,17 +26,16 @@ final class SponsorshipRepricer
             ->live()
             ->whereNotNull('charge_currency')
             ->whereColumn('charge_currency', '!=', 'currency')
+            // الطفل كاملاً: المراقب يعيد حساب تمويله بعد الحفظ
+            ->with('orphan')
             ->chunkById(200, function ($chunk) use (&$changed): void {
-                // الحاجة وحدها: الطفل نفسه يحمّله المراقب كاملاً حين يعيد حساب تمويله
-                $needs = Orphan::query()->whereIn('id', $chunk->pluck('orphan_id'))->pluck('monthly_need', 'id');
-
                 foreach ($chunk as $s) {
                     $base = Fx::toBase((float) $s->charge_amount, $s->charge_currency);
                     if (abs($base - (float) $s->monthly_amount) < 0.01) {
                         continue;
                     }
 
-                    $need = (float) ($needs[$s->orphan_id] ?? 0);
+                    $need = (float) ($s->orphan?->monthly_need ?? 0);
                     $s->monthly_amount = $base;
                     $s->share_percent = $need > 0 ? (int) min(100, round($base / $need * 100)) : $s->share_percent;
                     // يومياً مع الأسعار: لا يُسجَّل في سجلّ النشاط، فلا يغرقه
