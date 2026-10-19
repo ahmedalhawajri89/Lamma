@@ -55,10 +55,10 @@ export function initTransparency() {
         data = null;
       }
     }
-    // بلا خادم: البذرة المضمَّنة، بلا شهور ولا وثائق مرفوعة
+    // بلا خادم: قيمٌ فارغة، فتظهر الأقسام بلا أرقام لا بأرقامٍ مخترعة
     data ??= {
       spending: SPENDING, proof: PROOF, annual: ANNUAL,
-      overhead: { year: ANNUAL.year, actual: 100 - (PROOF.toChild ?? 93), target: 7 },
+      overhead: { year: ANNUAL.year, actual: null, target: 7 },
       monthly: [], years: [ANNUAL.year], documents: [],
     };
     year = data.annual?.year ?? year;
@@ -67,11 +67,11 @@ export function initTransparency() {
 
   function render(d) {
     const actual = d.overhead?.actual;
-    const cents = actual === null || actual === undefined ? (d.proof?.toChild ?? 93) : Math.round(100 - actual);
+    const cents = actual === null || actual === undefined ? (d.proof?.toChild ?? null) : Math.round(100 - actual);
 
     $$('[data-tp-year]').forEach((el) => { el.textContent = String(year); });
     renderYears(d.years ?? []);
-    renderCents(cents);
+    if (cents !== null) renderCents(cents);
     renderStats(d);
     renderMonthly(d.monthly ?? []);
     renderStack(d.spending ?? [], d.annual?.spent ?? 0);

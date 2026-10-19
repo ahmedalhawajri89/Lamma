@@ -29,3 +29,17 @@ it('تُرجع سياق كل إعداد، ومن غيّر المفتاح آخر 
         ->assertJsonPath('data.0.changes.0.label', 'الوصف المختصر')
         ->assertJsonPath('data.0.changes.0.after', 'وصف جديد');
 });
+
+it('يحرّر المدير اسم المنصة بالإنجليزية فيظهر في الموقع الإنجليزي وحده', function () {
+    $admin = User::factory()->admin()->create();
+
+    $this->actingAs($admin)->putJson('/api/v1/admin/settings', [
+        'settings' => [['group' => 'site', 'key' => 'name_en', 'value' => 'Circle Test']],
+    ])->assertOk();
+
+    expect($this->get('/en')->assertOk()->getContent())->toContain('Circle Test')
+        ->and($this->get('/')->assertOk()->getContent())->not->toContain('Circle Test');
+
+    $this->actingAs($admin)->getJson('/api/v1/admin/activity?event=settings_updated')
+        ->assertJsonPath('data.0.changes.0.label', 'اسم المنصة بالإنجليزية');
+});

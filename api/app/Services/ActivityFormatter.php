@@ -320,10 +320,13 @@ class ActivityFormatter
     {
         return [
             'site.name' => 'اسم المنصة',
+            'site.name_en' => 'اسم المنصة بالإنجليزية',
             'site.tagline' => 'الوصف المختصر',
+            'site.tagline_en' => 'الوصف المختصر بالإنجليزية',
             'site.email' => 'بريد التواصل',
             'site.phone' => 'الهاتف',
             'site.address' => 'العنوان',
+            'site.address_en' => 'العنوان بالإنجليزية',
             'site.start_year' => 'سنة التأسيس',
             'finance.overhead_target_percent' => 'نسبة التشغيل المستهدفة',
             'policy.moderate_messages' => 'مراجعة رسائل الكفلاء',

@@ -11,7 +11,7 @@
  */
 
 import { $, $$, countUp, escapeHtml, debounce, formatNumber, keepFocus, prefersReducedMotion } from './utils.js';
-import { ORPHANS, PROGRAMS } from './data.js';
+import { PROGRAMS } from './data.js';
 import { kidCard } from './render.js';
 import { apiEnabled, request } from './api.js';
 import { initReveal } from './motion.js';
@@ -86,6 +86,7 @@ export function initCatalog() {
       update(Object.fromEntries(KEYS.map((k) => [k, ''])), { scroll: !inSheet });
       return;
     }
+    if (e.target.closest('[data-retry]')) { load(); return; }
     if (e.target.closest('[data-load-more]')) loadMore();
   });
 
@@ -120,8 +121,9 @@ export function initCatalog() {
     if (state.urgent) params.set('urgent', 1);
     try {
       if (apiEnabled()) return await request(`/public/orphans?${params}`);
-    } catch { /* الخادم متوقف: البيانات المضمَّنة بالفلاتر نفسها، لا شاشة خطأ */ }
-    return localQuery({ ...state, page }, perPage);
+    } catch { /* يُعرض أدناه */ }
+    // الخادم متوقف: نقول ذلك ونعرض إعادة المحاولة، لا «لا أطفال بهذه الفلاتر»
+    return { data: [], meta: {}, failed: true };
   }
 
   /** من الأول: كل الدفعات التي في الرابط بطلبٍ واحد. */
@@ -132,8 +134,22 @@ export function initCatalog() {
     grid.setAttribute('aria-busy', 'true');
     grid.classList.add('is-loading');
 
-    const { data = [], meta = {} } = await fetchPage(1, PER_PAGE * batches);
+    const { data = [], meta = {}, failed } = await fetchPage(1, PER_PAGE * batches);
     if (mine !== sequence) return;
+
+    if (failed) {
+      grid.classList.remove('is-loading');
+      grid.removeAttribute('aria-busy');
+      grid.innerHTML = `<div class="col-12"><div class="cat-empty" role="alert">
+           <span class="cat-empty__icon" aria-hidden="true"><i class="fa-solid fa-wifi"></i></span>
+           <h3>${t('تعذّر تحميل الأطفال الآن')}</h3>
+           <p>${t('تحقّق من اتصالك، ثم حاول مجدداً.')}</p>
+           <button class="btn btn-outline-primary" type="button" data-retry>${t('حاول مجدداً')}</button>
+         </div></div>`;
+      more.hidden = true;
+      $('#catalogCount').textContent = '';
+      return;
+    }
 
     facets = meta.facets ?? facets;
     total = meta.total ?? data.length;
@@ -162,10 +178,10 @@ export function initCatalog() {
     moreBtn.disabled = true;
     moreBtn.innerHTML = '<span class="spinner-border spinner-border-sm" aria-hidden="true"></span> ' + t('جارٍ التحميل');
 
-    const { data = [], meta = {} } = await fetchPage(Math.floor(loaded / PER_PAGE) + 1, PER_PAGE);
+    const { data = [], meta = {}, failed } = await fetchPage(Math.floor(loaded / PER_PAGE) + 1, PER_PAGE);
     moreBtn.disabled = false;
     moreBtn.textContent = t('عرض المزيد');
-    if (mine !== sequence) return;
+    if (mine !== sequence || failed) return;
 
     total = meta.total ?? total;
     const first = loaded;
@@ -300,55 +316,15 @@ async function initHero() {
     if (!apiEnabled()) throw new Error('offline');
     all = await request('/public/orphans?per_page=1&facets=1');
   } catch {
-    all = localQuery({});
+    // بلا خادم: «0» كذب و«؟» قبيح، فتُخفى الأرقام كلها
+    const box = stats[0].closest('dl');
+    if (box) box.hidden = true;
+    return;
   }
 
   const f = all.meta?.facets ?? {};
   const values = { all: f.all ?? all.meta?.total ?? 0, urgent: f.urgent ?? 0, countries: Object.keys(f.country ?? {}).length };
   stats.forEach((el) => countUp(el, values[el.dataset.heroStat] ?? 0));
-}
-
-/* ── بلا خادم: الاستعلام نفسه على البيانات المضمَّنة ───────────────────── */
-function localQuery(state, perPage = PER_PAGE) {
-  const genderOf = (o) => (['أنثى', 'female'].includes(o.gender) ? 'female' : 'male');
-  const ageOf = (o) => (o.age <= 5 ? '0-5' : o.age <= 10 ? '6-10' : '11-18');
-  const q = (state.q || '').toLowerCase();
-  const match = (o, except = '') => (
-    (except === 'program' || !state.program || o.program === state.program)
-    && (except === 'country' || !state.country || o.country === state.country)
-    && (except === 'gender' || !state.gender || genderOf(o) === state.gender)
-    && (except === 'age' || !state.age || ageOf(o) === state.age)
-    && (except === 'urgent' || !state.urgent || o.urgent)
-    && (!q || `${o.name} ${o.city} ${o.country} ${o.id}`.toLowerCase().includes(q))
-  );
-  const tally = (except, key) => ORPHANS.filter((o) => match(o, except)).reduce((t, o) => ({ ...t, [key(o)]: (t[key(o)] ?? 0) + 1 }), {});
-
-  const SORT = {
-    urgent: (a, b) => Number(b.urgent) - Number(a.urgent) || a.funded - b.funded,
-    funded_asc: (a, b) => a.funded - b.funded,
-    monthly_asc: (a, b) => a.monthly - b.monthly,
-    monthly_desc: (a, b) => b.monthly - a.monthly,
-    age_asc: (a, b) => a.age - b.age,
-    newest: () => 0,
-  };
-  const all = ORPHANS.filter((o) => match(o)).sort(SORT[state.sort] ?? SORT.urgent);
-  const last = Math.max(1, Math.ceil(all.length / perPage));
-  const page = Math.min(last, Math.max(1, Number(state.page) || 1));
-
-  return {
-    data: all.slice((page - 1) * perPage, page * perPage),
-    meta: {
-      total: all.length, per_page: perPage, current_page: page, last_page: last,
-      facets: {
-        program: tally('program', (o) => o.program),
-        country: tally('country', (o) => o.country),
-        gender: tally('gender', genderOf),
-        age: tally('age', ageOf),
-        urgent: ORPHANS.filter((o) => match(o, 'urgent') && o.urgent).length,
-        all: ORPHANS.length,
-      },
-    },
-  };
 }
 
 /* ── الرابط: كل فلتر فيه، و`page` عدد الدفعات المعروضة ───────────────── */

@@ -538,7 +538,8 @@ button:focus-visible,
 @media (max-width: 1399.98px) {
   .kf-search-trigger { justify-content: center; inline-size: 2.75rem; padding: 0; border-color: transparent; background: transparent; color: var(--color-text); }
   .kf-search-trigger:hover { background: var(--color-surface-alt); border-color: transparent; }
-  .kf-search-trigger__label, .kf-search-trigger__kbd { display: none; }
+  /* محدّدٌ أقوى: قاعدة kbd العامة تأتي بعد هذا الاستعلام في الملف */
+  .kf-search-trigger .kf-search-trigger__label, .kf-search-trigger .kf-search-trigger__kbd { display: none; }
 }
 
 .kf-search-trigger__kbd,

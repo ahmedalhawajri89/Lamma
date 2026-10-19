@@ -100,7 +100,7 @@ it('كل نصٍّ في قوالب رحلة الكافل وردودها له تر
 
 it('كل نصٍّ في وحدات JS لرحلة الكافل له ترجمة إنجليزية', function () {
     $en = require lang_path('en/js.php');
-    $keys = literalKeys(['public/assets/js/modules/{api,catalog,checkout,features,forms,home,layout,profile,proof,render,search,theme,ui,utils}.js'], 't');
+    $keys = literalKeys(['public/assets/js/modules/{api,catalog,checkout,data,features,forms,home,layout,profile,proof,render,search,theme,ui,utils}.js'], 't');
 
     expect($keys)->not->toBeEmpty()
         ->and(array_values(array_diff($keys, array_keys($en))))->toBe([]);

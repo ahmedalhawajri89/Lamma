@@ -59,7 +59,11 @@ function renderPlans() {
 
   // الرئيسية وصفحة البرامج تعرضانها بالشكل نفسه
   // صفحة البرامج يرسمها الخادم من جدولها (ProgramsPageController)
-  $$('#homePlans').forEach((host) => { host.innerHTML = html; });
+  $$('#homePlans').forEach((host) => {
+    host.innerHTML = html;
+    // بلا برامج من الخادم يختفي القسم كله، لا عنوانٌ فوق فراغ
+    host.closest('section')?.toggleAttribute('hidden', !PROGRAMS.length);
+  });
 }
 
 /**

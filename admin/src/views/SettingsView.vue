@@ -28,7 +28,8 @@ const GROUPS = {
   identity: {
     title: 'هوية المنصة والتواصل',
     hint: 'ما يقرؤه الزائر في رأس الموقع وتذييله وصفحة التواصل.',
-    keys: ['site.name', 'site.tagline', 'site.start_year', 'site.email', 'site.phone', 'site.address'],
+    // كل نصٍّ يقرؤه الزائر وتحته مقابله الإنجليزي (للموقع تحت /en)
+    keys: ['site.name', 'site.name_en', 'site.tagline', 'site.tagline_en', 'site.start_year', 'site.email', 'site.phone', 'site.address', 'site.address_en'],
   },
   protection: {
     title: 'حماية الطفل',
@@ -51,12 +52,15 @@ const KEYS = Object.values(GROUPS).flatMap((g) => g.keys)
 
 const FIELDS = {
   'site.name': { label: 'اسم المنصة', hint: 'في رأس الموقع وتذييله وعنوان كل صفحة.', required: true },
+  'site.name_en': { label: 'اسم المنصة بالإنجليزية', hint: 'للموقع الإنجليزي. فارغاً يظهر الاسم العربي.', en: true },
   'site.tagline': { label: 'الوصف المختصر', hint: 'سطرٌ تحت الاسم في التذييل.' },
+  'site.tagline_en': { label: 'الوصف المختصر بالإنجليزية', hint: 'فارغاً يظهر الوصف العربي في الموقع الإنجليزي.', en: true },
   // نصٌّ لا `number`: حقل الرقم يُنسَّق بلغة الصفحة فتظهر «٢٠١٢»
   'site.start_year': { label: 'سنة التأسيس', numeric: true, ltr: true, max: 4 },
   'site.email': { label: 'بريد التواصل', type: 'email', ltr: true },
   'site.phone': { label: 'الهاتف', type: 'tel', hint: 'بالصيغة الدولية.', ltr: true },
   'site.address': { label: 'العنوان', hint: 'مدينة وبلد يكفيان.' },
+  'site.address_en': { label: 'العنوان بالإنجليزية', hint: 'مثل: London, United Kingdom', en: true },
 }
 
 const CADENCE = [
@@ -255,6 +259,10 @@ onBeforeUnmount(() => { window.removeEventListener('beforeunload', beforeUnload)
             <p class="text-xs text-white/60">هوية المنصة كما يراها الزائر</p>
             <h2 id="idName" class="text-2xl lg:text-3xl font-bold mt-1">{{ view('site.name') || 'بلا اسم' }}</h2>
             <p v-if="view('site.tagline')" class="text-white/80 mt-1">{{ view('site.tagline') }}</p>
+            <p v-if="view('site.name_en') || view('site.tagline_en')" class="text-white/60 text-sm mt-2" dir="ltr" lang="en">
+              <span class="font-semibold text-white/80">{{ view('site.name_en') }}</span>
+              <template v-if="view('site.name_en') && view('site.tagline_en')"> · </template>{{ view('site.tagline_en') }}
+            </p>
           </div>
           <div class="flex flex-wrap gap-2">
             <a :href="siteUrl" target="_blank" rel="noopener" class="btn !bg-transparent !text-white border border-white/30 hover:!bg-white/10">
@@ -412,7 +420,8 @@ onBeforeUnmount(() => { window.removeEventListener('beforeunload', beforeUnload)
               </label>
               <input
                 :id="fid(k)" v-model="draft[k]" :type="FIELDS[k].type ?? 'text'" class="input"
-                :class="{ num: FIELDS[k].ltr }" :dir="FIELDS[k].ltr ? 'ltr' : undefined"
+                :class="{ num: FIELDS[k].ltr }" :dir="FIELDS[k].ltr || FIELDS[k].en ? 'ltr' : undefined"
+                :lang="FIELDS[k].en ? 'en' : undefined"
                 :inputmode="FIELDS[k].numeric ? 'numeric' : undefined" :maxlength="FIELDS[k].max"
                 :aria-invalid="Boolean(err(k))"
               />

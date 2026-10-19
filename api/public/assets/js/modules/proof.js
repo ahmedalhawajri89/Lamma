@@ -13,6 +13,10 @@ import { t } from './i18n.js';
 export function initCredentials() {
   const host = $('#credentials');
   if (!host) return;
+  if (!PARTNERS.length) {
+    host.hidden = true;
+    return;
+  }
 
   host.innerHTML = PARTNERS.slice(0, 4).map((p) => `
 <div class="credential">

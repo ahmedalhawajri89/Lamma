@@ -411,6 +411,10 @@ class ContentController extends Controller
         return [
             'site.name' => ['type' => 'string', 'rules' => ['required', 'string', 'min:2', 'max:60']],
             'site.tagline' => ['type' => 'string', 'rules' => ['nullable', 'string', 'max:120']],
+            // مقابلاتها للموقع الإنجليزي (/en)؛ الفارغ يعود للعربي (SiteProfile::site)
+            'site.name_en' => ['type' => 'string', 'rules' => ['nullable', 'string', 'min:2', 'max:60']],
+            'site.tagline_en' => ['type' => 'string', 'rules' => ['nullable', 'string', 'max:120']],
+            'site.address_en' => ['type' => 'string', 'rules' => ['nullable', 'string', 'max:160']],
             'site.email' => ['type' => 'string', 'rules' => ['nullable', 'email:rfc', 'max:120']],
             'site.phone' => ['type' => 'string', 'rules' => ['nullable', 'string', 'max:30']],
             'site.address' => ['type' => 'string', 'rules' => ['nullable', 'string', 'max:160']],
