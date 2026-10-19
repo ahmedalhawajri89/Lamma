@@ -139,6 +139,24 @@ watch(() => route.params.id, (id, prev) => { if (id && id !== prev) { family.val
           <dd class="num text-lg font-semibold">{{ money(totalNeed) }}</dd>
         </div>
       </dl>
+
+      <!-- الرعاية والجمعية: ما يقرّر إن كان أطفالها يُنشرون للكفالة -->
+      <div class="mt-4 pt-4 border-t border-sand-100 flex flex-wrap gap-x-8 gap-y-3 text-sm">
+        <p class="flex items-center gap-2">
+          <BaseIcon name="home" :size="16" class="text-teal-700" />
+          <span class="text-sand-500">يعيش أطفالها:</span>
+          <span class="font-medium">{{ family.care_arrangement_label ?? 'غير مسجّل' }}</span>
+          <span v-if="family.care_arrangement" class="badge" :class="family.care_current ? 'bg-olive-100 text-olive-700' : 'bg-amber-100 text-amber-700'">
+            {{ family.care_current ? `مُقَرّ حتى ${date(family.care_review_due_at)}` : 'بلا إقرار حديث' }}
+          </span>
+        </p>
+        <p class="flex items-center gap-2">
+          <BaseIcon name="handshake" :size="16" class="text-teal-700" />
+          <span class="text-sand-500">الجمعية:</span>
+          <span class="font-medium">{{ family.association?.name ?? 'غير مُسنَدة' }}</span>
+          <StatusBadge v-if="family.association" :label="family.association.status_label" :value="family.association.status" />
+        </p>
+      </div>
     </section>
 
     <div class="grid gap-4 lg:grid-cols-3">

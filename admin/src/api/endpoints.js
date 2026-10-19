@@ -186,6 +186,16 @@ export const admin = {
     deliver: (id) => client.post(`${v1}/admin/messages/${id}/deliver`),
   },
 
+  /** الجمعيات الشريكة: التسجيل والتوثيق والإيقاف (للمدير) */
+  associations: {
+    list: (params) => client.get(`${v1}/admin/associations`, { params }),
+    show: (id) => client.get(`${v1}/admin/associations/${id}`),
+    create: (payload) => client.post(`${v1}/admin/associations`, payload),
+    update: (id, payload) => client.patch(`${v1}/admin/associations/${id}`, payload),
+    verify: (id, payload = {}) => client.post(`${v1}/admin/associations/${id}/verify`, payload),
+    suspend: (id, reason) => client.post(`${v1}/admin/associations/${id}/suspend`, { reason }),
+  },
+
   users: {
     list: (params) => client.get(`${v1}/admin/users`, { params }),
     show: (id) => client.get(`${v1}/admin/users/${id}`),

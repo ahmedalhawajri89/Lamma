@@ -54,7 +54,15 @@ const BLANK = {
   visited_at: '',
   findings: '',
   next_visit_due: '',
+  // هل يعيش الطفل حيث يقول ملفه؟ نعم تجدّد إقرار الرعاية، ولا تُسقطه، والفارغ لا يمسّه
+  care_confirmed: null,
 }
+
+const CARE = [
+  { value: true, label: 'نعم، كما في ملفه' },
+  { value: false, label: 'لا، تغيّر' },
+  { value: null, label: 'لم أتحقق' },
+]
 
 const form = useForm(BLANK, ({ visited_at: visitedAt, ...rest }) =>
   admin.visits.create({
@@ -165,6 +173,22 @@ async function save() {
       </div>
       <p v-if="form.errors.value.needs_flagged" class="text-xs text-rose-700 mt-1" role="alert">
         {{ form.errors.value.needs_flagged[0] }}
+      </p>
+    </fieldset>
+
+    <fieldset class="pt-2">
+      <legend class="text-sm font-medium text-sand-800 mb-2">هل يعيش الطفل حيث يقول ملفه؟</legend>
+      <div class="flex flex-wrap gap-2" role="radiogroup">
+        <button
+          v-for="c in CARE" :key="String(c.value)" type="button" role="radio" class="chip"
+          :aria-checked="form.values.care_confirmed === c.value" :aria-pressed="form.values.care_confirmed === c.value"
+          @click="form.values.care_confirmed = c.value"
+        >{{ c.label }}</button>
+      </div>
+      <p class="text-xs mt-1.5" :class="form.values.care_confirmed === false ? 'text-rose-700' : 'text-sand-500'">
+        {{ form.values.care_confirmed === false
+          ? 'يسقط إقرار الرعاية، ولا يُعاد نشر الطفل حتى يُصحَّح ملف أسرته.'
+          : 'نعم يجدّد إقرار الرعاية اثني عشر شهراً، وهو شرط نشر الطفل.' }}
       </p>
     </fieldset>
 

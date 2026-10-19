@@ -56,10 +56,12 @@ function dormant(row) {
 }
 
 const countries = ref([])
+const associations = ref([])
 onMounted(async () => {
   try {
     const { data } = await admin.references()
     countries.value = data.data?.countries ?? []
+    associations.value = data.data?.associations ?? []
   } catch {
     // حقل البلد في النموذج وحده يبقى فارغاً
   }
@@ -139,8 +141,9 @@ function onSaved(saved) {
 
       <template #roles="{ row }">
         <span class="text-sm">{{ ROLE[row.roles?.[0]] ?? row.roles?.[0] }}</span>
-        <span class="block text-xs" :class="row.roles?.[0] === 'field_supervisor' && !row.staff_profile?.assigned_country_id ? 'text-rose-700' : 'text-sand-500'">
+        <span class="block text-xs" :class="row.roles?.[0] === 'field_supervisor' && !row.staff_profile?.assigned_country_id && !row.staff_profile?.association_id ? 'text-rose-700' : 'text-sand-500'">
           <template v-if="row.roles?.[0] !== 'field_supervisor'">كل الدول</template>
+          <template v-else-if="row.staff_profile?.association_name">{{ row.staff_profile.association_name }}</template>
           <template v-else-if="row.staff_profile?.assigned_country_name">{{ row.staff_profile.assigned_country_name }}</template>
           <template v-else>بلا بلد، لا يرى شيئاً</template>
         </span>
@@ -164,7 +167,7 @@ function onSaved(saved) {
     <UserDrawer ref="drawer" :id="formOpen ? null : openId" @close="close" @changed="load" @edit="edit" />
 
     <UserFormModal
-      :open="formOpen" :user="editing" :countries="countries"
+      :open="formOpen" :user="editing" :countries="countries" :associations="associations"
       :current-user-id="auth.user?.id"
       @close="formOpen = false" @saved="onSaved"
     />

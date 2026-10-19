@@ -111,6 +111,12 @@ const routes = [
     meta: { group: 'comms', title: 'استفسارات الزوار', icon: 'mail', permission: 'content.manage' },
   },
   {
+    path: '/associations',
+    name: 'associations',
+    component: () => import('@/views/AssociationsView.vue'),
+    meta: { group: 'system', title: 'الجمعيات الشريكة', icon: 'handshake', permission: 'settings.manage' },
+  },
+  {
     path: '/users',
     name: 'users',
     component: () => import('@/views/UsersView.vue'),

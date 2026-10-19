@@ -1,12 +1,12 @@
 import { describe, it, expect } from 'vitest'
-import { num, money, percent, fundingTone, relative, date } from '@/utils/format'
+import { num, money, percent, fundingTone, relative, date, EMPTY } from '@/utils/format'
 
 describe('تنسيق الأرقام', () => {
   it('يعرض شرطة بدل صفر زائف عند غياب القيمة', () => {
     // الفرق مهم: «—» تعني «لا بيانات»، و«$0.00» تعني «صفر دولار».
     // خلطهما في تقرير مالي يجعل حقلاً ناقصاً يبدو رصيداً صفرياً.
-    expect(num(null)).toBe('—')
-    expect(money(null)).toBe('—')
+    expect(num(null)).toBe(EMPTY)
+    expect(money(null)).toBe(EMPTY)
     expect(money(0)).toBe('$0.00')
     expect(num(0)).toBe('0')
   })
@@ -20,7 +20,7 @@ describe('تنسيق الأرقام', () => {
   it('يقرّب النسب ولا يكسرها', () => {
     expect(percent(62.4)).toBe('62%')
     expect(percent(100)).toBe('100%')
-    expect(percent(null)).toBe('—')
+    expect(percent(null)).toBe(EMPTY)
   })
 })
 
@@ -38,8 +38,8 @@ describe('لون شريط التمويل', () => {
 
 describe('التواريخ', () => {
   it('يتحمّل القيم الفارغة بلا استثناء', () => {
-    expect(date(null)).toBe('—')
-    expect(relative(null)).toBe('—')
+    expect(date(null)).toBe(EMPTY)
+    expect(relative(null)).toBe(EMPTY)
   })
 
   it('يصف الماضي بالصيغة الاصطلاحية العربية', () => {

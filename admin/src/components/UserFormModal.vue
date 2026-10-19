@@ -19,6 +19,8 @@ const props = defineProps({
   open: { type: Boolean, default: false },
   user: { type: Object, default: null },
   countries: { type: Array, default: () => [] },
+  /** الجمعيات الشريكة: لموظف الجمعية نطاقه أسرها (StaffScope في الخادم) */
+  associations: { type: Array, default: () => [] },
 
   /** المستخدم الحالي — لا يوقف حسابه بنفسه. */
   currentUserId: { type: [Number, String], default: null },
@@ -36,16 +38,19 @@ const BLANK = {
   role: '',
   title: '',
   assigned_country_id: '',
+  association_id: '',
   status: 'active',
 }
 
-const form = useForm(BLANK, ({ email, status: _, ...rest }) =>
-  editing.value
+const form = useForm(BLANK, ({ email, status: _, ...values }) => {
+  // موظف الجمعية: بلده بلدها، يحسبه الخادم؛ والفارغ «لا شيء»
+  const rest = { ...values, association_id: values.association_id || null, assigned_country_id: values.assigned_country_id || null }
+  return editing.value
     // البريد لا يُعدَّل: هو هوية الحساب، وتغييره يقطع رابط الاستعادة المُرسَل.
     // والحالة لا تُرسَل من هنا: الإيقاف وإعادة التفعيل في درج الموظف بتأكيد
     ? admin.users.update(props.user.id, rest)
-    : admin.users.create({ ...rest, email }),
-)
+    : admin.users.create({ ...rest, email })
+})
 
 const ROLES = [
   { value: 'admin', label: 'مدير النظام: كل شيء' },
@@ -56,6 +61,11 @@ const ROLES = [
 const countryOptions = computed(() =>
   props.countries.map((c) => ({ value: c.id, label: c.name })),
 )
+const associationOptions = computed(() =>
+  props.associations.map((a) => ({ value: a.id, label: a.status === 'verified' ? a.name : `${a.name} (${a.status_label})` })),
+)
+/** موظف الجمعية لا يُختار له بلد: بلده بلد جمعيته */
+const byAssociation = computed(() => Boolean(form.values.association_id))
 
 /**
  * البلد المُسنَد يعني شيئاً للمشرف الميداني وحده.
@@ -68,7 +78,10 @@ const scoped = computed(() => form.values.role === 'field_supervisor')
 watch(
   () => form.values.role,
   (role, previous) => {
-    if (previous !== undefined && role !== 'field_supervisor') form.values.assigned_country_id = ''
+    if (previous !== undefined && role !== 'field_supervisor') {
+      form.values.assigned_country_id = ''
+      form.values.association_id = ''
+    }
   },
 )
 
@@ -87,6 +100,7 @@ watch(
         // من ملف الموظف: كان يُقرأ من حقل لا يرسله الخادم، فيُرسَل فارغاً
         // مع كل تعديل ويُمسح بلد المشرف
         assigned_country_id: u.staff_profile?.assigned_country_id ?? '',
+        association_id: u.staff_profile?.association_id ?? '',
         title: u.staff_profile?.title ?? '',
         status: u.status ?? 'active',
       })
@@ -146,6 +160,15 @@ async function save() {
 
     <FormField
       v-if="scoped"
+      v-model="form.values.association_id" label="يعمل لجمعية شريكة"
+      :options="associationOptions" placeholder="لا، موظف المنصة"
+      hint="موظف الجمعية يرى أسر جمعيته وحدها، ولو عملت معها جمعيةٌ أخرى في البلد نفسه."
+      :error="form.errors.value.association_id"
+      @update:model-value="form.touch('association_id')"
+    />
+
+    <FormField
+      v-if="scoped && !byAssociation"
       v-model="form.values.assigned_country_id" label="البلد المُسنَد" required
       :options="countryOptions" placeholder="اختر البلد"
       hint="المشرف يرى أيتام بلده وحده، وبلا بلد لا يرى شيئاً."

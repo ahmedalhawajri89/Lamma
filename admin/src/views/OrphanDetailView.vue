@@ -152,6 +152,14 @@ const nextStep = computed(() => {
       ? { text: 'المستندات مكتملة. الملف جاهز للتوثيق.', action: { label: 'وثّق الملف', primary: true, run: () => act(admin.orphans.verify, 'وُثّق الملف.', 'verify') } }
       : { text: 'المستندات مكتملة. ينتظر الملف توثيق المدير.' }
   }
+  if (current === 'publish' && o.publish_blockers?.length) {
+    // الخادم يقول لماذا لا يُنشر بعد (الجمعية والرعاية)، وإصلاحه في ملف الأسرة
+    return {
+      text: 'الملف موثّق، ولا يُنشر بعد:',
+      list: o.publish_blockers,
+      action: o.family?.id ? { label: 'إلى ملف الأسرة', run: () => router.push(`/families/${o.family.id}`) } : null,
+    }
+  }
   if (current === 'publish') {
     return auth.can('orphans.publish')
       ? { text: 'الملف موثّق ولم يُنشر. انشره ليراه الكفلاء على الموقع.', action: { label: 'انشر على الموقع', primary: true, run: () => act(admin.orphans.publish, 'نُشر الملف على الموقع.') } }
@@ -315,7 +323,12 @@ const CYCLE = { 1: 'شهرياً', 3: 'كل 3 أشهر', 12: 'سنوياً' }
         </ol>
 
         <div v-if="nextStep" class="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-sand-50 px-4 py-3">
-          <p class="text-sm text-sand-800">{{ nextStep.text }}</p>
+          <div class="text-sm text-sand-800">
+            <p>{{ nextStep.text }}</p>
+            <ul v-if="nextStep.list" class="mt-1.5 space-y-1 text-amber-800">
+              <li v-for="item in nextStep.list" :key="item" class="flex gap-2"><BaseIcon name="alert" :size="15" class="mt-0.5 shrink-0" /> {{ item }}</li>
+            </ul>
+          </div>
           <button
             v-if="nextStep.action" type="button" :disabled="busy"
             class="btn" :class="nextStep.action.primary ? 'btn-primary' : 'btn-outline'"

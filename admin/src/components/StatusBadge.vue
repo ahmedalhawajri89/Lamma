@@ -13,6 +13,11 @@ const tones = {
   fully_funded: 'bg-olive-100 text-olive-700',
   delivered: 'bg-olive-100 text-olive-700',
 
+  // الجمعيات الشريكة: الموثّقة كالنشطة، وما ينتظر المراجعة كالمعلّق
+  verified: 'bg-olive-100 text-olive-700',
+  under_review: 'bg-amber-100 text-amber-700',
+  applied: 'bg-amber-100 text-amber-700',
+
   pending: 'bg-amber-100 text-amber-700',
   pending_verification: 'bg-amber-100 text-amber-700',
   pending_review: 'bg-amber-100 text-amber-700',
