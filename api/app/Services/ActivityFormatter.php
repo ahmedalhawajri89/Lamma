@@ -329,6 +329,7 @@ class ActivityFormatter
             'site.address_en' => 'العنوان بالإنجليزية',
             'site.start_year' => 'سنة التأسيس',
             'finance.overhead_target_percent' => 'نسبة التشغيل المستهدفة',
+            'finance.platform_fee_percent' => 'نسبة التشغيل من كل دفعة',
             'policy.moderate_messages' => 'مراجعة رسائل الكفلاء',
             'policy.report_cadence_months' => 'دورية التقارير بالأشهر',
         ][$field] ?? $field;

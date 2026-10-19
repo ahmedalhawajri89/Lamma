@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Console\Commands\CheckDataIntegrity;
+use App\Console\Commands\PrepareTransfers;
 use App\Console\Commands\RollupMetrics;
 use App\Console\Commands\RunBilling;
 use Illuminate\Support\Facades\Schedule;
@@ -28,5 +29,14 @@ Schedule::command(RollupMetrics::class)
 
 Schedule::command(CheckDataIntegrity::class)
     ->weeklyOn(1, '04:00')
+    ->timezone(config('kafala.display_timezone'))
+    ->onOneServer();
+
+/*
+ * تحويلات الشهر للجمعيات الشريكة: أول كل شهر، لما اكتمل قبله. تُجهَّز
+ * مسوّدات، ويرسلها المدير من اللوحة بمرجع الحوالة.
+ */
+Schedule::command(PrepareTransfers::class)
+    ->monthlyOn(1, '05:00')
     ->timezone(config('kafala.display_timezone'))
     ->onOneServer();

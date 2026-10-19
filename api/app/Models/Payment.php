@@ -44,16 +44,47 @@ class Payment extends Model
         'method', 'gateway', 'gateway_reference', 'status',
         'card_brand', 'card_last4', 'paid_at', 'failure_reason',
         'receipt_number', 'idempotency_key', 'recorded_by',
+        'platform_fee_percent',
 
         // يُسندها RefundPayment وحده
         'refunded_at', 'refunded_by', 'refund_reason',
     ];
+
+    /** النسبة المعلنة إن لم يُضبط الإعداد (finance.platform_fee_percent). */
+    public const DEFAULT_FEE_PERCENT = 7.0;
+
+    protected static function booted(): void
+    {
+        /*
+         * نسبة التشغيل لقطةٌ على الدفعة لحظة إنشائها، أيّاً كان مسارها (الكفالة،
+         * والخصم الدوري، والتسجيل اليدوي): تغيير النسبة لاحقاً لا يعيد كتابة
+         * ما حُسب على دفعاتٍ مضت، فلا يتبدّل سجلّ الطفل أمام كافله.
+         */
+        static::creating(function (Payment $payment): void {
+            $payment->platform_fee_percent ??= self::currentFeePercent();
+        });
+    }
+
+    /** نسبة التشغيل المعلنة الآن، من الإعدادات. */
+    public static function currentFeePercent(): float
+    {
+        $value = Setting::cached()['finance.platform_fee_percent'] ?? null;
+
+        return is_numeric($value) ? (float) $value : self::DEFAULT_FEE_PERCENT;
+    }
+
+    /** ما يُقتطع من هذه الدفعة للتشغيل، بعملة الأساس. */
+    public function feeBase(): float
+    {
+        return round((float) $this->amount_base * (float) ($this->platform_fee_percent ?? self::DEFAULT_FEE_PERCENT) / 100, 2);
+    }
 
     protected function casts(): array
     {
         return [
             'amount' => 'decimal:2',
             'amount_base' => 'decimal:2',
+            'platform_fee_percent' => 'decimal:2',
             'fx_rate' => 'decimal:6',
             'method' => PaymentMethod::class,
             'status' => PaymentStatus::class,

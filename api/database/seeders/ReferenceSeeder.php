@@ -171,6 +171,7 @@ class ReferenceSeeder extends Seeder
             ['site', 'start_year', '2012', 'number'],
             ['finance', 'base_currency', 'USD', 'string'],
             ['finance', 'overhead_target_percent', '7', 'number'],
+            ['finance', 'platform_fee_percent', '7', 'number'],
             ['policy', 'moderate_messages', 'true', 'boolean'],
             ['policy', 'report_cadence_months', '3', 'number'],
         ];

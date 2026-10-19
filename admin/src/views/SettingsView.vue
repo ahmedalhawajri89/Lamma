@@ -39,7 +39,7 @@ const GROUPS = {
   finance: {
     title: 'المال والشفافية',
     hint: 'ما تُقاس عليه الأرقام المنشورة على صفحة الشفافية.',
-    keys: ['finance.overhead_target_percent'],
+    keys: ['finance.overhead_target_percent', 'finance.platform_fee_percent'],
   },
   reports: {
     title: 'متابعة الأطفال',
@@ -482,6 +482,18 @@ onBeforeUnmount(() => { window.removeEventListener('beforeunload', beforeUnload)
               <p class="text-xs mt-2" :class="overOf(draft['finance.overhead_target_percent']) ? 'text-rose-700' : 'text-sand-600'">
                 {{ overOf(draft['finance.overhead_target_percent']) ? 'بهذا الهدف يصير الفعلي فوقه، ويظهر هكذا في تقارير الشفافية.' : 'الفعلي ضمن هذا الهدف.' }} الخطّ الداكن هو الهدف.
               </p>
+            </div>
+            <div>
+              <label for="sFee" class="block text-sm font-medium text-sand-800 mb-1.5">نسبة التشغيل المقتطعة من كل دفعة</label>
+              <span class="relative block w-32" dir="ltr">
+                <input
+                  id="sFee" v-model.number="draft['finance.platform_fee_percent']" type="text" inputmode="decimal" maxlength="4"
+                  class="input num !pr-8 text-left text-lg" :aria-invalid="Boolean(err('finance.platform_fee_percent'))"
+                />
+                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-sand-500 pointer-events-none">%</span>
+              </span>
+              <p v-if="err('finance.platform_fee_percent')" class="text-xs text-rose-700 mt-1" role="alert">{{ err('finance.platform_fee_percent') }}</p>
+              <p class="text-xs text-sand-500 mt-1.5">تُحفظ على كل دفعة لحظة دفعها، والباقي يُحوَّل لجمعية الطفل. تغييرها يسري على الدفعات الجديدة وحدها، ويراها الكافل قبل أن يكفل.</p>
             </div>
             <p class="text-xs text-sand-500">عملة الأساس <span class="num font-semibold" dir="ltr">{{ view('finance.base_currency') || 'USD' }}</span> ثابتة في إعداد الخادم: كل المبالغ المخزّنة محسوبة بها.</p>
           </div>
