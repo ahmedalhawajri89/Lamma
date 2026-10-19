@@ -33,13 +33,14 @@ class ContinuityFundController extends Controller
         $entries = ContinuityFundEntry::query()
             ->when($request->filled('kind'), fn ($q) => $q->where('kind', $request->string('kind')->toString()))
             ->with(['orphan:id,first_name,reference_code', 'association:id,name_ar', 'sponsorship:id,reference_code', 'recorder:id,name'])
-            ->latest('id')
+            ->orderByDesc('period')
+            ->orderByDesc('id')
             ->paginate($this->perPage($request, 20));
 
         $totals = ContinuityFundEntry::query()->selectRaw('kind, count(*) as n, SUM(amount_base) as total')->groupBy('kind')->get()->keyBy(fn ($r) => $r->kind instanceof FundEntryKind ? $r->kind->value : $r->kind);
         $year = now()->startOfYear();
         $sum = fn (array $kinds, ?Carbon $from = null) => round((float) ContinuityFundEntry::query()
-            ->whereIn('kind', $kinds)->when($from, fn ($q) => $q->where('created_at', '>=', $from))->sum('amount_base'), 2);
+            ->whereIn('kind', $kinds)->when($from, fn ($q) => $q->where('period', '>=', $from->toDateString()))->sum('amount_base'), 2);
 
         return response()->json([
             'data' => collect($entries->items())->map(fn (ContinuityFundEntry $e) => [

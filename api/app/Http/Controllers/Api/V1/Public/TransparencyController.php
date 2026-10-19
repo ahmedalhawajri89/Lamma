@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\V1\Public;
 
 use App\Http\Controllers\Controller;
+use App\Services\ContinuityFund;
 use App\Services\TransparencyService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -34,6 +35,8 @@ class TransparencyController extends Controller
                 'monthly' => $this->transparency->monthly(),
                 'years' => $this->transparency->years(),
                 'documents' => $this->transparency->documents(),
+                // صندوق الاستمرارية: ما غطّى حين تعثّرت أقساط، ومن أين جاء
+                'continuity' => app(ContinuityFund::class)->publicSummary($year),
             ],
         ]);
     }

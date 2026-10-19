@@ -6,6 +6,7 @@ namespace Database\Seeders;
 
 use App\Enums\AssociationStatus;
 use App\Enums\CareArrangement;
+use App\Enums\FundEntryKind;
 use App\Enums\DocumentType;
 use App\Enums\Gender;
 use App\Enums\GuardianRelation;
@@ -21,12 +22,14 @@ use App\Enums\UserRole;
 use App\Models\Association;
 use App\Models\AssociationTransfer;
 use App\Models\City;
+use App\Models\ContinuityFundEntry;
 use App\Models\Country;
 use App\Models\DisbursementCategory;
 use App\Models\Family;
 use App\Models\Orphan;
 use App\Models\Program;
 use App\Models\Sponsor;
+use App\Models\Sponsorship;
 use App\Models\User;
 use App\Services\TransferPreparer;
 use Illuminate\Database\Seeder;
@@ -94,6 +97,9 @@ class DemoSeeder extends Seeder
         $this->command->info('  · الصرف والتقارير والزيارات…');
         $this->disbursements($orphanIds, $staff);
         $this->reportsAndVisits($orphanIds, $staff, $sponsorIds);
+
+        $this->command->info('  · صندوق الاستمرارية…');
+        $this->continuity($staff);
 
         $this->command->info('  · التحويلات للجمعيات…');
         $this->transfers($staff);
@@ -693,6 +699,92 @@ class DemoSeeder extends Seeder
                 'card_brand' => $card->card_brand,
                 'card_last4' => $card->card_last4,
             ]);
+        }
+    }
+
+    /* ==================================================================== */
+
+    /**
+     * صندوق الاستمرارية كما سيكون بعد سنتين من العمل: تبرّعان له، وأشهرٌ
+     * غطّاها لكفالاتٍ تعثّرت ثم عادت، وكفالتان متعثّرتان الآن (إحداهما تُعاد
+     * محاولاتها، والأخرى غطّاها الصندوق هذا الشهر). وحصته الشهرية من التشغيل
+     * يقيّدها تجهيز التحويلات بعده. والكافل التجريبي بلا تعثّر: بوابته نظيفة.
+     *
+     * الشهر الذي غطّاه الصندوق تصير دفعته فيه مرفوضة: لا دفعة وتغطية معاً.
+     *
+     * @param  array{admin:int, accountant:int, supervisors:array<int,int>}  $staff
+     */
+    private function continuity(array $staff): void
+    {
+        $now = Carbon::now();
+        foreach ([[8, 1500, 'تبرّع مؤسسة الخير للتنمية، حوالة 4471'], [3, 800, 'تبرّع فاعل خير، حوالة 9025']] as [$back, $amount, $note]) {
+            $at = $now->copy()->startOfMonth()->subMonthsNoOverflow($back)->addDays(9);
+            ContinuityFundEntry::forceCreate([
+                'kind' => FundEntryKind::Donation, 'amount_base' => $amount, 'period' => $at->copy()->startOfMonth(),
+                'note' => $note, 'recorded_by' => $staff['accountant'], 'created_at' => $at, 'updated_at' => $at,
+            ]);
+        }
+
+        $demoSponsor = Sponsor::whereHas('user', fn ($q) => $q->where('email', 'sponsor@lamma.org'))->value('id');
+        $candidates = Sponsorship::query()
+            ->where('status', SponsorshipStatus::Active)
+            ->where('interval_months', 1)
+            ->where('sponsor_id', '!=', $demoSponsor)
+            ->whereDate('started_at', '<', $now->copy()->subMonths(10))
+            ->with('orphan.family:id,association_id')
+            ->inRandomOrder()
+            ->limit(20)
+            ->get();
+
+        // يرفض دفعة الكفالة في شهرٍ ما: البنك ردّها، فلا مالٌ وصل منها
+        $decline = function (Sponsorship $s, Carbon $month): void {
+            DB::table('payments')
+                ->where('sponsorship_id', $s->id)
+                ->where('created_at', '>=', $month->copy()->startOfMonth())
+                ->where('created_at', '<', $month->copy()->startOfMonth()->addMonth())
+                ->update(['status' => PaymentStatus::Failed->value, 'paid_at' => null, 'receipt_number' => null, 'failure_reason' => 'رفض البنك الخصم. رصيد غير كافٍ أو بطاقة منتهية.']);
+        };
+        // الصندوق يغطّي بعد 14 يوماً من استحقاقٍ رُفض، في تشغيله الليلي
+        $grant = function (Sponsorship $s, Carbon $month) use ($decline, $now): void {
+            $decline($s, $month);
+            $at = $month->copy()->startOfMonth()->setDay(min(28, $s->billing_day))->addDays(14)->setTime(2, 30)->min($now);
+            ContinuityFundEntry::forceCreate([
+                'kind' => FundEntryKind::Grant, 'amount_base' => $s->monthly_amount, 'period' => $month->copy()->startOfMonth(),
+                'sponsorship_id' => $s->id, 'orphan_id' => $s->orphan_id, 'association_id' => $s->orphan?->family?->association_id,
+                'note' => "قسط {$s->reference_code} المتعثّر", 'created_at' => $at, 'updated_at' => $at,
+            ]);
+        };
+
+        // تعثّرت ثم عادت: شهرٌ أو اثنان غطّاهما الصندوق قبل أشهر
+        foreach ($candidates->take(5)->values() as $i => $s) {
+            $back = [9, 7, 6, 4, 2][$i];
+            foreach (range(0, $i % 2) as $extra) {
+                $grant($s, $now->copy()->startOfMonth()->subMonthsNoOverflow($back - $extra));
+            }
+        }
+
+        // متعثّرة الآن، تُعاد محاولاتها
+        $failing = $candidates->get(5);
+        if ($failing) {
+            $due = $now->copy()->startOfMonth()->setDay(min($failing->billing_day, 28));
+            if ($due->isFuture()) {
+                $due->subMonthNoOverflow();
+            }
+            $decline($failing, $due);
+            $failing->forceFill([
+                'next_due_at' => $due, 'gateway_payment_method' => 'pm_demo_decline', 'card_last4' => '0002',
+                'payment_issue_since' => $due, 'payment_failures' => $due->diffInDays($now) >= 3 ? 2 : 1,
+                'next_retry_at' => $due->copy()->addDays($due->diffInDays($now) >= 3 ? 7 : 3)->max($now->copy()->addDay()),
+            ])->save();
+        }
+
+        // غطّاها الصندوق هذا الشهر بعد أن استنفدت محاولاتها
+        // قسطها هذا الشهر لم يحن بعد، فتبقى «يغطّيها الصندوق» لا متعثّرةً من جديد
+        $covered = $candidates->slice(6)->first(fn (Sponsorship $s) => $s->billing_day > $now->day)
+            ?? $candidates->get(6);
+        if ($covered) {
+            $grant($covered, $now->copy()->startOfMonth()->subMonthNoOverflow());
+            $covered->forceFill(['gateway_payment_method' => 'pm_demo_decline', 'card_last4' => '0002'])->save();
         }
     }
 

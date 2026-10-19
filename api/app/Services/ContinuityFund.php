@@ -47,6 +47,31 @@ final class ContinuityFund
         return (int) config('kafala.continuity.max_months', 3);
     }
 
+    /**
+     * ما يُنشر على صفحة الشفافية: الرصيد، وما دخل وما غطّى في السنة، وكم
+     * طفلاً لم ينقطع عنه شيء بفضله. أرقامٌ من القيود نفسها.
+     *
+     * @return array<string, mixed>
+     */
+    public function publicSummary(int $year): array
+    {
+        $from = Carbon::create($year, 1, 1)->startOfDay();
+        $to = $from->copy()->addYear();
+        // بشهر القيد لا بيوم كتابته: حصة ديسمبر تُقيَّد أول يناير وهي من سنتها
+        $inYear = fn (array $kinds) => ContinuityFundEntry::query()->whereIn('kind', $kinds)->whereBetween('period', [$from->toDateString(), $to->copy()->subDay()->toDateString()]);
+
+        return [
+            'year' => $year,
+            'balance' => ContinuityFundEntry::balance(),
+            'percent' => self::percent(),
+            'max_months' => self::maxMonths(),
+            'in' => round((float) $inYear([FundEntryKind::Share->value, FundEntryKind::Donation->value])->sum('amount_base'), 2),
+            'covered' => round((float) $inYear([FundEntryKind::Grant->value])->sum('amount_base'), 2),
+            'months_covered' => $inYear([FundEntryKind::Grant->value])->count(),
+            'children' => $inYear([FundEntryKind::Grant->value])->distinct()->count('orphan_id'),
+        ];
+    }
+
     /** حصة الشهر من التشغيل: تُعاد بأمان، فتُحدَّث بما استجدّ من دفعاته. */
     public function accrueShare(Carbon $month): ?ContinuityFundEntry
     {

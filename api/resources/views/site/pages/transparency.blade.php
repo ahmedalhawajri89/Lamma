@@ -86,7 +86,11 @@
           <div class="tp-stack" id="tpStack" role="img" aria-label="توزيع الصرف على البنود"></div>
           <ul class="tp-legend" id="tpLegend" role="list"></ul>
         </div>
-        <aside class="tp-overhead" id="tpOverhead" aria-label="نسبة التشغيل"></aside>
+        <div class="tp-where__side">
+          <aside class="tp-overhead" id="tpOverhead" aria-label="نسبة التشغيل"></aside>
+          {{-- صندوق الاستمرارية: يظهر حين يكون له رصيدٌ أو حركة --}}
+          <aside class="tp-overhead tp-fund" id="tpFund" aria-labelledby="tpFundTitle" hidden></aside>
+        </div>
       </div>
     </section>
 

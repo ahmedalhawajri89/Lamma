@@ -76,6 +76,7 @@ export function initTransparency() {
     renderMonthly(d.monthly ?? []);
     renderStack(d.spending ?? [], d.annual?.spent ?? 0);
     renderOverhead(d.overhead, d.annual);
+    renderFund(d.continuity);
     renderDocs(d.documents ?? []);
     animated = true;
   }
@@ -281,6 +282,29 @@ export function initTransparency() {
         رواتب المشرفين والنقل والمكتب، من <span class="num">${usd(annual?.spent ?? 0)}</span> صُرفت هذه السنة.
       </p>`;
     observeOnce([host], () => host.classList.add('is-in'), { threshold: 0.3 });
+  }
+
+  /* ── صندوق الاستمرارية: ما غطّى حين تعثّرت أقساط ── */
+  function renderFund(f) {
+    const host = $('#tpFund');
+    if (!host) return;
+    host.hidden = !f || (!f.balance && !f.in && !f.covered);
+    if (host.hidden) return;
+    host.innerHTML = `
+      <div class="tp-fund__head">
+        <i class="fa-solid fa-shield-heart" aria-hidden="true"></i>
+        <h3 id="tpFundTitle">صندوق الاستمرارية</h3>
+      </div>
+      <dl class="tp-fund__stats">
+        <div><dt>غطّى في <span class="num">${f.year}</span></dt><dd class="num">${usd(f.covered)}</dd></div>
+        <div><dt>أطفالٌ لم ينقطع عنهم شيء</dt><dd class="num">${formatNumber(f.children)}</dd></div>
+        <div><dt>دخله في <span class="num">${f.year}</span></dt><dd class="num">${usd(f.in)}</dd></div>
+        <div><dt>رصيده الآن</dt><dd class="num">${usd(f.balance)}</dd></div>
+      </dl>
+      <p class="tp-overhead__text">
+        حين يتعثّر قسط كافلٍ ولا يُحلّ، يغطّي الصندوق شهر الطفل فيصله ما يحتاجه، حتى
+        <span class="num">${formatNumber(f.max_months)}</span> أشهر. يدخله <span class="num">${f.percent}%</span> من كل ما يصل، من نسبة التشغيل نفسها لا فوقها، وتبرّعاتٌ له.
+      </p>`;
   }
 
   /* ── الوثائق: المرفوع بزرّ تحميل حقيقي، وغيره يُقال عنه ذلك ── */
