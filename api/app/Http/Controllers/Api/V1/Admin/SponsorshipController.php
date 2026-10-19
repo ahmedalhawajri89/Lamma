@@ -17,6 +17,7 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use App\Support\StaffScope;
 
 class SponsorshipController extends Controller
 {
@@ -104,11 +105,8 @@ class SponsorshipController extends Controller
         $tz = config('kafala.display_timezone');
 
         return Sponsorship::query()
-            // المشرف يرى كفالات أيتام بلده وحده
-            ->when(
-                $user->assignedCountryId() !== null && ! $user->isAdmin(),
-                fn ($q) => $q->whereHas('orphan.family', fn ($f) => $f->where('country_id', $user->assignedCountryId())),
-            )
+            // المشرف يرى كفالات أيتام بلده (أو جمعيته) وحدها
+            ->tap(fn ($q) => StaffScope::for($user)->through($q, 'orphan.family'))
             // الحيّة كلها: بانتظار الدفع ونشطة وموقوفة (لقائمة الدفعة اليدوية)
             ->when($request->boolean('live'), fn ($q) => $q->whereIn('status', [SponsorshipStatus::Pending, SponsorshipStatus::Active, SponsorshipStatus::Paused]))
             ->when($request->filled('program_id'), fn ($q) => $q->where('program_id', $request->integer('program_id')))
@@ -139,11 +137,8 @@ class SponsorshipController extends Controller
         $user = $request->user();
         $sponsorship->load('orphan.family.country');
 
-        abort_unless(
-            $user->assignedCountryId() === null || $user->isAdmin()
-                || $sponsorship->orphan?->family?->country_id === $user->assignedCountryId(),
-            404,
-        );
+        $scope = StaffScope::for($user);
+        abort_unless($scope->isUnrestricted() || $scope->allowsFamily($sponsorship->orphan?->family), 404);
 
         if ($user->can('sponsors.view')) {
             $sponsorship->load('sponsor.user');

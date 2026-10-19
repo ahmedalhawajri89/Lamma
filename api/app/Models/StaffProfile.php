@@ -26,7 +26,11 @@ class StaffProfile extends Model
         return $this->belongsTo(User::class);
     }
 
-    /** الجمعية التي يعمل لها الموظف؛ فارغة لموظف المنصة. @return BelongsTo<Association, $this> */
+    /**
+     * الجمعية التي يعمل لها الموظف؛ فارغة لموظف المنصة.
+     *
+     * @return BelongsTo<Association, $this>
+     */
     public function association(): BelongsTo
     {
         return $this->belongsTo(Association::class);

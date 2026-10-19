@@ -20,6 +20,7 @@ use App\Services\WorkQueueService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Spatie\Activitylog\Models\Activity;
+use App\Support\StaffScope;
 
 /**
  * لوحة الإدارة.
@@ -51,22 +52,22 @@ class DashboardController extends Controller
         $this->authorize('viewAny', Orphan::class);
 
         $user = $request->user();
-        $country = $user->isAdmin() ? null : $user->assignedCountryId();
+        $scope = StaffScope::for($user);
         $analytics = $user->can('analytics.view');
         $months = min(24, max(6, $request->integer('months', 12)));
 
         return response()->json([
             'data' => [
-                'scope' => $this->scope($user, $country),
+                'scope' => $this->scope($user, $scope),
 
                 // لوحة المحاسب: مال الشهر وما يُتابَع منه
                 'finance' => $user->hasRole(UserRole::Accountant->value) ? app(FinanceDashboardService::class)->build() : null,
 
                 // لوحة المشرف الميداني: زيارات بلده وتقاريره وملفاته
-                'field' => $user->hasRole(UserRole::FieldSupervisor->value) && $country !== null
+                'field' => $user->hasRole(UserRole::FieldSupervisor->value) && ! $scope->isUnrestricted()
                     ? app(SupervisorDashboardService::class)->build($user) : null,
                 'tasks' => $this->queue->tasks($user),
-                'kpis' => $this->kpis($user, $country),
+                'kpis' => $this->kpis($user, $scope),
 
                 // التحليلات لمن يملكها؛ غيره يستلم قوائم فارغة فلا تُرسم مخططاتها
                 'monthly' => $analytics ? $this->metrics->monthlySeries($months) : [],
@@ -79,13 +80,9 @@ class DashboardController extends Controller
                     : [],
 
                 'urgent_cases' => OrphanResource::collection(
-                    Orphan::query()
+                    $scope->through(Orphan::query(), 'family')
                         ->urgentUnfunded()
                         ->where('status', OrphanStatus::Active)
-                        ->when($country !== null, fn ($q) => $q->whereHas(
-                            'family',
-                            fn ($f) => $f->where('country_id', $country),
-                        ))
                         ->with(['program', 'family', 'family.country'])
                         ->orderBy('funded_percent')
                         ->orderBy('published_at')
@@ -119,7 +116,7 @@ class DashboardController extends Controller
     }
 
     /** @return array<string, mixed> */
-    private function scope(User $user, ?int $country): array
+    private function scope(User $user, StaffScope $scope): array
     {
         $role = collect([UserRole::Admin, UserRole::Accountant, UserRole::FieldSupervisor])
             ->first(fn (UserRole $r) => $user->hasRole($r->value));
@@ -127,16 +124,18 @@ class DashboardController extends Controller
         return [
             'role' => $role?->value,
             'role_label' => $role?->label(),
-            'country' => $country !== null ? $user->staffProfile?->assignedCountry?->name_ar : null,
+            'country' => $scope->countryId ? \App\Models\Country::whereKey($scope->countryId)->value('name_ar') : null,
+            // موظف الجمعية يرى اسم جمعيته فوق لوحته
+            'association' => $scope->associationId ? $user->staffProfile?->association?->name_ar : null,
         ];
     }
 
     /** @return array<string, mixed> */
-    private function kpis(User $user, ?int $country): array
+    private function kpis(User $user, StaffScope $scope): array
     {
-        // المشرف (بلد مُسنَد وبلا تحليلات): أرقام بلده وحدها، بلا مال
-        if ($country !== null && ! $user->can('analytics.view')) {
-            return $this->metrics->countryKpis($country);
+        // المشرف (بلد أو جمعية، بلا تحليلات): أرقام نطاقه وحدها، بلا مال
+        if (! $scope->isUnrestricted() && ! $user->can('analytics.view')) {
+            return $this->metrics->scopedKpis($scope);
         }
 
         $kpis = $this->metrics->kpis();

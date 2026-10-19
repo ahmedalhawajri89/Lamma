@@ -19,6 +19,7 @@ use App\Models\Report;
 use App\Models\Sponsorship;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
+use App\Support\StaffScope;
 
 /**
  * «بانتظارك»: ما ينتظر قراراً من هذا الموظف بالذات اليوم.
@@ -35,12 +36,10 @@ class WorkQueueService
     /** @return array<int, array<string, mixed>> */
     public function tasks(User $user): array
     {
-        $country = $user->isAdmin() ? null : $user->assignedCountryId();
+        $scope = StaffScope::for($user);
 
-        // يقيّد أي استعلام يمرّ بالطفل ببلد المشرف
-        $inCountry = fn (Builder $q, string $path = 'family') => $country === null
-            ? $q
-            : $q->whereHas($path, fn ($f) => $f->where('country_id', $country));
+        // يقيّد أي استعلام يمرّ بالطفل ببلد المشرف أو جمعيته
+        $inCountry = fn (Builder $q, string $path = 'family') => $scope->through($q, $path);
 
         $tasks = [];
 
@@ -178,8 +177,8 @@ class WorkQueueService
             );
         }
 
-        // العاجل بلا تمويل يخصّ المشرف في بلده؛ المدير يراه في قسم الحالات العاجلة
-        if ($country !== null && $user->can('orphans.view')) {
+        // العاجل بلا تمويل يخصّ المشرف في نطاقه؛ المدير يراه في قسم الحالات العاجلة
+        if (! $scope->isUnrestricted() && $user->can('orphans.view')) {
             $tasks[] = $this->task(
                 'orphans_urgent',
                 $inCountry(Orphan::urgentUnfunded()->where('status', OrphanStatus::Active))->count(),

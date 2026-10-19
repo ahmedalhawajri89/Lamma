@@ -14,6 +14,7 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use App\Support\StaffScope;
 
 /**
  * لوحة المشرف الميداني: عمل الأسبوع في بلده.
@@ -32,12 +33,13 @@ class SupervisorDashboardService
     /** @return array<string, mixed> */
     public function build(User $user): array
     {
-        $country = $user->assignedCountryId();
+        $scope = StaffScope::for($user);
         $tz = config('kafala.display_timezone');
         $now = Carbon::now($tz);
         $today = $now->toDateString();
 
-        $inCountry = fn (Builder $q) => $q->whereHas('family', fn ($f) => $f->where('country_id', $country));
+        // نطاق المشرف: بلده، أو جمعيته لموظف الجمعية (StaffScope)
+        $inCountry = fn (Builder $q) => $q->whereHas('family', fn ($f) => $scope->families($f));
         $children = fn () => $inCountry(Orphan::query()->whereIn('orphans.status', self::LIVE));
 
         return [

@@ -22,6 +22,7 @@ use App\Models\Sponsorship;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use App\Support\StaffScope;
 
 /**
  * تحليلات لوحة الإدارة.
@@ -120,10 +121,10 @@ class MetricsService
      *
      * @return array<string, int>
      */
-    public function countryKpis(int $countryId): array
+    public function scopedKpis(StaffScope $scope): array
     {
-        $orphans = fn () => Orphan::query()->whereHas('family', fn ($f) => $f->where('country_id', $countryId));
-        $visits = fn () => FieldVisit::query()->whereHas('orphan.family', fn ($f) => $f->where('country_id', $countryId));
+        $orphans = fn () => $scope->through(Orphan::query(), 'family');
+        $visits = fn () => $scope->through(FieldVisit::query(), 'orphan.family');
 
         return [
             'orphans_total' => $orphans()->count(),

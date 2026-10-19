@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Support\StaffScope;
 
 class ReportController extends Controller
 {
@@ -63,12 +64,7 @@ class ReportController extends Controller
     /** نطاق من يرى: المشرف بلده وحده، وهو قيد `ReportPolicy::view` نفسه */
     private function scoped(Request $request): Builder
     {
-        $user = $request->user();
-        $country = $user->isAdmin() ? null : $user->assignedCountryId();
-
-        return Report::query()->when($country !== null, fn ($q) => $q->whereHas(
-            'orphan.family', fn ($f) => $f->where('country_id', $country),
-        ));
+        return StaffScope::for($request->user())->through(Report::query(), 'orphan.family');
     }
 
     /** الفلاتر المشتركة بين الجدول وعدّاداته، عدا الحالة */
@@ -100,12 +96,10 @@ class ReportController extends Controller
         $year = $request->integer('year') ?: $now->year;
         $quarter = $request->integer('quarter') ?: $now->quarter;
 
-        $user = $request->user();
-        $country = $user->isAdmin() ? null : $user->assignedCountryId();
-
-        $orphans = Orphan::query()
-            ->whereIn('status', [OrphanStatus::Active, OrphanStatus::FullyFunded])
-            ->when($country !== null, fn ($q) => $q->whereHas('family', fn ($f) => $f->where('country_id', $country)));
+        $orphans = StaffScope::for($request->user())->through(
+            Orphan::query()->whereIn('status', [OrphanStatus::Active, OrphanStatus::FullyFunded]),
+            'family',
+        );
 
         $byStatus = Report::query()
             ->whereIn('orphan_id', (clone $orphans)->select('id'))

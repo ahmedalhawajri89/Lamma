@@ -19,6 +19,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use App\Support\StaffScope;
 
 class FamilyController extends Controller
 {
@@ -65,11 +66,7 @@ class FamilyController extends Controller
      */
     private function filtered(Request $request): \Illuminate\Database\Eloquent\Builder
     {
-        $query = Family::query();
-
-        if (($countryId = $request->user()->assignedCountryId()) !== null && ! $request->user()->isAdmin()) {
-            $query->where('country_id', $countryId);
-        }
+        $query = StaffScope::for($request->user())->families(Family::query());
 
         return $query
             ->when($request->filled('q'), fn ($q) => $q->where(function ($w) use ($request): void {
@@ -89,7 +86,7 @@ class FamilyController extends Controller
 
         // المشرف الميداني لا يرى أسرة خارج بلده، وفيها بيانات الوصي وهاتفه.
         // 404 لا 403: لا نؤكّد وجود سجل لمن لا يحقّ له رؤيته
-        abort_unless($this->inScope($request, $family->country_id), 404);
+        abort_unless(StaffScope::for($request->user())->allowsFamily($family), 404);
 
         return response()->json([
             'data' => new FamilyResource($family->load([
@@ -178,7 +175,7 @@ class FamilyController extends Controller
     public function update(Request $request, Family $family): JsonResponse
     {
         abort_unless($request->user()->can('families.manage'), 403);
-        abort_unless($this->inScope($request, $family->country_id), 404);
+        abort_unless(StaffScope::for($request->user())->allowsFamily($family), 404);
 
         $validated = $request->validate([
             'country_id' => ['sometimes', 'integer', 'exists:countries,id'],
@@ -278,18 +275,11 @@ class FamilyController extends Controller
      * المشرف الميداني مقيَّد ببلده المُسنَد، كما في `OrphanPolicy`.
      * المدير والمحاسب بلا بلد مُسنَد، فيريان الجميع.
      */
-    private function inScope(Request $request, ?int $countryId): bool
-    {
-        $user = $request->user();
-        $assigned = $user->assignedCountryId();
-
-        return $assigned === null || $user->isAdmin() || $countryId === $assigned;
-    }
 
     /** لا يُنشئ المشرف أسرة في بلد آخر، ولا ينقل أسرة إليه. */
     private function ensureCountryAllowed(Request $request, int $countryId): void
     {
-        if (! $this->inScope($request, $countryId)) {
+        if (! StaffScope::for($request->user())->allowsCountry($countryId)) {
             throw ValidationException::withMessages([
                 'country_id' => 'لا يمكنك إضافة أسرة أو نقلها إلى بلد خارج منطقتك.',
             ]);

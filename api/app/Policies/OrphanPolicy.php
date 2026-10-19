@@ -8,6 +8,7 @@ use App\Enums\OrphanStatus;
 use App\Models\Family;
 use App\Models\Orphan;
 use App\Models\User;
+use App\Support\StaffScope;
 
 /**
  * صلاحيات ملف اليتيم.
@@ -41,13 +42,9 @@ class OrphanPolicy
             return false;
         }
 
-        $assigned = $user->assignedCountryId();
+        $scope = StaffScope::for($user);
 
-        if ($assigned === null || $user->isAdmin() || $family === null) {
-            return true;
-        }
-
-        return $family->country_id === $assigned;
+        return $scope->isUnrestricted() || $family === null || $scope->allowsFamily($family);
     }
 
     public function update(User $user, Orphan $orphan): bool
@@ -85,14 +82,12 @@ class OrphanPolicy
      */
     private function withinScope(User $user, Orphan $orphan): bool
     {
-        $assigned = $user->assignedCountryId();
+        $scope = StaffScope::for($user);
 
-        if ($assigned === null || $user->isAdmin()) {
+        if ($scope->isUnrestricted()) {
             return true;
         }
 
-        return $orphan->relationLoaded('family')
-            ? $orphan->family?->country_id === $assigned
-            : $orphan->family()->value('country_id') === $assigned;
+        return $scope->allowsFamily($orphan->relationLoaded('family') ? $orphan->family : $orphan->family()->first());
     }
 }

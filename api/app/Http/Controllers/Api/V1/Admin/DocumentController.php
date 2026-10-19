@@ -17,6 +17,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use App\Support\StaffScope;
 
 /**
  * مستندات التحقق.
@@ -106,15 +107,11 @@ class DocumentController extends Controller
      */
     private function pending(Request $request): Builder
     {
-        $user = $request->user();
-        $country = $user->isAdmin() ? null : $user->assignedCountryId();
-
-        return OrphanDocument::query()
+        $query = OrphanDocument::query()
             ->whereNull('verified_at')
-            ->whereNull('rejected_at')
-            ->when($country !== null, fn ($q) => $q->whereHas(
-                'orphan.family', fn ($f) => $f->where('country_id', $country),
-            ))
+            ->whereNull('rejected_at');
+
+        return StaffScope::for($request->user())->through($query, 'orphan.family')
             ->when($request->filled('q'), fn ($q) => $q->whereHas('orphan', fn ($o) => $o->search($request->string('q')->toString())));
     }
 

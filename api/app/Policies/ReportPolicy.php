@@ -7,6 +7,7 @@ namespace App\Policies;
 use App\Enums\ReportStatus;
 use App\Models\Report;
 use App\Models\User;
+use App\Support\StaffScope;
 
 class ReportPolicy
 {
@@ -86,12 +87,9 @@ class ReportPolicy
      */
     private function withinScope(User $user, Report $report): bool
     {
-        $assigned = $user->assignedCountryId();
+        $scope = StaffScope::for($user);
 
-        if ($assigned === null || $user->isAdmin()) {
-            return true;
-        }
-
-        return $report->orphan()->whereHas('family', fn ($f) => $f->where('country_id', $assigned))->exists();
+        return $scope->isUnrestricted()
+            || $scope->through($report->orphan()->getQuery(), 'family')->exists();
     }
 }

@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use App\Support\StaffScope;
 
 class OrphanController extends Controller
 {
@@ -104,11 +105,7 @@ class OrphanController extends Controller
      */
     private function filtered(Request $request): Builder
     {
-        $query = Orphan::query()->search($request->string('q')->toString());
-
-        if (($countryId = $request->user()->assignedCountryId()) !== null && ! $request->user()->isAdmin()) {
-            $query->whereHas('family', fn ($q) => $q->where('country_id', $countryId));
-        }
+        $query = StaffScope::for($request->user())->through(Orphan::query()->search($request->string('q')->toString()), 'family');
 
         return $query
             ->when($request->filled('program_id'), fn ($q) => $q->where('program_id', $request->integer('program_id')))

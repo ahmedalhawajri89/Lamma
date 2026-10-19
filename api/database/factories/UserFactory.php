@@ -62,6 +62,22 @@ class UserFactory extends Factory
         });
     }
 
+    /** مشرف ميداني لجمعية شريكة: نطاقه أسر جمعيته، بلا بلد مُسنَد (StaffScope). */
+    public function associationSupervisor(int $associationId): static
+    {
+        return $this->afterCreating(function (User $user) use ($associationId): void {
+            $user->assignRole(UserRole::FieldSupervisor->value);
+
+            StaffProfile::create([
+                'user_id' => $user->id,
+                'employee_code' => 'EMP-'.fake()->unique()->numberBetween(1000, 9999),
+                'title' => 'مشرف ميداني في الجمعية',
+                'association_id' => $associationId,
+                'hired_at' => now()->subYear(),
+            ]);
+        });
+    }
+
     public function suspended(): static
     {
         return $this->state(fn () => ['status' => UserStatus::Suspended]);

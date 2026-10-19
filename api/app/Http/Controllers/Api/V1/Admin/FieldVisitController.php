@@ -14,6 +14,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use App\Support\StaffScope;
 
 class FieldVisitController extends Controller
 {
@@ -22,13 +23,7 @@ class FieldVisitController extends Controller
         abort_unless($request->user()->can('visits.view'), 403);
 
         // المشرف يرى زيارات بلده وحده، والعدّاد «متأخرة» يتبع القائمة نفسها
-        $scoped = fn () => FieldVisit::query()->when(
-            $request->user()->assignedCountryId() !== null && ! $request->user()->isAdmin(),
-            fn ($q) => $q->whereHas(
-                'orphan.family',
-                fn ($f) => $f->where('country_id', $request->user()->assignedCountryId()),
-            ),
-        );
+        $scoped = fn () => StaffScope::for($request->user())->through(FieldVisit::query(), 'orphan.family');
 
         $visits = $scoped()
             ->withHasLater()
@@ -94,10 +89,7 @@ class FieldVisitController extends Controller
 
         $base = Orphan::query()
             ->whereIn('orphans.status', [OrphanStatus::Active, OrphanStatus::FullyFunded, OrphanStatus::PendingVerification])
-            ->when(
-                $request->user()->assignedCountryId() !== null && ! $request->user()->isAdmin(),
-                fn ($q) => $q->whereHas('family', fn ($f) => $f->where('country_id', $request->user()->assignedCountryId())),
-            )
+            ->tap(fn ($q) => StaffScope::for($request->user())->through($q, 'family'))
             ->when($request->filled('q'), fn ($q) => $q->search($request->string('q')->toString()));
 
         // الموعد القادم = آخر زيارة، والطفل بلا زيارة «لم يُزر»
