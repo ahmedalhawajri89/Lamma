@@ -158,6 +158,16 @@ class Sponsorship extends Model
 
     /* ---------------------------------------------------------- القسط المتعثّر */
 
+    /**
+     * مفتاح القسط المستحق: من شهر الاستحقاق لا من شهر التشغيل. قسط سبتمبر
+     * المتعثّر إن حُصّل في أكتوبر كان يأخذ مفتاح أكتوبر، فيُحسب قسط أكتوبر
+     * نفسه «مسجّلاً من قبل» ولا يُخصم.
+     */
+    public function dueKey(): string
+    {
+        return hash('sha256', "{$this->id}-".($this->next_due_at ?? now())->format('Y-m'));
+    }
+
     /** محاولات الخصم في التعثّر الواحد: الأولى، ثم بعد كل فجوة في retry_after_days. */
     public static function maxPaymentAttempts(): int
     {

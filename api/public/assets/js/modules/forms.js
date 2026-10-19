@@ -137,7 +137,7 @@ function setError(input, message) {
 }
 
 /** تشغيل قواعد حقل واحد. الترتيب مهم: "مطلوب" أولاً. */
-function validateInput(input) {
+export function validateInput(input) {
   // حقلٌ معطّل خارج النموذج الآن (حقول البطاقة حين يُختار التحويل)
   if (input.disabled) {
     setError(input, '');
@@ -464,6 +464,19 @@ async function submit(form, button, original) {
       toast(error.message ?? t('تعذّر إتمام الطلب.'), 'error');
     }
   }
+}
+
+/**
+ * «الترميز»: في البوابة الحقيقية تحوّل حقولها المستضافة الرقمَ إلى رمز قبل أن
+ * يصل صفحتنا. وفي الوضع التجريبي نحاكي ذلك ببطاقتي الاختبار. في الحالتين
+ * لا يُرسَل الرقم إلى خادمنا. تستعمله صفحة الكفالة وتحديث البطاقة في البوابة.
+ */
+export function tokenizeCard(number) {
+  const digits = number.replace(/\D/g, '');
+  const token = digits === '4000000000000002'
+    ? 'tok_demo_decline'
+    : digits === '4242424242424242' ? 'tok_demo_ok' : 'tok_demo_invalid';
+  return { token, last4: digits.slice(-4), brand: digits.startsWith('4') ? 'فيزا' : digits.startsWith('5') ? 'ماستركارد' : 'بطاقة' };
 }
 
 /* =========================================================================

@@ -704,5 +704,6 @@
     "رفض البنك الخصم. رصيد غير كافٍ أو بطاقة منتهية.": "The bank declined the charge: insufficient funds or an expired card.",
     "البطاقة المحفوظة غير صالحة.": "The saved card is no longer valid.",
     "لا بطاقة محفوظة لهذه الكفالة. تواصل مع الكافل ليحدّث وسيلة الدفع.": "There is no saved card for this sponsorship.",
-    "رصيد غير كافٍ": "Insufficient funds"
+    "رصيد غير كافٍ": "Insufficient funds",
+    "وصل قسط هذا الموعد من قبل. حدّث الصفحة.": "This payment has already been received. Refresh the page."
 }

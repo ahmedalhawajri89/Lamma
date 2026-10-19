@@ -135,3 +135,21 @@ it('دفعةٌ يسجّلها المحاسب تُنهي التعثّر أيضا�
 
     expect($s->fresh()->hasPaymentIssue())->toBeFalse();
 });
+
+it('قسط الشهر الماضي المتعثّر إن حُصّل هذا الشهر لا يحجب قسط هذا الشهر', function () {
+    Mail::fake();
+    $this->travelTo(now()->startOfMonth()->addDays(9));
+    // استحقّ قبل شهر ولم يُدفع: قسطان مستحقان، كلٌّ بمفتاح شهره
+    $s = decliningSponsorship([
+        'gateway_payment_method' => 'pm_demo_saved',
+        'billing_day' => 5,
+        'next_due_at' => now()->subMonthNoOverflow()->setDay(5),
+    ]);
+
+    $this->artisan('billing:run')->assertSuccessful();
+    expect($s->fresh()->next_due_at->isSameMonth(now()))->toBeTrue();
+
+    $this->artisan('billing:run')->assertSuccessful();
+    expect(Payment::where('sponsorship_id', $s->id)->where('status', PaymentStatus::Succeeded)->count())->toBe(2)
+        ->and($s->fresh()->next_due_at->isFuture())->toBeTrue();
+});

@@ -278,6 +278,13 @@ a.pt-row:hover { background: var(--color-canvas); }
 .pt-kid__state { display: flex; gap: 0.6rem; margin: 0; padding: 0.7rem 0.85rem; border-radius: var(--radius-md); background: var(--color-surface-alt); font-size: 0.85rem; line-height: 1.7; }
 .pt-kid__state i { margin-block-start: 0.3rem; }
 .pt-kid__state--wait { background: var(--color-cta-soft); color: var(--color-cta-strong); }
+.pt-kid__state--bad { background: var(--color-urgent-soft); color: var(--color-urgent); }
+.pt-kid__state--bad .btn { margin-inline-start: auto; align-self: center; flex-shrink: 0; }
+.pt-card-sum { margin-block: 1rem; }
+#cardModal .co-demo { display: flex; align-items: flex-start; gap: 0.6rem; margin: 0 0 1rem; padding: 0.85rem 1rem; border: 1px dashed var(--color-cta); border-radius: var(--radius-lg); background: var(--color-cta-soft); color: var(--color-text); font-size: 0.85rem; line-height: 1.7; }
+#cardModal .co-demo[hidden] { display: none; }
+#cardModal .co-demo .num { white-space: nowrap; }
+#cardModal .co-demo i { margin-block-start: 0.25rem; color: var(--color-cta-strong); }
 
 .pt-kid__facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 0; border: 1px solid var(--color-border); border-radius: var(--radius-md); }
 .pt-kid__facts > div { padding: 0.65rem 0.8rem; }

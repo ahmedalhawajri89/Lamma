@@ -434,6 +434,56 @@
   </div>
 
   {{-- ══ نافذة بيانات التحويل للحجز ══ --}}
+  {{-- القسط المتعثّر: بطاقة جديدة يُخصم بها فوراً وتُحفظ للأشهر القادمة --}}
+  <div class="modal fade" id="cardModal" tabindex="-1" aria-labelledby="cardTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <form class="modal-content pt-modal" data-card-form novalidate method="post" action="#">
+        <div class="modal-header">
+          <h2 class="modal-title" id="cardTitle">قسط <span data-card="name"></span></h2>
+          <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+        </div>
+        <div class="modal-body">
+          <p class="pt-kid__state pt-kid__state--bad" data-card="issue">
+            <i class="fa-solid fa-credit-card" aria-hidden="true"></i>
+            <span data-card="issue-text"></span>
+          </p>
+          <dl class="pt-bank pt-card-sum">
+            <div><dt>يُخصم الآن</dt><dd class="num" data-card="amount"></dd></div>
+            <div><dt>ثم كل شهر</dt><dd>بهذه البطاقة، يوم <span class="num" data-card="day"></span> من الشهر</dd></div>
+          </dl>
+          <p class="co-demo" data-card="demo" role="note" hidden>
+            <i class="fa-solid fa-flask" aria-hidden="true"></i>
+            <span><strong>وضع تجريبي:</strong> لا يُخصم أي مال. للقبول <span class="num" dir="ltr">4242 4242 4242 4242</span>، وللرفض <span class="num" dir="ltr">4000 0000 0000 0002</span>.</span>
+          </p>
+          <div class="row g-3">
+            <div class="col-12 field">
+              <label class="form-label" for="cardNumber">رقم البطاقة</label>
+              <input class="form-control num" type="text" id="cardNumber" name="card_token" autocomplete="cc-number" inputmode="numeric" dir="ltr"
+                     placeholder="0000 0000 0000 0000" data-validate="required|card" aria-describedby="err-cardNumber">
+              <p class="field__error" id="err-cardNumber" aria-live="polite"></p>
+            </div>
+            <div class="col-6 field">
+              <label class="form-label" for="cardExpiry">تاريخ الانتهاء</label>
+              <input class="form-control num" type="text" id="cardExpiry" autocomplete="cc-exp" inputmode="numeric" dir="ltr"
+                     placeholder="MM/YY" data-validate="required|expiry" aria-describedby="err-cardExpiry">
+              <p class="field__error" id="err-cardExpiry" aria-live="polite"></p>
+            </div>
+            <div class="col-6 field">
+              <label class="form-label" for="cardCvc">رمز الأمان <span class="text-muted fw-normal">(CVC)</span></label>
+              <input class="form-control num" type="password" id="cardCvc" autocomplete="cc-csc" inputmode="numeric" dir="ltr"
+                     placeholder="123" maxlength="4" data-validate="required|cvc" aria-describedby="err-cardCvc">
+              <p class="field__error" id="err-cardCvc" aria-live="polite"></p>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-soft" type="button" data-bs-dismiss="modal">لاحقاً</button>
+          <button class="btn btn-cta" type="submit"><i class="fa-solid fa-lock" aria-hidden="true"></i> ادفع واحفظ البطاقة</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <div class="modal fade" id="bankModal" tabindex="-1" aria-labelledby="bankTitle" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content pt-modal">

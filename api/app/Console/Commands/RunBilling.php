@@ -72,7 +72,7 @@ class RunBilling extends Command
         $manual = 0;
 
         foreach ($due as $sponsorship) {
-            $key = hash('sha256', "{$sponsorship->id}-".now()->format('Y-m'));
+            $key = $sponsorship->dueKey();
 
             /*
              * من يدفع بتحويل أو نقداً لا يُخصم منه آلياً. كان الأمر ينشئ دفعة

@@ -83,6 +83,9 @@ export const portalReports = () => request('/portal/reports');
 /** «أين ذهب مالك»: سجلّ الطفل المالي شهراً بشهر */
 export const portalLedger = (sponsorshipId, months = 12) =>
   request(`/portal/sponsorships/${sponsorshipId}/ledger?months=${months}`);
+/** القسط المتعثّر ببطاقة جديدة: يُخصم بها فوراً وتُحفظ للأشهر القادمة. */
+export const updateSponsorshipCard = (sponsorshipId, card) =>
+  request(`/portal/sponsorships/${sponsorshipId}/card`, { method: 'PUT', body: card });
 export const markReportSeen = (id) => request(`/portal/reports/${id}`);
 
 export const portalMessages = (sponsorshipId) =>

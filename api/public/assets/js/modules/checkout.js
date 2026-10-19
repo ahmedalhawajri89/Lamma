@@ -15,6 +15,7 @@ import { fetchOrphan, fetchCheckoutConfig, submitCheckout } from './api.js';
 import { me, isSponsor, markSignedIn } from './auth.js';
 import { launchConfetti } from './features.js';
 import { toast } from './ui.js';
+import { tokenizeCard } from './forms.js';
 import { url, t, plural, intl } from './i18n.js';
 
 const INTERVALS = { monthly: 1, quarterly: 3, yearly: 12 };
@@ -275,19 +276,6 @@ function restoreDraft() {
 
 /* ── الإرسال ── */
 
-/**
- * «الترميز»: في البوابة الحقيقية تحوّل حقولها المستضافة الرقمَ إلى رمز قبل أن
- * يصل صفحتنا. وفي الوضع التجريبي نحاكي ذلك ببطاقتي الاختبار. في الحالتين
- * لا يُرسَل الرقم إلى خادمنا.
- */
-function tokenize(number) {
-  const digits = number.replace(/\D/g, '');
-  const token = digits === '4000000000000002'
-    ? 'tok_demo_decline'
-    : digits === '4242424242424242' ? 'tok_demo_ok' : 'tok_demo_invalid';
-  return { token, last4: digits.slice(-4), brand: digits.startsWith('4') ? 'فيزا' : digits.startsWith('5') ? 'ماستركارد' : 'بطاقة' };
-}
-
 function attemptKey() {
   // مفتاح المحاولة يبقى ثابتاً لإعادة الإرسال نفسها، ويتجدد بعد كفالة ناجحة
   try {
@@ -354,7 +342,7 @@ export async function submitCheckoutForm(form) {
   }
 
   if (method === 'card') {
-    const card = tokenize($('#cardNumber').value);
+    const card = tokenizeCard($('#cardNumber').value);
     Object.assign(payload, { card_token: card.token, card_last4: card.last4, card_brand: card.brand });
   }
 

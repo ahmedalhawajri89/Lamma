@@ -13,10 +13,11 @@
 import { $, $$, escapeHtml, formatMoney, formatNumber } from './utils.js';
 import {
   me, logout, isSponsor, isAuthLoss, portalOverview, portalPayments, markReportSeen, markSignedIn, clearSignedIn,
-  portalMessages, sendPortalMessage, portalLedger, cancelSponsorship, setSponsorshipStatus, updateProfile, updatePassword, forgotPassword,
+  portalMessages, sendPortalMessage, portalLedger, updateSponsorshipCard, cancelSponsorship, setSponsorshipStatus, updateProfile, updatePassword, forgotPassword,
 } from './auth.js';
 import { fetchCheckoutConfig } from './api.js';
 import { toast } from './ui.js';
+import { validateInput, tokenizeCard } from './forms.js';
 import { url } from './i18n.js';
 
 const dateFmt = new Intl.DateTimeFormat('ar', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -39,7 +40,7 @@ function inDays(value) {
   const day = 86_400_000;
   const start = new Date(); start.setHours(0, 0, 0, 0);
   const n = Math.round((new Date(value).setHours(0, 0, 0, 0) - start) / day);
-  if (n < 0) return '';
+  if (n < 0) return 'متأخر';
   if (n === 0) return 'اليوم';
   if (n === 1) return 'غداً';
   if (n === 2) return 'بعد يومين';
@@ -212,6 +213,7 @@ export async function initPortal() {
   initStatusActions();
   initCancel();
   initBank();
+  initCard();
   initAccount();
 
   // الدفعات بعد الكفالات: صورة كل طفل في سطر دفعته تأتي من كفالته
@@ -372,6 +374,18 @@ function renderAttention() {
   const next = overview?.next_payment;
   const fresh = reports.filter((r) => r.is_new);
   const pending = sponsorships.filter((x) => x.status === 'pending');
+  const failing = sponsorships.filter((x) => x.payment_issue);
+
+  // قسطٌ لم يُخصم أهمّ من كل شيء: كل يوم تأخيرٍ يقرّب الطفل من صندوق الاستمرارية
+  if (failing.length) {
+    const f = failing[0];
+    attention('error', 'fa-credit-card', failing.length === 1
+      ? `تعذّر خصم قسط ${f.orphan?.name ?? 'الطفل'}`
+      : `تعذّر خصم ${formatNumber(failing.length)} أقساط`,
+    `${issueText(f)} حدّث البطاقة فيصل القسط فوراً.`,
+    `<button class="btn btn-cta btn-sm" type="button" data-card-open="${f.id}">حدّث البطاقة</button>`);
+    return;
+  }
 
   if (s.pending_count > 0 && pending.length) {
     const p = pending[0];
@@ -442,8 +456,26 @@ const STATUS_CHIP = {
   pending: '<span class="pt-chip pt-chip--wait">بانتظار التحويل</span>',
 };
 
+/** شارة الكفالة: المتعثّرة نشطةٌ لكنها تحتاج الكافل، فتقول ذلك. */
+const chipFor = (s) => (s.payment_issue ? '<span class="pt-chip pt-chip--bad">القسط متعثّر</span>' : STATUS_CHIP[s.status] ?? '');
+
+/** ما جرى للقسط ومتى المحاولة التالية، بلغة الكافل. */
+function issueText(s) {
+  const issue = s.payment_issue;
+  const next = issue.next_retry_at
+    ? `نعيد المحاولة ${fmtShort(issue.next_retry_at)}.`
+    : 'توقّفت المحاولات حتى تحدّث البطاقة.';
+  return `لم يُخصم قسط ${fmtShort(s.next_due_at ?? issue.since)}${issue.card_last4 ? ` من البطاقة المنتهية بـ⁦${issue.card_last4}⁩` : ''}. ${next}`;
+}
+
 /** ما تعنيه الحالة للكافل، حين تحتاج شرحاً. */
 function statusLine(s) {
+  if (s.payment_issue) {
+    return `<p class="pt-kid__state pt-kid__state--bad">
+      <i class="fa-solid fa-credit-card" aria-hidden="true"></i>
+      <span><b>${escapeHtml(issueText(s))}</b>${s.payment_issue.reason ? ` السبب: ${escapeHtml(s.payment_issue.reason)}` : ''}</span>
+    </p>`;
+  }
   if (s.status === 'pending') {
     return `<p class="pt-kid__state pt-kid__state--wait">
       <i class="fa-regular fa-clock" aria-hidden="true"></i>
@@ -482,7 +514,7 @@ function renderKids() {
   ${s.status === 'pending' ? '' : `<span class="pt-row__fund"><span>مغطّاة <b class="num">${funded}٪</b></span><span class="pt-bar"><span style="--v:${funded}%"></span></span></span>`}
   <span class="pt-row__end">
     <span class="num">${formatMoney(interval > 1 ? s.cycle_amount : s.monthly_amount, s.currency)}</span>
-    ${STATUS_CHIP[s.status] ?? ''}
+    ${chipFor(s)}
   </span>
 </a></li>`;
   }).join('');
@@ -550,10 +582,12 @@ function renderSponsorships() {
         </button>
         <a class="btn btn-soft btn-sm" href="${profile}">ملفه</a>
         <button class="pt-kid__stop" type="button" data-cancel-open="${s.id}">ألغِ الحجز</button>`
-      : `${paused ? `<button class="btn btn-primary btn-sm" type="button" data-resume="${s.id}">
+      : `${s.payment_issue ? `<button class="btn btn-cta btn-sm" type="button" data-card-open="${s.id}">
+          <i class="fa-solid fa-credit-card" aria-hidden="true"></i> حدّث البطاقة
+        </button>` : ''}${paused ? `<button class="btn btn-primary btn-sm" type="button" data-resume="${s.id}">
           <i class="fa-solid fa-play" aria-hidden="true"></i> استأنف
         </button>` : ''}
-        <button class="btn ${paused ? 'btn-soft' : 'btn-primary'} btn-sm" type="button" data-message-open="${s.id}">
+        <button class="btn ${paused || s.payment_issue ? 'btn-soft' : 'btn-primary'} btn-sm" type="button" data-message-open="${s.id}">
           <i class="fa-regular fa-envelope" aria-hidden="true"></i> رسالة
         </button>
         <button class="btn btn-soft btn-sm" type="button" data-ledger-open="${s.id}">
@@ -573,7 +607,7 @@ function renderSponsorships() {
       <h3>${name}${orphan.age ? `<span>، ${ageLabel(orphan.age)}</span>` : ''}</h3>
       <p>${escapeHtml(s.program?.name ?? '')}${s.is_zakat ? '<span class="pt-tag">من الزكاة</span>' : ''}</p>
     </div>
-    ${STATUS_CHIP[s.status] ?? ''}
+    ${chipFor(s)}
   </div>
 
   ${statusLine(s)}
@@ -581,7 +615,7 @@ function renderSponsorships() {
   <dl class="pt-kid__facts">
     <div><dt>${interval > 1 ? CYCLE[interval] : 'شهرياً'}</dt>
       <dd class="num">${formatMoney(interval > 1 ? s.cycle_amount : s.monthly_amount, s.currency)}</dd></div>
-    <div><dt>${pending ? 'أول دفعة' : 'القسط القادم'}</dt><dd>${pending ? 'عند التحويل' : paused ? 'بعد الاستئناف' : fmtShort(s.next_due_at)}</dd></div>
+    <div><dt>${pending ? 'أول دفعة' : s.payment_issue ? 'مستحق منذ' : 'القسط القادم'}</dt><dd>${pending ? 'عند التحويل' : paused ? 'بعد الاستئناف' : fmtShort(s.next_due_at)}</dd></div>
     <div><dt>قدّمتَ له</dt><dd class="num">${formatMoney(s.total_paid ?? 0, s.currency)}</dd></div>
   </dl>
 
@@ -1096,6 +1130,70 @@ function initCancel() {
       refocusSponsorship(id);
     } catch (error) {
       failed(error, 'تعذّر إنهاء الكفالة.');
+    } finally {
+      busy(button, false);
+    }
+  });
+}
+
+/* ------------------------------------------------------- القسط المتعثّر */
+
+let cardFor = null;
+
+/**
+ * تحديث البطاقة: يُخصم القسط المتعثّر بها فوراً وتُحفظ للأشهر القادمة. الرقم
+ * لا يصل خادمنا (tokenizeCard)، ورفض البنك يُكتب تحت حقل الرقم بسببه.
+ */
+function initCard() {
+  const form = $('[data-card-form]');
+  if (!form) return;
+  const inputs = $$('[data-validate]', form);
+
+  document.addEventListener('click', async (e) => {
+    const trigger = e.target.closest('[data-card-open]');
+    if (!trigger) return;
+    cardFor = sponsorships.find((x) => x.id === Number(trigger.dataset.cardOpen));
+    if (!cardFor?.payment_issue) return;
+
+    form.reset();
+    clearFieldErrors(form);
+    inputs.forEach((input) => input.closest('.field')?.classList.remove('is-invalid'));
+    setText('[data-card="name"]', cardFor.orphan?.name ?? '');
+    setText('[data-card="issue-text"]', issueText(cardFor));
+    setText('[data-card="amount"]', formatMoney(cardFor.payment_issue.amount, cardFor.currency));
+    setText('[data-card="day"]', formatNumber(cardFor.billing_day ?? 1));
+    openModal('cardModal');
+
+    // الوضع التجريبي يُقال قبل أن يكتب أحدٌ رقم بطاقته الحقيقية
+    try {
+      bankConfig ??= await fetchCheckoutConfig();
+      const demo = $('[data-card="demo"]');
+      if (demo) demo.hidden = !bankConfig?.demo;
+    } catch { /* النافذة تعمل بلا الإعدادات */ }
+  });
+
+  inputs.forEach((input) => input.addEventListener('blur', () => validateInput(input)));
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!cardFor) return;
+    const firstInvalid = inputs.find((input) => !validateInput(input));
+    if (firstInvalid) {
+      firstInvalid.focus();
+      return;
+    }
+
+    const button = $('[type="submit"]', form);
+    const card = tokenizeCard($('#cardNumber', form).value);
+    busy(button, true, 'جارٍ الخصم…');
+    try {
+      const res = await updateSponsorshipCard(cardFor.id, { card_token: card.token, card_last4: card.last4, card_brand: card.brand });
+      await closeModal('cardModal');
+      toast(res.message ?? 'وصل القسط، شكراً لك.');
+      await loadOverview();
+    } catch (error) {
+      if (isAuthLoss(error)) toLogin();
+      else showFormErrors(form, error, 'تعذّر الخصم الآن.');
     } finally {
       busy(button, false);
     }

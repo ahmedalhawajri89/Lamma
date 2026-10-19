@@ -9,9 +9,11 @@ use App\Actions\Sponsorships\CancelSponsorship;
 use App\Actions\Sponsorships\CreateSponsorship;
 use App\Http\Controllers\Controller;
 use App\Enums\PaymentMethod;
+use App\Enums\PaymentStatus;
 use App\Enums\SponsorshipStatus;
 use App\Http\Resources\SponsorshipResource;
 use App\Models\Orphan;
+use App\Models\Payment;
 use App\Models\Sponsorship;
 use App\Payments\PaymentGateway;
 use App\Services\ChildLedgerService;
@@ -146,7 +148,14 @@ class SponsorshipController extends Controller
             __('لا قسط متأخر على هذه الكفالة.'),
         );
 
-        $key = hash('sha256', "{$sponsorship->id}-".now()->format('Y-m'));
+        $key = $sponsorship->dueKey();
+
+        // قسط هذا الموعد وصل من قبل (بيد المحاسب أو تشغيلٍ متزامن): لا خصم ثانٍ
+        if (Payment::where('idempotency_key', $key)->where('status', PaymentStatus::Succeeded)->exists()) {
+            $sponsorship->clearPaymentIssue();
+            $sponsorship->save();
+            abort(409, __('وصل قسط هذا الموعد من قبل. حدّث الصفحة.'));
+        }
         $result = $gateway->charge($validated['card_token'], $sponsorship->cycleAmount(), $sponsorship->currency, $key);
 
         if (! $result->succeeded) {
