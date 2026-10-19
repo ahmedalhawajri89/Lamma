@@ -74,6 +74,9 @@
                   <span class="kid-tag kid-tag--urgent"><span class="kid-tag__dot" aria-hidden="true"></span> {{ __('حالة عاجلة') }}</span>
                 @endif
                 <span class="kid-tag kid-tag--verified"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> {{ $g('زارها مشرف ميداني', 'زاره مشرف ميداني') }}</span>
+                @if ($kid['care'])
+                  <span class="kid-tag kid-tag--care"><i class="fa-solid fa-house-chimney-user" aria-hidden="true"></i> {{ $kid['care'] }}</span>
+                @endif
               </div>
               <h1 class="kid-head__name">{{ $kid['name'] }}<span>{{ $ar ? '، ' : ', ' }}{{ $ageLabel }}</span></h1>
               <p class="kid-head__meta">
@@ -101,8 +104,23 @@
             <dl class="kid-facts">
               <div><dt><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i> {{ __('الدراسة') }}</dt><dd>{{ $kid['grade'] ?: __('غير مسجّلة') }}</dd></div>
               <div><dt><i class="fa-solid fa-heart-pulse" aria-hidden="true"></i> {{ __('الصحة') }}</dt><dd>{{ $kid['health'] ?: __('غير مسجّلة') }}</dd></div>
-              <div><dt><i class="fa-solid fa-hand-holding-heart" aria-hidden="true"></i> {{ __('البرنامج') }}</dt><dd>{{ $kid['program_name'] ?: '—' }}</dd></div>
+              <div><dt><i class="fa-solid fa-hand-holding-heart" aria-hidden="true"></i> {{ __('البرنامج') }}</dt><dd>{{ $kid['program_name'] ?: __('غير محدّد') }}</dd></div>
             </dl>
+
+            @if ($kid['association'])
+              {{-- الجمعية التي تعرفه وتزوره، ورابطٌ إلى صفحتها --}}
+              <a class="kid-assoc" href="{{ lurl('/partners/'.$kid['association']['slug']) }}">
+                <span class="kid-assoc__icon" aria-hidden="true"><i class="fa-solid fa-people-roof"></i></span>
+                <span class="kid-assoc__text">
+                  <small>{{ $g('الجمعية التي تعرفها وتزورها', 'الجمعية التي تعرفه وتزوره') }}</small>
+                  <strong>{{ $kid['association']['name'] }}</strong>
+                  @if ($kid['association']['verified_at'])
+                    <span class="kid-assoc__since"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> {{ __('موثّقة منذ :date', ['date' => \Illuminate\Support\Carbon::parse($kid['association']['verified_at'])->locale(app()->getLocale())->translatedFormat('F Y')]) }}</span>
+                  @endif
+                </span>
+                <i class="fa-solid fa-arrow-left kid-assoc__go kf-dir-icon" aria-hidden="true"></i>
+              </a>
+            @endif
 
             <section class="kid-block" aria-labelledby="coversTitle">
               <h2 class="kid-h2" id="coversTitle">{{ __('ما تغطيه كفالتك') }}</h2>

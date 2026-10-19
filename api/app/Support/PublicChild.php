@@ -30,7 +30,7 @@ final class PublicChild
             ->withSponsorCount()
             ->with([
                 'program:id,slug,name_ar,name_en,monthly_price,currency',
-                'family:id,country_id,city_id',
+                'family:id,country_id,city_id,association_id,care_arrangement', 'family.association:id,slug,name_ar,name_en,status,verified_at',
                 'family.country:id,name_ar,name_en',
                 'family.city:id,name_ar,name_en',
             ])

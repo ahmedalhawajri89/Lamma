@@ -196,7 +196,13 @@ class DemoSeeder extends Seeder
             $countryId = $countries[$iso2];
             $cityId = City::where('country_id', $countryId)->where('name_ar', $cityName)->value('id');
 
-            $familyId = $this->makeFamily(++$familyCounter, $countryId, $cityId, $gender === 'male' ? 3 : 4);
+            // من يعيش معه الطفل كما تقول قصته المكتوبة، لا عشوائياً
+            $relation = match ($code) {
+                'KFL-1043' => GuardianRelation::Grandmother,   // «بمساعدة جدته المسنّة»
+                'KFL-1049' => GuardianRelation::Uncle,
+                default => GuardianRelation::Mother,           // «انتقلت مع أمها»، «تعمل أمه بالخياطة»…
+            };
+            $familyId = $this->makeFamily(++$familyCounter, $countryId, $cityId, $gender === 'male' ? 3 : 4, $relation);
 
             $orphanId = DB::table('orphans')->insertGetId([
                 'reference_code' => $code,
@@ -341,9 +347,9 @@ class DemoSeeder extends Seeder
         }
     }
 
-    private function makeFamily(int $n, int $countryId, ?int $cityId, int $members): int
+    private function makeFamily(int $n, int $countryId, ?int $cityId, int $members, ?GuardianRelation $relation = null): int
     {
-        $relation = [GuardianRelation::Mother, GuardianRelation::Mother, GuardianRelation::Grandmother, GuardianRelation::Uncle, GuardianRelation::Aunt][random_int(0, 4)];
+        $relation ??= [GuardianRelation::Mother, GuardianRelation::Mother, GuardianRelation::Grandmother, GuardianRelation::Uncle, GuardianRelation::Aunt][random_int(0, 4)];
         $attested = now()->subDays(random_int(10, 300));
 
         $guardianId = DB::table('guardians')->insertGetId([

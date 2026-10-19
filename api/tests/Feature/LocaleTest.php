@@ -64,7 +64,7 @@ dataset('journey', [
         'resources/views/site/partials/{header,footer,head,lang-switch,share,search}.blade.php',
         'resources/views/site/layouts/*.blade.php',
         'resources/views/site/auth/*.blade.php',
-        'resources/views/site/pages/{home,orphans,orphan,checkout,thank-you}.blade.php',
+        'resources/views/site/pages/{home,orphans,orphan,checkout,thank-you,partner}.blade.php',
         'resources/views/errors/404.blade.php',
         'app/Enums/*.php',
         'app/Http/Controllers/Api/V1/{Auth,Public}/*.php',

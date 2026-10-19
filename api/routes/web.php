@@ -49,6 +49,10 @@ $site = function (): void {
     /** الأسئلة الشائعة من الخادم: نصّها ووصفها المنظَّم لمحركات البحث */
     Route::get('/faq', App\Http\Controllers\Site\FaqPageController::class)->name('site.faq');
 
+    /** الجمعية الشريكة الموثّقة: من هي، وأرقامها، وأطفالها */
+    Route::get('/partners/{slug}', App\Http\Controllers\Site\PartnerPageController::class)
+        ->where('slug', '[a-z0-9\-]+')->name('site.partner');
+
     /** البرامج من جدولها: السعر والبنود من مصدرٍ واحد، ومع كلٍّ من ينتظر فيه */
     Route::get('/programs', App\Http\Controllers\Site\ProgramsPageController::class)->name('site.programs');
 

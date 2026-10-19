@@ -56,6 +56,7 @@ export function kidCard(o, { delay = 0, cols = 'col-sm-6 col-lg-3' } = {}) {
     <div class="kid-card__body">
       <h3 class="kid-card__name"><a href="${link}">${name}</a><span>${t('، ')}${ageLabel(o.age)}</span></h3>
       <p class="kid-card__place"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> ${escapeHtml(o.city)}${t('، ')}${escapeHtml(o.country)}</p>
+      ${o.care ? `<p class="kid-card__place kid-card__care"><i class="fa-solid fa-house-chimney-user" aria-hidden="true"></i> ${escapeHtml(o.care)}</p>` : ''}
       ${o.dream ? `<p class="kid-card__dream"><span>${t(her ? 'حلمها:' : 'حلمه:')}</span> ${escapeHtml(o.dream)}</p>` : ''}
       <div class="kid-card__fund">
         <div class="kid-card__fund-row">

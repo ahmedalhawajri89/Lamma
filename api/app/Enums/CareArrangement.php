@@ -33,6 +33,20 @@ enum CareArrangement: string
         };
     }
 
+    /** جملةٌ للموقع العام بجنس الطفل: «تعيش مع أمها» و«يعيش مع أمه». */
+    public function phrase(bool $her): string
+    {
+        return match ($this) {
+            self::WithMother => $her ? __('تعيش مع أمها') : __('يعيش مع أمه'),
+            self::WithFather => $her ? __('تعيش مع أبيها') : __('يعيش مع أبيه'),
+            self::WithGrandparents => $her ? __('تعيش مع جدّيها') : __('يعيش مع جدّيه'),
+            self::WithRelatives => $her ? __('تعيش مع أقاربها') : __('يعيش مع أقاربه'),
+            self::WithOlderSibling => $her ? __('تعيش مع أخيها الأكبر') : __('يعيش مع أخيه الأكبر'),
+            self::FosterFamily => $her ? __('تعيش مع أسرة حاضنة') : __('يعيش مع أسرة حاضنة'),
+            self::ResidentialCare => $her ? __('تعيش في دار رعاية') : __('يعيش في دار رعاية'),
+        };
+    }
+
     /** رعايةٌ في أسرة، لا في مؤسسة: شرط النشر للكفالة. */
     public function isFamilyBased(): bool
     {

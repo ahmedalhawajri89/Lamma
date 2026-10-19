@@ -88,6 +88,9 @@
 
 .kid-card__place { display: flex; align-items: center; gap: 0.4rem; margin: 0; font-size: 0.85rem; color: var(--color-text-muted); }
 .kid-card__place i { color: var(--color-cta-strong); font-size: 0.8rem; }
+/* مع من يعيش: تحت المكان، بلون العلامة */
+.kid-card__care { margin-block-start: 0.2rem; color: var(--color-brand); font-weight: 500; }
+.kid-card__care i { color: var(--color-brand); }
 
 .kid-card__dream {
   margin: 0;

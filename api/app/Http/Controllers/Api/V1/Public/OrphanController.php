@@ -42,6 +42,8 @@ class OrphanController extends Controller
         $validated = $request->validate([
             'q' => ['nullable', 'string', 'max:80'],
             'program' => ['nullable', 'string', 'exists:programs,slug'],
+            // أطفال جمعية بعينها (صفحة الجمعية /partners/{slug})
+            'association' => ['nullable', 'string', 'max:80'],
             'country' => ['nullable', 'string', 'max:80'],
             'gender' => ['nullable', 'in:male,female'],
             'age' => ['nullable', 'in:'.implode(',', array_keys(self::AGES))],
@@ -54,7 +56,7 @@ class OrphanController extends Controller
 
         $query = $this->filtered($request)
             ->withSponsorCount()
-            ->with(['program:id,slug', 'family:id,country_id,city_id', 'family.country:id,name_ar,name_en', 'family.city:id,name_ar,name_en']);
+            ->with(['program:id,slug', 'family:id,country_id,city_id,association_id,care_arrangement', 'family.association:id,slug,name_ar,name_en,status,verified_at', 'family.country:id,name_ar,name_en', 'family.city:id,name_ar,name_en']);
 
         foreach (self::SORTS[$validated['sort'] ?? 'urgent'] as [$column, $direction]) {
             $query->orderBy($column, $direction);
@@ -96,6 +98,7 @@ class OrphanController extends Controller
             ->seekingSponsor()
             ->publicSearch($has('q') ? $request->string('q')->toString() : null)
             ->when($has('program'), fn ($q) => $q->whereHas('program', fn ($p) => $p->where('slug', $request->string('program'))))
+            ->when($has('association'), fn ($q) => $q->whereHas('family.association', fn ($a) => $a->verified()->where('slug', $request->string('association'))))
             ->when($has('country'), fn ($q) => $q->whereHas('family.country', fn ($c) => $c->where('name_ar', $request->string('country'))))
             ->when($has('gender'), fn ($q) => $q->where('gender', $request->string('gender')))
             ->when($has('age'), function ($q) use ($request) {
@@ -154,7 +157,7 @@ class OrphanController extends Controller
             ->withSponsorCount()
             ->with([
                 'program:id,slug,name_ar,name_en,monthly_price,icon,accent',
-                'family:id,country_id,city_id',
+                'family:id,country_id,city_id,association_id,care_arrangement', 'family.association:id,slug,name_ar,name_en,status,verified_at',
                 'family.country:id,name_ar,name_en',
                 'family.city:id,name_ar,name_en',
             ])

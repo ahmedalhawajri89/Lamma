@@ -24,6 +24,32 @@
 .kid-tag__dot { inline-size: 0.4rem; block-size: 0.4rem; border-radius: 50%; background: currentColor; }
 .kid-tag--verified { border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text-muted); }
 .kid-tag--verified i { color: var(--color-success); }
+/* مع من يعيش: وعد «لمّة» الأول، بلون العلامة */
+.kid-tag--care { background: var(--color-brand-soft); color: var(--color-brand); }
+
+/* الجمعية التي تتابع الطفل: شريطٌ يُضغط إلى صفحتها */
+.kid-assoc {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-block-start: 1rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  color: var(--color-text);
+  text-decoration: none;
+  transition: border-color var(--dur-fast) var(--ease-out), background-color var(--dur-fast) var(--ease-out);
+}
+.kid-assoc:hover { border-color: var(--color-border-strong); background: var(--color-surface-alt); color: var(--color-text); }
+.kid-assoc__icon { flex: none; display: grid; place-items: center; inline-size: 2.75rem; block-size: 2.75rem; border-radius: var(--radius-md); background: var(--color-brand-soft); color: var(--color-brand); font-size: 1.1rem; }
+.kid-assoc__text { flex: 1; display: flex; flex-direction: column; min-inline-size: 0; line-height: 1.35; }
+.kid-assoc__text small { font-size: 0.8rem; color: var(--color-text-muted); }
+.kid-assoc__text strong { font-family: var(--font-display); font-weight: 600; }
+.kid-assoc__since { margin-block-start: 0.15rem; font-size: 0.8rem; color: var(--color-text-muted); }
+.kid-assoc__since i { color: var(--color-success); }
+.kid-assoc__go { color: var(--color-text-subtle); transition: translate var(--dur-fast) var(--ease-out); }
+.kid-assoc:hover .kid-assoc__go { translate: calc(-3px * var(--kf-dir, 1)) 0; }
 
 .kid-head__name { margin: 0; font-size: clamp(2.4rem, 5vw, 3.75rem); line-height: 1.15; color: var(--color-text); }
 .kid-head__name span { font-family: var(--font-body); font-size: 0.5em; font-weight: 400; color: var(--color-text-muted); }

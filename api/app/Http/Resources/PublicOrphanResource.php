@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Resources;
 
+use App\Enums\Gender;
 use App\Support\Locale;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -29,6 +30,10 @@ class PublicOrphanResource extends JsonResource
             // ثابتٌ لكل اللغات: الواجهة تبني صيغة المؤنث والمذكّر منه، لا من التسمية
             'gender_code' => $this->gender->value,
             'country' => $this->whenLoaded('family', fn () => Locale::pick($this->family->country?->name_ar, $this->family->country?->name_en)),
+            // مع من يعيش، بجنسه: «تعيش مع أمها». وعد «لمّة» الأول ظاهرٌ على البطاقة
+            'care' => $this->whenLoaded('family', fn () => $this->family->care_arrangement?->phrase($this->gender === Gender::Female)),
+            // الجمعية التي تعرفه وتزوره، إن كانت موثّقة: اسمها ورابط صفحتها
+            'association' => $this->whenLoaded('family', fn () => $this->association()),
             'city' => $this->whenLoaded('family', fn () => Locale::pick($this->family->city?->name_ar, $this->family->city?->name_en)),
             'program' => $this->whenLoaded('program', fn () => $this->program->slug),
             'monthly' => (float) $this->monthly_need,
@@ -54,6 +59,16 @@ class PublicOrphanResource extends JsonResource
         ];
     }
 
+
+    /** @return array{name: string, slug: string, verified_at: ?string}|null */
+    private function association(): ?array
+    {
+        $a = $this->family->relationLoaded('association') ? $this->family->association : null;
+
+        return $a !== null && $a->isVerified()
+            ? ['name' => $a->displayName(), 'slug' => $a->slug, 'verified_at' => $a->verified_at?->toDateString()]
+            : null;
+    }
 
     /** @return array<string, mixed> */
     private function checkoutFacts(): array

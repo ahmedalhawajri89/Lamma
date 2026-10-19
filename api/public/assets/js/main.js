@@ -42,6 +42,7 @@ import { initBlog } from './modules/blog.js';
 import { initAbout } from './modules/about.js';
 import { initCredentials } from './modules/proof.js';
 import { initPortal } from './modules/portal.js';
+import { initPartner } from './modules/partner.js';
 
 function boot() {
   // ١) الهيكل مركَّب سلفاً من البذرة (انظر start)؛ تُكتب فيه الآن بيانات الخادم
@@ -60,6 +61,7 @@ function boot() {
   initBlog();
   initThankYou();
   initPortal();
+  initPartner();
 
   // ٣) مكونات الواجهة
   initAccordions();

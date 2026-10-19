@@ -1,0 +1,80 @@
+/* ==========================================================================
+   صفحة الجمعية الشريكة (/partners/{slug})
+   الصدر: الاسم والمكان والوصف، وبجانبها دليل التوثيق. ثم أرقامٌ من القاعدة،
+   ثم أطفالها (partner.js).
+   ========================================================================== */
+.pt-hero {
+  padding-block: clamp(1.5rem, 3vw, 2.25rem) clamp(2rem, 4vw, 3rem);
+  background: var(--color-canvas);
+}
+.pt-hero__crumbs { --bs-breadcrumb-divider-color: var(--color-text-muted); margin-block-end: clamp(1.25rem, 3vw, 2rem); font-size: 0.875rem; }
+.pt-hero__crumbs a { color: var(--color-text-muted); text-decoration: none; }
+.pt-hero__crumbs a:hover { color: var(--color-brand); }
+
+.pt-hero__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-block-end: 0.75rem;
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-brand);
+}
+.pt-hero__eyebrow i { color: var(--color-success); }
+.pt-hero__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4.2vw, 3.1rem);
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--color-text);
+}
+.pt-hero__place { display: flex; align-items: center; gap: 0.45rem; margin: 0.75rem 0 0; color: var(--color-text-muted); }
+.pt-hero__place i { color: var(--color-cta-strong); }
+.pt-hero__lede { margin: 1.25rem 0 0; max-inline-size: 38rem; font-size: 1.1rem; line-height: 1.9; color: var(--color-text-muted); }
+
+/* دليل التوثيق */
+.pt-proof {
+  padding: 1.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface);
+}
+.pt-proof__title { margin: 0 0 1rem; font-family: var(--font-display); font-size: 1rem; font-weight: 600; color: var(--color-text-muted); }
+.pt-proof__list { display: grid; gap: 1rem; margin: 0; padding: 0; list-style: none; }
+.pt-proof__list li { display: flex; gap: 0.85rem; align-items: flex-start; }
+.pt-proof__list i {
+  flex: none;
+  display: grid;
+  place-items: center;
+  inline-size: 2.25rem;
+  block-size: 2.25rem;
+  border-radius: var(--radius-md);
+  background: var(--color-brand-soft);
+  color: var(--color-brand);
+  font-size: 0.95rem;
+}
+.pt-proof__list span { display: flex; flex-direction: column; line-height: 1.45; }
+.pt-proof__list strong { font-family: var(--font-display); font-weight: 600; color: var(--color-text); }
+.pt-proof__list small { font-size: 0.85rem; color: var(--color-text-muted); }
+
+/* الأرقام */
+.pt-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: clamp(2rem, 4vw, 2.75rem) 0 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}
+.pt-stats > div { padding: 1.1rem 1.25rem; border-inline-start: 1px solid var(--color-border); }
+.pt-stats > div:first-child { border: 0; }
+.pt-stats dt { font-size: 0.85rem; font-weight: 500; color: var(--color-text-muted); }
+.pt-stats dd { margin: 0.35rem 0 0; font-family: var(--font-display); font-size: 1.9rem; font-weight: 700; color: var(--color-brand); }
+
+@media (max-width: 767.98px) {
+  .pt-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pt-stats > div:nth-child(3) { border-inline-start: 0; }
+  .pt-stats > div:nth-child(n + 3) { border-block-start: 1px solid var(--color-border); }
+}
