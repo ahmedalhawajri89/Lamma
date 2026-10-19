@@ -16,6 +16,7 @@ use App\Models\Payment;
 use App\Models\Sponsorship;
 use App\Models\User;
 use App\Payments\PaymentGateway;
+use App\Support\Fx;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -54,6 +55,9 @@ class CheckoutController extends Controller
             // للإفصاح قبل الكفالة: ما يُقتطع للتشغيل من كل دفعة، ونسخة النص
             'fee_percent' => Payment::currentFeePercent(),
             'disclosure_version' => config('kafala.disclosure_version'),
+            // عملات الكفلاء وسعر كلٍّ منها إلى الأساس اليوم: يعرض بها الكافل مبلغه
+            'base_currency' => Fx::base(),
+            'currencies' => collect(Fx::sponsorCurrencies())->map(fn (string $c) => ['code' => $c, 'rate' => Fx::rate($c)])->values(),
         ]]);
     }
 
@@ -64,7 +68,9 @@ class CheckoutController extends Controller
 
         $validated = $request->validate([
             'orphan_reference' => ['required', 'string', 'exists:orphans,reference_code'],
-            'monthly_amount' => ['nullable', 'numeric', 'min:1', 'max:5000'],
+            'monthly_amount' => ['nullable', 'numeric', 'min:1', 'max:20000'],
+            // عملة الكافل: يُخصم منه بها مبلغٌ ثابت، ويُحسب ما يعادله بالأساس
+            'currency' => ['nullable', 'string', Rule::in(Fx::sponsorCurrencies())],
             'interval_months' => ['required', 'integer', Rule::in(CreateSponsorship::INTERVALS)],
             'is_zakat' => ['sometimes', 'boolean'],
             'method' => ['required', Rule::in([PaymentMethod::Card->value, PaymentMethod::BankTransfer->value])],
@@ -131,7 +137,13 @@ class CheckoutController extends Controller
                 isZakat: (bool) ($validated['is_zakat'] ?? false),
                 intervalMonths: (int) $validated['interval_months'],
                 paymentMethod: $validated['method'],
+                currency: $validated['currency'] ?? null,
             );
+
+            // عملته المفضّلة: تُقترح عليه في كفالته القادمة
+            if (isset($validated['currency']) && $user->sponsor->preferred_currency !== $validated['currency']) {
+                $user->sponsor->forceFill(['preferred_currency' => $validated['currency']])->save();
+            }
 
             // أيّ نصّ إفصاحٍ قرأ ووافق عليه، ومتى
             $sponsorship->forceFill([
@@ -159,7 +171,7 @@ class CheckoutController extends Controller
         if ($validated['method'] === PaymentMethod::Card->value) {
             // مفتاح التفرّد من العميل: نقرة ثانية أو إعادة إرسال لا تخصم مرتين
             $key = hash('sha256', 'checkout|'.$sponsorship->id.'|'.($request->header('Idempotency-Key') ?: Str::uuid()));
-            $result = $gateway->charge($validated['card_token'], $sponsorship->cycleAmount(), $sponsorship->currency, $key);
+            $result = $gateway->charge($validated['card_token'], $sponsorship->chargeCycleAmount(), $sponsorship->chargeCurrency(), $key);
 
             if (! $result->succeeded) {
                 // الرفض يُحفظ للمتابعة، والحجز يُلغى فوراً فيعود الطفل لمن يكفله
@@ -167,10 +179,10 @@ class CheckoutController extends Controller
                     'reference_code' => $record->nextReference(),
                     'sponsorship_id' => $sponsorship->id,
                     'sponsor_id' => $sponsor->id,
-                    'amount' => $sponsorship->cycleAmount(),
-                    'currency' => $sponsorship->currency,
-                    'fx_rate' => 1,
-                    'amount_base' => $sponsorship->cycleAmount(),
+                    'amount' => $sponsorship->chargeCycleAmount(),
+                    'currency' => $sponsorship->chargeCurrency(),
+                    'fx_rate' => Fx::rate($sponsorship->chargeCurrency()),
+                    'amount_base' => Fx::toBase($sponsorship->chargeCycleAmount(), $sponsorship->chargeCurrency()),
                     'method' => PaymentMethod::Card,
                     'gateway' => config('kafala.gateway'),
                     'status' => PaymentStatus::Failed,
@@ -235,8 +247,8 @@ class CheckoutController extends Controller
                 ],
                 'monthly_amount' => (float) $sponsorship->monthly_amount,
                 'interval_months' => $sponsorship->interval_months,
-                'cycle_amount' => $sponsorship->cycleAmount(),
-                'currency' => $sponsorship->currency,
+                'cycle_amount' => $sponsorship->chargeCycleAmount(),
+                'currency' => $sponsorship->chargeCurrency(),
                 'is_zakat' => $sponsorship->is_zakat,
                 'method' => $validated['method'],
                 'next_due_at' => $sponsorship->next_due_at?->toDateString(),

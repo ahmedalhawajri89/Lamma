@@ -29,7 +29,7 @@ class ProfileController extends Controller
             'current_password' => ['nullable', 'string'],
 
             'sponsor.city' => ['sometimes', 'nullable', 'string', 'max:80'],
-            'sponsor.preferred_currency' => ['sometimes', Rule::in(['USD', 'GBP', 'EUR', 'SAR', 'AED'])],
+            'sponsor.preferred_currency' => ['sometimes', Rule::in(\App\Support\Fx::sponsorCurrencies())],
             'sponsor.prefers_zakat' => ['sometimes', 'boolean'],
             'sponsor.is_anonymous' => ['sometimes', 'boolean'],
             // مفاتيح معروفة وحدها، بقيم منطقية

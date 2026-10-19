@@ -31,6 +31,10 @@ class SponsorshipResource extends JsonResource
             'billing_day' => $this->when($money, $this->billing_day),
             'interval_months' => (int) ($this->interval_months ?? 1),
             'cycle_amount' => $this->when($money, fn () => $this->cycleAmount()),
+            // بعملة الكافل: ما يراه ويُخصم منه (يساوي ما فوقه حين يكفل بالأساس)
+            'charge_currency' => $this->chargeCurrency(),
+            'charge_amount' => $this->when($money, fn () => $this->chargeMonthly()),
+            'charge_cycle_amount' => $this->when($money, fn () => $this->chargeCycleAmount()),
             'payment_method' => $this->payment_method,
             'paused_at' => $this->paused_at?->toDateString(),
             // الحجز بانتظار أول دفعة يسقط بعد مهلة: يعرف الكافل حتى متى
@@ -46,7 +50,8 @@ class SponsorshipResource extends JsonResource
                 'failures' => (int) $this->payment_failures,
                 'next_retry_at' => $this->next_retry_at?->toDateString(),
                 'retries_left' => max(0, \App\Models\Sponsorship::maxPaymentAttempts() - (int) $this->payment_failures),
-                'amount' => $this->cycleAmount(),
+                'amount' => $this->chargeCycleAmount(),
+                'currency' => $this->chargeCurrency(),
                 'card_last4' => $this->card_last4,
                 'reason' => $this->payments()->where('status', \App\Enums\PaymentStatus::Failed)->latest('id')->value('failure_reason'),
             ]),

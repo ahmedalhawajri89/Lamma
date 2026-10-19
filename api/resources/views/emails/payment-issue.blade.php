@@ -20,7 +20,7 @@
 
 {!! __('شكراً لكل ما قدّمته له.') !!}
 @else
-{!! __('حاولنا خصم قسط :child (:amount) ولم ينجح الخصم.', ['child' => $child, 'amount' => number_format($sponsorship->cycleAmount(), 2).' '.$sponsorship->currency]) !!}
+{!! __('حاولنا خصم قسط :child (:amount) ولم ينجح الخصم.', ['child' => $child, 'amount' => number_format($sponsorship->chargeCycleAmount(), 2).' '.$sponsorship->chargeCurrency()]) !!}
 {!! __('السبب كما وصلنا من البنك: :reason', ['reason' => __($reason)]) !!}
 
 {!! __('سنعيد المحاولة تلقائياً بعد أيام. وإن تغيّرت بطاقتك، حدّثها من لوحتك فيُخصم القسط فوراً:') !!}

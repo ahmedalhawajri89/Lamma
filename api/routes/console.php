@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Console\Commands\CheckDataIntegrity;
 use App\Console\Commands\CoverWithContinuityFund;
 use App\Console\Commands\PrepareTransfers;
+use App\Console\Commands\RefreshExchangeRates;
 use App\Console\Commands\RollupMetrics;
 use App\Console\Commands\RunBilling;
 use Illuminate\Support\Facades\Schedule;
@@ -16,6 +17,12 @@ use Illuminate\Support\Facades\Schedule;
  * على آلاف الكفالات، وبلا القفل يبدأ تشغيل الغد قبل أن ينتهي اليوم على خادم
  * بطيء. و`onOneServer` لأن النشر خلف أكثر من خادم يشغّل الأمر على كلٍّ منها.
  */
+// قبل التحصيل: أسعار اليوم لعملات الكفلاء، ويُعاد حساب ما يعادل كفالاتهم
+Schedule::command(RefreshExchangeRates::class)
+    ->dailyAt('01:30')
+    ->timezone(config('kafala.display_timezone'))
+    ->onOneServer();
+
 Schedule::command(RunBilling::class)
     ->dailyAt('02:00')
     ->timezone(config('kafala.display_timezone'))

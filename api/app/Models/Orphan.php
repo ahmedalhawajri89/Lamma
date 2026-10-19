@@ -66,6 +66,13 @@ class Orphan extends Model
     use LogsActivity;
     use SoftDeletes;
 
+    /**
+     * فرقٌ دون هذا (بعملة الأساس) بين الحاجة وما يغطّيها يُعدّ اكتمالاً: كفالةٌ
+     * بالجنيه تنقص سنتات حين يتغيّر سعره، فلا يعود الطفل إلى الموقع ينتظر
+     * كافلاً لخمسين سنتاً.
+     */
+    public const FX_TOLERANCE = 1.0;
+
     protected $fillable = [
         'reference_code', 'first_name', 'last_name', 'gender', 'date_of_birth',
         'family_id', 'program_id', 'status', 'is_urgent', 'photo_path',
@@ -396,7 +403,10 @@ class Orphan extends Model
             ))
             ->sum('monthly_amount');
 
-        return max(0, round((float) $this->monthly_need - $covered, 2));
+        $remaining = round((float) $this->monthly_need - $covered, 2);
+
+        // كسرٌ دون وحدة من تقلّب سعر صرف كفالةٍ بعملةٍ أخرى ليس حاجةً تنتظر كافلاً
+        return $remaining < self::FX_TOLERANCE ? 0.0 : $remaining;
     }
 
     /**
@@ -414,6 +424,9 @@ class Orphan extends Model
 
         $need = (float) $this->monthly_need;
         $percent = $need > 0 ? (int) min(100, round($covered / $need * 100)) : 0;
+        if ($need > 0 && $need - $covered < self::FX_TOLERANCE) {
+            $percent = 100;
+        }
 
         $status = $this->status;
         if ($percent >= 100 && $status === OrphanStatus::Active) {

@@ -181,6 +181,8 @@ class PaymentController extends Controller
             'method' => ['required', Rule::in([PaymentMethod::BankTransfer->value, PaymentMethod::Cash->value])],
             'reference' => ['required', 'string', 'max:64'],
             'paid_at' => ['nullable', 'date', 'before_or_equal:today', 'after:-1 year'],
+            // كفالةٌ بعملةٍ أخرى: سعر الصرف كما في كشف البنك، وإلا سعر اليوم
+            'fx_rate' => ['nullable', 'numeric', 'min:0.000001', 'max:100000'],
         ], [
             'method.in' => 'التسجيل اليدوي للتحويل البنكي والنقد فقط. دفعات البطاقات تأتي من البوابة.',
             'reference.required' => 'رقم الحوالة أو الإيصال مطلوب، وهو ما يمنع تسجيل الدفعة نفسها مرتين.',
@@ -193,8 +195,9 @@ class PaymentController extends Controller
         abort_unless($sponsorship->status->isLive(), 422, 'هذه الكفالة منتهية. لا تُسجَّل عليها دفعة.');
 
         // سهوٌ بصفر زائد (1000 بدل 100) يُوقف هنا لا في تقرير آخر السنة
-        $amount = isset($validated['amount']) ? (float) $validated['amount'] : (float) $sponsorship->monthly_amount;
-        if ($amount > (float) $sponsorship->monthly_amount * 12) {
+        // بعملة الكافل: تحويل كافلٍ بالجنيه يصل بالجنيه
+        $amount = isset($validated['amount']) ? (float) $validated['amount'] : $sponsorship->chargeMonthly();
+        if ($amount > $sponsorship->chargeMonthly() * 12) {
             throw ValidationException::withMessages([
                 'amount' => 'المبلغ يتجاوز اثني عشر قسطاً لهذه الكفالة. تأكد منه، أو سجّله على دفعات.',
             ]);
@@ -224,6 +227,7 @@ class PaymentController extends Controller
             gatewayReference: $reference,
             paidAt: isset($validated['paid_at']) ? Carbon::parse($validated['paid_at'])->setTimeFrom(now()) : null,
             recordedBy: $request->user()->id,
+            fxRate: $sponsorship->isForeignCurrency() && isset($validated['fx_rate']) ? (float) $validated['fx_rate'] : null,
         );
 
         activity()->performedOn($payment)->causedBy($request->user())->event('recorded')

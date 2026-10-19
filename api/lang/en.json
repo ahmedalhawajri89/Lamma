@@ -720,5 +720,8 @@
     "شكراً لكل ما قدّمته له.": "Thank you for everything you gave.",
     "حصة من التشغيل": "Share of running costs",
     "تبرّع للصندوق": "Donation to the fund",
-    "تغطية قسط": "Payment covered"
+    "تغطية قسط": "Payment covered",
+    "لا نقبل هذه العملة بعد. اختر من القائمة.": "We don't accept this currency yet. Choose one from the list.",
+    "المتبقي من حاجة هذا الطفل :amount شهرياً. اختر مبلغاً لا يتجاوزه.": "This child still needs :amount a month. Choose an amount that doesn't exceed it.",
+    "أقل مبلغ للكفالة :amount شهرياً.": "The minimum sponsorship is :amount a month."
 }

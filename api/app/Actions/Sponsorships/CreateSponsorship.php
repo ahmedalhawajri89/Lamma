@@ -10,6 +10,7 @@ use App\Models\Program;
 use App\Models\Sponsor;
 use App\Models\Sponsorship;
 use Illuminate\Support\Carbon;
+use App\Support\Fx;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -42,12 +43,19 @@ class CreateSponsorship
         ?int $billingDay = null,
         int $intervalMonths = 1,
         ?string $paymentMethod = null,
+        ?string $currency = null,
     ): Sponsorship {
         if (! in_array($intervalMonths, self::INTERVALS, true)) {
             throw ValidationException::withMessages(['interval_months' => 'دورة الدفع شهرية أو كل 3 أشهر أو سنوية.']);
         }
 
-        return DB::transaction(function () use ($sponsor, $orphan, $monthlyAmount, $isZakat, $billingDay, $intervalMonths, $paymentMethod): Sponsorship {
+        // عملة الكافل: مبلغه بها، ويُحسب ما يعادله بالأساس (App\Support\Fx)
+        $currency = $currency ? strtoupper($currency) : null;
+        if ($currency !== null && ! Fx::isSponsorCurrency($currency)) {
+            throw ValidationException::withMessages(['currency' => __('لا نقبل هذه العملة بعد. اختر من القائمة.')]);
+        }
+
+        return DB::transaction(function () use ($sponsor, $orphan, $monthlyAmount, $isZakat, $billingDay, $intervalMonths, $paymentMethod, $currency): Sponsorship {
             /**
              * قفل صف الطفل يمنع سباقاً واقعياً: كافلان يضغطان «اكفل» في اللحظة
              * نفسها. بلا القفل يمرّ الاثنان من فحص التمويل ويتجاوز المجموع الحاجة.
@@ -79,10 +87,8 @@ class CreateSponsorship
 
             $program = Program::findOrFail($orphan->program_id);
 
-            $covered = (float) $orphan->sponsorships()
-                ->whereIn('status', array_filter(SponsorshipStatus::cases(), fn (SponsorshipStatus $s) => $s->countsTowardFunding()))
-                ->sum('monthly_amount');
-            $remaining = round((float) $orphan->monthly_need - $covered, 2);
+            $remaining = $orphan->remainingNeed();
+            $foreign = $currency !== null && $currency !== $program->currency;
 
             if ($remaining <= 0) {
                 throw ValidationException::withMessages([
@@ -90,17 +96,38 @@ class CreateSponsorship
                 ]);
             }
 
-            $amount = round($monthlyAmount ?? min((float) $program->monthly_price, $remaining), 2);
+            if ($foreign) {
+                // بعملة الكافل: الحدود نفسها محوّلةً ومقرّبة لوحدةٍ كاملة لصالح الطفل
+                $maxCharge = Fx::friendly($remaining, $currency);
+                $charge = round($monthlyAmount ?? Fx::friendly(min((float) $program->monthly_price, $remaining), $currency), 2);
+
+                if ($charge > $maxCharge) {
+                    throw ValidationException::withMessages([
+                        'monthly_amount' => __('المتبقي من حاجة هذا الطفل :amount شهرياً. اختر مبلغاً لا يتجاوزه.', ['amount' => number_format($maxCharge, 2).' '.$currency]),
+                    ]);
+                }
+                $minCharge = Fx::friendly(5, $currency);
+                if ($charge < $minCharge && $charge < $maxCharge) {
+                    throw ValidationException::withMessages([
+                        'monthly_amount' => __('أقل مبلغ للكفالة :amount شهرياً.', ['amount' => number_format($minCharge, 0).' '.$currency]),
+                    ]);
+                }
+
+                $amount = Fx::toBase($charge, $currency);
+            } else {
+                $charge = null;
+                $amount = round($monthlyAmount ?? min((float) $program->monthly_price, $remaining), 2);
+            }
 
             // مبلغٌ أكبر من المتبقي يُرفض بوضوح: كان يُخفَّض بصمت فيُخصم غير ما رآه الكافل
-            if ($amount > $remaining) {
+            if (! $foreign && $amount > $remaining) {
                 throw ValidationException::withMessages([
                     'monthly_amount' => 'المتبقي من حاجة هذا الطفل '.number_format($remaining, 2).' '.$program->currency.' شهرياً. اختر مبلغاً لا يتجاوزه.',
                 ]);
             }
 
             // الحدّ الأدنى 5، إلا أن يكون هو كل ما تبقّى (فلا يبقى كسرٌ لا يكفله أحد)
-            if ($amount < 5 && $amount < $remaining) {
+            if (! $foreign && $amount < 5 && $amount < $remaining) {
                 throw ValidationException::withMessages([
                     'monthly_amount' => 'أقل مبلغ للكفالة 5 '.$program->currency.' شهرياً.',
                 ]);
@@ -114,7 +141,9 @@ class CreateSponsorship
                 'program_id' => $program->id,
                 'monthly_amount' => $amount,
                 'currency' => $program->currency,
-                'share_percent' => (int) round($amount / (float) $orphan->monthly_need * 100),
+                'charge_currency' => $foreign ? $currency : null,
+                'charge_amount' => $charge,
+                'share_percent' => (int) min(100, round($amount / (float) $orphan->monthly_need * 100)),
                 'is_zakat' => $isZakat,
                 'status' => SponsorshipStatus::Pending,
                 'billing_day' => $day,

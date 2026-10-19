@@ -15,6 +15,7 @@ use App\Payments\ChargeDeclined;
 use App\Payments\PaymentGateway;
 use App\Services\MetricsService;
 use Illuminate\Console\Command;
+use App\Support\Fx;
 use App\Support\Locale;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
@@ -95,7 +96,7 @@ class RunBilling extends Command
             $card = $sponsorship->gateway_payment_method;
 
             if ($dry) {
-                $this->line("  · {$sponsorship->reference_code} — {$sponsorship->cycleAmount()} {$sponsorship->currency}".($card ? '' : ' (بلا بطاقة محفوظة)'));
+                $this->line("  · {$sponsorship->reference_code} — {$sponsorship->chargeCycleAmount()} {$sponsorship->chargeCurrency()}".($card ? '' : ' (بلا بطاقة محفوظة)'));
                 $done++;
 
                 continue;
@@ -106,7 +107,7 @@ class RunBilling extends Command
                     throw new ChargeDeclined('لا بطاقة محفوظة لهذه الكفالة. تواصل مع الكافل ليحدّث وسيلة الدفع.');
                 }
 
-                $result = $gateway->chargeSaved($card, $sponsorship->cycleAmount(), $sponsorship->currency, $key);
+                $result = $gateway->chargeSaved($card, $sponsorship->chargeCycleAmount(), $sponsorship->chargeCurrency(), $key);
 
                 if (! $result->succeeded) {
                     throw new ChargeDeclined($result->failureReason ?? 'رفضت البوابة الخصم.');
@@ -183,10 +184,10 @@ class RunBilling extends Command
                     'reference_code' => app(RecordPayment::class)->nextReference(),
                     'sponsorship_id' => $sponsorship->id,
                     'sponsor_id' => $sponsorship->sponsor_id,
-                    'amount' => $sponsorship->cycleAmount(),
-                    'currency' => $sponsorship->currency,
-                    'fx_rate' => 1,
-                    'amount_base' => $sponsorship->cycleAmount(),
+                    'amount' => $sponsorship->chargeCycleAmount(),
+                    'currency' => $sponsorship->chargeCurrency(),
+                    'fx_rate' => Fx::rate($sponsorship->chargeCurrency()),
+                    'amount_base' => Fx::toBase($sponsorship->chargeCycleAmount(), $sponsorship->chargeCurrency()),
                     'method' => PaymentMethod::Card,
                     'gateway' => config('kafala.gateway', 'manual'),
                     'status' => PaymentStatus::Failed,

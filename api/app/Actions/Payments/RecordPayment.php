@@ -9,6 +9,7 @@ use App\Enums\PaymentStatus;
 use App\Enums\SponsorshipStatus;
 use App\Models\Payment;
 use App\Models\Sponsorship;
+use App\Support\Fx;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 
@@ -32,7 +33,7 @@ class RecordPayment
         PaymentMethod $method = PaymentMethod::Card,
         ?string $cardBrand = null,
         ?string $cardLast4 = null,
-        float $fxRate = 1.0,
+        ?float $fxRate = null,
         ?string $gatewayReference = null,
         ?\DateTimeInterface $paidAt = null,
         ?int $recordedBy = null,
@@ -62,7 +63,7 @@ class RecordPayment
         PaymentMethod $method,
         ?string $cardBrand,
         ?string $cardLast4,
-        float $fxRate,
+        ?float $fxRate,
         ?string $gatewayReference,
         ?\DateTimeInterface $paidAt,
         ?int $recordedBy,
@@ -71,14 +72,18 @@ class RecordPayment
             $sponsorship, $idempotencyKey, $amount, $method, $cardBrand, $cardLast4, $fxRate, $gatewayReference, $paidAt, $recordedBy
         ): Payment {
             // الافتراضي دورة كاملة (شهر، أو ثلاثة، أو سنة)
-            $value = $amount ?? $sponsorship->cycleAmount();
+            $value = $amount ?? $sponsorship->chargeCycleAmount();
+
+            // بعملة الكافل، وما يعادلها بالأساس بسعر يوم الدفعة (أو سعر كشف البنك إن كُتب)
+            $currency = $sponsorship->chargeCurrency();
+            $fxRate ??= $currency === Fx::base() ? 1.0 : Fx::rate($currency);
 
             $payment = Payment::create([
                 'reference_code' => $this->nextReference(),
                 'sponsorship_id' => $sponsorship->id,
                 'sponsor_id' => $sponsorship->sponsor_id,
                 'amount' => $value,
-                'currency' => $sponsorship->currency,
+                'currency' => $currency,
                 'fx_rate' => $fxRate,
                 'amount_base' => round($value * $fxRate, 2),
                 'method' => $method,

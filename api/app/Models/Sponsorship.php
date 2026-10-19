@@ -49,7 +49,7 @@ class Sponsorship extends Model
 
     protected $fillable = [
         'reference_code', 'sponsor_id', 'orphan_id', 'program_id',
-        'monthly_amount', 'currency', 'share_percent', 'is_zakat',
+        'monthly_amount', 'currency', 'charge_currency', 'charge_amount', 'share_percent', 'is_zakat',
         'status', 'billing_day', 'interval_months', 'payment_method', 'started_at', 'next_due_at',
 
         // تُسندها CancelSponsorship و SponsorshipController لا طلب المستخدم
@@ -72,6 +72,7 @@ class Sponsorship extends Model
     {
         return [
             'monthly_amount' => 'decimal:2',
+            'charge_amount' => 'decimal:2',
             'share_percent' => 'integer',
             'billing_day' => 'integer',
             'interval_months' => 'integer',
@@ -250,7 +251,33 @@ class Sponsorship extends Model
      */
     public function monthsCoveredBy(float $amount): int
     {
-        return max(1, (int) floor(($amount + 0.005) / max(0.01, (float) $this->monthly_amount)));
+        // المبلغ بعملة الدفعة نفسها، وهي عملة الكافل: يُقاس على قسطه بها
+        return max(1, (int) floor(($amount + 0.005) / max(0.01, $this->chargeMonthly())));
+    }
+
+    /* ------------------------------------------------------- عملة الكافل */
+
+    /** العملة التي يُخصم بها الكافل: عملته إن كفل بغير الأساس، وإلا الأساس. */
+    public function chargeCurrency(): string
+    {
+        return $this->charge_currency ?: $this->currency;
+    }
+
+    public function isForeignCurrency(): bool
+    {
+        return $this->charge_currency !== null && $this->charge_currency !== $this->currency;
+    }
+
+    /** القسط الشهري بعملة الكافل: الثابت الذي يراه ويُخصم منه. */
+    public function chargeMonthly(): float
+    {
+        return $this->isForeignCurrency() ? (float) $this->charge_amount : (float) $this->monthly_amount;
+    }
+
+    /** ما يُخصم في الدورة الواحدة بعملة الكافل. */
+    public function chargeCycleAmount(): float
+    {
+        return round($this->chargeMonthly() * max(1, (int) ($this->interval_months ?? 1)), 2);
     }
 
     /** ما يُخصم في الدورة الواحدة: القسط الشهري × أشهر الدورة */

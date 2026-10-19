@@ -159,7 +159,7 @@ class SponsorshipController extends Controller
             $sponsorship->save();
             abort(409, __('وصل قسط هذا الموعد من قبل. حدّث الصفحة.'));
         }
-        $result = $gateway->charge($validated['card_token'], $sponsorship->cycleAmount(), $sponsorship->currency, $key);
+        $result = $gateway->charge($validated['card_token'], $sponsorship->chargeCycleAmount(), $sponsorship->chargeCurrency(), $key);
 
         if (! $result->succeeded) {
             throw ValidationException::withMessages(['card_token' => $result->failureReason ?? __('رفض البنك العملية. جرّب بطاقة أخرى.')]);
