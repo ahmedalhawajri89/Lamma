@@ -61,12 +61,16 @@ class VerifyOrphan
         });
     }
 
+    /**
+     * النشر للكفالة. الشروط كلها في Orphan::publishBlockers وتُعاد أسبابها
+     * بلغة القارئ، لا 403 صامتة. وهي هنا لا في السياسة: الإخفاء (unpublish)
+     * يمرّ بالصلاحية نفسها، ولا يُمنع أحدٌ من إخفاء طفل.
+     */
     public function publish(Orphan $orphan): Orphan
     {
-        if ($orphan->verified_at === null) {
-            throw ValidationException::withMessages([
-                'status' => 'لا يُنشر ملف قبل توثيقه.',
-            ]);
+        $blockers = $orphan->publishBlockers();
+        if ($blockers !== []) {
+            throw ValidationException::withMessages(['status' => $blockers]);
         }
 
         $orphan->update([

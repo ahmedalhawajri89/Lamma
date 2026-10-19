@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\AssociationStatus;
 use App\Enums\Gender;
 use App\Enums\OrphanStatus;
 use App\Enums\SponsorshipStatus;
@@ -197,7 +198,48 @@ class Orphan extends Model
         return $query
             ->whereIn('status', [OrphanStatus::Active, OrphanStatus::FullyFunded])
             ->whereNotNull('published_at')
-            ->whereNotNull('verified_at');
+            ->whereNotNull('verified_at')
+            /*
+             * جمعيةٌ موقوفة يختفي أطفالها من الموقع، وتبقى كفالاتهم القائمة.
+             * ولا يُشترط هنا أن تكون للأسرة جمعية: ما نُشر قبل المرحلة 2 يبقى
+             * ظاهراً، والشرط الأشدّ عند النشر (publishBlockers).
+             */
+            ->whereDoesntHave('family.association', fn (Builder $a) => $a->where('status', AssociationStatus::Suspended));
+    }
+
+    /**
+     * ما يمنع نشر الطفل للكفالة، بلغة من سيقرؤه. فارغةٌ تعني «يُنشر».
+     *
+     * الوعد الأول لـ«لمّة»: الطفل في أسرته، عبر جمعية موثّقة تعرفه. فلا يُنشر
+     * طفلٌ في دار رعاية، ولا بلا إقرار رعاية حديث (12 شهراً)، ولا عبر جمعية
+     * غير موثّقة.
+     *
+     * @return list<string>
+     */
+    public function publishBlockers(): array
+    {
+        $family = $this->family()->with('association')->first();
+        $blockers = [];
+
+        if ($this->verified_at === null) {
+            $blockers[] = __('لا يُنشر ملف قبل توثيقه.');
+        }
+
+        if ($family?->association === null) {
+            $blockers[] = __('أسرته غير مُسنَدة إلى جمعية شريكة. أسندها إلى جمعية من شاشة الأسرة.');
+        } elseif (! $family->association->isVerified()) {
+            $blockers[] = __('جمعية الأسرة («:name») غير موثّقة بعد.', ['name' => $family->association->name_ar]);
+        }
+
+        if ($family?->care_arrangement === null) {
+            $blockers[] = __('لم يُسجَّل مع من يعيش الطفل.');
+        } elseif (! $family->care_arrangement->isFamilyBased()) {
+            $blockers[] = __('الطفل في دار رعاية. «لمّة» تكفل الأطفال في أسرهم وحدهم.');
+        } elseif (! $family->hasCurrentCareAttestation()) {
+            $blockers[] = __('لم يُقَرّ ترتيب رعايته خلال اثني عشر شهراً. أكّده بزيارة ميدانية.');
+        }
+
+        return $blockers;
     }
 
     /**

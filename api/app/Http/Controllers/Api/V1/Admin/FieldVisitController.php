@@ -164,6 +164,8 @@ class FieldVisitController extends Controller
             'findings' => ['required', 'string', 'min:10', 'max:4000'],
             'needs_flagged' => ['nullable', 'array'],
             'needs_flagged.*' => ['string', 'max:40'],
+            // هل يعيش الطفل حيث يقول ملفه؟ نعم تجدّد إقرار الرعاية، ولا تُسقطه
+            'care_confirmed' => ['nullable', 'boolean'],
             'next_visit_due' => ['nullable', 'date', 'after:today'],
             'latitude' => ['nullable', 'numeric', 'between:-90,90'],
             'longitude' => ['nullable', 'numeric', 'between:-180,180'],
@@ -195,6 +197,19 @@ class FieldVisitController extends Controller
             ...$validated,
             'supervisor_id' => $request->user()->id,
         ]);
+
+        /*
+         * الزيارة هي ما يُقرّ ترتيب الرعاية: تأكيدٌ يجدّده اثني عشر شهراً،
+         * ونفيٌ يُسقطه فلا يُعاد نشر الطفل حتى يُصحَّح ملف أسرته.
+         */
+        $family = $orphan->family;
+        if ($family !== null && array_key_exists('care_confirmed', $validated) && $validated['care_confirmed'] !== null) {
+            if ($validated['care_confirmed'] && $family->care_arrangement !== null) {
+                $family->attestCare($family->care_arrangement, $request->user());
+            } elseif (! $validated['care_confirmed']) {
+                $family->forceFill(['care_attested_at' => null, 'care_attested_by' => null, 'care_review_due_at' => null])->save();
+            }
+        }
 
         return response()->json([
             'message' => 'سُجّلت الزيارة.',

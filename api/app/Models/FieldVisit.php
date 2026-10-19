@@ -26,7 +26,7 @@ class FieldVisit extends Model
 
     protected $fillable = [
         'orphan_id', 'supervisor_id', 'visited_at', 'findings',
-        'needs_flagged', 'next_visit_due', 'latitude', 'longitude',
+        'needs_flagged', 'care_confirmed', 'next_visit_due', 'latitude', 'longitude',
     ];
 
     protected function casts(): array
@@ -35,6 +35,7 @@ class FieldVisit extends Model
             'visited_at' => 'datetime',
             'next_visit_due' => 'date',
             'needs_flagged' => 'array',
+            'care_confirmed' => 'boolean',
             'latitude' => 'decimal:7',
             'longitude' => 'decimal:7',
         ];
