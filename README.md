@@ -4,10 +4,10 @@
 
 # Lamma — لمّة
 
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-Open%20the%20site-c2410c?style=for-the-badge&logo=vercel&logoColor=white)](https://kafala-orphan-sponsorship.vercel.app/)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Open%20the%20site-c2410c?style=for-the-badge&logo=vercel&logoColor=white)](https://lamma-sponsorship.vercel.app/)
 
-**Live demo — [kafala-orphan-sponsorship.vercel.app](https://kafala-orphan-sponsorship.vercel.app/)**
-The deployed link is a **static snapshot of the public site only**, so you can see the design and the motion. The API, the admin console and the sponsor portal need PHP and MySQL, and run locally in the two steps under [Running it](#running-it).
+**Live demo: [lamma-sponsorship.vercel.app](https://lamma-sponsorship.vercel.app/)**
+The whole platform runs there: the public site, the admin console at `/admin` and the sponsor portal, on Vercel with a TiDB database. Sign in with `admin@lamma.org` (console) or `sponsor@lamma.org` (portal), password `password`.
 
 *Arabic README: [README.ar.md](README.ar.md)*
 

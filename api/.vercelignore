@@ -1,0 +1,12 @@
+/tests
+/node_modules
+/vendor
+/storage/logs/*
+/storage/framework/*
+/bootstrap/cache/*.php
+.env
+.env.*
+/package.json
+/vite.config.js
+/resources/css
+/resources/js

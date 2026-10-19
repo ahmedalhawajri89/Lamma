@@ -1,0 +1,15 @@
+{
+  "regions": ["fra1"],
+  "functions": {
+    "api/index.php": {
+      "runtime": "vercel-php@0.7.4",
+      "maxDuration": 30
+    }
+  },
+  "routes": [
+    { "src": "/(assets|storage)/(.*)", "dest": "/public/$1/$2" },
+    { "src": "/admin-app/(.*)", "dest": "/public/admin-app/$1" },
+    { "src": "/(favicon\\.ico|robots\\.txt)", "dest": "/public/$1" },
+    { "src": "/(.*)", "dest": "/api/index.php" }
+  ]
+}

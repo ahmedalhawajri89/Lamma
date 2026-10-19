@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
@@ -63,10 +64,13 @@ return new class extends Migration
             $table->index('published_at');
         });
 
-        // البحث النصي في شريط orphans.html
-        Schema::table('orphans', function (Blueprint $table) {
-            $table->fullText(['first_name', 'last_name', 'story'], 'ft_orphans_search');
-        });
+        // البحث النصي في شريط orphans.html. TiDB (قاعدة النسخة المنشورة) لا يقبل
+        // فهرساً نصياً على أكثر من عمود، والبحث لا يعتمد عليه، فيُتخطّى هناك.
+        if (! str_contains((string) DB::connection()->getPdo()->getAttribute(PDO::ATTR_SERVER_VERSION), 'TiDB')) {
+            Schema::table('orphans', function (Blueprint $table) {
+                $table->fullText(['first_name', 'last_name', 'story'], 'ft_orphans_search');
+            });
+        }
 
         /**
          * المستندات — هذا الجدول هو ما يجعل ادّعاء «ثلاث مراحل تحقّق»

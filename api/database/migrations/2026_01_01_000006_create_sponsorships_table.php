@@ -64,12 +64,17 @@ return new class extends Migration
          * لا يشارك في قيود UNIQUE في MySQL، فالصفوف الملغاة تُستثنى تلقائياً.
          * قيدٌ جزئي حقيقي على محرّك لا يدعم القيود الجزئية.
          */
+        // TiDB (قاعدة النسخة المنشورة) لا يضيف عموداً مولَّداً STORED بـ ALTER،
+        // ويقبل VIRTUAL ويبني عليه القيد الفريد نفسه؛ والنتيجة واحدة.
+        $tidb = str_contains((string) DB::connection()->getPdo()->getAttribute(PDO::ATTR_SERVER_VERSION), 'TiDB');
+        $storage = $tidb ? 'VIRTUAL' : 'STORED';
+
         DB::statement("
             ALTER TABLE sponsorships
             ADD COLUMN active_key TINYINT UNSIGNED
                 GENERATED ALWAYS AS (
                     CASE WHEN status IN ('pending','active','paused') THEN 1 ELSE NULL END
-                ) STORED
+                ) {$storage}
         ");
 
         DB::statement('

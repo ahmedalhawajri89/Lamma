@@ -8,13 +8,13 @@
 
 *English README: [README.md](README.md)*
 
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-%D8%A7%D9%84%D9%85%D9%88%D9%82%D8%B9%20%D8%A7%D9%84%D8%B9%D8%A7%D9%85-C2410C?style=for-the-badge&logo=vercel&logoColor=white)](https://kafala-orphan-sponsorship.vercel.app/)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-%D8%A7%D9%84%D9%85%D9%88%D9%82%D8%B9%20%D8%A7%D9%84%D8%B9%D8%A7%D9%85-C2410C?style=for-the-badge&logo=vercel&logoColor=white)](https://lamma-sponsorship.vercel.app/)
 
 <div dir="rtl">
 
-> الديمو أعلاه نسخة **ساكنة من الموقع العام وحده** — لعرض التصميم والحركة.
-> أما الـ API ولوحة الإدارة وبوابة الكافل فتحتاج PHP و MySQL، وتُشغَّل محلياً
-> بخطوتين في [التشغيل](#-التشغيل).
+> الديمو أعلاه هو المنصة كاملة: الموقع العام، ولوحة الإدارة على `/admin`،
+> وبوابة الكافل، على Vercel بقاعدة TiDB. ادخل بـ `admin@lamma.org` (اللوحة)
+> أو `sponsor@lamma.org` (البوابة)، وكلمة السر `password`.
 
 منصة كفالة أيتام كاملة تصل كفلاءً من أي بلد بأطفالٍ يعيشون مع أسرهم، عبر جمعيات
 محلية موثّقة: موقع عام بالعربية (RTL أولاً)، وخادم Laravel 12 على MySQL، ولوحة
