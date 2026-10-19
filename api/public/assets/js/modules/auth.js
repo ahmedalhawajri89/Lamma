@@ -80,6 +80,9 @@ export function hasSignedInHint() {
 export const portalOverview = () => request('/portal/overview');
 export const portalPayments = (params = '') => request(`/portal/payments${params}`);
 export const portalReports = () => request('/portal/reports');
+/** «أين ذهب مالك»: سجلّ الطفل المالي شهراً بشهر */
+export const portalLedger = (sponsorshipId, months = 12) =>
+  request(`/portal/sponsorships/${sponsorshipId}/ledger?months=${months}`);
 export const markReportSeen = (id) => request(`/portal/reports/${id}`);
 
 export const portalMessages = (sponsorshipId) =>

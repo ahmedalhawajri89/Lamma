@@ -13,7 +13,7 @@
 import { $, $$, escapeHtml, formatMoney, formatNumber } from './utils.js';
 import {
   me, logout, isSponsor, isAuthLoss, portalOverview, portalPayments, markReportSeen, markSignedIn, clearSignedIn,
-  portalMessages, sendPortalMessage, cancelSponsorship, setSponsorshipStatus, updateProfile, updatePassword, forgotPassword,
+  portalMessages, sendPortalMessage, portalLedger, cancelSponsorship, setSponsorshipStatus, updateProfile, updatePassword, forgotPassword,
 } from './auth.js';
 import { fetchCheckoutConfig } from './api.js';
 import { toast } from './ui.js';
@@ -207,6 +207,7 @@ export async function initPortal() {
   initImageFallback();
   initStatusTabs();
   initReports();
+  initLedger();
   initMessages();
   initStatusActions();
   initCancel();
@@ -555,6 +556,9 @@ function renderSponsorships() {
         <button class="btn ${paused ? 'btn-soft' : 'btn-primary'} btn-sm" type="button" data-message-open="${s.id}">
           <i class="fa-regular fa-envelope" aria-hidden="true"></i> رسالة
         </button>
+        <button class="btn btn-soft btn-sm" type="button" data-ledger-open="${s.id}">
+          <i class="fa-solid fa-route" aria-hidden="true"></i> أين ذهب مالك
+        </button>
         ${latest ? `<button class="btn btn-soft btn-sm" type="button" data-report-open="${latest.id}">
           <i class="fa-regular fa-file-lines" aria-hidden="true"></i> آخر تقرير
         </button>` : `<a class="btn btn-soft btn-sm" href="${profile}">ملفه</a>`}
@@ -777,6 +781,121 @@ ${breakdown ? `<div class="pt-rep__spend"><h3>كيف صُرفت الكفالة</
 </p>`;
 
   openModal('reportModal');
+}
+
+/* ------------------------------------------------------ أين ذهب مالك */
+
+/**
+ * سجلّ الطفل المالي (ChildLedgerService): ما وصل له، وما حُوِّل لجمعيته بعد
+ * التشغيل، وما صُرف عليه بنداً بنداً، شهراً بشهر. كل رقمٍ من صفوف المال
+ * على الخادم؛ هنا العرض وحده.
+ */
+function initLedger() {
+  document.addEventListener('click', async (e) => {
+    const button = e.target.closest('[data-ledger-open]');
+    if (!button) return;
+    button.disabled = true;
+    try {
+      const { data } = await portalLedger(Number(button.dataset.ledgerOpen));
+      openLedgerModal(data);
+    } catch (error) {
+      failed(error, 'تعذّر فتح السجل.');
+    } finally {
+      if (button.isConnected) button.disabled = false;
+    }
+  });
+}
+
+/** المبلغ معزولاً باتجاهه: «$20.18» لا «20.18$» وسط جملة عربية */
+const money = (v) => `<bdi class="num" dir="ltr">${formatMoney(Number(v) || 0)}</bdi>`;
+
+function openLedgerModal(d) {
+  const host = $('[data-ledger-content]');
+  if (!host) return;
+  const t = d.totals;
+  const name = escapeHtml(d.child?.name ?? '');
+  const assoc = d.association
+    ? `<a href="${url(`/partners/${encodeURIComponent(d.association.slug)}`)}">${escapeHtml(d.association.name)}</a>`
+    : 'جمعيته';
+  const months = (d.months ?? []).filter((m) => m.received || m.transfer || m.spent_total);
+
+  // الشهر الجاري يُحوَّل أوله التالي، والماضي ينتظر الإرسال؛ وما قبلهما بلا تحويلٍ مسجّل لا وعد له
+  const [current, previous] = [0, 1].map((back) => {
+    const dt = new Date();
+    dt.setDate(1);
+    dt.setMonth(dt.getMonth() - back);
+    return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}`;
+  });
+  const transferChip = (m) => {
+    if (m.transfer?.status === 'confirmed') return `<span class="pt-chip pt-chip--ok">وصل للجمعية ${money(m.transfer.amount)}</span>`;
+    if (m.transfer?.status === 'sent') return `<span class="pt-chip pt-chip--wait">أُرسل للجمعية ${money(m.transfer.amount)}</span>`;
+    if (!m.received) return '<span></span>';
+    if (m.period === current) return '<span class="pt-chip">يُحوَّل أول الشهر التالي</span>';
+    if (m.period === previous) return '<span class="pt-chip">بانتظار الإرسال</span>';
+    return '<span></span>';
+  };
+
+  const cats = d.categories ?? [];
+  const spentAll = cats.reduce((sum, c) => sum + c.amount, 0) || 1;
+
+  host.innerHTML = `
+<header class="pt-led__head">
+  <p>منذ بدأت الكفالة · المبالغ بالدولار</p>
+  <h2 id="ledgerModalTitle">أين ذهب مالك لـ${name}</h2>
+</header>
+
+<ol class="pt-flow" role="list">
+  <li>
+    <span class="pt-flow__icon" aria-hidden="true"><i class="fa-solid fa-hand-holding-heart"></i></span>
+    <span class="pt-flow__label">وصل لـ${name}</span>
+    <strong>${money(t.received)}</strong>
+    <small>${t.my_share_percent !== null ? `منك ${money(t.mine)}، أي <bdi class="num">${t.my_share_percent}٪</bdi> مما وصل` : 'لم تصل دفعات بعد'}</small>
+  </li>
+  <li>
+    <span class="pt-flow__icon" aria-hidden="true"><i class="fa-solid fa-building-columns"></i></span>
+    <span class="pt-flow__label">حُوِّل إلى ${assoc}</span>
+    <strong>${money(t.transferred)}</strong>
+    <small>بعد التشغيل ${money(t.fee)}، وهو <bdi class="num">${formatNumber(d.fee_percent)}٪</bdi> من كل دفعة</small>
+  </li>
+  <li>
+    <span class="pt-flow__icon" aria-hidden="true"><i class="fa-solid fa-basket-shopping"></i></span>
+    <span class="pt-flow__label">صُرف على ${name}</span>
+    <strong>${money(t.spent)}</strong>
+    <small>في <bdi class="num">${formatNumber(t.spend_items)}</bdi> بنداً${t.receipts ? `، منها <bdi class="num">${formatNumber(t.receipts)}</bdi> بإيصالٍ موثّق` : ''}</small>
+  </li>
+</ol>
+
+${t.transferred > 0 && t.balance > 0 ? `<p class="pt-led__balance"><i class="fa-solid fa-piggy-bank" aria-hidden="true"></i> عند الجمعية لـ${name} <b>${money(t.balance)}</b> لم تُصرف بعد، وتُصرف عليه في الأشهر القادمة.</p>` : ''}
+${t.transferred === 0 && t.received > 0 ? '<p class="pt-led__balance"><i class="fa-regular fa-clock" aria-hidden="true"></i> يُحوَّل ما يصل كل شهر لجمعية الطفل في أول الشهر التالي، ويظهر هنا حين يُرسل.</p>' : ''}
+
+${cats.length ? `<section class="pt-rep__spend">
+  <h3>على ماذا صُرف</h3>
+  <div class="pt-split" role="img" aria-label="${cats.map((c) => `${escapeHtml(c.label)} ${formatMoney(c.amount)}`).join('، ')}">
+    ${cats.map((c) => `<span style="--w:${(c.amount * 100 / spentAll).toFixed(1)}%; --c:${escapeHtml(c.color ?? 'var(--color-brand)')}"></span>`).join('')}
+  </div>
+  <ul class="pt-legend">
+    ${cats.map((c) => `<li><i style="--c:${escapeHtml(c.color ?? 'var(--color-brand)')}"></i>${escapeHtml(c.label)} <b>${money(c.amount)}</b></li>`).join('')}
+  </ul>
+</section>` : ''}
+
+${months.length ? `<section class="pt-led__months">
+  <h3>شهراً بشهر</h3>
+  <ol role="list">
+    ${months.map((m) => `<li>
+      <strong>${escapeHtml(m.label)}</strong>
+      <span>وصل <b>${money(m.received)}</b>${m.mine && m.mine !== m.received ? ` <small>منك ${money(m.mine)}</small>` : ''}</span>
+      ${transferChip(m)}
+      <span>صُرف <b>${money(m.spent_total)}</b></span>
+    </li>`).join('')}
+  </ol>
+</section>` : '<p class="pt-muted">لا حركة بعد. يظهر هنا كل شهر ما وصل وما حُوِّل وما صُرف.</p>'}
+
+<p class="pt-rep__private">
+  <i class="fa-solid fa-scale-balanced" aria-hidden="true"></i>
+  <span>كل رقمٍ هنا محسوبٌ من الدفعات والتحويلات والصرف المعتمَد نفسها، لا مكتوبٌ باليد. وما دفعه كفلاء آخرون يظهر مجموعاً لا بأسمائهم.</span>
+</p>`;
+
+  openModal('ledgerModal');
 }
 
 /* --------------------------------------------------------------- الرسائل */

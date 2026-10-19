@@ -359,6 +359,16 @@
     </div>
   </div>
 
+  {{-- ══ أين ذهب مالك: سجلّ الطفل المالي (portal.js، ChildLedgerService) ══ --}}
+  <div class="modal fade" id="ledgerModal" tabindex="-1" aria-labelledby="ledgerModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+      <div class="modal-content pt-modal">
+        <button class="btn-close pt-modal__close" type="button" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+        <div class="modal-body" data-ledger-content></div>
+      </div>
+    </div>
+  </div>
+
   {{-- ══ نافذة الرسائل: محادثة، يقرأ المشرف كل رسالة قبل أن تصل ══ --}}
   <div class="modal fade" id="messagesModal" tabindex="-1" aria-labelledby="messagesTitle" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
