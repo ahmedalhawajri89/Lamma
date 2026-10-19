@@ -4,18 +4,22 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1\Portal;
 
+use App\Actions\Payments\RecordPayment;
 use App\Actions\Sponsorships\CancelSponsorship;
 use App\Actions\Sponsorships\CreateSponsorship;
 use App\Http\Controllers\Controller;
+use App\Enums\PaymentMethod;
 use App\Enums\SponsorshipStatus;
 use App\Http\Resources\SponsorshipResource;
 use App\Models\Orphan;
 use App\Models\Sponsorship;
+use App\Payments\PaymentGateway;
 use App\Services\ChildLedgerService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class SponsorshipController extends Controller
 {
@@ -118,6 +122,66 @@ class SponsorshipController extends Controller
                 ? 'أوقفنا الخصم مؤقتاً. يبقى الطفل محجوزاً لك، واستأنف متى شئت.'
                 : 'استأنفت الكفالة. أول قسط في '.$sponsorship->next_due_at?->toDateString().'.',
             'data' => new SponsorshipResource($sponsorship->load(['orphan', 'program'])),
+        ]);
+    }
+
+    /**
+     * القسط المتعثّر ببطاقة جديدة: يُخصم بها القسط المستحق فوراً، وتُحفظ
+     * للأشهر القادمة، وينتهي التعثّر. بمفتاح الشهر نفسه الذي يستعمله
+     * billing:run، فلا يُخصم القسط مرتين إن التقيا.
+     */
+    public function updateCard(Request $request, Sponsorship $sponsorship, PaymentGateway $gateway, RecordPayment $record): JsonResponse
+    {
+        $this->authorize('updateCard', $sponsorship);
+
+        $validated = $request->validate([
+            'card_token' => ['required', 'string', 'max:120'],
+            'card_brand' => ['nullable', 'string', 'max:20'],
+            'card_last4' => ['nullable', 'digits:4'],
+        ], ['card_token.required' => __('أكمل بيانات البطاقة.')]);
+
+        abort_unless(
+            $sponsorship->status === SponsorshipStatus::Active && ($sponsorship->hasPaymentIssue() || $sponsorship->next_due_at?->lte(today())),
+            409,
+            __('لا قسط متأخر على هذه الكفالة.'),
+        );
+
+        $key = hash('sha256', "{$sponsorship->id}-".now()->format('Y-m'));
+        $result = $gateway->charge($validated['card_token'], $sponsorship->cycleAmount(), $sponsorship->currency, $key);
+
+        if (! $result->succeeded) {
+            throw ValidationException::withMessages(['card_token' => $result->failureReason ?? __('رفض البنك العملية. جرّب بطاقة أخرى.')]);
+        }
+
+        $last4 = isset($validated['card_last4']) ? substr((string) $validated['card_last4'], -4) : null;
+
+        DB::transaction(function () use ($sponsorship, $record, $key, $validated, $last4, $result): void {
+            $record->handle(
+                sponsorship: $sponsorship,
+                idempotencyKey: $key,
+                method: PaymentMethod::Card,
+                cardBrand: $validated['card_brand'] ?? null,
+                cardLast4: $last4,
+                gatewayReference: $result->reference,
+            );
+
+            $sponsorship->forceFill([
+                'payment_method' => PaymentMethod::Card->value,
+                'gateway_payment_method' => $result->paymentMethod ?? $sponsorship->gateway_payment_method,
+                'card_brand' => $validated['card_brand'] ?? null,
+                'card_last4' => $last4,
+            ])->save();
+        });
+
+        activity('sponsorships')
+            ->performedOn($sponsorship)
+            ->causedBy($request->user())
+            ->withProperties(['by' => 'sponsor', 'card_last4' => $last4])
+            ->log('حدّث الكافل بطاقته ودفع القسط المتعثّر');
+
+        return response()->json([
+            'message' => __('وصل القسط، شكراً لك. حفظنا البطاقة الجديدة للأشهر القادمة.'),
+            'data' => new SponsorshipResource($sponsorship->fresh(['orphan', 'program'])),
         ]);
     }
 

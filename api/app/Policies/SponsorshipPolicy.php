@@ -40,6 +40,12 @@ class SponsorshipPolicy
      * سجلّ الطفل المالي («أين ذهب مالك»): لصاحب الكفالة، ولمن يرى الكفالات
      * من الموظفين. فيه ما دفعه كفلاء آخرون مجموعاً لا بأسمائهم.
      */
+    /** تحديث بطاقة الكفالة ودفع القسط المتعثّر بها: للكافل وحده. */
+    public function updateCard(User $user, Sponsorship $sponsorship): bool
+    {
+        return $this->owns($user, $sponsorship);
+    }
+
     public function viewLedger(User $user, Sponsorship $sponsorship): bool
     {
         return $this->owns($user, $sponsorship) || $user->can('sponsorships.view');

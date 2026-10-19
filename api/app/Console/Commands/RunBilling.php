@@ -7,6 +7,7 @@ namespace App\Console\Commands;
 use App\Actions\Payments\RecordPayment;
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentStatus;
+use App\Mail\PaymentIssueMail;
 use App\Models\Payment;
 use App\Enums\SponsorshipStatus;
 use App\Models\Sponsorship;
@@ -14,7 +15,9 @@ use App\Payments\ChargeDeclined;
 use App\Payments\PaymentGateway;
 use App\Services\MetricsService;
 use Illuminate\Console\Command;
+use App\Support\Locale;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Throwable;
 
 /**
@@ -52,7 +55,7 @@ class RunBilling extends Command
 
         $due = Sponsorship::query()
             ->dueBy()
-            ->with(['sponsor:id,preferred_currency', 'orphan:id,first_name'])
+            ->with(['sponsor:id,user_id,preferred_currency', 'sponsor.user:id,name,email,locale', 'orphan:id,first_name'])
             ->limit($limit)
             ->get();
 
@@ -126,6 +129,7 @@ class RunBilling extends Command
                 // كانت تُرمى وحدها فلا أثر لها في أي شاشة. مفتاحها غير مفتاح النجاح،
                 // فإعادة المحاولة لاحقاً تبقى ممكنة.
                 $this->recordFailure($sponsorship, $key, $e->getMessage());
+                $this->scheduleRetry($sponsorship, $e->getMessage());
                 $this->error("  × {$sponsorship->reference_code}: {$e->getMessage()}");
 
                 // رفض البنك أو غياب البطاقة نتيجةٌ متوقعة تُتابع من شاشة الدفعات،
@@ -144,6 +148,27 @@ class RunBilling extends Command
         $this->info("نجح: {$done}".($failed > 0 ? " · فشل: {$failed}" : '').($manual > 0 ? " · يدوي يتابعه المحاسب: {$manual}" : ''));
 
         return $failed > 0 ? self::FAILURE : self::SUCCESS;
+    }
+
+    /**
+     * التعثّر: المحاولة التالية في موعدها (retry_after_days) لا غداً، وأول
+     * رفضٍ فيه يُبلَّغ به الكافل بلغته مع رابط تحديث البطاقة. البريد لا
+     * يُسقط التشغيلة إن فشل.
+     */
+    private function scheduleRetry(Sponsorship $sponsorship, string $reason): void
+    {
+        try {
+            $first = $sponsorship->recordPaymentFailure();
+            $user = $sponsorship->sponsor?->user;
+
+            if ($first && $user?->email) {
+                Mail::to($user->email, $user->name)
+                    ->locale(Locale::supports($user->locale) ? $user->locale : Locale::default())
+                    ->send(new PaymentIssueMail($sponsorship, $reason));
+            }
+        } catch (Throwable $e) {
+            report($e);
+        }
     }
 
     private function recordFailure(Sponsorship $sponsorship, string $key, string $reason): void

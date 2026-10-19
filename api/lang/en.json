@@ -689,5 +689,20 @@
     "يصلها مبلغك عبر جمعيتها بعد :fee٪ للتشغيل، وتراه بنداً بنداً في حسابك.": "Your money reaches her through her association after :fee% running costs, and you can see it item by item in your account.",
     "يصله مبلغك عبر جمعيته بعد :fee٪ للتشغيل، وتراه بنداً بنداً في حسابك.": "Your money reaches him through his association after :fee% running costs, and you can see it item by item in your account.",
     "رسوم فوق المبلغ": "Added on top",
-    "منه للتشغيل": "Of it, running costs"
+    "منه للتشغيل": "Of it, running costs",
+    "لا قسط متأخر على هذه الكفالة.": "There is no overdue payment on this sponsorship.",
+    "رفض البنك العملية. جرّب بطاقة أخرى.": "The bank declined the payment. Try another card.",
+    "وصل القسط، شكراً لك. حفظنا البطاقة الجديدة للأشهر القادمة.": "Payment received, thank you. We saved the new card for the coming months.",
+    "تعذّر خصم قسط :name هذا الشهر": "We couldn't collect :name's payment this month",
+    "مرحباً :name،": "Hello :name,",
+    "حاولنا خصم قسط :child (:amount) ولم ينجح الخصم.": "We tried to collect the payment for :child (:amount) and it didn't go through.",
+    "السبب كما وصلنا من البنك: :reason": "The reason we received from the bank: :reason",
+    "سنعيد المحاولة تلقائياً بعد أيام. وإن تغيّرت بطاقتك، حدّثها من لوحتك فيُخصم القسط فوراً:": "We will try again automatically in a few days. If your card has changed, update it from your dashboard and the payment goes through right away:",
+    "مع التحية،": "Warm regards,",
+    "فريق :site": "The :site team",
+    "وإن طال الأمر، يغطّي صندوق الاستمرارية قسط :child حتى :months أشهر، فلا ينقطع دعم :child.": "If it takes longer, the continuity fund covers :child's payment for up to :months months, so :child's support doesn't stop.",
+    "رفض البنك الخصم. رصيد غير كافٍ أو بطاقة منتهية.": "The bank declined the charge: insufficient funds or an expired card.",
+    "البطاقة المحفوظة غير صالحة.": "The saved card is no longer valid.",
+    "لا بطاقة محفوظة لهذه الكفالة. تواصل مع الكافل ليحدّث وسيلة الدفع.": "There is no saved card for this sponsorship.",
+    "رصيد غير كافٍ": "Insufficient funds"
 }

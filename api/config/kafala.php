@@ -99,6 +99,9 @@ return [
     'billing' => [
         'max_billing_day' => 28,
         'grace_days' => 5,
+
+        // القسط المرفوض يُعاد بعد 3 أيام ثم 7 من أول رفض، لا كل يوم
+        'retry_after_days' => [3, 7],
     ],
 
     /*

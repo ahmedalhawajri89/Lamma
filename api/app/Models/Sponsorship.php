@@ -79,6 +79,9 @@ class Sponsorship extends Model
             'status' => SponsorshipStatus::class,
             'started_at' => 'date',
             'next_due_at' => 'date',
+            'payment_issue_since' => 'date',
+            'payment_failures' => 'integer',
+            'next_retry_at' => 'date',
             'paused_at' => 'datetime',
             'ended_at' => 'datetime',
         ];
@@ -147,7 +150,48 @@ class Sponsorship extends Model
     {
         return $query
             ->where('status', SponsorshipStatus::Active)
-            ->whereDate('next_due_at', '<=', $date ?? now()->toDateString());
+            ->whereDate('next_due_at', '<=', $date ?? now()->toDateString())
+            // المتعثّرة تُعاد في مواعيدها لا كل يوم، ومن استنفد محاولاته ينتظر بطاقة جديدة
+            ->where(fn ($q) => $q->whereNull('next_retry_at')->orWhereDate('next_retry_at', '<=', $date ?? now()->toDateString()))
+            ->where('payment_failures', '<', self::maxPaymentAttempts());
+    }
+
+    /* ---------------------------------------------------------- القسط المتعثّر */
+
+    /** محاولات الخصم في التعثّر الواحد: الأولى، ثم بعد كل فجوة في retry_after_days. */
+    public static function maxPaymentAttempts(): int
+    {
+        return count((array) config('kafala.billing.retry_after_days', [3, 7])) + 1;
+    }
+
+    public function hasPaymentIssue(): bool
+    {
+        return $this->payment_issue_since !== null;
+    }
+
+    /**
+     * محاولة خصمٍ فشلت: يبدأ التعثّر (أو يستمر) وتُحدَّد المحاولة التالية
+     * من يوم بدايته. يُرجع true إن كانت هذه أول محاولة فاشلة، فيُبلَّغ الكافل.
+     */
+    public function recordPaymentFailure(): bool
+    {
+        $first = $this->payment_issue_since === null;
+        $this->payment_issue_since ??= now()->startOfDay();
+        $this->payment_failures = (int) $this->payment_failures + 1;
+
+        $gap = ((array) config('kafala.billing.retry_after_days', [3, 7]))[$this->payment_failures - 1] ?? null;
+        $this->next_retry_at = $gap === null ? null : $this->payment_issue_since->copy()->addDays((int) $gap);
+        $this->save();
+
+        return $first;
+    }
+
+    /** دفعةٌ وصلت (من البطاقة أو بيد المحاسب): انتهى التعثّر. */
+    public function clearPaymentIssue(): void
+    {
+        $this->payment_issue_since = null;
+        $this->payment_failures = 0;
+        $this->next_retry_at = null;
     }
 
     /* -------------------------------------------------------------------- سلوك */

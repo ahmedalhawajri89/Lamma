@@ -40,6 +40,16 @@ class SponsorshipResource extends JsonResource
             ),
             'started_at' => $this->started_at?->toDateString(),
             'next_due_at' => $this->when($money, fn () => $this->next_due_at?->toDateString()),
+            // القسط المتعثّر: يعرف الكافل منذ متى، والمحاولة التالية، وسبب آخر رفض
+            'payment_issue' => $this->when($money && $this->hasPaymentIssue(), fn () => [
+                'since' => $this->payment_issue_since->toDateString(),
+                'failures' => (int) $this->payment_failures,
+                'next_retry_at' => $this->next_retry_at?->toDateString(),
+                'retries_left' => max(0, \App\Models\Sponsorship::maxPaymentAttempts() - (int) $this->payment_failures),
+                'amount' => $this->cycleAmount(),
+                'card_last4' => $this->card_last4,
+                'reason' => $this->payments()->where('status', \App\Enums\PaymentStatus::Failed)->latest('id')->value('failure_reason'),
+            ]),
             'ended_at' => $this->ended_at?->toIso8601String(),
             'cancellation_reason' => $this->cancellation_reason,
 

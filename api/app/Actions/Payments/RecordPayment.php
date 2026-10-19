@@ -109,6 +109,7 @@ class RecordPayment
              * تغطي ستة أشهر، لا شهراً واحداً فتصير الكفالة متأخرة بعده.
              */
             $sponsorship->advanceDueDate($sponsorship->monthsCoveredBy((float) $value));
+            $sponsorship->clearPaymentIssue();
             $sponsorship->save();
 
             return $payment;

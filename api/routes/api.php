@@ -129,6 +129,10 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
             Route::delete('sponsorships/{sponsorship}', [Portal\SponsorshipController::class, 'destroy'])->name('sponsorships.destroy');
             // «أين ذهب مالك»: سجلّ الطفل المالي شهراً بشهر
             Route::get('sponsorships/{sponsorship}/ledger', [Portal\SponsorshipController::class, 'ledger'])->name('sponsorships.ledger');
+            // القسط المتعثّر: بطاقة جديدة يُخصم بها فوراً وتُحفظ للأشهر القادمة
+            Route::put('sponsorships/{sponsorship}/card', [Portal\SponsorshipController::class, 'updateCard'])
+                ->middleware('throttle:6,1')
+                ->name('sponsorships.card');
             Route::patch('sponsorships/{sponsorship}', [Portal\SponsorshipController::class, 'update'])
                 ->middleware('throttle:10,1')
                 ->name('sponsorships.update');
