@@ -9,6 +9,7 @@ use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ActivityResource;
 use App\Http\Resources\OrphanResource;
+use App\Models\Country;
 use App\Models\Orphan;
 use App\Models\User;
 use App\Services\FinanceDashboardService;
@@ -124,7 +125,7 @@ class DashboardController extends Controller
         return [
             'role' => $role?->value,
             'role_label' => $role?->label(),
-            'country' => $scope->countryId ? \App\Models\Country::whereKey($scope->countryId)->value('name_ar') : null,
+            'country' => $scope->countryId ? Country::whereKey($scope->countryId)->value('name_ar') : null,
             // موظف الجمعية يرى اسم جمعيته فوق لوحته
             'association' => $scope->associationId ? $user->staffProfile?->association?->name_ar : null,
         ];

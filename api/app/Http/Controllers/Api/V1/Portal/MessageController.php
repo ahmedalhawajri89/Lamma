@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1\Portal;
 
+use App\Enums\MessageStatus;
+use App\Enums\SponsorshipStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\MessageResource;
+use App\Models\Setting;
 use App\Models\Sponsorship;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use App\Enums\MessageStatus;
-use App\Models\Setting;
 
 /**
  * رسائل الكافل للطفل.
@@ -43,7 +44,7 @@ class MessageController extends Controller
 
         // المراسلة لكفالة قائمة مدفوعة: الكافل السابق أو الحاجز بلا دفع لا يراسل الطفل
         abort_unless(
-            in_array($sponsorship->status, [\App\Enums\SponsorshipStatus::Active, \App\Enums\SponsorshipStatus::Paused], true),
+            in_array($sponsorship->status, [SponsorshipStatus::Active, SponsorshipStatus::Paused], true),
             403,
             __('المراسلة متاحة للكفالة القائمة.'),
         );

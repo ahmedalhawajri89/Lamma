@@ -6,6 +6,7 @@ use App\Enums\FundEntryKind;
 use App\Enums\PaymentMethod;
 use App\Enums\SponsorshipStatus;
 use App\Models\ContinuityFundEntry;
+use App\Models\Sponsor;
 use App\Models\Sponsorship;
 use App\Models\User;
 
@@ -35,7 +36,7 @@ it('التبرّع يحتاج مصدره، ولا يُسجَّل بتاريخٍ 
     $this->actingAs($accountant)->postJson('/api/v1/admin/fund/donations', ['amount' => 10, 'received_on' => today()->addDay()->toDateString()])
         ->assertUnprocessable()->assertJsonValidationErrors(['note', 'received_on']);
 
-    $sponsor = \App\Models\Sponsor::factory()->create();
+    $sponsor = Sponsor::factory()->create();
     $this->actingAs($sponsor->user)->postJson('/api/v1/admin/fund/donations', ['amount' => 10, 'received_on' => today()->toDateString(), 'note' => 'xxx'])
         ->assertForbidden();
     expect(ContinuityFundEntry::count())->toBe(0);

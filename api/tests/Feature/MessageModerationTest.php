@@ -16,7 +16,7 @@ use App\Services\MessageSafety;
 function msg(Sponsorship $s, string $body, string $from = 'sponsor', ?MessageStatus $status = null, string $ago = '1 hour'): Message
 {
     $m = Message::create(['sponsorship_id' => $s->id, 'sender_type' => $from, 'body' => $body]);
-    $m->forceFill(['status' => $status ?? MessageStatus::PendingReview, 'created_at' => now()->sub(\DateInterval::createFromDateString($ago))])->save();
+    $m->forceFill(['status' => $status ?? MessageStatus::PendingReview, 'created_at' => now()->sub(DateInterval::createFromDateString($ago))])->save();
 
     return $m;
 }

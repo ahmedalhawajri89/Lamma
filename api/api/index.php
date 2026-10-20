@@ -37,7 +37,7 @@ $_SERVER['HTTPS'] = 'on';
 // المدخل في مجلد ‎api/‎، فيستنتج Symfony من ‎SCRIPT_NAME‎ أن أصل التطبيق ‎/api‎
 // ويقصّه من كل عنوان يبدأ به، فيصل ‎/api/v1/…‎ إلى لارافل ‎/v1/…‎ ويرجع 404.
 // التطبيق في الحقيقة على جذر الموقع، كما لو خدمه ‎public/index.php‎ مباشرة.
-$_SERVER['SCRIPT_FILENAME'] = realpath(__DIR__ . '/../public/index.php');
+$_SERVER['SCRIPT_FILENAME'] = realpath(__DIR__.'/../public/index.php');
 $_SERVER['SCRIPT_NAME'] = $_SERVER['PHP_SELF'] = '/index.php';
 
-require __DIR__ . '/../public/index.php';
+require __DIR__.'/../public/index.php';

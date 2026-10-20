@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Artisan;
 
 class DatabaseSeeder extends Seeder
 {
@@ -30,7 +31,7 @@ class DatabaseSeeder extends Seeder
             // بعد كل `migrate:fresh --seed` (الاختبارات تبنيه حين تحتاجه)
             if (! app()->environment('testing')) {
                 $this->command?->info('  · بناء مؤشرات الأيام…');
-                \Illuminate\Support\Facades\Artisan::call('metrics:rollup', ['--all' => true]);
+                Artisan::call('metrics:rollup', ['--all' => true]);
             }
         }
     }

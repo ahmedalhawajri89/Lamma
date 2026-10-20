@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
@@ -24,7 +25,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property string|null $name_en
  * @property int $country_id
  * @property AssociationStatus $status
- * @property \Illuminate\Support\Carbon|null $verified_at
+ * @property Carbon|null $verified_at
  * @property-read Country|null $country
  */
 class Association extends Model

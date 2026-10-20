@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\PostResource;
 use App\Models\Post;
 use App\Models\PostCategory;
+use App\Support\Locale;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -58,7 +59,7 @@ class PostController extends Controller
             ->orderBy('sort_order')
             ->get()
             ->filter(fn ($c) => $c->posts_count > 0)
-            ->map(fn ($c) => ['slug' => $c->slug, 'name' => \App\Support\Locale::pick($c->name_ar, $c->name_en), 'count' => $c->posts_count])
+            ->map(fn ($c) => ['slug' => $c->slug, 'name' => Locale::pick($c->name_ar, $c->name_en), 'count' => $c->posts_count])
             ->values();
 
         // المميّز: أحدث مقال منشور معلَّم، وإلا أحدث مقال

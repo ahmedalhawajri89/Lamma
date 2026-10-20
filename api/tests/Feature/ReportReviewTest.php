@@ -3,13 +3,18 @@
 declare(strict_types=1);
 
 use App\Enums\DocumentType;
+use App\Enums\MessageStatus;
 use App\Enums\ReportStatus;
+use App\Http\Resources\ReportResource;
 use App\Models\Country;
 use App\Models\Family;
+use App\Models\Message;
 use App\Models\Orphan;
 use App\Models\OrphanDocument;
 use App\Models\Report;
+use App\Models\Sponsorship;
 use App\Models\User;
+use Illuminate\Database\Eloquent\MassAssignmentException;
 
 /**
  * المراجعة: يقرأ المراجع التقرير ثم يعتمده أو يُرجعه بملاحظة،
@@ -93,7 +98,7 @@ it('لا تصل ملاحظة المراجعة إلى بوابة الكافل', f
     $report = reportFor(orphanIn('PS'));
     $report->update(['review_note' => 'داخلي']);
 
-    $data = (new \App\Http\Resources\ReportResource($report))->resolve(request());
+    $data = (new ReportResource($report))->resolve(request());
 
     expect($data)->not->toHaveKey('review_note');
 });
@@ -127,24 +132,24 @@ it('طابور المستندات لمن يوثّق: يعرض غير المُت�
  */
 it('يعتمد المراجع الرسالة ويرفضها بسبب، والإنشاء لا يمرّر حالة', function () {
     $admin = User::factory()->admin()->create();
-    $sponsorship = \App\Models\Sponsorship::factory()->create();
+    $sponsorship = Sponsorship::factory()->create();
 
     // الإنشاء لا يمرّر حالة: المحاولة تُرفض صراحةً
-    expect(fn () => \App\Models\Message::create([
+    expect(fn () => Message::create([
         'sponsorship_id' => $sponsorship->id, 'sender_type' => 'sponsor', 'body' => 'رسالة', 'status' => 'approved',
-    ]))->toThrow(\Illuminate\Database\Eloquent\MassAssignmentException::class);
+    ]))->toThrow(MassAssignmentException::class);
 
-    $message = \App\Models\Message::create(['sponsorship_id' => $sponsorship->id, 'sender_type' => 'sponsor', 'body' => 'رسالة'])->fresh();
-    expect($message->status)->toBe(\App\Enums\MessageStatus::PendingReview);
+    $message = Message::create(['sponsorship_id' => $sponsorship->id, 'sender_type' => 'sponsor', 'body' => 'رسالة'])->fresh();
+    expect($message->status)->toBe(MessageStatus::PendingReview);
 
     $this->actingAs($admin)->postJson("/api/v1/admin/messages/{$message->id}/review", ['decision' => 'approve'])
         ->assertOk()->assertJsonPath('data.status', 'approved');
 
-    $other = \App\Models\Message::create(['sponsorship_id' => $sponsorship->id, 'sender_type' => 'sponsor', 'body' => 'أخرى']);
+    $other = Message::create(['sponsorship_id' => $sponsorship->id, 'sender_type' => 'sponsor', 'body' => 'أخرى']);
     $this->actingAs($admin)->postJson("/api/v1/admin/messages/{$other->id}/review", ['decision' => 'reject', 'reason' => 'معلومات شخصية'])
         ->assertOk();
     expect($other->fresh())
-        ->status->toBe(\App\Enums\MessageStatus::Rejected)
+        ->status->toBe(MessageStatus::Rejected)
         ->rejection_reason->toBe('معلومات شخصية')
         ->reviewed_by->toBe($admin->id);
 });

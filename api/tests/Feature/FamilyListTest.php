@@ -34,7 +34,7 @@ it('يرتّب بدخل الفرد، والدخل المجهول آخراً', fu
 
     $ids = collect($this->getJson('/api/v1/admin/families?sort=per_capita&dir=asc')->json('data'))->pluck('id')->all();
     expect($ids)->toBe([$poor->id, $rich->id, $unknown->id]);
-    expect($this->getJson("/api/v1/admin/families?sort=per_capita&dir=asc")->json('data.0.per_capita_income'))->toEqual(10);
+    expect($this->getJson('/api/v1/admin/families?sort=per_capita&dir=asc')->json('data.0.per_capita_income'))->toEqual(10);
 });
 
 it('يجد الأسرة باسم أحد أيتامها', function (): void {

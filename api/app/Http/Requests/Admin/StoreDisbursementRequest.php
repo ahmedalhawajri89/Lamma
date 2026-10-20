@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Admin;
 
+use App\Models\DisbursementCategory;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -50,7 +51,7 @@ class StoreDisbursementRequest extends FormRequest
     public function after(): array
     {
         return [function ($validator): void {
-            $category = \App\Models\DisbursementCategory::find($this->input('category_id'));
+            $category = DisbursementCategory::find($this->input('category_id'));
             if ($category?->is_overhead && $this->filled('orphan_id')) {
                 $validator->errors()->add('orphan_id', 'المصروف الإداري عام لا يخصّ طفلاً.');
             }

@@ -5,17 +5,23 @@ declare(strict_types=1);
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentStatus;
 use App\Enums\SponsorshipStatus;
+use App\Models\Country;
 use App\Models\Disbursement;
 use App\Models\DisbursementCategory;
+use App\Models\Family;
+use App\Models\Orphan;
 use App\Models\Payment;
 use App\Models\Sponsorship;
 use App\Models\User;
+use Illuminate\Support\Carbon;
+use Illuminate\Testing\TestResponse;
+use Spatie\Activitylog\Models\Activity;
 
 /**
  * سلامة المال: ما وجده فحص QA من دفعات تُسجَّل لغير صاحبها، وعملات تُحسب
  * بالدولار، واستردادات بلا أثر، وصرف يعتمده من عدّله.
  */
-function manualPayment(User $by, Sponsorship $s, string $reference, array $extra = []): \Illuminate\Testing\TestResponse
+function manualPayment(User $by, Sponsorship $s, string $reference, array $extra = []): TestResponse
 {
     return test()->actingAs($by)->postJson('/api/v1/admin/payments', [
         'sponsorship_id' => $s->id, 'method' => 'cash', 'reference' => $reference, ...$extra,
@@ -80,7 +86,7 @@ it('الاسترداد يحفظ من ومتى ولماذا، ويعيد موعد
         ->refund_reason->toBe('حُوّلت بالخطأ')
         ->failure_reason->toBeNull()
         // يعود شهراً واحداً عمّا قدّمته الدفعة، على يوم الخصم نفسه
-        ->and($s->fresh()->next_due_at->toDateString())->toBe(\Illuminate\Support\Carbon::parse($advanced)->subMonthNoOverflow()->setDay(10)->toDateString());
+        ->and($s->fresh()->next_due_at->toDateString())->toBe(Carbon::parse($advanced)->subMonthNoOverflow()->setDay(10)->toDateString());
 
     $this->actingAs($admin)->postJson("/api/v1/admin/payments/{$payment->id}/refund", ['reason' => 'مرة ثانية'])->assertForbidden();
 });
@@ -101,7 +107,7 @@ it('الخصم الآلي لا يخصم بطاقةً ممن يدفع بتحوي�
 
 /* ------------------------------------------------------------ الصرف */
 
-function disbursement(User $by, array $data = []): \Illuminate\Testing\TestResponse
+function disbursement(User $by, array $data = []): TestResponse
 {
     return test()->actingAs($by)->postJson('/api/v1/admin/disbursements', [
         'category_id' => DisbursementCategory::where('is_overhead', false)->value('id'),
@@ -122,7 +128,7 @@ it('الصرف بعملة أخرى يشترط سعر صرف، ويُحسب به 
 it('المصروف الإداري لا يُربط بطفل', function () {
     $accountant = User::factory()->accountant()->create();
     $overhead = DisbursementCategory::where('is_overhead', true)->value('id');
-    $orphan = \App\Models\Orphan::factory()->create();
+    $orphan = Orphan::factory()->create();
 
     disbursement($accountant, ['category_id' => $overhead, 'orphan_id' => $orphan->id])
         ->assertUnprocessable()->assertJsonValidationErrors('orphan_id');
@@ -151,8 +157,8 @@ it('من عدّل مبلغ صرفٍ لا يعتمده، والاعتماد لا 
 });
 
 it('المشرف الميداني لا يرى مبالغ الكفالات ولا بيانات الكفلاء', function () {
-    $country = \App\Models\Country::where('iso2', 'PS')->value('id');
-    $orphan = \App\Models\Orphan::factory()->create(['family_id' => \App\Models\Family::factory()->inCountry($country)]);
+    $country = Country::where('iso2', 'PS')->value('id');
+    $orphan = Orphan::factory()->create(['family_id' => Family::factory()->inCountry($country)]);
     Sponsorship::factory()->for($orphan)->create(['status' => SponsorshipStatus::Active]);
 
     $row = $this->actingAs(User::factory()->supervisor($country)->create())
@@ -168,7 +174,7 @@ it('عمليات المال تُكتب في سجل النشاط', function () {
     manualPayment($accountant, $s, 'LOG-1')->assertCreated();
     disbursement($accountant)->assertCreated();
 
-    $events = \Spatie\Activitylog\Models\Activity::where('causer_id', $accountant->id)->pluck('event')->all();
+    $events = Activity::where('causer_id', $accountant->id)->pluck('event')->all();
     expect($events)->toContain('recorded');
     expect(count(array_filter($events, fn ($e) => $e === 'recorded')))->toBe(2);
 });

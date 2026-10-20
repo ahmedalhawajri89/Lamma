@@ -8,6 +8,7 @@ use App\Enums\TransferStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
@@ -18,7 +19,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property int $id
  * @property string $reference_code
  * @property int $association_id
- * @property \Illuminate\Support\Carbon $period
+ * @property Carbon $period
  * @property TransferStatus $status
  * @property string $received_base
  * @property string $fee_base

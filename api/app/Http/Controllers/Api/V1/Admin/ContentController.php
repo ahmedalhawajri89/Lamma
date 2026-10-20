@@ -8,6 +8,7 @@ use App\Enums\ContactStatus;
 use App\Enums\MessageStatus;
 use App\Enums\OrphanStatus;
 use App\Enums\PostStatus;
+use App\Http\Controllers\Api\V1\Public\CatalogController;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PostResource;
 use App\Models\ContactMessage;
@@ -17,13 +18,17 @@ use App\Models\Message;
 use App\Models\Orphan;
 use App\Models\Partner;
 use App\Models\Post;
+use App\Models\PostCategory;
 use App\Models\Setting;
 use App\Models\Testimonial;
+use App\Services\RichText;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use App\Services\RichText;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -70,7 +75,7 @@ class ContentController extends Controller
                 'status_counts' => $counts,
                 'all_count' => $counts->sum(),
                 // للقائمة المنسدلة في المحرّر، والحالات من الـ enum نفسه
-                'categories' => \App\Models\PostCategory::orderBy('sort_order')->get(['id', 'name_ar'])
+                'categories' => PostCategory::orderBy('sort_order')->get(['id', 'name_ar'])
                     ->map(fn ($c) => ['id' => $c->id, 'name' => $c->name_ar]),
                 'statuses' => PostStatus::options(),
             ],
@@ -85,7 +90,7 @@ class ContentController extends Controller
         return response()->json([
             'data' => new PostResource($post->load(['category:id,name_ar', 'author:id,name'])),
             'meta' => [
-                'categories' => \App\Models\PostCategory::orderBy('sort_order')->get(['id', 'name_ar'])
+                'categories' => PostCategory::orderBy('sort_order')->get(['id', 'name_ar'])
                     ->map(fn ($c) => ['id' => $c->id, 'name' => $c->name_ar]),
                 'statuses' => PostStatus::options(),
             ],
@@ -152,7 +157,7 @@ class ContentController extends Controller
         // استبدال الغلاف: كان يُضبط عند الإنشاء وحده. والقديم يُحذف كي لا تتراكم ملفات بلا صاحب
         if ($request->hasFile('cover')) {
             if ($post->cover_path) {
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($post->cover_path);
+                Storage::disk('public')->delete($post->cover_path);
             }
             $post->cover_path = $request->file('cover')->store('posts', 'public');
         }
@@ -255,7 +260,7 @@ class ContentController extends Controller
             'ids.*' => ['integer', 'distinct'],
         ]);
 
-        \Illuminate\Support\Facades\DB::transaction(function () use ($model, $validated): void {
+        DB::transaction(function () use ($model, $validated): void {
             foreach ($validated['ids'] as $position => $id) {
                 $model::whereKey($id)->update(['sort_order' => $position + 1]);
             }
@@ -342,7 +347,7 @@ class ContentController extends Controller
      * @param  array<string, mixed>  $after
      * @param  array<string, mixed>  $before
      */
-    private function audit(Request $request, \Illuminate\Database\Eloquent\Model $subject, string $event, string $text, array $after = [], array $before = []): void
+    private function audit(Request $request, Model $subject, string $event, string $text, array $after = [], array $before = []): void
     {
         activity()->performedOn($subject)->causedBy($request->user())->event($event)
             ->withProperties(['attributes' => $after, 'old' => $before])
@@ -352,7 +357,7 @@ class ContentController extends Controller
     /** الأسئلة والشهادات والشركاء في ذاكرة الموقع العام؛ كانت تبقى قديمة عشر دقائق */
     private function flushPublic(): void
     {
-        \App\Http\Controllers\Api\V1\Public\CatalogController::forgetBootstrap();
+        CatalogController::forgetBootstrap();
     }
 
     public function settings(Request $request): JsonResponse
@@ -478,7 +483,7 @@ class ContentController extends Controller
             ]);
         }
 
-        \App\Http\Controllers\Api\V1\Public\CatalogController::forgetBootstrap();
+        CatalogController::forgetBootstrap();
         Cache::forget('transparency.proof');
 
         $after = Setting::cached();

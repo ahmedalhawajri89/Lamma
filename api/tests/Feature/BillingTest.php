@@ -10,6 +10,7 @@ use App\Models\Orphan;
 use App\Models\Payment;
 use App\Models\Sponsorship;
 use App\Models\User;
+use Illuminate\Support\Carbon;
 
 /**
  * المال الذي يتحرّك بلا الكافل: الخصم الشهري، والاسترداد، ونهاية الكفالة
@@ -109,7 +110,7 @@ it('استرداد دفعة سنوية يعيد الموعد اثني عشر ش�
 
     // يعود إلى موعده قبل الدفعة، على يوم الفوترة
     expect($s->fresh()->next_due_at->toDateString())
-        ->toBe(\Illuminate\Support\Carbon::parse($before)->startOfMonth()->setDay(10)->toDateString());
+        ->toBe(Carbon::parse($before)->startOfMonth()->setDay(10)->toDateString());
 });
 
 /* ------------------------------------------------------------ نهاية الملف */

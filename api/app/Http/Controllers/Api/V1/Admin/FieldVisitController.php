@@ -10,9 +10,11 @@ use App\Http\Resources\FieldVisitResource;
 use App\Models\FieldVisit;
 use App\Models\Orphan;
 use App\Models\Setting;
+use App\Models\User;
 use App\Support\StaffScope;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
@@ -64,7 +66,7 @@ class FieldVisitController extends Controller
                 'overdue' => $scoped()->overdue()->count(),
                 'needs' => $needs,
                 // لفلتر المشرف عند من يرى أكثر من مشرف
-                'supervisors' => \App\Models\User::role('field_supervisor')->orderBy('name')->get(['id', 'name']),
+                'supervisors' => User::role('field_supervisor')->orderBy('name')->get(['id', 'name']),
             ],
         ]);
     }
@@ -115,7 +117,7 @@ class FieldVisitController extends Controller
             ->orderBy('next_due')
             ->paginate($this->perPage($request, 25));
 
-        $supervisors = \App\Models\User::whereIn('id', collect($rows->items())->pluck('last_supervisor_id')->filter()->unique())->pluck('name', 'id');
+        $supervisors = User::whereIn('id', collect($rows->items())->pluck('last_supervisor_id')->filter()->unique())->pluck('name', 'id');
 
         return response()->json([
             'data' => collect($rows->items())->map(fn (Orphan $o) => [
@@ -127,9 +129,9 @@ class FieldVisitController extends Controller
                     'city' => $o->family?->city?->name_ar,
                 ],
                 'next_due' => $o->next_due,
-                'last_visited_at' => $o->last_visited_at ? \Illuminate\Support\Carbon::parse($o->last_visited_at)->toIso8601String() : null,
+                'last_visited_at' => $o->last_visited_at ? Carbon::parse($o->last_visited_at)->toIso8601String() : null,
                 'last_supervisor' => $supervisors[$o->last_supervisor_id] ?? null,
-                'days' => $o->next_due ? (int) now(config('kafala.display_timezone'))->startOfDay()->diffInDays(\Illuminate\Support\Carbon::parse($o->next_due), false) : null,
+                'days' => $o->next_due ? (int) now(config('kafala.display_timezone'))->startOfDay()->diffInDays(Carbon::parse($o->next_due), false) : null,
             ]),
             'meta' => [
                 'total' => $rows->total(), 'current_page' => $rows->currentPage(), 'last_page' => $rows->lastPage(),
@@ -189,7 +191,7 @@ class FieldVisitController extends Controller
          * موعد الزيارة القادمة إن لم يُكتب: بعد دورية التقارير في الإعدادات.
          * زيارةٌ بلا موعد قادم لا تصير «متأخرة» أبداً، فيُنسى الطفل.
          */
-        $validated['next_visit_due'] ??= \Illuminate\Support\Carbon::parse($validated['visited_at'])
+        $validated['next_visit_due'] ??= Carbon::parse($validated['visited_at'])
             ->addMonthsNoOverflow((int) (Setting::cached()['policy.report_cadence_months'] ?? 3))
             ->toDateString();
 

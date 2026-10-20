@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use App\Enums\AssociationStatus;
 use App\Enums\CareArrangement;
 use App\Enums\OrphanStatus;
 use App\Models\Association;

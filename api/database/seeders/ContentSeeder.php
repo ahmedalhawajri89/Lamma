@@ -10,6 +10,7 @@ use App\Models\Partner;
 use App\Models\Post;
 use App\Models\PostCategory;
 use App\Models\Testimonial;
+use App\Services\RichText;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
@@ -204,7 +205,7 @@ class ContentSeeder extends Seeder
                 'title' => $row['title'],
                 'excerpt' => $row['excerpt'],
                 // بصيغة المحرّر المنسّق (HTML مهرَّب الفقرات)، كما تحوّلها الهجرة
-                'body' => app(\App\Services\RichText::class)->fromPlain($row['body']),
+                'body' => app(RichText::class)->fromPlain($row['body']),
                 'category_id' => $categoryIds[$row['category']],
                 'cover_path' => "posts/{$row['image']}",
                 // زمن القراءة يُحسب من النصّ لا يُكتب باليد: رقم مكتوب يكذب

@@ -18,6 +18,7 @@ use App\Models\Family;
 use App\Models\Guardian;
 use App\Models\Program;
 use App\Support\StaffScope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -67,7 +68,7 @@ class FamilyController extends Controller
      * الفلاتر المشتركة بين الجدول وعدّاداته، عدا السكن. والمشرف مقيّد ببلده
      * في الاستعلام نفسه، فلا يتسرّب عددٌ من بلد آخر.
      */
-    private function filtered(Request $request): \Illuminate\Database\Eloquent\Builder
+    private function filtered(Request $request): Builder
     {
         $query = StaffScope::for($request->user())->families(Family::query());
 
@@ -139,7 +140,7 @@ class FamilyController extends Controller
          * أسرة أخرى. بلا هذا تُسجَّل الأسرة مرتين وتُموَّل مرتين.
          */
         if (! empty($validated['guardian']['national_id'])) {
-            $probe = new Guardian();
+            $probe = new Guardian;
             $probe->setNationalId($validated['guardian']['national_id']);
             $existing = Family::whereHas('guardian', fn ($g) => $g->where('national_id_hash', $probe->national_id_hash))->first();
 

@@ -2,6 +2,13 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Site\ContactPageController;
+use App\Http\Controllers\Site\FaqPageController;
+use App\Http\Controllers\Site\OrphanPageController;
+use App\Http\Controllers\Site\PartnerPageController;
+use App\Http\Controllers\Site\PostPageController;
+use App\Http\Controllers\Site\ProgramsPageController;
+use App\Http\Controllers\Site\ResetPasswordPageController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -37,28 +44,28 @@ $site = function (): void {
     }
 
     /** صفحة الطفل وصفحة كفالته تُرسمان من الخادم: الاسم وحالة الكفالة ووسوم المشاركة */
-    Route::get('/orphan', [App\Http\Controllers\Site\OrphanPageController::class, 'show'])->name('site.orphan');
-    Route::get('/checkout', [App\Http\Controllers\Site\OrphanPageController::class, 'checkout'])->name('site.checkout');
+    Route::get('/orphan', [OrphanPageController::class, 'show'])->name('site.orphan');
+    Route::get('/checkout', [OrphanPageController::class, 'checkout'])->name('site.checkout');
 
     /** المقال من الخادم: عنوانه وصورته ونصّه ووسوم مشاركته */
-    Route::get('/post', App\Http\Controllers\Site\PostPageController::class)->name('site.post');
+    Route::get('/post', PostPageController::class)->name('site.post');
 
     /** التواصل: بياناته من الإعدادات، وأكثر الأسئلة قبل النموذج */
-    Route::get('/contact', App\Http\Controllers\Site\ContactPageController::class)->name('site.contact');
+    Route::get('/contact', ContactPageController::class)->name('site.contact');
 
     /** الأسئلة الشائعة من الخادم: نصّها ووصفها المنظَّم لمحركات البحث */
-    Route::get('/faq', App\Http\Controllers\Site\FaqPageController::class)->name('site.faq');
+    Route::get('/faq', FaqPageController::class)->name('site.faq');
 
     /** الجمعية الشريكة الموثّقة: من هي، وأرقامها، وأطفالها */
-    Route::get('/partners/{slug}', App\Http\Controllers\Site\PartnerPageController::class)
+    Route::get('/partners/{slug}', PartnerPageController::class)
         ->where('slug', '[a-z0-9\-]+')->name('site.partner');
 
     /** البرامج من جدولها: السعر والبنود من مصدرٍ واحد، ومع كلٍّ من ينتظر فيه */
-    Route::get('/programs', App\Http\Controllers\Site\ProgramsPageController::class)->name('site.programs');
+    Route::get('/programs', ProgramsPageController::class)->name('site.programs');
 
     Route::view('/login', 'site.auth.login')->name('site.login');
     Route::view('/register', 'site.auth.register')->name('site.register');
-    Route::get('/reset-password', App\Http\Controllers\Site\ResetPasswordPageController::class)->name('site.reset-password');
+    Route::get('/reset-password', ResetPasswordPageController::class)->name('site.reset-password');
     Route::view('/dashboard', 'site.portal.dashboard')->name('site.dashboard');
 
     /** دليل الواجهة: مرجع للمطوّر لا صفحة للزائر، فلا يُسجَّل خارج التطوير. */

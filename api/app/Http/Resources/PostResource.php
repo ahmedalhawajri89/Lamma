@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Resources;
 
+use App\Models\Post;
 use App\Support\Locale;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -67,7 +68,7 @@ class PostResource extends JsonResource
     }
 
     /** لغة نصّ المقال في هذه الصفحة: لغتها إن تُرجم عنوانه إليها، وإلا العربية. */
-    public static function contentLocale(\App\Models\Post $post): string
+    public static function contentLocale(Post $post): string
     {
         $locale = Locale::current();
 

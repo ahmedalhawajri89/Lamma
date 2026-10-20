@@ -9,12 +9,14 @@ use App\Http\Requests\Admin\StoreDisbursementRequest;
 use App\Http\Resources\DisbursementResource;
 use App\Models\Disbursement;
 use App\Models\DisbursementCategory;
+use App\Models\Setting;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\StreamedResponse;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class DisbursementController extends Controller
 {
@@ -90,12 +92,12 @@ class DisbursementController extends Controller
             'by_category' => $byCategory->values(),
             'sum_approved' => round($approved, 2),
             'overhead_percent' => $approved > 0 ? round($overhead * 100 / $approved, 1) : null,
-            'overhead_target' => (int) (\App\Models\Setting::cached()['finance.overhead_target_percent'] ?? 7),
+            'overhead_target' => (int) (Setting::cached()['finance.overhead_target_percent'] ?? 7),
         ];
     }
 
     /** الفلاتر المشتركة بين الجدول وأرقامه والتصدير، عدا حالة الاعتماد */
-    private function filtered(Request $request): \Illuminate\Database\Eloquent\Builder
+    private function filtered(Request $request): Builder
     {
         return Disbursement::query()
             ->when($request->filled('category_id'), fn ($q) => $q->where('category_id', $request->integer('category_id')))

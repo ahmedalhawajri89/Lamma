@@ -15,7 +15,7 @@ function visit(Orphan $orphan, string $visitedAgo, ?string $nextDue, array $need
 {
     return FieldVisit::create([
         'orphan_id' => $orphan->id, 'supervisor_id' => User::factory()->create()->id,
-        'visited_at' => now()->sub(\DateInterval::createFromDateString($visitedAgo)), 'next_visit_due' => $nextDue,
+        'visited_at' => now()->sub(DateInterval::createFromDateString($visitedAgo)), 'next_visit_due' => $nextDue,
         'findings' => 'زيارة ميدانية للمتابعة الدورية.', 'needs_flagged' => $needs,
     ]);
 }

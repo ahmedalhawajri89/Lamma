@@ -7,16 +7,16 @@ namespace App\Http\Controllers\Api\V1\Public;
 use App\Actions\Payments\RecordPayment;
 use App\Actions\Sponsors\RegisterSponsor;
 use App\Actions\Sponsorships\CreateSponsorship;
+use App\Enums\Gender;
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentStatus;
 use App\Enums\SponsorshipStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Orphan;
 use App\Models\Payment;
-use App\Models\Sponsorship;
 use App\Models\User;
-use App\Payments\PaymentGateway;
 use App\Notifications\WelcomeSponsorNotification;
+use App\Payments\PaymentGateway;
 use App\Support\Fx;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -251,7 +251,7 @@ class CheckoutController extends Controller
                     'reference' => $orphan->reference_code,
                     'name' => $orphan->translated('first_name'),
                     'photo' => $orphan->illustrationUrl(),
-                    'female' => $orphan->gender === \App\Enums\Gender::Female,
+                    'female' => $orphan->gender === Gender::Female,
                 ],
                 'monthly_amount' => (float) $sponsorship->monthly_amount,
                 'interval_months' => $sponsorship->interval_months,

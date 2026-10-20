@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Http\Controllers\Api\V1\Public\CatalogController;
 use App\Models\ContactMessage;
 use App\Models\Disbursement;
 use App\Models\Family;
@@ -13,6 +14,7 @@ use App\Models\Orphan;
 use App\Models\Payment;
 use App\Models\Post;
 use App\Models\Report;
+use App\Models\Sponsorship;
 use App\Models\StaffProfile;
 use App\Models\User;
 use App\Services\MetricsService;
@@ -94,7 +96,7 @@ class PurgeTestData extends Command
             $perSponsorship = (clone $payments)->selectRaw('sponsorship_id, COUNT(*) AS n')->groupBy('sponsorship_id')->pluck('n', 'sponsorship_id');
             (clone $payments)->delete();
             foreach ($perSponsorship as $id => $n) {
-                $s = \App\Models\Sponsorship::find($id);
+                $s = Sponsorship::find($id);
                 if ($s?->next_due_at) {
                     $s->next_due_at = $s->next_due_at->copy()->subMonthsNoOverflow((int) $n);
                     $s->save();
@@ -133,7 +135,7 @@ class PurgeTestData extends Command
             }
         });
 
-        \App\Http\Controllers\Api\V1\Public\CatalogController::forgetBootstrap();
+        CatalogController::forgetBootstrap();
         Cache::forget('transparency.proof');
         Cache::forget('transparency.spending.'.now()->year);
         $metrics->flushCache();

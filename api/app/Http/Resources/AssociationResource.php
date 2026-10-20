@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Resources;
 
+use App\Models\Association;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -11,7 +12,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
  * الجمعية الشريكة في اللوحة. بيانات التحويل البنكي لا تُرسل نصّاً: يُقال
  * إنها مسجّلة أم لا فقط، وتُكتب من جديد لا تُقرأ.
  *
- * @mixin \App\Models\Association
+ * @mixin Association
  */
 class AssociationResource extends JsonResource
 {

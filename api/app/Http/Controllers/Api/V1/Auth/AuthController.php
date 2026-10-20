@@ -4,19 +4,15 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1\Auth;
 
-use App\Enums\UserRole;
+use App\Actions\Sponsors\RegisterSponsor;
 use App\Enums\UserStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Resources\UserResource;
-use App\Models\Sponsor;
-use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -82,7 +78,7 @@ class AuthController extends Controller
     /** تسجيل كافل جديد. الموظفون يُنشأون من لوحة الإدارة لا من هنا. */
     public function register(RegisterRequest $request): JsonResponse
     {
-        $user = app(\App\Actions\Sponsors\RegisterSponsor::class)->handle(
+        $user = app(RegisterSponsor::class)->handle(
             name: $request->string('name')->toString(),
             email: $request->string('email')->toString(),
             phone: $request->input('phone'),

@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
@@ -31,8 +32,8 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property string|null $monthly_income
  * @property HousingStatus $housing_status
  * @property CareArrangement|null $care_arrangement
- * @property \Illuminate\Support\Carbon|null $care_attested_at
- * @property \Illuminate\Support\Carbon|null $care_review_due_at
+ * @property Carbon|null $care_attested_at
+ * @property Carbon|null $care_review_due_at
  * @property-read Guardian|null $guardian
  * @property-read Country|null $country
  * @property-read City|null $city

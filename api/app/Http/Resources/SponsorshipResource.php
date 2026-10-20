@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Resources;
 
+use App\Enums\PaymentStatus;
+use App\Enums\SponsorshipStatus;
+use App\Models\Sponsorship;
+use App\Services\ContinuityFund;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -39,7 +43,7 @@ class SponsorshipResource extends JsonResource
             'paused_at' => $this->paused_at?->toDateString(),
             // الحجز بانتظار أول دفعة يسقط بعد مهلة: يعرف الكافل حتى متى
             'hold_expires_at' => $this->when(
-                $this->status === \App\Enums\SponsorshipStatus::Pending,
+                $this->status === SponsorshipStatus::Pending,
                 fn () => $this->created_at?->copy()->addDays((int) config('kafala.billing.grace_days'))->toDateString(),
             ),
             'started_at' => $this->started_at?->toDateString(),
@@ -49,18 +53,18 @@ class SponsorshipResource extends JsonResource
                 'since' => $this->payment_issue_since->toDateString(),
                 'failures' => (int) $this->payment_failures,
                 'next_retry_at' => $this->next_retry_at?->toDateString(),
-                'retries_left' => max(0, \App\Models\Sponsorship::maxPaymentAttempts() - (int) $this->payment_failures),
+                'retries_left' => max(0, Sponsorship::maxPaymentAttempts() - (int) $this->payment_failures),
                 'amount' => $this->chargeCycleAmount(),
                 'currency' => $this->chargeCurrency(),
                 'card_last4' => $this->card_last4,
-                'reason' => $this->payments()->where('status', \App\Enums\PaymentStatus::Failed)->latest('id')->value('failure_reason'),
+                'reason' => $this->payments()->where('status', PaymentStatus::Failed)->latest('id')->value('failure_reason'),
             ]),
             // أشهرٌ غطّاها صندوق الاستمرارية منذ آخر دفعة: يعرف الكافل أن الطفل لم ينقطع عنه شيء.
             // للكافل في بوابته وحده: استعلامان لكل صفّ لا تحتاجهما قوائم اللوحة
-            'fund_cover' => $this->when($user?->sponsor !== null && $this->status === \App\Enums\SponsorshipStatus::Active, function () {
-                $months = app(\App\Services\ContinuityFund::class)->monthsCovered($this->resource);
+            'fund_cover' => $this->when($user?->sponsor !== null && $this->status === SponsorshipStatus::Active, function () {
+                $months = app(ContinuityFund::class)->monthsCovered($this->resource);
 
-                return $months > 0 ? ['months' => $months, 'max' => \App\Services\ContinuityFund::maxMonths()] : null;
+                return $months > 0 ? ['months' => $months, 'max' => ContinuityFund::maxMonths()] : null;
             }),
             'ended_at' => $this->ended_at?->toIso8601String(),
             'cancellation_reason' => $this->cancellation_reason,

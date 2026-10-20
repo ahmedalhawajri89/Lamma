@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1\Portal;
 
+use App\Enums\SponsorshipStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ReportResource;
 use App\Http\Resources\SponsorshipResource;
@@ -52,7 +53,7 @@ class OverviewController extends Controller
                 'stats' => [
                     // من بدأت كفالتهم فعلاً: الحجز بانتظار التحويل ليس كفالة بعد
                     'orphans_sponsored' => $sponsor->sponsorships()->funded()->distinct()->count('orphan_id'),
-                    'pending_count' => $sponsor->sponsorships()->where('status', \App\Enums\SponsorshipStatus::Pending)->count(),
+                    'pending_count' => $sponsor->sponsorships()->where('status', SponsorshipStatus::Pending)->count(),
                     'monthly_commitment' => $sponsor->monthlyCommitment(),
 
                     // كل ما قدّمه فعلاً — مجموع الدفعات الناجحة لا الالتزام المُعلَن
@@ -87,7 +88,7 @@ class OverviewController extends Controller
                 // كفالات انتهت: تاريخه معها لا يختفي من لوحته
                 'past_sponsorships' => SponsorshipResource::collection(
                     $sponsor->sponsorships()
-                        ->whereIn('status', [\App\Enums\SponsorshipStatus::Cancelled, \App\Enums\SponsorshipStatus::Completed])
+                        ->whereIn('status', [SponsorshipStatus::Cancelled, SponsorshipStatus::Completed])
                         // حجزٌ سقط بلا دفع لم يكن كفالة: لا يُعرض كتاريخ
                         ->whereHas('payments', fn ($q) => $q->settled())
                         ->with(['orphan:id,reference_code,first_name,translations,gender,photo_path,date_of_birth,funded_percent', 'program'])

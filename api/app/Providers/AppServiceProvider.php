@@ -6,6 +6,9 @@ namespace App\Providers;
 
 use App\Models\Sponsorship;
 use App\Observers\SponsorshipObserver;
+use App\Payments\DemoGateway;
+use App\Payments\PaymentGateway;
+use App\Support\SiteProfile;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
@@ -20,8 +23,8 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         // البوابة من الإعداد؛ والتجريبية افتراضاً حتى تُربط بوابة حقيقية
-        $this->app->bind(\App\Payments\PaymentGateway::class, fn () => match (config('kafala.gateway')) {
-            default => new \App\Payments\DemoGateway(),
+        $this->app->bind(PaymentGateway::class, fn () => match (config('kafala.gateway')) {
+            default => new DemoGateway,
         });
 
         //
@@ -34,9 +37,9 @@ class AppServiceProvider extends ServiceProvider
         // هوية الموقع وتنقّله لقوالب الموقع العام: الترويسة والفوتر يُرسمان من الخادم.
         // والصفحات نفسها تحتاج الاسم (وصفها وJSON-LD ونصوص المشاركة)، لا القالب وحده
         View::composer(['site.layouts.*', 'site.pages.*', 'site.auth.*', 'site.portal.*', 'errors.*'], fn ($view) => $view->with([
-            'site' => \App\Support\SiteProfile::forViews(),
-            'nav' => \App\Support\SiteProfile::nav(request()->path()),
-            'navFlat' => \App\Support\SiteProfile::flatNav(request()->path()),
+            'site' => SiteProfile::forViews(),
+            'nav' => SiteProfile::nav(request()->path()),
+            'navFlat' => SiteProfile::flatNav(request()->path()),
         ]));
 
         /**

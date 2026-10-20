@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Models\Faq;
 use App\Models\Orphan;
 use Database\Seeders\ContentSeeder;
 
@@ -82,7 +83,7 @@ it('يمنع السبام بحقل مصيدة صامت', function () {
 });
 
 it('يملأ أرقام الأسئلة الشائعة من الشفافية بدل كتابتها باليد', function () {
-    \App\Models\Faq::create([
+    Faq::create([
         'question' => 'سؤال برموز الشفافية',
         'answer' => 'التشغيل {overhead}٪، ويصل للطفل {toChild}٪.',
         'sort_order' => 99,

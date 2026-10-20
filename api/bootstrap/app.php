@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+use App\Http\Middleware\EnsureUserIsActive;
+use App\Http\Middleware\SetLocale;
+use App\Support\Locale;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Application;
@@ -33,12 +36,12 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => RoleMiddleware::class,
             'permission' => PermissionMiddleware::class,
-            'active' => \App\Http\Middleware\EnsureUserIsActive::class,
-            'locale' => \App\Http\Middleware\SetLocale::class,
+            'active' => EnsureUserIsActive::class,
+            'locale' => SetLocale::class,
         ]);
 
         // الـ API بلغة الصفحة التي تطلبه (X-Locale من api.js)
-        $middleware->api(append: \App\Http\Middleware\SetLocale::class);
+        $middleware->api(append: SetLocale::class);
 
         // تحديد المعدّل يُفعَّل لكل مسارات api عبر مجموعات معرّفة في routes/api.php
         $middleware->throttleApi();
@@ -84,7 +87,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->render(function (HttpExceptionInterface $e, Request $request) {
             // صفحة الخطأ خارج مجموعات المسارات: لغتها من بادئة الرابط
             if (! $request->is('api/*')) {
-                app()->setLocale(\App\Support\Locale::fromPath($request->getPathInfo()));
+                app()->setLocale(Locale::fromPath($request->getPathInfo()));
             }
 
             if ($e->getStatusCode() === 404
@@ -122,7 +125,7 @@ return Application::configure(basePath: dirname(__DIR__))
          * التطوير قد يُترك مفعّلاً خطأً على خادم حقيقي، والتفاصيل مكانها السجل.
          * رقم المرجع يربط ما يراه المستخدم بالسطر في السجل.
          */
-        $exceptions->respond(function (SymfonyResponse $response, \Throwable $e, Request $request) {
+        $exceptions->respond(function (SymfonyResponse $response, Throwable $e, Request $request) {
             // ما رفعناه بأنفسنا (abort) رسالته مكتوبة للمستخدم، وما دون 500 ليس عطلاً
             if (! $request->is('api/*') || $response->getStatusCode() < 500 || $e instanceof HttpExceptionInterface) {
                 return $response;
@@ -132,7 +135,7 @@ return Application::configure(basePath: dirname(__DIR__))
             Log::error("[{$reference}] {$e->getMessage()}", ['exception' => $e, 'url' => $request->fullUrl()]);
 
             // قاعدة البيانات لا تردّ: عطل مؤقت في الخدمة، لا خطأ من المستخدم
-            $unavailable = $e instanceof QueryException || $e instanceof \PDOException;
+            $unavailable = $e instanceof QueryException || $e instanceof PDOException;
 
             return response()->json([
                 'message' => $unavailable

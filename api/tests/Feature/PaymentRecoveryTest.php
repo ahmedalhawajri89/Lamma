@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Actions\Payments\RecordPayment;
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentStatus;
 use App\Enums\SponsorshipStatus;
@@ -131,7 +132,7 @@ it('دفعةٌ يسجّلها المحاسب تُنهي التعثّر أيضا�
     $s = decliningSponsorship();
     $this->artisan('billing:run');
 
-    app(\App\Actions\Payments\RecordPayment::class)->handle($s->fresh(), 'manual-'.$s->id, method: PaymentMethod::BankTransfer);
+    app(RecordPayment::class)->handle($s->fresh(), 'manual-'.$s->id, method: PaymentMethod::BankTransfer);
 
     expect($s->fresh()->hasPaymentIssue())->toBeFalse();
 });

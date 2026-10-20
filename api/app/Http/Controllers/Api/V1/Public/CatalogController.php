@@ -15,6 +15,7 @@ use App\Models\Faq;
 use App\Models\Partner;
 use App\Models\Program;
 use App\Models\Testimonial;
+use App\Support\Locale;
 use App\Support\SiteProfile;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Cache;
@@ -33,13 +34,13 @@ class CatalogController extends Controller
     /** نسخةٌ لكل لغة: الاسم والبرامج والأسئلة تختلف بلغة الطلب */
     public static function bootstrapKey(?string $locale = null): string
     {
-        return 'public.bootstrap.'.($locale ?? \App\Support\Locale::current());
+        return 'public.bootstrap.'.($locale ?? Locale::current());
     }
 
     /** يمحو نسخ كل اللغات، بعد أي تعديلٍ في المحتوى أو الإعدادات */
     public static function forgetBootstrap(): void
     {
-        foreach (array_keys(\App\Support\Locale::all()) as $locale) {
+        foreach (array_keys(Locale::all()) as $locale) {
             Cache::forget(self::bootstrapKey($locale));
         }
     }
@@ -52,7 +53,7 @@ class CatalogController extends Controller
                 Program::active()->with('features')->get(),
             )->resolve(),
             'countries' => Country::operational()->get(['name_ar', 'name_en'])
-                ->map(fn ($c) => \App\Support\Locale::pick($c->name_ar, $c->name_en))->all(),
+                ->map(fn ($c) => Locale::pick($c->name_ar, $c->name_en))->all(),
             'partners' => PartnerResource::collection(Partner::active()->get())->resolve(),
             'testimonials' => TestimonialResource::collection(Testimonial::published()->get())->resolve(),
             'faqs' => FaqResource::collection(Faq::published()->get())->resolve(),

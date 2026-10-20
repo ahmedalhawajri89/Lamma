@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Resources;
 
+use App\Services\MessageSafety;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -42,7 +43,7 @@ class MessageResource extends JsonResource
             ),
             'flags' => $this->when(
                 (bool) $request->user()?->can('messages.review'),
-                fn () => app(\App\Services\MessageSafety::class)->flags($this->body),
+                fn () => app(MessageSafety::class)->flags($this->body),
             ),
         ];
     }

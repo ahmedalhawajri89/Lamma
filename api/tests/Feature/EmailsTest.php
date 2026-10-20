@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
+use App\Actions\Payments\RecordPayment;
 use App\Enums\PaymentMethod;
 use App\Enums\SponsorshipStatus;
 use App\Mail\PaymentIssueMail;
 use App\Mail\PaymentReceiptMail;
 use App\Models\Orphan;
-use App\Models\Payment;
 use App\Models\Sponsor;
 use App\Models\Sponsorship;
 use App\Models\User;
@@ -57,7 +57,7 @@ it('الإيصال بالإنجليزية لمن لغته الإنجليزية،
     $sponsor->user->update(['locale' => 'en', 'name' => 'Jane Doe']);
     $s = Sponsorship::factory()->for($sponsor)->create(['status' => SponsorshipStatus::Active]);
     $s->orphan->forceFill(['translations' => ['en' => ['first_name' => 'Omnia']]])->save();
-    $p = app(\App\Actions\Payments\RecordPayment::class)->handle($s, 'k-'.$s->id, method: PaymentMethod::BankTransfer, gatewayReference: 'TRX-1');
+    $p = app(RecordPayment::class)->handle($s, 'k-'.$s->id, method: PaymentMethod::BankTransfer, gatewayReference: 'TRX-1');
 
     $text = (new PaymentReceiptMail($p->fresh(['sponsorship.orphan', 'sponsor.user'])))->locale('en')->render();
 

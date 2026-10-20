@@ -14,6 +14,7 @@ use App\Models\Payment;
 use App\Models\Sponsorship;
 use App\Support\Locale;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 
 /**
  * «أين ذهب مالك»: سجلّ الطفل شهراً بشهر، كما يراه كافله.
@@ -129,7 +130,7 @@ final class ChildLedgerService
     }
 
     /**
-     * @param  \Illuminate\Support\Collection<int, Disbursement>  $spending
+     * @param  Collection<int, Disbursement>  $spending
      * @return list<array{slug: string, label: string, color: ?string, amount: float, receipts: int}>
      */
     private function byCategory($spending): array

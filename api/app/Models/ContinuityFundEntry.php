@@ -7,13 +7,14 @@ namespace App\Models;
 use App\Enums\FundEntryKind;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 /**
  * قيدٌ في صندوق الاستمرارية. الرصيد مجموع الداخل ناقص الخارج، من القيود
  * نفسها لا من رقمٍ محفوظ.
  *
  * @property FundEntryKind $kind
- * @property \Illuminate\Support\Carbon $period
+ * @property Carbon $period
  */
 class ContinuityFundEntry extends Model
 {

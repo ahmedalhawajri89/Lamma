@@ -6,8 +6,8 @@ namespace Database\Seeders;
 
 use App\Enums\AssociationStatus;
 use App\Enums\CareArrangement;
-use App\Enums\FundEntryKind;
 use App\Enums\DocumentType;
+use App\Enums\FundEntryKind;
 use App\Enums\Gender;
 use App\Enums\GuardianRelation;
 use App\Enums\HousingStatus;

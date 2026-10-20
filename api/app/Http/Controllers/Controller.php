@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-use Illuminate\Http\Request;
 use Illuminate\Foundation\Validation\ValidatesRequests;
+use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 
 /**
  * القاعدة في Laravel 12 فارغة عمداً.
@@ -28,13 +29,13 @@ abstract class Controller
      * الأوقات. فلتر «من 13 أكتوبر» كان يقارن بتاريخ UTC، فدفعة الواحدة فجراً
      * بتوقيت غزة تُحسب على اليوم السابق.
      */
-    protected function localDay(?string $date, bool $end = false): ?\Illuminate\Support\Carbon
+    protected function localDay(?string $date, bool $end = false): ?Carbon
     {
         if (! $date) {
             return null;
         }
 
-        $day = \Illuminate\Support\Carbon::parse($date, config('kafala.display_timezone'));
+        $day = Carbon::parse($date, config('kafala.display_timezone'));
 
         return ($end ? $day->endOfDay() : $day->startOfDay())->utc();
     }

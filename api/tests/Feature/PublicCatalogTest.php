@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Enums\OrphanStatus;
 use App\Models\Orphan;
+use App\Models\Sponsorship;
 
 /**
  * فهرس الأيتام العام: يُصفّح ويُفلتر على الخادم، وبجانب كل خيار عدده.
@@ -60,10 +61,10 @@ it('لا يعرض في الفهرس من اكتملت كفالته، وتبقى 
     $full = publicChild(['monthly_need' => 50]);
 
     // كافلان يتشاركان الأول ولم يكملاه، وكفالةٌ ملغاة لا تُعدّ
-    App\Models\Sponsorship::factory()->for($open)->create(['monthly_amount' => 20]);
-    App\Models\Sponsorship::factory()->for($open)->create(['monthly_amount' => 10]);
-    App\Models\Sponsorship::factory()->for($open)->cancelled()->create(['monthly_amount' => 15]);
-    App\Models\Sponsorship::factory()->for($full)->create(['monthly_amount' => 50]);
+    Sponsorship::factory()->for($open)->create(['monthly_amount' => 20]);
+    Sponsorship::factory()->for($open)->create(['monthly_amount' => 10]);
+    Sponsorship::factory()->for($open)->cancelled()->create(['monthly_amount' => 15]);
+    Sponsorship::factory()->for($full)->create(['monthly_amount' => 50]);
 
     expect($full->fresh()->status)->toBe(OrphanStatus::FullyFunded);
 

@@ -13,6 +13,7 @@ use App\Models\Orphan;
 use App\Models\Sponsor;
 use App\Models\Sponsorship;
 use App\Support\StaffScope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -99,7 +100,7 @@ class SponsorshipController extends Controller
     }
 
     /** الفلاتر المشتركة بين الجدول وعدّاداته، عدا الحالة */
-    private function filtered(Request $request): \Illuminate\Database\Eloquent\Builder
+    private function filtered(Request $request): Builder
     {
         $user = $request->user();
         $tz = config('kafala.display_timezone');

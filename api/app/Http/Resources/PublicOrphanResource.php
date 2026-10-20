@@ -59,7 +59,6 @@ class PublicOrphanResource extends JsonResource
         ];
     }
 
-
     /** @return array{name: string, slug: string, verified_at: ?string}|null */
     private function association(): ?array
     {

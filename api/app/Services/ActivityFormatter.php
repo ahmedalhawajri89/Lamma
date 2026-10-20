@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Enums\ContactStatus;
+use App\Enums\GuardianRelation;
+use App\Enums\HousingStatus;
 use App\Enums\MessageStatus;
 use App\Enums\OrphanStatus;
 use App\Enums\PaymentMethod;
@@ -14,8 +16,10 @@ use App\Enums\ReportStatus;
 use App\Enums\SponsorshipStatus;
 use App\Enums\UserRole;
 use App\Enums\UserStatus;
+use App\Models\City;
 use App\Models\Country;
 use App\Models\DisbursementCategory;
+use App\Models\Orphan;
 use App\Models\PostCategory;
 use App\Models\Program;
 use Illuminate\Database\Eloquent\Model;
@@ -268,8 +272,8 @@ class ActivityFormatter
                 default => null,
             },
             $field === 'role' => UserRole::class,
-            $field === 'housing_status' => \App\Enums\HousingStatus::class,
-            $field === 'guardian.relation' => \App\Enums\GuardianRelation::class,
+            $field === 'housing_status' => HousingStatus::class,
+            $field === 'guardian.relation' => GuardianRelation::class,
             $field === 'method' => PaymentMethod::class,
             default => null,
         };
@@ -287,8 +291,8 @@ class ActivityFormatter
             'program_id' => Program::find($value)?->name_ar,
             'category_id' => ($type === 'Post' ? PostCategory::find($value) : DisbursementCategory::find($value))?->name_ar,
             'assigned_country_id', 'country_id' => Country::find($value)?->name_ar,
-            'city_id' => \App\Models\City::find($value)?->name_ar,
-            'orphan_id' => ($o = \App\Models\Orphan::withTrashed()->find($value)) ? "{$o->first_name} · {$o->reference_code}" : null,
+            'city_id' => City::find($value)?->name_ar,
+            'orphan_id' => ($o = Orphan::withTrashed()->find($value)) ? "{$o->first_name} · {$o->reference_code}" : null,
             default => null,
         };
         if ($named !== null) {

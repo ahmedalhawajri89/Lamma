@@ -8,10 +8,11 @@ use App\Enums\MessageStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\MessageResource;
 use App\Models\Message;
+use App\Services\MessageSafety;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use App\Services\MessageSafety;
 use Illuminate\Validation\Rule;
 
 /**
@@ -65,7 +66,7 @@ class MessageController extends Controller
     }
 
     /** الفلاتر المشتركة بين الطابور وعدّاداته، عدا الحالة */
-    private function filtered(Request $request): \Illuminate\Database\Eloquent\Builder
+    private function filtered(Request $request): Builder
     {
         return Message::query()
             ->when(in_array($request->string('direction')->toString(), ['sponsor', 'orphan'], true),

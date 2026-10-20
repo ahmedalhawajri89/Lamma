@@ -8,14 +8,20 @@ use App\Enums\OrphanStatus;
 use App\Enums\SponsorshipStatus;
 use App\Enums\UserStatus;
 use App\Models\City;
+use App\Models\ContactMessage;
 use App\Models\Country;
 use App\Models\Family;
 use App\Models\Message;
 use App\Models\Orphan;
 use App\Models\OrphanDocument;
+use App\Models\Post;
+use App\Models\PostCategory;
+use App\Models\Program;
+use App\Models\Setting;
+use App\Models\Sponsor;
 use App\Models\Sponsorship;
 use App\Models\User;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Password;
 
 /**
  * نتائج فحص QA للّوحة: صلاحيات كانت تتسع بصمت، وقرارات نهائية تُعكس،
@@ -100,7 +106,7 @@ it('الإيقاف يُخرج الموظف فوراً من جلسته', function
 
 it('لا يتحوّل حساب كافل إلى موظف من شاشة المستخدمين، ولا يُقبل دور مجهول في الفلتر', function () {
     $admin = User::factory()->admin()->create();
-    $sponsor = \App\Models\Sponsor::factory()->create()->user;
+    $sponsor = Sponsor::factory()->create()->user;
 
     $this->actingAs($admin)->patchJson("/api/v1/admin/users/{$sponsor->id}", ['role' => 'admin'])->assertUnprocessable();
     expect($sponsor->fresh()->hasRole('admin'))->toBeFalse();
@@ -110,7 +116,7 @@ it('لا يتحوّل حساب كافل إلى موظف من شاشة المست
 
 it('تعيين كلمة المرور من رابط الدعوة يفعّل حساب الموظف الجديد', function () {
     $user = User::factory()->accountant()->create(['status' => UserStatus::Pending]);
-    $token = \Illuminate\Support\Facades\Password::createToken($user);
+    $token = Password::createToken($user);
 
     $this->postJson('/api/v1/auth/reset-password', [
         'email' => $user->email, 'token' => $token,
@@ -215,7 +221,7 @@ it('رفع مبلغ الكفالة لا يتجاوز ما تبقّى من حاج
 
 it('الإعدادات: المفاتيح المجهولة تُرفض، والقيم تُتحقق، وما لم يُرسَل يبقى', function () {
     $admin = User::factory()->admin()->create();
-    $name = \App\Models\Setting::cached()['site.name'] ?? null;
+    $name = Setting::cached()['site.name'] ?? null;
 
     $this->actingAs($admin)->putJson('/api/v1/admin/settings', ['settings' => [['group' => 'evil', 'key' => 'x', 'value' => 1]]])
         ->assertUnprocessable();
@@ -225,15 +231,15 @@ it('الإعدادات: المفاتيح المجهولة تُرفض، والق�
     $this->actingAs($admin)->putJson('/api/v1/admin/settings', ['settings' => [['group' => 'policy', 'key' => 'moderate_messages', 'value' => 'false']]])
         ->assertOk();
 
-    $settings = \App\Models\Setting::cached();
+    $settings = Setting::cached();
     expect($settings['policy.moderate_messages'])->toBeFalse()
         ->and($settings['site.name'] ?? null)->toBe($name);
 });
 
 it('المقال يُرجع رقم تصنيفه وتسمية حالته، والقائمة تحمل التصنيفات', function () {
     $admin = User::factory()->admin()->create();
-    $category = \App\Models\PostCategory::create(['slug' => 'test-cat', 'name_ar' => 'تصنيف', 'sort_order' => 1]);
-    \App\Models\Post::factory()->create(['category_id' => $category->id]);
+    $category = PostCategory::create(['slug' => 'test-cat', 'name_ar' => 'تصنيف', 'sort_order' => 1]);
+    Post::factory()->create(['category_id' => $category->id]);
 
     $res = $this->actingAs($admin)->getJson('/api/v1/admin/posts')->assertOk();
     expect($res->json('data.0'))->toHaveKeys(['category_id', 'status_label'])
@@ -241,7 +247,7 @@ it('المقال يُرجع رقم تصنيفه وتسمية حالته، وال
 });
 
 it('رسائل التواصل لا تكشف عنوان الزائر', function () {
-    \App\Models\ContactMessage::create(['name' => 'زائر', 'email' => 'v@example.com', 'subject' => 'general', 'body' => 'سؤال', 'ip_address' => '10.1.2.3']);
+    ContactMessage::create(['name' => 'زائر', 'email' => 'v@example.com', 'subject' => 'general', 'body' => 'سؤال', 'ip_address' => '10.1.2.3']);
 
     $this->actingAs(User::factory()->admin()->create())->getJson('/api/v1/admin/contacts')
         ->assertOk()->assertDontSee('10.1.2.3');
@@ -296,7 +302,7 @@ it('رمز الملف التالي يُحسب رقمياً فلا يتكرر ب�
 
     $res = $this->actingAs($admin)->postJson('/api/v1/admin/orphans', [
         'first_name' => 'سامي', 'last_name' => 'الأحمد', 'gender' => 'male', 'date_of_birth' => now()->subYears(8)->toDateString(),
-        'family_id' => $family->id, 'program_id' => \App\Models\Program::query()->value('id'), 'monthly_need' => 50,
+        'family_id' => $family->id, 'program_id' => Program::query()->value('id'), 'monthly_need' => 50,
     ]);
 
     expect($res->json('data.reference_code'))->toBe('KFL-10001');

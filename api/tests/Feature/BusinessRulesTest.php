@@ -50,7 +50,7 @@ it('لا يتجاوز المبلغ ما تبقّى من حاجة الطفل: ا�
     Sponsorship::factory()->for($orphan)->create(['monthly_amount' => 70]);
 
     expect(fn () => app(CreateSponsorship::class)->handle(Sponsor::factory()->create(), $orphan->fresh(), 100.0))
-        ->toThrow(\Illuminate\Validation\ValidationException::class);
+        ->toThrow(ValidationException::class);
 
     $sponsorship = app(CreateSponsorship::class)->handle(Sponsor::factory()->create(), $orphan->fresh());
 

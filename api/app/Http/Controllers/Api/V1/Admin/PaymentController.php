@@ -5,20 +5,21 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\V1\Admin;
 
 use App\Actions\Payments\RecordPayment;
+use App\Actions\Payments\RefundPayment;
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PaymentResource;
 use App\Models\Payment;
 use App\Models\Sponsorship;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\StreamedResponse;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Carbon;
-use App\Actions\Payments\RefundPayment;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class PaymentController extends Controller
 {
@@ -101,7 +102,7 @@ class PaymentController extends Controller
     }
 
     /** الفلاتر المشتركة بين الجدول وملخّصه والتصدير، عدا الحالة */
-    private function filtered(Request $request): \Illuminate\Database\Eloquent\Builder
+    private function filtered(Request $request): Builder
     {
         return Payment::query()
             ->when($request->filled('method'), fn ($q) => $q->where('method', $request->string('method')))

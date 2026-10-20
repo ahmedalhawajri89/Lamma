@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Actions\Sponsorships\CreateSponsorship;
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentStatus;
 use App\Enums\SponsorshipStatus;
@@ -10,8 +11,10 @@ use App\Models\Orphan;
 use App\Models\Payment;
 use App\Models\Sponsor;
 use App\Models\Sponsorship;
+use App\Models\User;
 use App\Support\Fx;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Validation\ValidationException;
 
 /**
  * المرحلة 5: الكافل بعملته. مبلغٌ ثابت بعملته كل شهر، وما يعادله بالأساس
@@ -46,7 +49,7 @@ it('الكفالة بالجنيه: مبلغها بالجنيه ثابت، وما
     $orphan = needyOrphan(100);
     $sponsor = Sponsor::factory()->create();
 
-    $s = app(\App\Actions\Sponsorships\CreateSponsorship::class)->handle($sponsor, $orphan, monthlyAmount: 40, currency: 'GBP');
+    $s = app(CreateSponsorship::class)->handle($sponsor, $orphan, monthlyAmount: 40, currency: 'GBP');
 
     expect($s->charge_currency)->toBe('GBP')
         ->and((float) $s->charge_amount)->toBe(40.0)
@@ -60,14 +63,14 @@ it('الكفالة بالجنيه: مبلغها بالجنيه ثابت، وما
 it('حدود المبلغ بعملة الكافل: لا يتجاوز المتبقي محوّلاً، ولا يقلّ عن ما يعادل 5', function () {
     setRate('GBP', 1.25);
     $orphan = needyOrphan(100);
-    $create = app(\App\Actions\Sponsorships\CreateSponsorship::class);
+    $create = app(CreateSponsorship::class);
 
     expect(fn () => $create->handle(Sponsor::factory()->create(), $orphan, monthlyAmount: 81, currency: 'GBP'))
-        ->toThrow(\Illuminate\Validation\ValidationException::class, '80.00 GBP');
+        ->toThrow(ValidationException::class, '80.00 GBP');
     expect(fn () => $create->handle(Sponsor::factory()->create(), $orphan, monthlyAmount: 3, currency: 'GBP'))
-        ->toThrow(\Illuminate\Validation\ValidationException::class);
+        ->toThrow(ValidationException::class);
     expect(fn () => $create->handle(Sponsor::factory()->create(), $orphan, monthlyAmount: 10, currency: 'JPY'))
-        ->toThrow(\Illuminate\Validation\ValidationException::class);
+        ->toThrow(ValidationException::class);
 
     // كفالة كاملة بالجنيه: 80 جنيهاً تكفي حاجة 100 دولار
     $full = $create->handle(Sponsor::factory()->create(), $orphan, currency: 'GBP');
@@ -96,7 +99,7 @@ it('الخصم الشهري بعملة الكافل، والدفعة تحمل س
 it('تحديث الأسعار يجلبها من المصدر ويعيد حساب ما يعادل الكفالات بعملةٍ أخرى', function () {
     setRate('GBP', 1.25);
     $orphan = needyOrphan(100);
-    $s = app(\App\Actions\Sponsorships\CreateSponsorship::class)->handle(Sponsor::factory()->create(), $orphan, monthlyAmount: 40, currency: 'GBP');
+    $s = app(CreateSponsorship::class)->handle(Sponsor::factory()->create(), $orphan, monthlyAmount: 40, currency: 'GBP');
     ExchangeRate::query()->update(['source' => 'open.er-api.com']);
 
     // ينخفض الجنيه من 1.25 إلى 1.2
@@ -127,7 +130,7 @@ it('مصدرٌ معطّل أو قفزةٌ غير معقولة لا تمسّ ال
 it('فرقٌ دون الدولار من تقلّب السعر لا يعيد طفلاً مكفولاً بالكامل إلى الموقع', function () {
     setRate('GBP', 1.25);
     $orphan = needyOrphan(100);
-    app(\App\Actions\Sponsorships\CreateSponsorship::class)->handle(Sponsor::factory()->create(), $orphan, currency: 'GBP');
+    app(CreateSponsorship::class)->handle(Sponsor::factory()->create(), $orphan, currency: 'GBP');
     ExchangeRate::query()->update(['source' => 'open.er-api.com']);
 
     // 80 جنيهاً بسعر 1.244 = 99.52 دولاراً
@@ -162,8 +165,8 @@ it('صفحة الكفالة تعرض عملات الكفلاء وأسعارها�
 it('أسعار الصرف في اللوحة: يراها المحاسب ومنذ متى، ويحدّثها المدير وحده', function () {
     ExchangeRate::query()->update(['fetched_at' => now()->subDays(5), 'source' => 'open.er-api.com']);
     setRate('GBP', 1.25);
-    $accountant = \App\Models\User::factory()->accountant()->create();
-    $admin = \App\Models\User::factory()->admin()->create();
+    $accountant = User::factory()->accountant()->create();
+    $admin = User::factory()->admin()->create();
 
     $rows = collect($this->actingAs($accountant)->getJson('/api/v1/admin/fx/rates')->assertOk()->json('data'))->keyBy('currency');
     expect($rows['GBP']['rate'])->toEqual(1.25)

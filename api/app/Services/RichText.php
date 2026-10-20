@@ -72,7 +72,7 @@ class RichText
             return $this->sanitizer;
         }
 
-        $config = (new HtmlSanitizerConfig())
+        $config = (new HtmlSanitizerConfig)
             ->allowLinkSchemes(['https', 'http', 'mailto'])
             ->allowMediaSchemes(['https', 'http'])
             ->allowRelativeLinks()

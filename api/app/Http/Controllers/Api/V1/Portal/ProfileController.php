@@ -6,11 +6,12 @@ namespace App\Http\Controllers\Api\V1\Portal;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
+use App\Support\Fx;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
@@ -29,7 +30,7 @@ class ProfileController extends Controller
             'current_password' => ['nullable', 'string'],
 
             'sponsor.city' => ['sometimes', 'nullable', 'string', 'max:80'],
-            'sponsor.preferred_currency' => ['sometimes', Rule::in(\App\Support\Fx::sponsorCurrencies())],
+            'sponsor.preferred_currency' => ['sometimes', Rule::in(Fx::sponsorCurrencies())],
             'sponsor.prefers_zakat' => ['sometimes', 'boolean'],
             'sponsor.is_anonymous' => ['sometimes', 'boolean'],
             // مفاتيح معروفة وحدها، بقيم منطقية

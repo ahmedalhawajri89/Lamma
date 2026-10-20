@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
@@ -36,7 +37,7 @@ class ContactMessage extends Model
     }
 
     /** @return BelongsTo<User, $this> */
-    public function replies(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function replies(): HasMany
     {
         return $this->hasMany(ContactReply::class)->oldest();
     }

@@ -51,6 +51,7 @@ final class StaffScope
      * يقيّد استعلاماً على جدول الأسر نفسه.
      *
      * @template TModel of \Illuminate\Database\Eloquent\Model
+     *
      * @param  Builder<TModel>  $query
      * @return Builder<TModel>
      */
@@ -66,6 +67,7 @@ final class StaffScope
      * 'orphan.family' للزيارة والتقرير والمستند والكفالة.
      *
      * @template TModel of \Illuminate\Database\Eloquent\Model
+     *
      * @param  Builder<TModel>  $query
      * @return Builder<TModel>
      */

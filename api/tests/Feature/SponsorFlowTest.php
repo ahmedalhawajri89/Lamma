@@ -7,6 +7,7 @@ use App\Enums\OrphanStatus;
 use App\Enums\PaymentStatus;
 use App\Enums\ReportStatus;
 use App\Enums\SponsorshipStatus;
+use App\Http\Controllers\Api\V1\Public\CheckoutController;
 use App\Models\Message;
 use App\Models\Orphan;
 use App\Models\Payment;
@@ -14,6 +15,7 @@ use App\Models\Report;
 use App\Models\Sponsor;
 use App\Models\Sponsorship;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 /**
@@ -166,7 +168,7 @@ it('تغيير البريد يشترط كلمة المرور، وتغيير ال
     $this->actingAs($user)->patchJson('/api/v1/portal/profile', ['email' => 'new@example.com', 'current_password' => 'Old-pass-123'])
         ->assertOk();
 
-    \Illuminate\Support\Facades\DB::table('sessions')->insert([
+    DB::table('sessions')->insert([
         'id' => 'other-device', 'user_id' => $user->id, 'payload' => '', 'last_activity' => time(),
     ]);
     $before = $user->fresh()->remember_token;
@@ -175,7 +177,7 @@ it('تغيير البريد يشترط كلمة المرور، وتغيير ال
         'current_password' => 'Old-pass-123', 'password' => 'New-pass-456x', 'password_confirmation' => 'New-pass-456x',
     ])->assertOk();
 
-    expect(\Illuminate\Support\Facades\DB::table('sessions')->where('id', 'other-device')->exists())->toBeFalse()
+    expect(DB::table('sessions')->where('id', 'other-device')->exists())->toBeFalse()
         ->and($user->fresh()->remember_token)->not->toBe($before);
 });
 
@@ -256,7 +258,7 @@ it('حجوزات التحويل البنكي من العنوان نفسه محد
     ]);
 
     // كل حجزٍ بحسابٍ جديد: حدّ «ثلاثة لكل كافل» لا يراها
-    foreach (range(1, App\Http\Controllers\Api\V1\Public\CheckoutController::DAILY_HOLDS_PER_IP) as $i) {
+    foreach (range(1, CheckoutController::DAILY_HOLDS_PER_IP) as $i) {
         auth()->forgetGuards();
         $hold($i)->assertCreated();
     }

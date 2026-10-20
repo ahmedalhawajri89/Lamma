@@ -16,7 +16,7 @@ function pay(Sponsorship $s, PaymentStatus $status, float $amount, string $when,
 {
     static $i = 0;
     $i++;
-    $at = now()->sub(\DateInterval::createFromDateString($when));
+    $at = now()->sub(DateInterval::createFromDateString($when));
 
     $p = Payment::create([
         'reference_code' => 'PAY-95'.str_pad((string) $i, 4, '0', STR_PAD_LEFT), 'sponsorship_id' => $s->id, 'sponsor_id' => $s->sponsor_id,

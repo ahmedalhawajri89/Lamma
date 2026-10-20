@@ -7,7 +7,6 @@ use App\Enums\OrphanStatus;
 use App\Models\Orphan;
 use App\Models\OrphanDocument;
 use App\Models\User;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 
 /**

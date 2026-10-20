@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+use App\Models\Faq;
 
 /**
  * لغتا الموقع: العربية بلا بادئة كما كانت، والإنجليزية تحت /en، ولكلٍّ
@@ -115,11 +116,11 @@ it('كل نصٍّ في وحدات JS لرحلة الكافل له ترجمة إ�
 
 it('المحتوى المترجم يصل بلغة الطلب، والعربي حين لا ترجمة', function () {
     // الترجمة ليست في fillable: تكتبها البذرة اليوم، ولوحة الإدارة لاحقاً
-    (new \App\Models\Faq)->forceFill([
+    (new Faq)->forceFill([
         'question' => 'سؤال مترجم؟', 'answer' => 'جواب.', 'category' => 'عام', 'is_published' => true,
         'translations' => ['en' => ['question' => 'A translated question?', 'answer' => 'An answer.']],
     ])->save();
-    \App\Models\Faq::create(['question' => 'سؤال بلا ترجمة؟', 'answer' => 'جواب.', 'is_published' => true]);
+    Faq::create(['question' => 'سؤال بلا ترجمة؟', 'answer' => 'جواب.', 'is_published' => true]);
 
     $en = collect($this->getJson('/api/v1/public/bootstrap', ['X-Locale' => 'en'])->assertOk()->json('data.faqs'))->pluck('q');
     $ar = collect($this->getJson('/api/v1/public/bootstrap')->assertOk()->json('data.faqs'))->pluck('q');

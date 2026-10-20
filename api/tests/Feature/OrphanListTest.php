@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Enums\OrphanStatus;
 use App\Enums\SponsorshipStatus;
+use App\Models\FieldVisit;
 use App\Models\Orphan;
 use App\Models\Sponsorship;
 use App\Models\User;
@@ -52,7 +53,7 @@ it('لا يصدّر من لا يرى الأيتام', function (): void {
 it('ملف طفلٍ له زيارات يُفتح، و«متأخرة» محسوبة فيه كما في شاشة الزيارات', function (): void {
     $this->actingAs(User::factory()->admin()->create());
     $orphan = Orphan::factory()->create(['status' => OrphanStatus::Active]);
-    \App\Models\FieldVisit::create([
+    FieldVisit::create([
         'orphan_id' => $orphan->id, 'supervisor_id' => User::factory()->create()->id,
         'visited_at' => now()->subMonths(5), 'next_visit_due' => now()->subMonths(2), 'findings' => 'زيارة ميدانية للمتابعة.',
     ]);

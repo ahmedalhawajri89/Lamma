@@ -146,7 +146,7 @@ class WorkQueueService
             $tasks[] = $this->task(
                 'visits_overdue',
                 // بتعريف خطة الزيارات نفسه: ملفٌ مغلق لا يُزار فلا يُعدّ متأخراً
-                $inCountry(FieldVisit::overdue()->whereHas('orphan', fn ($o) => $o->whereIn('status', [\App\Enums\OrphanStatus::Active, \App\Enums\OrphanStatus::FullyFunded, \App\Enums\OrphanStatus::PendingVerification])), 'orphan.family')->count(),
+                $inCountry(FieldVisit::overdue()->whereHas('orphan', fn ($o) => $o->whereIn('status', [OrphanStatus::Active, OrphanStatus::FullyFunded, OrphanStatus::PendingVerification])), 'orphan.family')->count(),
                 'زيارات ميدانية متأخرة',
                 'تجاوزت موعد الزيارة القادمة.',
                 '/visits', ['bucket' => 'overdue'],

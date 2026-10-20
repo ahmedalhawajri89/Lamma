@@ -6,7 +6,9 @@ namespace App\Http\Controllers\Api\V1\Public;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PublicOrphanResource;
+use App\Models\Country;
 use App\Models\Orphan;
+use App\Support\Locale;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -139,8 +141,8 @@ class OrphanController extends Controller
             'program' => $programs,
             'country' => $countries,
             // قيمة الفلتر الاسم العربي (ثابتة لكل اللغات)، والمعروض بلغة الصفحة
-            'country_labels' => \App\Models\Country::whereIn('name_ar', $countries->keys())->get(['name_ar', 'name_en'])
-                ->mapWithKeys(fn ($c) => [$c->name_ar => \App\Support\Locale::pick($c->name_ar, $c->name_en)]),
+            'country_labels' => Country::whereIn('name_ar', $countries->keys())->get(['name_ar', 'name_en'])
+                ->mapWithKeys(fn ($c) => [$c->name_ar => Locale::pick($c->name_ar, $c->name_en)]),
             'gender' => $genders,
             'age' => $ages,
             'urgent' => $this->filtered($request, ['urgent'])->where('is_urgent', true)->count(),
