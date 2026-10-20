@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api\V1\Public;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PublicOrphanResource;
+use App\Models\Association;
 use App\Models\Country;
 use App\Models\Orphan;
 use App\Support\Locale;
@@ -90,6 +91,7 @@ class OrphanController extends Controller
      * كل فلتر (عدد «سوريا» يُحسب تحت البرنامج والعمر المختارين لا تحت الدولة).
      *
      * @param  array<int, string>  $except
+     * @return Builder<Orphan>
      */
     private function filtered(Request $request, array $except = []): Builder
     {
@@ -100,7 +102,10 @@ class OrphanController extends Controller
             ->seekingSponsor()
             ->publicSearch($has('q') ? $request->string('q')->toString() : null)
             ->when($has('program'), fn ($q) => $q->whereHas('program', fn ($p) => $p->where('slug', $request->string('program'))))
-            ->when($has('association'), fn ($q) => $q->whereHas('family.association', fn ($a) => $a->verified()->where('slug', $request->string('association'))))
+            ->when($has('association'), fn ($q) => $q->whereHas('family.association', function ($a) use ($request): void {
+                /** @var Builder<Association> $a */
+                $a->verified()->where('slug', $request->string('association'));
+            }))
             ->when($has('country'), fn ($q) => $q->whereHas('family.country', fn ($c) => $c->where('name_ar', $request->string('country'))))
             ->when($has('gender'), fn ($q) => $q->where('gender', $request->string('gender')))
             ->when($has('age'), function ($q) use ($request) {

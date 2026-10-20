@@ -29,6 +29,10 @@ class NewsletterSubscriber extends Model
         return ['confirmed_at' => 'datetime', 'unsubscribed_at' => 'datetime'];
     }
 
+    /**
+     * @param  Builder<self>  $query
+     * @return Builder<self>
+     */
     public function scopeConfirmed(Builder $query): Builder
     {
         return $query->whereNotNull('confirmed_at')->whereNull('unsubscribed_at');

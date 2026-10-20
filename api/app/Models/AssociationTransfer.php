@@ -23,7 +23,11 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property TransferStatus $status
  * @property string $received_base
  * @property string $fee_base
+ * @property string $fund_base
  * @property string $amount_base
+ * @property string|null $bank_reference
+ * @property Carbon|null $sent_at
+ * @property Carbon|null $confirmed_at
  */
 class AssociationTransfer extends Model
 {

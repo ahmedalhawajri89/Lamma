@@ -62,6 +62,10 @@ class OrphanDocument extends Model
         return $this->belongsTo(User::class, 'uploaded_by');
     }
 
+    /**
+     * @param  Builder<self>  $query
+     * @return Builder<self>
+     */
     public function scopeVerified(Builder $query): Builder
     {
         return $query->whereNotNull('verified_at');

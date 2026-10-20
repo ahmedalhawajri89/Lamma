@@ -9,7 +9,18 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-/** بند صرف — جدول لا ENUM، لأن المحاسب يضيف بنداً بلا مبرمج. */
+/**
+ * بند صرف — جدول لا ENUM، لأن المحاسب يضيف بنداً بلا مبرمج.
+ *
+ * @property int $id
+ * @property string $slug
+ * @property string $name_ar
+ * @property string|null $name_en
+ * @property string|null $color
+ * @property bool $is_overhead
+ * @property int $sort_order
+ * @property bool $is_active
+ */
 class DisbursementCategory extends Model
 {
     use HasFactory;
@@ -27,6 +38,10 @@ class DisbursementCategory extends Model
         return $this->hasMany(Disbursement::class, 'category_id');
     }
 
+    /**
+     * @param  Builder<self>  $query
+     * @return Builder<self>
+     */
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_active', true)->orderBy('sort_order');

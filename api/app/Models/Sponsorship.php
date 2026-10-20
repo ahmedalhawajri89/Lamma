@@ -28,12 +28,21 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property int $program_id
  * @property string $monthly_amount
  * @property string $currency
+ * @property string|null $charge_currency
+ * @property string|null $charge_amount
  * @property int $share_percent
  * @property bool $is_zakat
  * @property SponsorshipStatus $status
  * @property int $billing_day
+ * @property int $interval_months
+ * @property string|null $payment_method
+ * @property string|null $card_brand
+ * @property string|null $card_last4
  * @property Carbon|null $started_at
  * @property Carbon|null $next_due_at
+ * @property Carbon|null $payment_issue_since
+ * @property int $payment_failures
+ * @property Carbon|null $next_retry_at
  * @property Carbon|null $paused_at
  * @property Carbon|null $ended_at
  * @property string|null $cancellation_reason
@@ -122,6 +131,10 @@ class Sponsorship extends Model
 
     /* ------------------------------------------------------------------ النطاقات */
 
+    /**
+     * @param  Builder<self>  $query
+     * @return Builder<self>
+     */
     public function scopeLive(Builder $query): Builder
     {
         return $query->whereIn('status', [
@@ -135,18 +148,30 @@ class Sponsorship extends Model
      * كفالة دُفع لها: نشطة أو موقوفة مؤقتاً. منها يُفتح للكافل ما يخصّ الطفل
      * (التقارير والرسائل). الحجز المعلّق بانتظار أول دفعة ليس منها: كان يفتح
      * تقارير الطفل الصحية والنفسية لمن سجّل وحجز ولم يدفع شيئاً.
+     *
+     * @param  Builder<self>  $query
+     * @return Builder<self>
      */
     public function scopeFunded(Builder $query): Builder
     {
         return $query->whereIn('status', [SponsorshipStatus::Active, SponsorshipStatus::Paused]);
     }
 
+    /**
+     * @param  Builder<self>  $query
+     * @return Builder<self>
+     */
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('status', SponsorshipStatus::Active);
     }
 
-    /** ما يلتقطه أمر الفوترة اليومي — يستعمل idx_sponsorships_due. */
+    /**
+     * ما يلتقطه أمر الفوترة اليومي — يستعمل idx_sponsorships_due.
+     *
+     * @param  Builder<self>  $query
+     * @return Builder<self>
+     */
     public function scopeDueBy(Builder $query, ?string $date = null): Builder
     {
         return $query

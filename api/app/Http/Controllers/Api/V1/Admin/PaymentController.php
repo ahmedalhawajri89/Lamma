@@ -101,7 +101,11 @@ class PaymentController extends Controller
                 ->whereRaw('COALESCE(later.paid_at, later.created_at) > payments.created_at'));
     }
 
-    /** الفلاتر المشتركة بين الجدول وملخّصه والتصدير، عدا الحالة */
+    /**
+     * الفلاتر المشتركة بين الجدول وملخّصه والتصدير، عدا الحالة
+     *
+     * @return Builder<Payment>
+     */
     private function filtered(Request $request): Builder
     {
         return Payment::query()

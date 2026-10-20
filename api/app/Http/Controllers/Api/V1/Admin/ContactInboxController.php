@@ -118,7 +118,11 @@ class ContactInboxController extends Controller
         ]);
     }
 
-    /** الفلاتر المشتركة بين القائمة وعدّاداتها، عدا الحالة */
+    /**
+     * الفلاتر المشتركة بين القائمة وعدّاداتها، عدا الحالة
+     *
+     * @return Builder<ContactMessage>
+     */
     private function filtered(Request $request): Builder
     {
         return ContactMessage::query()
@@ -139,7 +143,7 @@ class ContactInboxController extends Controller
         $sponsors[$email] ??= Sponsor::query()->whereHas('user', fn ($u) => $u->where('email', $email))->first(['id', 'sponsor_code']);
         $sponsor = $sponsors[$email];
 
-        $status = $m->status instanceof \BackedEnum ? $m->status->value : $m->status;
+        $status = $m->status->value;
 
         return [
             'id' => $m->id,
@@ -149,7 +153,7 @@ class ContactInboxController extends Controller
             'subject' => $m->subject,
             'body' => $m->body,
             'status' => $status,
-            'status_label' => $m->status instanceof ContactStatus ? $m->status->label() : $status,
+            'status_label' => $m->status->label(),
             'created_at' => $m->created_at?->toIso8601String(),
             'handled_at' => $m->handled_at?->toIso8601String(),
             'handler' => $m->relationLoaded('handler') && $m->handler ? ['id' => $m->handler->id, 'name' => $m->handler->name] : null,

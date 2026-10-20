@@ -77,8 +77,8 @@ class DocumentController extends Controller
                     'reference_code' => $d->orphan->reference_code,
                     'name' => $d->orphan->first_name,
                     'full_name' => $d->orphan->full_name,
-                    'gender_label' => $d->orphan->gender?->label(),
-                    'date_of_birth' => $d->orphan->date_of_birth?->toDateString(),
+                    'gender_label' => $d->orphan->gender->label(),
+                    'date_of_birth' => $d->orphan->date_of_birth->toDateString(),
                     'photo_url' => $d->orphan->photo_path ? asset('storage/'.$d->orphan->photo_path) : null,
                     'status' => $d->orphan->status->value,
                     'status_label' => $d->orphan->status->label(),
@@ -104,6 +104,8 @@ class DocumentController extends Controller
     /**
      * ما ينتظر قراراً: لا تحقّق ولا رفض، في نطاق من يرى، وبالبحث عن الطفل.
      * الأنواع تُعدّ على هذا، فتبويب النوع يقول كم فيه قبل أن يُضغط.
+     *
+     * @return Builder<OrphanDocument>
      */
     private function pending(Request $request): Builder
     {
@@ -112,7 +114,10 @@ class DocumentController extends Controller
             ->whereNull('rejected_at');
 
         return StaffScope::for($request->user())->through($query, 'orphan.family')
-            ->when($request->filled('q'), fn ($q) => $q->whereHas('orphan', fn ($o) => $o->search($request->string('q')->toString())));
+            ->when($request->filled('q'), fn ($q) => $q->whereHas('orphan', function ($o) use ($request): void {
+                /** @var Builder<Orphan> $o */
+                $o->search($request->string('q')->toString());
+            }));
     }
 
     public function store(Request $request, Orphan $orphan): JsonResponse

@@ -102,7 +102,10 @@ class SponsorController extends Controller
                 'segment_counts' => collect(['active', 'paused', 'pending', 'past', 'never'])
                     ->mapWithKeys(fn ($seg) => [$seg => $this->segment(clone $base, $seg)->count()]),
                 'all_count' => (clone $base)->count(),
-                'overdue_count' => (clone $base)->whereHas('sponsorships', fn ($s) => $s->active()->whereDate('next_due_at', '<', $today))->count(),
+                'overdue_count' => (clone $base)->whereHas('sponsorships', function ($s) use ($today): void {
+                    /** @var Builder<Sponsorship> $s */
+                    $s->active()->whereDate('next_due_at', '<', $today);
+                })->count(),
                 // الالتزام الشهري لمن في الفلاتر: ما يُتوقَّع تحصيله كل شهر
                 'monthly_commitment' => round((float) Sponsorship::query()->active()
                     ->whereIn('sponsor_id', (clone $base)->select('id'))->sum('monthly_amount'), 2),

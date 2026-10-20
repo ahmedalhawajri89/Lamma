@@ -335,7 +335,7 @@ class ContentController extends Controller
 
         // كل انتقال يُسجَّل: إعادة الفتح كانت تمسح من عالجها، فيضيع من أغلقها
         $this->audit($request, $contact, 'status_changed', 'غيّر حالة رسالة تواصل',
-            ['status' => $validated['status']], ['status' => $old instanceof \BackedEnum ? $old->value : $old]);
+            ['status' => $validated['status']], ['status' => $old->value]);
 
         return response()->json([
             'message' => 'حُدّثت حالة الرسالة.',
@@ -388,8 +388,10 @@ class ContentController extends Controller
         $last = [];
         Activity::query()->with('causer:id,name')->where('event', 'settings_updated')->latest('id')->limit(50)->get()
             ->each(function (Activity $a) use (&$last): void {
+                /** @var Model|null $causer */
+                $causer = $a->causer;
                 foreach (array_keys($a->properties['attributes'] ?? []) as $key) {
-                    $last[$key] ??= ['by' => $a->causer?->name ?? 'النظام', 'at' => $a->created_at?->toIso8601String()];
+                    $last[$key] ??= ['by' => $causer?->getAttribute('name') ?? 'النظام', 'at' => $a->created_at?->toIso8601String()];
                 }
             });
 

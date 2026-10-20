@@ -55,7 +55,7 @@ class PublicOrphanResource extends JsonResource
              * من حاجته بالمبالغ الفعلية لا بالنسبة المقرّبة، وعملته، وهل يقبل
              * كفالة الآن. كانت الصفحة تعرض الحاجة كاملة ثم يُخصم غيرها.
              */
-            $this->mergeWhen($request->routeIs('api.v1.public.orphans.show'), fn () => $this->checkoutFacts()),
+            ...($request->routeIs('api.v1.public.orphans.show') ? $this->checkoutFacts() : []),
         ];
     }
 
@@ -76,7 +76,7 @@ class PublicOrphanResource extends JsonResource
 
         return [
             'remaining' => $remaining,
-            'currency' => $this->program?->currency ?? config('kafala.base_currency'),
+            'currency' => $this->program->currency ?? config('kafala.base_currency'),
             'program_price' => $this->program ? (float) $this->program->monthly_price : null,
             'program_name' => $this->program ? Locale::pick($this->program->name_ar, $this->program->name_en) : null,
             'accepting' => $this->status->acceptsSponsorship() && $remaining > 0,

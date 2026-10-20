@@ -36,17 +36,22 @@ class ContactMessage extends Model
         return ['status' => ContactStatus::class, 'handled_at' => 'datetime'];
     }
 
-    /** @return BelongsTo<User, $this> */
+    /** @return HasMany<ContactReply, $this> */
     public function replies(): HasMany
     {
         return $this->hasMany(ContactReply::class)->oldest();
     }
 
+    /** @return BelongsTo<User, $this> */
     public function handler(): BelongsTo
     {
         return $this->belongsTo(User::class, 'handled_by');
     }
 
+    /**
+     * @param  Builder<self>  $query
+     * @return Builder<self>
+     */
     public function scopeOpen(Builder $query): Builder
     {
         return $query->whereIn('status', [ContactStatus::New, ContactStatus::InProgress]);

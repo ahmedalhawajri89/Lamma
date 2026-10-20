@@ -21,6 +21,10 @@ class Faq extends Model
         return ['is_published' => 'boolean', 'sort_order' => 'integer'];
     }
 
+    /**
+     * @param  Builder<self>  $query
+     * @return Builder<self>
+     */
     public function scopePublished(Builder $query): Builder
     {
         return $query->where('is_published', true)->orderBy('sort_order');

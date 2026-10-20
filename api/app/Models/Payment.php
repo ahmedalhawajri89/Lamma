@@ -105,12 +105,21 @@ class Payment extends Model
         return $this->belongsTo(Sponsor::class);
     }
 
-    /** ما يدخل في التقارير المالية وحده. */
+    /**
+     * ما يدخل في التقارير المالية وحده.
+     *
+     * @param  Builder<self>  $query
+     * @return Builder<self>
+     */
     public function scopeSettled(Builder $query): Builder
     {
         return $query->where('status', PaymentStatus::Succeeded);
     }
 
+    /**
+     * @param  Builder<self>  $query
+     * @return Builder<self>
+     */
     public function scopeBetween(Builder $query, string $from, string $to): Builder
     {
         return $query->whereBetween('paid_at', [$from, $to]);

@@ -66,7 +66,12 @@ class Message extends Model
         return $this->belongsTo(User::class, 'reviewed_by');
     }
 
-    /** طابور المراجعة في لوحة الإدارة. */
+    /**
+     * طابور المراجعة في لوحة الإدارة.
+     *
+     * @param  Builder<self>  $query
+     * @return Builder<self>
+     */
     public function scopeAwaitingReview(Builder $query): Builder
     {
         return $query->where('status', MessageStatus::PendingReview)->oldest();

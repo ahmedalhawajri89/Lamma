@@ -96,7 +96,11 @@ class DisbursementController extends Controller
         ];
     }
 
-    /** الفلاتر المشتركة بين الجدول وأرقامه والتصدير، عدا حالة الاعتماد */
+    /**
+     * الفلاتر المشتركة بين الجدول وأرقامه والتصدير، عدا حالة الاعتماد
+     *
+     * @return Builder<Disbursement>
+     */
     private function filtered(Request $request): Builder
     {
         return Disbursement::query()
@@ -140,7 +144,7 @@ class DisbursementController extends Controller
             $query->chunk(500, function ($rows) use ($out): void {
                 foreach ($rows as $d) {
                     fputcsv($out, [
-                        $d->spent_on?->toDateString(),
+                        $d->spent_on->toDateString(),
                         $d->category?->name_ar,
                         $d->orphan ? "{$d->orphan->first_name} ({$d->orphan->reference_code})" : 'مصروف عام',
                         $d->description,
@@ -217,7 +221,7 @@ class DisbursementController extends Controller
         ]);
 
         $this->log($request, $disbursement, 'recorded', 'سجّل صرفاً');
-        $this->flush($disbursement->spent_on?->year);
+        $this->flush($disbursement->spent_on->year);
 
         return response()->json([
             'message' => 'سُجّل الصرف. يحتاج اعتماداً قبل أن يدخل تقارير الشفافية.',
@@ -243,7 +247,7 @@ class DisbursementController extends Controller
 
         $disbursement->refresh();
         $this->log($request, $disbursement, 'approved', 'اعتمد صرفاً');
-        $this->flush($disbursement->spent_on?->year);
+        $this->flush($disbursement->spent_on->year);
 
         return response()->json([
             'message' => 'اعتُمد الصرف. صار جزءاً من أرقام الشفافية المنشورة.',
@@ -262,7 +266,7 @@ class DisbursementController extends Controller
             'description' => ['sometimes', 'nullable', 'string', 'max:255'],
         ]);
 
-        $oldYear = $disbursement->spent_on?->year;
+        $oldYear = $disbursement->spent_on->year;
         $old = $disbursement->only(['amount', 'category_id', 'spent_on', 'description']);
 
         if (isset($validated['amount'])) {
@@ -278,7 +282,7 @@ class DisbursementController extends Controller
         $disbursement->update([...$validated, 'updated_by' => $request->user()->id]);
 
         $this->log($request, $disbursement, 'updated', 'عدّل صرفاً', ['old' => $old]);
-        $this->flush($oldYear, $disbursement->spent_on?->year);
+        $this->flush($oldYear, $disbursement->spent_on->year);
 
         return response()->json([
             'message' => 'حُفظت التعديلات.',

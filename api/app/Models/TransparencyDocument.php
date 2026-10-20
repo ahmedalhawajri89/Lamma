@@ -56,7 +56,7 @@ class TransparencyDocument extends Model
             'year' => $this->year,
             'url' => $this->url(),
             'size_bytes' => $this->size_bytes,
-            'published_at' => $this->published_at?->toIso8601String(),
+            'published_at' => $this->published_at->toIso8601String(),
         ];
     }
 }

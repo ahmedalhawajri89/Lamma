@@ -64,7 +64,12 @@ class Post extends Model
         return $this->belongsTo(User::class, 'author_id');
     }
 
-    /** المنشور فعلاً: الحالة منشور، والموعد قد حلّ. */
+    /**
+     * المنشور فعلاً: الحالة منشور، والموعد قد حلّ.
+     *
+     * @param  Builder<self>  $query
+     * @return Builder<self>
+     */
     public function scopePublished(Builder $query): Builder
     {
         return $query->where('status', PostStatus::Published)
@@ -86,7 +91,12 @@ class Post extends Model
             : $this->status;
     }
 
-    /** تصفية القائمة بالحالة كما تُعرض (المجدول منشورٌ بموعدٍ قادم) */
+    /**
+     * تصفية القائمة بالحالة كما تُعرض (المجدول منشورٌ بموعدٍ قادم)
+     *
+     * @param  Builder<self>  $query
+     * @return Builder<self>
+     */
     public function scopeDisplayStatus(Builder $query, string $status): Builder
     {
         return match ($status) {

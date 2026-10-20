@@ -46,12 +46,11 @@ class PaymentReceiptMail extends Mailable
             'child' => (string) ($s?->orphan?->translated('first_name') ?? $s?->orphan?->first_name),
             'amount' => number_format((float) $p->amount, 2).' '.$p->currency,
             'base' => $foreign ? number_format((float) $p->amount_base, 2).' '.Fx::base() : null,
-            'date' => $p->paid_at?->timezone(config('kafala.display_timezone'))->locale($this->locale ?? app()->getLocale())->translatedFormat('j F Y'),
+            'date' => $p->paid_at?->timezone(config('kafala.display_timezone'))->locale($this->locale ?: app()->getLocale())->translatedFormat('j F Y'),
             'method' => match ($p->method) {
                 PaymentMethod::Card, PaymentMethod::ApplePay => __('بطاقة').($p->card_last4 ? ' •••• '.$p->card_last4 : ''),
                 PaymentMethod::BankTransfer => __('تحويل بنكي'),
                 PaymentMethod::Cash => __('نقداً'),
-                default => $p->method?->label(),
             },
             'zakat' => (bool) $s?->is_zakat,
             'portal' => Locale::absolute('/dashboard', $this->locale).'#payments',

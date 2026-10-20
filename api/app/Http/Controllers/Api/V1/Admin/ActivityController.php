@@ -93,7 +93,11 @@ class ActivityController extends Controller
         ]);
     }
 
-    /** السجل بكل فلاتره: أساس القائمة والتصدير */
+    /**
+     * السجل بكل فلاتره: أساس القائمة والتصدير
+     *
+     * @return Builder<Activity>
+     */
     private function filtered(Request $request, array $except = []): Builder
     {
         $has = fn (string $key) => ! in_array($key, $except, true) && $request->filled($key);
@@ -109,6 +113,10 @@ class ActivityController extends Controller
             ->when($has('to'), fn ($q) => $q->where('created_at', '<=', $this->localDay($request->input('to'), end: true)));
     }
 
+    /**
+     * @param  Builder<Activity>  $q
+     * @return Builder<Activity>
+     */
     private function whereGroup(Builder $q, string $group): Builder
     {
         $types = array_map(fn ($t) => 'App\\Models\\'.$t, ActivityFormatter::GROUPS[$group]['types']);
@@ -121,6 +129,10 @@ class ActivityController extends Controller
         });
     }
 
+    /**
+     * @param  Builder<Activity>  $q
+     * @return Builder<Activity>
+     */
     private function whereSensitive(Builder $q): Builder
     {
         return $q->where(function ($w): void {
@@ -173,8 +185,8 @@ class ActivityController extends Controller
             ->groupBy('causer_id')
             ->orderByDesc('n')
             ->limit(5)
-            ->get();
-        $names = User::whereIn('id', $actors->pluck('causer_id'))->pluck('name', 'id');
+            ->pluck('n', 'causer_id');
+        $names = User::whereIn('id', $actors->keys())->pluck('name', 'id');
 
         return [
             'daily' => $days,
@@ -183,7 +195,7 @@ class ActivityController extends Controller
             'group_counts' => $groupCounts,
             'all_count' => $this->filtered($request, ['group', 'subject_type'])->count(),
             'sensitive_count' => $this->whereSensitive($this->filtered($request, ['sensitive']))->count(),
-            'top_actors' => $actors->map(fn ($a) => ['id' => (int) $a->causer_id, 'name' => $names[$a->causer_id] ?? 'حساب محذوف', 'count' => (int) $a->n])->values(),
+            'top_actors' => $actors->map(fn ($n, $causerId) => ['id' => (int) $causerId, 'name' => $names[$causerId] ?? 'حساب محذوف', 'count' => (int) $n])->values(),
         ];
     }
 }

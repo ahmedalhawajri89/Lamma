@@ -28,6 +28,10 @@ class Testimonial extends Model
         return $this->belongsTo(Sponsor::class);
     }
 
+    /**
+     * @param  Builder<self>  $query
+     * @return Builder<self>
+     */
     public function scopePublished(Builder $query): Builder
     {
         return $query->where('is_published', true)->orderBy('sort_order');

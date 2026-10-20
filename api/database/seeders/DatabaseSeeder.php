@@ -30,7 +30,7 @@ class DatabaseSeeder extends Seeder
             // مخططات اللوحة تقرأ daily_metrics: بلا بنائه تُرسم خطاً مسطّحاً عند الصفر
             // بعد كل `migrate:fresh --seed` (الاختبارات تبنيه حين تحتاجه)
             if (! app()->environment('testing')) {
-                $this->command?->info('  · بناء مؤشرات الأيام…');
+                $this->command->info('  · بناء مؤشرات الأيام…');
                 Artisan::call('metrics:rollup', ['--all' => true]);
             }
         }

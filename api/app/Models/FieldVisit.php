@@ -59,6 +59,9 @@ class FieldVisit extends Model
      * كانت تعدّ كل زيارة قديمة فات موعدها، ولو تلتها زيارة أحدث للطفل نفسه،
      * فتظهر «231 متأخرة» والمتأخر فعلاً أقل بكثير. الزيارة التي جاءت بعدها
      * زيارةٌ أخرى قد أُنجز ما بعدها.
+     *
+     * @param  Builder<self>  $query
+     * @return Builder<self>
      */
     public function scopeOverdue(Builder $query): Builder
     {
@@ -75,6 +78,9 @@ class FieldVisit extends Model
      * هل تلتها زيارة أحدث للطفل نفسه؟ منها تُحسب «متأخرة» في كل صف بالقاعدة
      * نفسها التي يُعدّ بها العدّاد. كل استعلام يمرّ بـ FieldVisitResource
      * يحتاجها: كان ملف الطفل يحمّل زياراته بدونها فيسقط بخطأ ٥٠٠.
+     *
+     * @param  Builder<self>  $query
+     * @return Builder<self>
      */
     public function scopeWithHasLater(Builder $query): Builder
     {

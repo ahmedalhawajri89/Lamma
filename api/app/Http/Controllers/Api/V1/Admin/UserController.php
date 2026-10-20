@@ -97,7 +97,7 @@ class UserController extends Controller
         abort_unless($user->isStaff(), 404);
 
         $user->load(['roles.permissions', 'permissions', 'staffProfile.assignedCountry', 'staffProfile.association:id,name_ar']);
-        $role = $user->roles->first()?->name;
+        $role = $user->getRoleNames()->first();
         $country = $user->staffProfile?->assigned_country_id;
 
         $actions = Activity::query()->where('causer_type', User::class)->where('causer_id', $user->id);
@@ -140,7 +140,11 @@ class UserController extends Controller
         ]);
     }
 
-    /** الموظفون، بالبحث: أساس القائمة وأعدادها */
+    /**
+     * الموظفون، بالبحث: أساس القائمة وأعدادها
+     *
+     * @return Builder<User>
+     */
     private function filtered(Request $request): Builder
     {
         return User::query()
@@ -241,7 +245,7 @@ class UserController extends Controller
         }
 
         $self = $user->id === $request->user()->id;
-        $currentRole = $user->roles->first()?->name;
+        $currentRole = $user->getRoleNames()->first();
         $role = $validated['role'] ?? $currentRole;
         $status = $validated['status'] ?? $user->status->value;
 
@@ -288,8 +292,8 @@ class UserController extends Controller
             $profile = collect($validated)->only(['assigned_country_id', 'association_id', 'title'])->all();
             if ($profile !== []) {
                 $user->staffProfile()->updateOrCreate(['user_id' => $user->id], $profile + [
-                    'employee_code' => $user->staffProfile?->employee_code ?? $this->nextEmployeeCode(),
-                    'hired_at' => $user->staffProfile?->hired_at ?? now()->toDateString(),
+                    'employee_code' => $user->staffProfile->employee_code ?? $this->nextEmployeeCode(),
+                    'hired_at' => $user->staffProfile->hired_at ?? now()->toDateString(),
                 ]);
             }
 

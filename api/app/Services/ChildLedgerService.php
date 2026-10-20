@@ -136,7 +136,7 @@ final class ChildLedgerService
     private function byCategory($spending): array
     {
         return $spending
-            ->groupBy(fn (Disbursement $d) => $d->category?->slug ?? 'other')
+            ->groupBy(fn (Disbursement $d) => $d->category->slug ?? 'other')
             ->map(fn ($items, $slug): array => [
                 'slug' => (string) $slug,
                 'label' => (string) Locale::pick($items->first()->category?->name_ar, $items->first()->category?->name_en),

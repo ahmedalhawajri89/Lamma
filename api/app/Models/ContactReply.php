@@ -12,6 +12,7 @@ class ContactReply extends Model
 {
     protected $fillable = ['contact_message_id', 'user_id', 'body'];
 
+    /** @return BelongsTo<User, $this> */
     public function author(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');

@@ -73,7 +73,10 @@ class ReportController extends Controller
         $user = $request->user();
 
         return $this->scoped($request)
-            ->when($request->filled('q'), fn ($q) => $q->whereHas('orphan', fn ($o) => $o->search($request->string('q')->toString())))
+            ->when($request->filled('q'), fn ($q) => $q->whereHas('orphan', function ($o) use ($request): void {
+                /** @var Builder<Orphan> $o */
+                $o->search($request->string('q')->toString());
+            }))
             ->when($request->filled('orphan_id'), fn ($q) => $q->where('orphan_id', $request->integer('orphan_id')))
             ->when($request->filled('supervisor_id'), fn ($q) => $q->where('supervisor_id', $request->integer('supervisor_id')))
             ->when($request->filled('year'), fn ($q) => $q->where('period_year', $request->integer('year')))

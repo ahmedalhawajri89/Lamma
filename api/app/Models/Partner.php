@@ -21,6 +21,10 @@ class Partner extends Model
         return ['is_active' => 'boolean', 'sort_order' => 'integer'];
     }
 
+    /**
+     * @param  Builder<self>  $query
+     * @return Builder<self>
+     */
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_active', true)->orderBy('sort_order');

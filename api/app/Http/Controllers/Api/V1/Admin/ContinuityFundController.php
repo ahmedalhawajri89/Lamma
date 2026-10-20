@@ -37,7 +37,7 @@ class ContinuityFundController extends Controller
             ->orderByDesc('id')
             ->paginate($this->perPage($request, 20));
 
-        $totals = ContinuityFundEntry::query()->selectRaw('kind, count(*) as n, SUM(amount_base) as total')->groupBy('kind')->get()->keyBy(fn ($r) => $r->kind instanceof FundEntryKind ? $r->kind->value : $r->kind);
+        $totals = ContinuityFundEntry::query()->toBase()->selectRaw('kind, count(*) as n, SUM(amount_base) as total')->groupBy('kind')->get()->keyBy('kind');
         $year = now()->startOfYear();
         $sum = fn (array $kinds, ?Carbon $from = null) => round((float) ContinuityFundEntry::query()
             ->whereIn('kind', $kinds)->when($from, fn ($q) => $q->where('period', '>=', $from->toDateString()))->sum('amount_base'), 2);

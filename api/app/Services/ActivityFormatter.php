@@ -89,8 +89,8 @@ class ActivityFormatter
         $this->subjects = [
             'Orphan' => ['label' => 'ملف يتيم', 'path' => fn ($m, $id) => "/orphans/{$id}"],
             'Family' => ['label' => 'أسرة', 'path' => fn ($m, $id) => "/families/{$id}"],
-            'Sponsorship' => ['label' => 'كفالة', 'path' => fn ($m, $id) => '/sponsorships?q='.urlencode((string) ($m?->reference_code ?? ''))],
-            'Payment' => ['label' => 'دفعة', 'path' => fn ($m, $id) => '/payments?q='.urlencode((string) ($m?->reference_code ?? ''))],
+            'Sponsorship' => ['label' => 'كفالة', 'path' => fn ($m, $id) => '/sponsorships?q='.urlencode((string) ($m?->getAttribute('reference_code') ?? ''))],
+            'Payment' => ['label' => 'دفعة', 'path' => fn ($m, $id) => '/payments?q='.urlencode((string) ($m?->getAttribute('reference_code') ?? ''))],
             'Disbursement' => ['label' => 'صرف', 'path' => fn () => '/disbursements'],
             'ContinuityFundEntry' => ['label' => 'صندوق الاستمرارية', 'path' => fn () => '/fund'],
             'Report' => ['label' => 'تقرير', 'path' => fn ($m, $id) => "/reports?review={$id}"],
@@ -168,11 +168,13 @@ class ActivityFormatter
         $subject = $activity->relationLoaded('subject') ? $activity->subject : null;
         $props = $activity->properties?->toArray() ?? [];
         $meta = $this->subjects[$type] ?? null;
+        /** @var Model|null $causer */
+        $causer = $activity->causer;
 
         return [
             'id' => $activity->id,
             'event' => $activity->event,
-            'actor' => $activity->causer?->name ?? 'النظام',
+            'actor' => $causer?->getAttribute('name') ?? 'النظام',
             'action' => $this->action($activity, $meta),
             'subject_type' => $type ?: null,
             'subject_label' => $meta['label'] ?? ($activity->event === 'settings_updated' ? 'الإعدادات' : null),
@@ -209,17 +211,17 @@ class ActivityFormatter
         }
 
         return match ($type) {
-            'Orphan' => trim("{$subject->first_name} · {$subject->reference_code}"),
-            'Sponsorship', 'Payment' => $subject->reference_code,
-            'Family' => $subject->family_code,
-            'Report' => $subject->title,
-            'User' => $subject->name,
-            'Post' => $subject->title,
-            'Faq' => mb_strimwidth((string) $subject->question, 0, 60, '…'),
-            'Testimonial' => $subject->author_name ?? "رقم {$id}",
-            'Partner' => $subject->name ?? "رقم {$id}",
-            'ContactMessage' => $subject->name,
-            'Disbursement' => "{$subject->amount} {$subject->currency}",
+            'Orphan' => trim("{$subject->getAttribute('first_name')} · {$subject->getAttribute('reference_code')}"),
+            'Sponsorship', 'Payment' => $subject->getAttribute('reference_code'),
+            'Family' => $subject->getAttribute('family_code'),
+            'Report' => $subject->getAttribute('title'),
+            'User' => $subject->getAttribute('name'),
+            'Post' => $subject->getAttribute('title'),
+            'Faq' => mb_strimwidth((string) $subject->getAttribute('question'), 0, 60, '…'),
+            'Testimonial' => $subject->getAttribute('author_name') ?? "رقم {$id}",
+            'Partner' => $subject->getAttribute('name') ?? "رقم {$id}",
+            'ContactMessage' => $subject->getAttribute('name'),
+            'Disbursement' => "{$subject->getAttribute('amount')} {$subject->getAttribute('currency')}",
             default => "رقم {$id}",
         };
     }

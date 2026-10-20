@@ -18,9 +18,12 @@ use Illuminate\Support\Carbon;
  * @property int|null $orphan_id
  * @property int $category_id
  * @property string $amount
+ * @property string $currency
+ * @property string|null $fx_rate
  * @property string $amount_base
  * @property Carbon $spent_on
  * @property string|null $description
+ * @property string|null $receipt_path
  * @property int|null $recorded_by
  * @property int|null $approved_by
  * @property Carbon|null $approved_at
@@ -71,12 +74,21 @@ class Disbursement extends Model
         return $this->belongsTo(User::class, 'approved_by');
     }
 
-    /** لا يدخل تقارير الشفافية إلا الصرف المعتمَد. */
+    /**
+     * لا يدخل تقارير الشفافية إلا الصرف المعتمَد.
+     *
+     * @param  Builder<self>  $query
+     * @return Builder<self>
+     */
     public function scopeApproved(Builder $query): Builder
     {
         return $query->whereNotNull('approved_at');
     }
 
+    /**
+     * @param  Builder<self>  $query
+     * @return Builder<self>
+     */
     public function scopeInYear(Builder $query, int $year): Builder
     {
         return $query->whereYear('spent_on', $year);

@@ -102,6 +102,8 @@ class OrphanController extends Controller
      * الفلاتر المشتركة بين الجدول وعدّاداته والتصدير، عدا الحالة.
      * تقييد المشرف ببلده هنا: على مستوى الاستعلام لا بعد الجلب، فلا يتسرّب
      * عددٌ ولا صفٌّ من بلد آخر في أيٍّ منها.
+     *
+     * @return Builder<Orphan>
      */
     private function filtered(Request $request): Builder
     {
@@ -158,7 +160,7 @@ class OrphanController extends Controller
                         $o->reference_code,
                         $o->full_name,
                         $o->age,
-                        $o->gender?->label(),
+                        $o->gender->label(),
                         $o->family?->country?->name_ar,
                         $o->program?->name_ar,
                         $o->status->label(),

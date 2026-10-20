@@ -109,7 +109,7 @@ final class Locale
     /** لغة الرابط من بادئته، والافتراضية إن لم تكن له بادئة. */
     public static function fromPath(string $path): string
     {
-        $first = explode('/', trim($path, '/'))[0] ?? '';
+        $first = explode('/', trim($path, '/'))[0];
 
         return self::supports($first) && ! self::isDefault($first) ? $first : self::default();
     }

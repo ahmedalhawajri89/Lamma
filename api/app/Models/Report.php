@@ -27,6 +27,8 @@ use Illuminate\Support\Carbon;
  * @property array<string, mixed>|null $spending_breakdown
  * @property Carbon|null $visit_date
  * @property Carbon|null $published_at
+ * @property string|null $review_note
+ * @property Carbon|null $returned_at
  * @property int|null $supervisor_id
  * @property-read Orphan|null $orphan
  */
@@ -89,6 +91,10 @@ class Report extends Model
         return $this->hasMany(ReportView::class);
     }
 
+    /**
+     * @param  Builder<self>  $query
+     * @return Builder<self>
+     */
     public function scopePublished(Builder $query): Builder
     {
         return $query->where('status', ReportStatus::Published)->whereNotNull('published_at');

@@ -199,7 +199,12 @@ class Orphan extends Model
 
     /* ------------------------------------------------------------------ النطاقات */
 
-    /** ما يجوز عرضه على الموقع العام: موثّق ومنشور. */
+    /**
+     * ما يجوز عرضه على الموقع العام: موثّق ومنشور.
+     *
+     * @param  Builder<self>  $query
+     * @return Builder<self>
+     */
     public function scopePublic(Builder $query): Builder
     {
         return $query
@@ -255,13 +260,21 @@ class Orphan extends Model
      * فهرس الموقع والرئيسية يعرضان هؤلاء وحدهم. كان المكفول بالكامل يظهر بزرّ
      * «اكفل»، فيملأ الزائر بياناته ثم يُرفض في آخر خطوة. صفحته تبقى (public)
      * لمن يحمل رابطها، وتقول إن كفالته اكتملت.
+     *
+     * @param  Builder<self>  $query
+     * @return Builder<self>
      */
     public function scopeSeekingSponsor(Builder $query): Builder
     {
         return $query->public()->where('status', OrphanStatus::Active);
     }
 
-    /** عدد الكافلين الذين تُحسب كفالاتهم في تمويله الآن، باسم `sponsors_count`. */
+    /**
+     * عدد الكافلين الذين تُحسب كفالاتهم في تمويله الآن، باسم `sponsors_count`.
+     *
+     * @param  Builder<self>  $query
+     * @return Builder<self>
+     */
     public function scopeWithSponsorCount(Builder $query): Builder
     {
         return $query->withCount(['sponsorships as sponsors_count' => fn (Builder $q) => $q->whereIn(
@@ -270,12 +283,21 @@ class Orphan extends Model
         )]);
     }
 
-    /** ترتيب شبكة orphans.html: العاجل أولاً، ثم الأقل تمويلاً. */
+    /**
+     * ترتيب شبكة orphans.html: العاجل أولاً، ثم الأقل تمويلاً.
+     *
+     * @param  Builder<self>  $query
+     * @return Builder<self>
+     */
     public function scopeByNeed(Builder $query): Builder
     {
         return $query->orderByDesc('is_urgent')->orderBy('funded_percent');
     }
 
+    /**
+     * @param  Builder<self>  $query
+     * @return Builder<self>
+     */
     public function scopeUrgentUnfunded(Builder $query): Builder
     {
         return $query->where('is_urgent', true)->where('funded_percent', '<', 100);
@@ -291,6 +313,9 @@ class Orphan extends Model
      *     `innerodb_ft_min_token_size` ثلاثة افتراضياً، وأسماء كثيرة
      *     بالعربية أقصر من ذلك: «ليان» و«جنى» و«آية».
      *  3. **نص أطول** — هنا وحده يفيد FULLTEXT.
+     *
+     * @param  Builder<self>  $query
+     * @return Builder<self>
      */
     public function scopeSearch(Builder $query, ?string $term): Builder
     {
@@ -328,6 +353,9 @@ class Orphan extends Model
      * بالعربية أو بترجمته، أو بداية اسم المدينة أو الدولة باللغتين.
      * بلا اسم العائلة: لا يظهر للعامة، فلا يُستدلّ عليه بالبحث. والرمز كما
      * في البحث العادي.
+     *
+     * @param  Builder<self>  $query
+     * @return Builder<self>
      */
     public function scopePublicSearch(Builder $query, ?string $term): Builder
     {

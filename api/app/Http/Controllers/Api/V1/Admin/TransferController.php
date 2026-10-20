@@ -41,7 +41,7 @@ class TransferController extends Controller
             ->orderByRaw("FIELD(status, 'draft', 'sent', 'confirmed')")
             ->paginate($this->perPage($request, 25));
 
-        $counts = $this->filtered($request)->selectRaw('status, count(*) as n, SUM(amount_base) as total')->groupBy('status')->get()->keyBy('status');
+        $counts = $this->filtered($request)->toBase()->selectRaw('status, count(*) as n, SUM(amount_base) as total')->groupBy('status')->get()->keyBy('status');
 
         return response()->json([
             'data' => collect($rows->items())->map(fn (AssociationTransfer $t) => $this->row($t))->all(),

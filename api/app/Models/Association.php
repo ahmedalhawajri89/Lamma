@@ -26,6 +26,8 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property int $country_id
  * @property AssociationStatus $status
  * @property Carbon|null $verified_at
+ * @property Carbon|null $safeguarding_signed_at
+ * @property Carbon|null $family_care_attested_at
  * @property-read Country|null $country
  */
 class Association extends Model
@@ -76,7 +78,10 @@ class Association extends Model
         return $this->status === AssociationStatus::Verified;
     }
 
-    /** @param Builder<self> $query */
+    /**
+     * @param  Builder<self>  $query
+     * @return Builder<self>
+     */
     public function scopeVerified(Builder $query): Builder
     {
         return $query->where('status', AssociationStatus::Verified);

@@ -35,8 +35,8 @@ final class SponsorshipRepricer
                         continue;
                     }
 
-                    $need = (float) ($s->orphan?->monthly_need ?? 0);
-                    $s->monthly_amount = $base;
+                    $need = (float) ($s->orphan->monthly_need ?? 0);
+                    $s->monthly_amount = number_format($base, 2, '.', '');
                     $s->share_percent = $need > 0 ? (int) min(100, round($base / $need * 100)) : $s->share_percent;
                     // يومياً مع الأسعار: لا يُسجَّل في سجلّ النشاط، فلا يغرقه
                     activity()->withoutLogs(fn () => $s->save());

@@ -43,7 +43,12 @@ class Country extends Model
         return $this->hasMany(Family::class);
     }
 
-    /** الدول التي نعمل فيها فعلاً — لا كل دول العالم. */
+    /**
+     * الدول التي نعمل فيها فعلاً — لا كل دول العالم.
+     *
+     * @param  Builder<self>  $query
+     * @return Builder<self>
+     */
     public function scopeOperational(Builder $query): Builder
     {
         return $query->where('is_operational', true)->orderBy('sort_order');

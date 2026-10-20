@@ -50,7 +50,7 @@ final class PublicChild
             'accepting' => $orphan->status->acceptsSponsorship() && $remaining > 0,
             'program_name' => $orphan->program ? Locale::pick($orphan->program->name_ar, $orphan->program->name_en) : null,
             'program_price' => $orphan->program ? (float) $orphan->program->monthly_price : null,
-            'currency' => $orphan->program?->currency ?? config('kafala.base_currency'),
+            'currency' => $orphan->program->currency ?? config('kafala.base_currency'),
         ];
     }
 

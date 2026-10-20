@@ -39,21 +39,25 @@ class ContinuityFundEntry extends Model
         return round($in - $out, 2);
     }
 
+    /** @return BelongsTo<Sponsorship, $this> */
     public function sponsorship(): BelongsTo
     {
         return $this->belongsTo(Sponsorship::class);
     }
 
+    /** @return BelongsTo<Orphan, $this> */
     public function orphan(): BelongsTo
     {
         return $this->belongsTo(Orphan::class);
     }
 
+    /** @return BelongsTo<Association, $this> */
     public function association(): BelongsTo
     {
         return $this->belongsTo(Association::class);
     }
 
+    /** @return BelongsTo<User, $this> */
     public function recorder(): BelongsTo
     {
         return $this->belongsTo(User::class, 'recorded_by');

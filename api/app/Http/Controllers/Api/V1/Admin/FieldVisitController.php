@@ -12,6 +12,7 @@ use App\Models\Orphan;
 use App\Models\Setting;
 use App\Models\User;
 use App\Support\StaffScope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -34,7 +35,10 @@ class FieldVisitController extends Controller
             ->when($request->filled('supervisor_id'), fn ($q) => $q->where('supervisor_id', $request->integer('supervisor_id')))
             ->when($request->filled('from'), fn ($q) => $q->where('visited_at', '>=', $this->localDay($request->input('from'))))
             ->when($request->filled('to'), fn ($q) => $q->where('visited_at', '<=', $this->localDay($request->input('to'), end: true)))
-            ->when($request->filled('q'), fn ($q) => $q->whereHas('orphan', fn ($o) => $o->search($request->string('q')->toString())))
+            ->when($request->filled('q'), fn ($q) => $q->whereHas('orphan', function ($o) use ($request): void {
+                /** @var Builder<Orphan> $o */
+                $o->search($request->string('q')->toString());
+            }))
             ->when($request->boolean('overdue'), fn ($q) => $q->overdue())
             ->when($request->filled('need'), fn ($q) => $this->whereNeed($q, $request->string('need')->toString()))
             ->latest('visited_at')
@@ -48,13 +52,16 @@ class FieldVisitController extends Controller
             ->when($request->filled('supervisor_id'), fn ($q) => $q->where('supervisor_id', $request->integer('supervisor_id')))
             ->when($request->filled('from'), fn ($q) => $q->where('visited_at', '>=', $this->localDay($request->input('from'))))
             ->when($request->filled('to'), fn ($q) => $q->where('visited_at', '<=', $this->localDay($request->input('to'), end: true)))
-            ->when($request->filled('q'), fn ($q) => $q->whereHas('orphan', fn ($o) => $o->search($request->string('q')->toString())))
+            ->when($request->filled('q'), fn ($q) => $q->whereHas('orphan', function ($o) use ($request): void {
+                /** @var Builder<Orphan> $o */
+                $o->search($request->string('q')->toString());
+            }))
             ->whereNotNull('needs_flagged')
             ->get(['orphan_id', 'needs_flagged'])
-            ->flatMap(fn ($v) => collect($v->needs_flagged ?? [])->map(fn ($n) => [$n, $v->orphan_id]))
-            ->groupBy(0)
+            ->flatMap(fn (FieldVisit $v) => collect($v->needs_flagged ?? [])->map(fn ($n) => ['need' => $n, 'orphan_id' => $v->orphan_id]))
+            ->groupBy('need')
             // أطفالٌ لا زيارات: طفلٌ رُصد احتياجه في زيارتين يُعدّ مرة
-            ->map(fn ($rows) => $rows->pluck(1)->unique()->count())
+            ->map(fn ($rows) => $rows->pluck('orphan_id')->unique()->count())
             ->sortDesc();
 
         return response()->json([
@@ -98,19 +105,19 @@ class FieldVisitController extends Controller
         $withDue = fn () => (clone $base)->select('orphans.*')
             ->addSelect(['next_due' => $latest('next_visit_due'), 'last_visited_at' => $latest('visited_at'), 'last_supervisor_id' => $latest('supervisor_id')]);
 
-        $bucket = fn ($q, string $b) => match ($b) {
-            'overdue' => $q->having('next_due', '<', $today),
-            'never' => $q->havingNull('last_visited_at'),
-            'week' => $q->having('next_due', '>=', $today)->having('next_due', '<=', $week),
-            'month' => $q->having('next_due', '>', $week)->having('next_due', '<=', $month),
-            'later' => $q->having('next_due', '>', $month),
-            default => $q,
+        $bucket = fn (string $b) => match ($b) {
+            'overdue' => $withDue()->having('next_due', '<', $today),
+            'never' => $withDue()->havingNull('last_visited_at'),
+            'week' => $withDue()->having('next_due', '>=', $today)->having('next_due', '<=', $week),
+            'month' => $withDue()->having('next_due', '>', $week)->having('next_due', '<=', $month),
+            'later' => $withDue()->having('next_due', '>', $month),
+            default => $withDue(),
         };
 
         $counts = collect(['overdue', 'never', 'week', 'month', 'later'])
-            ->mapWithKeys(fn ($b) => [$b => DB::query()->fromSub($bucket($withDue(), $b), 'x')->count()]);
+            ->mapWithKeys(fn ($b) => [$b => DB::query()->fromSub($bucket($b), 'x')->count()]);
 
-        $rows = $bucket($withDue(), $request->string('bucket')->toString())
+        $rows = $bucket($request->string('bucket')->toString())
             ->with(['family:id,family_code,city_id', 'family.city:id,name_ar'])
             // الأقدم استحقاقاً أولاً، ومن لم يُزر قط في المقدمة
             ->orderByRaw('last_visited_at IS NOT NULL')
@@ -128,10 +135,10 @@ class FieldVisitController extends Controller
                     'status' => $o->status->value, 'status_label' => $o->status->label(),
                     'city' => $o->family?->city?->name_ar,
                 ],
-                'next_due' => $o->next_due,
-                'last_visited_at' => $o->last_visited_at ? Carbon::parse($o->last_visited_at)->toIso8601String() : null,
-                'last_supervisor' => $supervisors[$o->last_supervisor_id] ?? null,
-                'days' => $o->next_due ? (int) now(config('kafala.display_timezone'))->startOfDay()->diffInDays(Carbon::parse($o->next_due), false) : null,
+                'next_due' => $o->getAttribute('next_due'),
+                'last_visited_at' => $o->getAttribute('last_visited_at') ? Carbon::parse($o->getAttribute('last_visited_at'))->toIso8601String() : null,
+                'last_supervisor' => $supervisors[$o->getAttribute('last_supervisor_id')] ?? null,
+                'days' => $o->getAttribute('next_due') ? (int) now(config('kafala.display_timezone'))->startOfDay()->diffInDays(Carbon::parse($o->getAttribute('next_due')), false) : null,
             ]),
             'meta' => [
                 'total' => $rows->total(), 'current_page' => $rows->currentPage(), 'last_page' => $rows->lastPage(),

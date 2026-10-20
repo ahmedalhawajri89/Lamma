@@ -78,7 +78,7 @@ class Family extends Model
     {
         // أسرة جديدة بلا جمعية تأخذ الافتراضية إن كانت واضحة (Association::defaultFor)
         static::creating(function (Family $family): void {
-            if ($family->association_id === null && $family->country_id !== null) {
+            if ($family->association_id === null && $family->getAttribute('country_id') !== null) {
                 $family->association_id = Association::defaultFor((int) $family->country_id, auth()->user());
             }
         });

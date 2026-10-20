@@ -11,6 +11,7 @@ use App\Http\Resources\SponsorshipResource;
 use App\Models\Payment;
 use App\Models\Report;
 use App\Models\Sponsorship;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -90,7 +91,10 @@ class OverviewController extends Controller
                     $sponsor->sponsorships()
                         ->whereIn('status', [SponsorshipStatus::Cancelled, SponsorshipStatus::Completed])
                         // حجزٌ سقط بلا دفع لم يكن كفالة: لا يُعرض كتاريخ
-                        ->whereHas('payments', fn ($q) => $q->settled())
+                        ->whereHas('payments', function ($q): void {
+                            /** @var Builder<Payment> $q */
+                            $q->settled();
+                        })
                         ->with(['orphan:id,reference_code,first_name,translations,gender,photo_path,date_of_birth,funded_percent', 'program'])
                         ->withSum(['payments' => fn ($q) => $q->settled()], 'amount_base')
                         ->latest('ended_at')

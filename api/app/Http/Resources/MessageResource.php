@@ -39,7 +39,7 @@ class MessageResource extends JsonResource
             // للموظفين: الكافل في الكفالة، وتنبيهات حماية الطفل في النص
             'sponsor_name' => $this->when(
                 $this->relationLoaded('sponsorship') && $this->sponsorship->relationLoaded('sponsor'),
-                fn () => $this->sponsorship->sponsor?->user?->name ?? $this->sponsorship->sponsor?->sponsor_code,
+                fn () => $this->sponsorship->sponsor->user->name ?? $this->sponsorship->sponsor?->sponsor_code,
             ),
             'flags' => $this->when(
                 (bool) $request->user()?->can('messages.review'),

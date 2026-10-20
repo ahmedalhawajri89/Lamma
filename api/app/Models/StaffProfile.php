@@ -7,8 +7,19 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
-/** ملف الموظف. `assigned_country_id` هو ما تقيّد به السياسات المشرف الميداني. */
+/**
+ * ملف الموظف. `assigned_country_id` هو ما تقيّد به السياسات المشرف الميداني.
+ *
+ * @property int $id
+ * @property int $user_id
+ * @property string $employee_code
+ * @property string|null $title
+ * @property int|null $assigned_country_id
+ * @property int|null $association_id
+ * @property Carbon|null $hired_at
+ */
 class StaffProfile extends Model
 {
     use HasFactory;

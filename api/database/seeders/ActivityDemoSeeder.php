@@ -14,6 +14,7 @@ use App\Models\Payment;
 use App\Models\Report;
 use App\Models\Sponsorship;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 
@@ -77,6 +78,7 @@ class ActivityDemoSeeder extends Seeder
             [1, fn () => $admin, fn () => [null, null, 'صدّر قائمة الأيتام', ['rows' => 150]]],
             [2, fn () => $admin, fn () => [$orphans->random(), null, 'نزّل مستند تحقق', []]],
         ];
+        /** @var list<array{int, callable(): User, callable(User): array{Model|null, string|null, string, array<string, mixed>}}> $bag */
         $bag = collect($actions)->flatMap(fn ($a) => array_fill(0, $a[0], $a))->all();
 
         for ($ago = 41; $ago >= 0; $ago--) {

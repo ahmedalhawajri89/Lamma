@@ -99,7 +99,11 @@ class SponsorshipController extends Controller
         return $out;
     }
 
-    /** الفلاتر المشتركة بين الجدول وعدّاداته، عدا الحالة */
+    /**
+     * الفلاتر المشتركة بين الجدول وعدّاداته، عدا الحالة
+     *
+     * @return Builder<Sponsorship>
+     */
     private function filtered(Request $request): Builder
     {
         $user = $request->user();

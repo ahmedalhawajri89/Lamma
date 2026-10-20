@@ -73,7 +73,7 @@ class FinanceDashboardService
                 'refunded' => round((float) Payment::where('status', PaymentStatus::Refunded)->whereBetween('refunded_at', [$monthStart, $monthEnd])->sum('amount_base'), 2),
                 'by_method' => (clone $paid)->selectRaw('method, count(*) as n, sum(amount_base) as total')->groupBy('method')->orderByDesc('total')->get()
                     // `method` مصبوب إلى PaymentMethod في الموديل: تسميته منه
-                    ->map(fn ($r) => ['method' => $r->method->value, 'label' => $r->method->label(), 'count' => (int) $r->n, 'amount' => round((float) $r->total, 2)])->values(),
+                    ->map(fn ($r) => ['method' => $r->method->value, 'label' => $r->method->label(), 'count' => (int) $r->getAttribute('n'), 'amount' => round((float) $r->getAttribute('total'), 2)])->values(),
             ],
 
             'upcoming_days' => $this->upcomingDays($today, 30),
@@ -87,7 +87,7 @@ class FinanceDashboardService
                 ->map(fn (Payment $p) => [
                     'id' => $p->id,
                     'reference' => $p->reference_code,
-                    'sponsor' => $p->sponsor?->user?->name ?? $p->sponsor?->sponsor_code,
+                    'sponsor' => $p->sponsor->user->name ?? $p->sponsor?->sponsor_code,
                     'sponsor_code' => $p->sponsor?->sponsor_code,
                     'sponsor_id' => $p->sponsor_id,
                     'amount' => round((float) $p->amount_base, 2),
@@ -134,6 +134,9 @@ class FinanceDashboardService
     /**
      * فشلت ولم تُستدرك: دفعة فاشلة لكفالة ما زالت قائمة، ولم تأتِ بعدها دفعة
      * ناجحة على الكفالة نفسها. التعريف نفسه في شاشة المدفوعات.
+     *
+     * @param  Builder<Payment>  $query
+     * @return Builder<Payment>
      */
     private function unrecovered(Builder $query): Builder
     {

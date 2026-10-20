@@ -84,16 +84,21 @@ class SupervisorDashboardService
             ->orderBy('next_due')
             ->limit(6)
             ->get()
-            ->map(fn (Orphan $o) => [
-                'id' => $o->id,
-                'name' => $o->first_name,
-                'reference_code' => $o->reference_code,
-                'photo_url' => $o->photo_path ? asset('storage/'.$o->photo_path) : null,
-                'city' => $o->family?->city?->name_ar,
-                'next_due' => $o->next_due,
-                'days' => $o->next_due ? (int) $now->copy()->startOfDay()->diffInDays(Carbon::parse($o->next_due), false) : null,
-                'last_visited_at' => $o->last_visited_at ? Carbon::parse($o->last_visited_at)->toIso8601String() : null,
-            ])->values();
+            ->map(function (Orphan $o) use ($now) {
+                $nextDue = $o->getAttribute('next_due');
+                $lastVisitedAt = $o->getAttribute('last_visited_at');
+
+                return [
+                    'id' => $o->id,
+                    'name' => $o->first_name,
+                    'reference_code' => $o->reference_code,
+                    'photo_url' => $o->photo_path ? asset('storage/'.$o->photo_path) : null,
+                    'city' => $o->family?->city?->name_ar,
+                    'next_due' => $nextDue,
+                    'days' => $nextDue ? (int) $now->copy()->startOfDay()->diffInDays(Carbon::parse($nextDue), false) : null,
+                    'last_visited_at' => $lastVisitedAt ? Carbon::parse($lastVisitedAt)->toIso8601String() : null,
+                ];
+            })->values();
 
         $monthStart = $now->copy()->startOfMonth()->utc();
 
@@ -167,7 +172,7 @@ class SupervisorDashboardService
                 'name' => $v->orphan?->first_name,
                 'reference_code' => $v->orphan?->reference_code,
                 'needs' => $v->needs_flagged,
-                'visited_at' => $v->visited_at?->toIso8601String(),
+                'visited_at' => $v->visited_at->toIso8601String(),
             ])->values(),
         ];
     }
