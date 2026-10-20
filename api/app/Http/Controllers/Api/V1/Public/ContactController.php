@@ -47,6 +47,8 @@ class ContactController extends Controller
 
         ContactMessage::create([
             ...collect($validated)->except('website')->all(),
+            // بها يصله الردّ
+            'locale' => app()->getLocale(),
             'ip_address' => $request->ip(),
         ]);
 

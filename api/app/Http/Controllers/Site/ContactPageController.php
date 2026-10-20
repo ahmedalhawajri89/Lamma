@@ -25,7 +25,7 @@ class ContactPageController extends Controller
     public function __invoke(): View
     {
         $faqs = Faq::query()->published()->limit(self::QUICK_FAQS)->get()
-            ->map(fn (Faq $f) => ['q' => $f->question, 'a' => FaqResource::fill((string) $f->answer)]);
+            ->map(fn (Faq $f) => ['q' => $f->translated('question'), 'a' => FaqResource::fill((string) $f->translated('answer'))]);
 
         return view('site.pages.contact', [
             'contact' => SiteProfile::forViews(),

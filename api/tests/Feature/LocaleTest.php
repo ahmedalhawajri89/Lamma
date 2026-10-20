@@ -27,7 +27,7 @@ it('تُعلن كل صفحة نسختها الأخرى (hreflang) وتتّجه �
 });
 
 it('روابط الصفحة الإنجليزية الداخلية كلها تبدأ بـ /en', function () {
-    foreach (['/en', '/en/orphans', '/en/login'] as $page) {
+    foreach (['/en', '/en/orphans', '/en/login', '/en/programs', '/en/about', '/en/faq', '/en/contact', '/en/transparency', '/en/blog', '/en/dashboard'] as $page) {
         preg_match_all('#href="(/[^"]*)"#', $this->get($page)->getContent(), $m);
         $internal = array_filter($m[1], fn ($h) => ! preg_match('#^/(assets|storage|admin)/#', $h));
 
@@ -64,10 +64,17 @@ dataset('journey', [
         'resources/views/site/partials/{header,footer,head,lang-switch,share,search}.blade.php',
         'resources/views/site/layouts/*.blade.php',
         'resources/views/site/auth/*.blade.php',
-        'resources/views/site/pages/{home,orphans,orphan,checkout,thank-you,partner}.blade.php',
+        'resources/views/site/pages/{home,orphans,orphan,checkout,thank-you,partner,programs,about,faq,contact,transparency,blog,post}.blade.php',
+        'resources/views/site/partials/post-card.blade.php',
+        'resources/views/site/portal/*.blade.php',
+        'resources/views/emails/*.blade.php',
+        'app/Mail/*.php',
+        'app/Notifications/*.php',
+        'app/Models/Report.php',
         'resources/views/errors/404.blade.php',
         'app/Enums/*.php',
-        'app/Http/Controllers/Api/V1/{Auth,Public}/*.php',
+        'app/Http/Controllers/Api/V1/{Auth,Public,Portal}/*.php',
+        'app/Http/Controllers/Site/*.php',
         'app/Http/Requests/Auth/*.php',
         'bootstrap/app.php',
     ]],
@@ -100,7 +107,7 @@ it('كل نصٍّ في قوالب رحلة الكافل وردودها له تر
 
 it('كل نصٍّ في وحدات JS لرحلة الكافل له ترجمة إنجليزية', function () {
     $en = require lang_path('en/js.php');
-    $keys = literalKeys(['public/assets/js/modules/{api,catalog,checkout,data,features,forms,home,layout,profile,proof,render,search,theme,ui,utils}.js'], 't');
+    $keys = literalKeys(['public/assets/js/modules/{api,blog,catalog,checkout,data,faq,features,forms,home,layout,portal,profile,proof,render,search,theme,transparency,ui,utils}.js'], 't');
 
     expect($keys)->not->toBeEmpty()
         ->and(array_values(array_diff($keys, array_keys($en))))->toBe([]);

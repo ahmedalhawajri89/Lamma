@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Mail;
 
 use App\Models\Sponsorship;
+use App\Support\Locale;
 use App\Support\SiteProfile;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
@@ -47,8 +48,8 @@ class PaymentIssueMail extends Mailable
             'site' => SiteProfile::site()['name'],
             'child' => $this->child(),
             // مطلقٌ لا نسبي: البريد يُقرأ خارج الموقع
-            'portal' => url(lurl('/dashboard', $this->locale)).'#children',
-            'profile' => url(lurl('/orphan?id='.$this->sponsorship->orphan?->reference_code, $this->locale)),
+            'portal' => Locale::absolute('/dashboard', $this->locale).'#children',
+            'profile' => Locale::absolute('/orphan?id='.$this->sponsorship->orphan?->reference_code, $this->locale),
         ]);
     }
 

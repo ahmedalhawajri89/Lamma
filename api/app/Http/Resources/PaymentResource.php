@@ -26,12 +26,15 @@ class PaymentResource extends JsonResource
             'status_label' => $this->status->label(),
 
             // لا PAN ولا CVV — العلامة وآخر أربعة أرقام فقط، وهذا كل ما نملكه أصلاً
-            'card' => $this->maskedCard(),
+            // اسم العلامة يُحفظ بالعربية كما يرسله forms.js («فيزا»)، فيُترجم عند العرض
+            'card' => ($card = $this->maskedCard()) !== null && $this->card_brand
+                ? str_replace($this->card_brand, __($this->card_brand), $card)
+                : $card,
 
             'paid_at' => $this->paid_at?->toIso8601String(),
             // للموظفين النصّ كما وصل والمرجع الداخلي؛ وللكافل جملة مفهومة بلا تفاصيل البوابة
             'failure_reason' => $this->failure_reason === null ? null
-                : ($staff ? $this->failure_reason : 'تعذّر إتمام الدفع من البطاقة. جرّب بطاقة أخرى أو تواصل مع بنكك.'),
+                : ($staff ? $this->failure_reason : __('تعذّر إتمام الدفع من البطاقة. جرّب بطاقة أخرى أو تواصل مع بنكك.')),
             'gateway_reference' => $this->when($staff, $this->gateway_reference),
             'refunded_at' => $this->refunded_at?->toIso8601String(),
             'refund_reason' => $this->refund_reason,

@@ -72,6 +72,15 @@ final class Locale
     }
 
     /**
+     * رابطٌ مطلق بلغةٍ ما، لما يُقرأ خارج الموقع (البريد). الأساس من
+     * app.url لا من الطلب: رأس Host مزوّر لا يضع في بريدٍ رابطاً لموقعٍ آخر.
+     */
+    public static function absolute(string $path, ?string $locale = null): string
+    {
+        return rtrim((string) config('app.url'), '/').self::url($path, $locale);
+    }
+
+    /**
      * من عمودين متقابلين (name_ar / name_en): ما يوافق لغة الصفحة، والعربي إن
      * لم يُكتب مقابله.
      */

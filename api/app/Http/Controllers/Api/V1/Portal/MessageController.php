@@ -45,14 +45,14 @@ class MessageController extends Controller
         abort_unless(
             in_array($sponsorship->status, [\App\Enums\SponsorshipStatus::Active, \App\Enums\SponsorshipStatus::Paused], true),
             403,
-            'المراسلة متاحة للكفالة القائمة.',
+            __('المراسلة متاحة للكفالة القائمة.'),
         );
 
         $validated = $request->validate([
             'body' => ['required', 'string', 'min:2', 'max:2000'],
         ], [
-            'body.required' => 'اكتب رسالتك أولاً.',
-            'body.max' => 'الرسالة طويلة. اجعلها أقصر من ألفي حرف.',
+            'body.required' => __('اكتب رسالتك أولاً.'),
+            'body.max' => __('الرسالة طويلة. اجعلها أقصر من ألفي حرف.'),
         ]);
 
         $message = $sponsorship->messages()->create([
@@ -72,8 +72,8 @@ class MessageController extends Controller
 
         return response()->json([
             'message' => $moderated
-                ? 'وصلتنا رسالتك. يراجعها المشرف الميداني قبل إيصالها للطفل، حمايةً لخصوصيته.'
-                : 'وصلت رسالتك.',
+                ? __('وصلتنا رسالتك. يراجعها المشرف الميداني قبل إيصالها للطفل، حمايةً لخصوصيته.')
+                : __('وصلت رسالتك.'),
             'data' => new MessageResource($message),
         ], 201);
     }

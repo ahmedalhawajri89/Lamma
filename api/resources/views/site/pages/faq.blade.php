@@ -18,8 +18,8 @@
   ];
 @endphp
 
-@section('title')الأسئلة الشائعة@endsection
-@section('description')إجابات مباشرة عن الكفالة: كيف نتحقق، ما نسبة المصاريف الإدارية، هل تُحتسب من الزكاة، وكيف توقفها.@endsection
+@section('title', __('الأسئلة الشائعة'))
+@section('description', __('إجابات مباشرة عن الكفالة: كيف نتحقق، ما نسبة المصاريف الإدارية، هل تُحتسب من الزكاة، وكيف توقفها.'))
 @section('canonical', url(lurl('/faq')))
 
 @push('styles')
@@ -35,19 +35,19 @@
     {{-- ══ الصدر والبحث ══ --}}
     <section class="fq-hero" aria-labelledby="fqTitle">
       <div class="container">
-        <nav aria-label="مسار التنقل">
+        <nav aria-label="{{ __('مسار التنقل') }}">
           <ol class="breadcrumb fq-crumbs">
-            <li class="breadcrumb-item"><a href="{{ lurl('/') }}">الرئيسية</a></li>
-            <li class="breadcrumb-item active" aria-current="page">الأسئلة الشائعة</li>
+            <li class="breadcrumb-item"><a href="{{ lurl('/') }}">{{ __('الرئيسية') }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ __('الأسئلة الشائعة') }}</li>
           </ol>
         </nav>
-        <h1 class="fq-title" id="fqTitle">أسئلة يطرحها الناس<br><em>قبل أن يبدأوا.</em></h1>
-        <p class="fq-lede">أجبنا عنها بصراحة، بما فيها الأسئلة المحرجة عن المال والمصاريف.</p>
+        <h1 class="fq-title" id="fqTitle">{{ __('أسئلة يطرحها الناس') }}<br><em>{{ __('قبل أن يبدأوا.') }}</em></h1>
+        <p class="fq-lede">{{ __('أجبنا عنها بصراحة، بما فيها الأسئلة المحرجة عن المال والمصاريف.') }}</p>
 
         <label class="fq-search">
           <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-          <span class="visually-hidden">ابحث في الأسئلة</span>
-          <input type="search" id="faqSearch" placeholder="ابحث: الزكاة، الإيقاف، التقارير…" autocomplete="off" enterkeyhint="search">
+          <span class="visually-hidden">{{ __('ابحث في الأسئلة') }}</span>
+          <input type="search" id="faqSearch" placeholder="{{ __('ابحث: الزكاة، الإيقاف، التقارير…') }}" autocomplete="off" enterkeyhint="search">
         </label>
       </div>
     </section>
@@ -57,8 +57,8 @@
         <div class="row g-4 g-xl-5">
           <div class="col-lg-8">
             @if ($categories->count() > 1)
-              <div class="fq-cats" role="group" aria-label="التصنيف">
-                <button type="button" class="fq-cat" data-faq-cat="" aria-pressed="true">الكل <span class="num">{{ $faqs->count() }}</span></button>
+              <div class="fq-cats" role="group" aria-label="{{ __('التصنيف') }}">
+                <button type="button" class="fq-cat" data-faq-cat="" aria-pressed="true">{{ __('الكل') }} <span class="num">{{ $faqs->count() }}</span></button>
                 @foreach ($categories as $name => $n)
                   <button type="button" class="fq-cat" data-faq-cat="{{ $name }}" aria-pressed="false">{{ $name }} <span class="num">{{ $n }}</span></button>
                 @endforeach
@@ -82,9 +82,9 @@
 
             <div class="fq-empty" id="faqEmpty" hidden>
               <span class="fq-empty__icon" aria-hidden="true"><i class="fa-regular fa-comment-dots"></i></span>
-              <h2>لم نجد سؤالاً بهذا البحث</h2>
-              <p>اسألنا مباشرة، ونجيبك خلال 72 ساعة.</p>
-              <a class="btn btn-primary" href="{{ lurl('/contact') }}">اطرح سؤالك</a>
+              <h2>{{ __('لم نجد سؤالاً بهذا البحث') }}</h2>
+              <p>{{ __('اسألنا مباشرة، ونجيبك خلال 72 ساعة.') }}</p>
+              <a class="btn btn-primary" href="{{ lurl('/contact') }}">{{ __('اطرح سؤالك') }}</a>
             </div>
           </div>
 
@@ -93,14 +93,14 @@
             <div class="fq-aside">
               <div class="fq-help">
                 <span class="fq-help__icon" aria-hidden="true"><i class="fa-regular fa-comments"></i></span>
-                <h2>لم تجد جوابك؟</h2>
-                <p>اسألنا عن أي شيء، حتى أدقّ بنود الميزانية.</p>
-                <a class="fq-help__link fq-help__link--wa" href="{{ $wa }}" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i> واتساب <span>أسرع ردّ</span></a>
-                <a class="fq-help__link" href="{{ lurl('/contact') }}"><i class="fa-regular fa-envelope" aria-hidden="true"></i> نموذج التواصل <span>خلال 72 ساعة</span></a>
+                <h2>{{ __('لم تجد جوابك؟') }}</h2>
+                <p>{{ __('اسألنا عن أي شيء، حتى أدقّ بنود الميزانية.') }}</p>
+                <a class="fq-help__link fq-help__link--wa" href="{{ $wa }}" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i> {{ __('واتساب') }} <span>{{ __('أسرع ردّ') }}</span></a>
+                <a class="fq-help__link" href="{{ lurl('/contact') }}"><i class="fa-regular fa-envelope" aria-hidden="true"></i> {{ __('نموذج التواصل') }} <span>{{ __('خلال 72 ساعة') }}</span></a>
               </div>
               <a class="fq-side-card" href="{{ lurl('/transparency') }}">
                 <i class="fa-solid fa-chart-pie" aria-hidden="true"></i>
-                <span><strong>صفحة الشفافية</strong><span>الميزانية وأين يذهب كل دولار، محدّثة مع كل صرف.</span></span>
+                <span><strong>{{ __('صفحة الشفافية') }}</strong><span>{{ __('الميزانية وأين يذهب كل دولار، محدّثة مع كل صرف.') }}</span></span>
               </a>
             </div>
           </aside>
@@ -112,7 +112,7 @@
 @endsection
 
 @push('after-footer')
-  <button class="to-top" type="button" id="toTop" aria-label="العودة إلى أعلى الصفحة">
+  <button class="to-top" type="button" id="toTop" aria-label="{{ __('العودة إلى أعلى الصفحة') }}">
     <i class="fa-solid fa-arrow-up" aria-hidden="true"></i>
   </button>
 @endpush

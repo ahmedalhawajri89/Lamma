@@ -27,7 +27,7 @@ class PostController extends Controller
 
         $posts = Post::query()
             ->published()
-            ->with('category:id,name_ar,slug')
+            ->with('category:id,name_ar,name_en,slug')
             ->when($request->filled('category'), fn ($q) => $q->whereHas(
                 'category',
                 fn ($c) => $c->where('slug', $request->string('category')->toString()),
@@ -58,12 +58,12 @@ class PostController extends Controller
             ->orderBy('sort_order')
             ->get()
             ->filter(fn ($c) => $c->posts_count > 0)
-            ->map(fn ($c) => ['slug' => $c->slug, 'name' => $c->name_ar, 'count' => $c->posts_count])
+            ->map(fn ($c) => ['slug' => $c->slug, 'name' => \App\Support\Locale::pick($c->name_ar, $c->name_en), 'count' => $c->posts_count])
             ->values();
 
         // المميّز: أحدث مقال منشور معلَّم، وإلا أحدث مقال
-        $featured = Post::query()->published()->with('category:id,name_ar,slug')->where('is_featured', true)->first()
-            ?? Post::query()->published()->with('category:id,name_ar,slug')->first();
+        $featured = Post::query()->published()->with('category:id,name_ar,name_en,slug')->where('is_featured', true)->first()
+            ?? Post::query()->published()->with('category:id,name_ar,name_en,slug')->first();
 
         return [
             'categories' => $categories,
@@ -76,7 +76,7 @@ class PostController extends Controller
     {
         $post = Post::query()
             ->published()
-            ->with(['category:id,name_ar', 'author:id,name'])
+            ->with(['category:id,name_ar,name_en', 'author:id,name'])
             ->where('slug', $slug)
             ->firstOrFail();
 

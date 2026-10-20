@@ -26,8 +26,11 @@ trait HasTranslations
     {
         $locale = Locale::current();
 
-        return Locale::isDefault($locale)
-            ? $this->{$field}
-            : ($this->translations[$locale][$field] ?? $this->{$field});
+        // نموذجٌ جُلب بأعمدةٍ لا تشمل الترجمات: الأصل، لا استثناء «عمودٌ لم يُجلب»
+        if (Locale::isDefault($locale) || ! array_key_exists('translations', $this->getAttributes())) {
+            return $this->{$field};
+        }
+
+        return $this->translations[$locale][$field] ?? $this->{$field};
     }
 }

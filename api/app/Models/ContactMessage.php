@@ -22,7 +22,7 @@ class ContactMessage extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'email', 'phone', 'subject', 'body', 'ip_address', 'status', 'handled_by', 'handled_at'];
+    protected $fillable = ['name', 'email', 'phone', 'subject', 'body', 'locale', 'ip_address', 'status', 'handled_by', 'handled_at'];
 
     /**
      * عنوان الزائر يُحفظ لمكافحة الإساءة (تحديد المعدّل والحظر)، ولا يحتاجه

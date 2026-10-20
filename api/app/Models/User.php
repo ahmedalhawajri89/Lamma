@@ -11,6 +11,8 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Support\Locale;
+use Illuminate\Contracts\Translation\HasLocalePreference;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
@@ -37,7 +39,7 @@ use Spatie\Permission\Traits\HasRoles;
  * @property Carbon|null $previous_login_at
  * @property Carbon|null $two_factor_confirmed_at
  */
-class User extends Authenticatable
+class User extends Authenticatable implements HasLocalePreference
 {
     use HasApiTokens;
     use HasFactory;
@@ -48,6 +50,15 @@ class User extends Authenticatable
     public function sendPasswordResetNotification($token): void
     {
         $this->notify(new ResetPasswordNotification($token));
+    }
+
+    /**
+     * لغة الحساب: بها يصل كل بريدٍ وإشعار (Laravel يقرؤها في Mail::to وnotify).
+     * كافلٌ سجّل من الموقع الإنجليزي يصله إيصاله بالإنجليزية.
+     */
+    public function preferredLocale(): string
+    {
+        return Locale::supports($this->locale) ? $this->locale : Locale::default();
     }
 
     use SoftDeletes;

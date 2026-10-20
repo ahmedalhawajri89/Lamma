@@ -9,9 +9,12 @@ use App\Enums\PaymentStatus;
 use App\Enums\SponsorshipStatus;
 use App\Models\Payment;
 use App\Models\Sponsorship;
+use App\Mail\PaymentReceiptMail;
 use App\Support\Fx;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use Throwable;
 
 /**
  * تسجيل دفعة.
@@ -45,7 +48,10 @@ class RecordPayment
         }
 
         try {
-            return $this->record($sponsorship, $idempotencyKey, $amount, $method, $cardBrand, $cardLast4, $fxRate, $gatewayReference, $paidAt, $recordedBy);
+            $payment = $this->record($sponsorship, $idempotencyKey, $amount, $method, $cardBrand, $cardLast4, $fxRate, $gatewayReference, $paidAt, $recordedBy);
+            $this->sendReceipt($payment);
+
+            return $payment;
         } catch (UniqueConstraintViolationException) {
             /*
              * طلبان متزامنان (تبويبان، أو webhook يسابق الخصم الآلي) مرّا كلاهما
@@ -122,6 +128,25 @@ class RecordPayment
     }
 
     /** يُستدعى داخل معاملة: القفل يمنع رقمين متطابقين لطلبين متزامنين. */
+    /**
+     * إيصال الدفعة لبريد الكافل بلغته، بعد أن تُحفظ فعلاً: معاملةٌ تُلغى بعدها
+     * لا يصل عنها إيصال. وفشل البريد لا يُسقط الدفعة.
+     */
+    private function sendReceipt(Payment $payment): void
+    {
+        DB::afterCommit(function () use ($payment): void {
+            try {
+                $payment->loadMissing(['sponsorship.orphan', 'sponsor.user']);
+                $user = $payment->sponsor?->user;
+                if ($user?->email) {
+                    Mail::to($user)->send(new PaymentReceiptMail($payment));
+                }
+            } catch (Throwable $e) {
+                report($e);
+            }
+        });
+    }
+
     public function nextReference(): string
     {
         $last = Payment::query()->lockForUpdate()->max('reference_code');

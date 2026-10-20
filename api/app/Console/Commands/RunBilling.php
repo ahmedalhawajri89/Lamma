@@ -16,7 +16,6 @@ use App\Payments\PaymentGateway;
 use App\Services\MetricsService;
 use Illuminate\Console\Command;
 use App\Support\Fx;
-use App\Support\Locale;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Throwable;
@@ -56,7 +55,7 @@ class RunBilling extends Command
 
         $due = Sponsorship::query()
             ->dueBy()
-            ->with(['sponsor:id,user_id,preferred_currency', 'sponsor.user:id,name,email,locale', 'orphan:id,first_name'])
+            ->with(['sponsor:id,user_id,preferred_currency', 'sponsor.user:id,name,email,locale', 'orphan:id,first_name,translations,reference_code'])
             ->limit($limit)
             ->get();
 
@@ -163,9 +162,8 @@ class RunBilling extends Command
             $user = $sponsorship->sponsor?->user;
 
             if ($first && $user?->email) {
-                Mail::to($user->email, $user->name)
-                    ->locale(Locale::supports($user->locale) ? $user->locale : Locale::default())
-                    ->send(new PaymentIssueMail($sponsorship, $reason));
+                // بلغة الكافل: User::preferredLocale
+                Mail::to($user)->send(new PaymentIssueMail($sponsorship, $reason));
             }
         } catch (Throwable $e) {
             report($e);

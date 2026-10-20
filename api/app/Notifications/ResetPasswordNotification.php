@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Notifications;
 
+use App\Support\Locale;
 use App\Support\SiteProfile;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -33,22 +34,24 @@ class ResetPasswordNotification extends Notification
     {
         $minutes = config('auth.passwords.users.expire', 60);
 
-        $url = rtrim((string) config('app.url'), '/').'/reset-password?'.http_build_query([
+        // بلغة الحساب: صفحة التعيين بلغته، والرسالة تُبنى داخل لغته (preferredLocale).
+        // الأساس من الإعداد لا من الطلب: رأس Host مزوّر كان سيضع في البريد رابطاً لموقع غيرنا
+        $url = Locale::absolute('/reset-password', $notifiable->preferredLocale()).'?'.http_build_query([
             'token' => $this->token,
             'email' => $notifiable->getEmailForPasswordReset(),
         ]);
 
         return (new MailMessage)
-            ->subject('إعادة تعيين كلمة المرور | '.SiteProfile::site()['name'])
-            ->greeting('مرحباً')
-            ->line('وصلنا طلبٌ لإعادة تعيين كلمة مرور حسابك.')
-            ->action('إعادة تعيين كلمة المرور', $url)
-            ->line("الرابط صالح لمدة {$minutes} دقيقة.")
+            ->subject(__('إعادة تعيين كلمة المرور | :site', ['site' => SiteProfile::site()['name']]))
+            ->greeting(__('مرحباً'))
+            ->line(__('وصلنا طلبٌ لإعادة تعيين كلمة مرور حسابك.'))
+            ->action(__('إعادة تعيين كلمة المرور'), $url)
+            ->line(__('الرابط صالح لمدة :minutes دقيقة.', ['minutes' => $minutes]))
 
             // لا نقول «تجاهل الرسالة» فقط: من لم يطلبها يحتاج أن يعرف أن
             // حسابه لم يُمسّ، وأن لا إجراء مطلوباً منه.
-            ->line('إن لم تطلب هذا فلا حاجة لأي إجراء، فلم يتغيّر شيء في حسابك.')
-            ->salutation('فريق '.SiteProfile::site()['name']);
+            ->line(__('إن لم تطلب هذا فلا حاجة لأي إجراء، فلم يتغيّر شيء في حسابك.'))
+            ->salutation(__('فريق :site', ['site' => SiteProfile::site()['name']]));
     }
 
     /** @return array<string, mixed> */

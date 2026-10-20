@@ -16,6 +16,7 @@ use App\Models\Payment;
 use App\Models\Sponsorship;
 use App\Models\User;
 use App\Payments\PaymentGateway;
+use App\Notifications\WelcomeSponsorNotification;
 use App\Support\Fx;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -156,6 +157,13 @@ class CheckoutController extends Controller
         $sponsor = $user->sponsor;
 
         if ($created) {
+            // صفحة الشكر تعده برابطٍ يعيّن منه كلمة مروره: حسابه أُنشئ بكلمةٍ عشوائية لا يعرفها
+            try {
+                $user->notify(new WelcomeSponsorNotification(Password::broker()->createToken($user), (string) $orphan->translated('first_name')));
+            } catch (\Throwable $e) {
+                report($e);
+            }
+
             Auth::login($user);
             if ($request->hasSession()) {
                 $request->session()->regenerate();

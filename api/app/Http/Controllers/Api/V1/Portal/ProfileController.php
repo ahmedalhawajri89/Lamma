@@ -46,7 +46,7 @@ class ProfileController extends Controller
         if ($changingEmail) {
             if (! Hash::check((string) $request->input('current_password'), $user->password)) {
                 throw ValidationException::withMessages([
-                    'current_password' => 'لتغيير البريد اكتب كلمة المرور الحالية.',
+                    'current_password' => __('لتغيير البريد اكتب كلمة المرور الحالية.'),
                 ]);
             }
             $user->email_verified_at = null;
@@ -59,7 +59,7 @@ class ProfileController extends Controller
         }
 
         return response()->json([
-            'message' => 'حُفظت التعديلات.',
+            'message' => __('حُفظت التعديلات.'),
             'data' => new UserResource($user->fresh()->load(['sponsor', 'staffProfile', 'roles'])),
         ]);
     }
@@ -70,12 +70,12 @@ class ProfileController extends Controller
             'current_password' => ['required', 'string'],
             'password' => ['required', 'confirmed', Password::min(8)->letters()->numbers()->uncompromised()],
         ], [
-            'password.confirmed' => 'كلمتا المرور غير متطابقتين.',
+            'password.confirmed' => __('كلمتا المرور غير متطابقتين.'),
         ]);
 
         if (! Hash::check($validated['current_password'], $request->user()->password)) {
             throw ValidationException::withMessages([
-                'current_password' => 'كلمة المرور الحالية غير صحيحة.',
+                'current_password' => __('كلمة المرور الحالية غير صحيحة.'),
             ]);
         }
 
@@ -101,6 +101,6 @@ class ProfileController extends Controller
             ->delete();
         $user->tokens()->delete();
 
-        return response()->json(['message' => 'تم تغيير كلمة المرور.']);
+        return response()->json(['message' => __('تم تغيير كلمة المرور.')]);
     }
 }

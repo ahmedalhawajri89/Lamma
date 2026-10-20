@@ -33,7 +33,7 @@ class PostPageController extends Controller
 
         $post = Post::query()
             ->published()
-            ->with(['category:id,name_ar,slug', 'author:id,name'])
+            ->with(['category:id,name_ar,name_en,slug', 'author:id,name'])
             ->where('slug', $slug)
             ->first();
 
@@ -50,9 +50,11 @@ class PostPageController extends Controller
          * أو بيانات قديمة) لا يصل الصفحة إلا بالوسوم المسموحة. والنصّ القديم
          * العادي يصير فقراتٍ مهرَّبة.
          */
-        $body = RichText::isHtml($post->body)
-            ? $rich->sanitize($post->body)
-            : $rich->fromPlain($post->body ?: $post->excerpt);
+        // بلغة الصفحة إن تُرجم المقال، وإلا العربي (والقالب يعلّمه lang="ar")
+        $source = $post->translated('body');
+        $body = RichText::isHtml($source)
+            ? $rich->sanitize($source)
+            : $rich->fromPlain($source ?: $post->translated('excerpt'));
 
         /*
          * فهرس المقال من عناوينه الفرعية (h2)، ولكلٍّ مرساةٌ يقفز إليها. المعرّف
@@ -67,7 +69,7 @@ class PostPageController extends Controller
         }, (string) $body);
 
         // من التصنيف نفسه أولاً، ثم الأحدث، بلا المقال نفسه
-        $related = Post::query()->published()->with('category:id,name_ar,slug')
+        $related = Post::query()->published()->with('category:id,name_ar,name_en,slug')
             ->whereKeyNot($post->getKey())
             // published() يرتّب بالتاريخ أولاً؛ التصنيف يسبقه هنا
             ->reorder()

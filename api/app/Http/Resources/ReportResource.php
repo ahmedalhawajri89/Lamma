@@ -45,7 +45,7 @@ class ReportResource extends JsonResource
             'orphan' => $this->whenLoaded('orphan', fn () => [
                 'id' => $this->orphan->id,
                 'reference_code' => $this->orphan->reference_code,
-                'name' => $this->orphan->first_name,
+                'name' => $this->orphan->translated('first_name'),
                 'photo_url' => $this->orphan->photo_path
                     ? asset('storage/'.$this->orphan->photo_path)
                     : null,

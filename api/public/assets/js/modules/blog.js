@@ -16,10 +16,18 @@ import { $, $$, debounce, escapeHtml, formatNumber, keepFocus, prefersReducedMot
 import { POSTS } from './data.js';
 import { apiEnabled, request } from './api.js';
 import { initReveal } from './motion.js';
-import { url } from './i18n.js';
+import { url, t, plural, locale } from './i18n.js';
 
 const PER_PAGE = 9;
 const KEYS = ['cat', 'q', 'page'];
+
+/**
+ * مقالٌ لم يُترجم يصل بالعربية (post.lang) في صفحةٍ بلغةٍ أخرى: يُعلَّم نصّه
+ * lang/dir فيُرسم من اليمين ويقرؤه قارئ الشاشة عربياً.
+ */
+const langAttr = (post) => (post.lang && post.lang !== locale
+  ? ` lang="${escapeHtml(post.lang)}" dir="${post.lang === 'ar' ? 'rtl' : 'ltr'}"`
+  : '');
 
 export function initBlog() {
   const grid = $('#blogGrid');
@@ -118,9 +126,9 @@ export function initBlog() {
       ? data.map((p, i) => magCard(p, Math.min(i, 6) * 60)).join('')
       : `<div class="blog-empty">
            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-           <h3>لا مقالات بهذا البحث</h3>
-           <p>جرّب كلمة أخرى، أو تصفّح كل المقالات.</p>
-           <button type="button" class="btn btn-outline-primary" data-blog-reset>كل المقالات</button>
+           <h3>${t('لا مقالات بهذا البحث')}</h3>
+           <p>${t('جرّب كلمة أخرى، أو تصفّح كل المقالات.')}</p>
+           <button type="button" class="btn btn-outline-primary" data-blog-reset>${t('كل المقالات')}</button>
          </div>`;
     renderPager(meta);
     initReveal();
@@ -138,11 +146,11 @@ export function initBlog() {
       <article class="feature" data-reveal>
         <div class="feature__media">${post.image ? `<img src="${escapeHtml(post.image)}" alt="" width="900" height="600">` : '<span class="feature__mark"></span>'}</div>
         <div class="feature__body">
-          <p class="feature__eyebrow"><span class="feature__tag">مقال مميّز</span>${post.category ? ` · ${escapeHtml(post.category)}` : ''}</p>
-          <h2 class="feature__title">${href ? `<a href="${href}">${escapeHtml(post.title)}</a>` : escapeHtml(post.title)}</h2>
-          <p class="feature__excerpt">${escapeHtml(post.excerpt ?? '')}</p>
+          <p class="feature__eyebrow"><span class="feature__tag">${t('مقال مميّز')}</span>${post.category ? ` · ${escapeHtml(post.category)}` : ''}</p>
+          <h2 class="feature__title"${langAttr(post)}>${href ? `<a href="${href}">${escapeHtml(post.title)}</a>` : escapeHtml(post.title)}</h2>
+          <p class="feature__excerpt"${langAttr(post)}>${escapeHtml(post.excerpt ?? '')}</p>
           <p class="feature__meta">${meta(post)}</p>
-          ${href ? `<span class="feature__cta" aria-hidden="true">اقرأ المقال <i class="fa-solid fa-arrow-left"></i></span>` : ''}
+          ${href ? `<span class="feature__cta" aria-hidden="true">${t('اقرأ المقال')} <i class="fa-solid fa-arrow-left"></i></span>` : ''}
         </div>
       </article>`;
   }
@@ -151,7 +159,7 @@ export function initBlog() {
   function renderCats() {
     const host = $('#blogCats');
     if (!facets) return;
-    const all = [['', 'الكل', facets.all_count ?? 0], ...(facets.categories ?? []).map((c) => [c.slug, c.name, c.count])];
+    const all = [['', t('الكل'), facets.all_count ?? 0], ...(facets.categories ?? []).map((c) => [c.slug, c.name, c.count])];
     host.innerHTML = all.map(([slug, name, n]) => `<button type="button" class="blog-cat" data-cat="${escapeHtml(slug)}" aria-pressed="${(state.cat || '') === slug}">
         ${escapeHtml(name)} <span class="num">${formatNumber(n)}</span></button>`).join('');
     $('#blogTotal').textContent = formatNumber(facets.all_count ?? 0);
@@ -161,9 +169,10 @@ export function initBlog() {
     const el = $('#blogStatus');
     if (!filtered) { el.textContent = ''; return; }
     const cat = facets?.categories?.find((c) => c.slug === state.cat)?.name;
-    const parts = [cat && `في «${cat}»`, state.q && `عن «${state.q}»`].filter(Boolean).join(' ');
-    el.innerHTML = `<b class="num">${formatNumber(meta.total ?? 0)}</b> ${meta.total === 1 ? 'مقال' : 'مقالاً'} ${escapeHtml(parts)}
-      <button type="button" class="blog-status__clear" data-blog-reset>مسح</button>`;
+    const parts = [cat && t('في «{cat}»', { cat }), state.q && t('عن «{q}»', { q: state.q })].filter(Boolean).join(' ');
+    const word = plural(meta.total ?? 0, { ar: { one: 'مقال', other: 'مقالاً' }, en: { one: 'article', other: 'articles' } });
+    el.innerHTML = `<b class="num">${formatNumber(meta.total ?? 0)}</b> ${word} ${escapeHtml(parts)}
+      <button type="button" class="blog-status__clear" data-blog-reset>${t('مسح')}</button>`;
   }
 
   function renderPager(meta) {
@@ -172,12 +181,12 @@ export function initBlog() {
     const cur = meta.current_page ?? 1;
     if (last <= 1) { nav.hidden = true; nav.innerHTML = ''; return; }
     const pages = [...Array(last).keys()].map((i) => i + 1).filter((p) => p === 1 || p === last || Math.abs(p - cur) <= 1);
-    let html = `<button type="button" class="blog-pager__step" data-page="${cur - 1}" ${cur === 1 ? 'disabled' : ''}><i class="fa-solid fa-arrow-right" aria-hidden="true"></i> الأحدث</button><ol class="blog-pager__pages">`;
+    let html = `<button type="button" class="blog-pager__step" data-page="${cur - 1}" ${cur === 1 ? 'disabled' : ''}><i class="fa-solid fa-arrow-right" aria-hidden="true"></i> ${t('الأحدث')}</button><ol class="blog-pager__pages">`;
     pages.forEach((p, i) => {
       if (i && p - pages[i - 1] > 1) html += '<li class="blog-pager__gap" aria-hidden="true">…</li>';
-      html += `<li><button type="button" class="blog-pager__page num" data-page="${p}" ${p === cur ? 'aria-current="page"' : ''} aria-label="الصفحة ${p}">${p}</button></li>`;
+      html += `<li><button type="button" class="blog-pager__page num" data-page="${p}" ${p === cur ? 'aria-current="page"' : ''} aria-label="${t('الصفحة {n}', { n: p })}">${p}</button></li>`;
     });
-    html += `</ol><button type="button" class="blog-pager__step" data-page="${cur + 1}" ${cur === last ? 'disabled' : ''}>الأقدم <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></button>`;
+    html += `</ol><button type="button" class="blog-pager__step" data-page="${cur + 1}" ${cur === last ? 'disabled' : ''}>${t('الأقدم')} <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></button>`;
     nav.hidden = false;
     nav.innerHTML = html;
   }
@@ -186,7 +195,7 @@ export function initBlog() {
 /** التاريخ وزمن القراءة: بأرقام لاتينية كبقية الموقع وكصفحة المقال */
 function meta(post) {
   return `<time datetime="${escapeHtml(post.date ?? '')}">${escapeHtml(post.dateLabel ?? '')}</time>
-    <span aria-hidden="true">·</span> <span>${readingTime(post.readMin)} قراءة</span>`;
+    <span aria-hidden="true">·</span> <span>${t('{time} قراءة', { time: readingTime(post.readMin) })}</span>`;
 }
 
 /**
@@ -203,8 +212,8 @@ function magCard(post, delay) {
     ${post.category ? `<span class="mag-card__tag">${escapeHtml(post.category)}</span>` : ''}
   </div>
   <div class="mag-card__body">
-    <h3 class="mag-card__title">${href ? `<a href="${href}">${escapeHtml(post.title)}</a>` : escapeHtml(post.title)}</h3>
-    <p class="mag-card__excerpt">${escapeHtml(post.excerpt ?? '')}</p>
+    <h3 class="mag-card__title"${langAttr(post)}>${href ? `<a href="${href}">${escapeHtml(post.title)}</a>` : escapeHtml(post.title)}</h3>
+    <p class="mag-card__excerpt"${langAttr(post)}>${escapeHtml(post.excerpt ?? '')}</p>
     <p class="mag-card__meta">${meta(post)}</p>
   </div>
 </article>`;

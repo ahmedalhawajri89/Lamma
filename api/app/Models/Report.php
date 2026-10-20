@@ -112,6 +112,6 @@ class Report extends Model
 
     public function periodLabel(): string
     {
-        return "الربع {$this->period_quarter} من {$this->period_year}";
+        return __('الربع :quarter من :year', ['quarter' => $this->period_quarter, 'year' => $this->period_year]);
     }
 }

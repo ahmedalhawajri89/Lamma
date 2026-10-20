@@ -32,7 +32,7 @@ class SponsorshipController extends Controller
         abort_if($sponsor === null, 403);
 
         $items = $sponsor->sponsorships()
-            ->with(['orphan:id,reference_code,first_name,gender,photo_path,date_of_birth,funded_percent', 'program'])
+            ->with(['orphan:id,reference_code,first_name,translations,gender,photo_path,date_of_birth,funded_percent', 'program'])
             ->withCount(['payments' => fn ($q) => $q->settled()])
             ->withSum(['payments' => fn ($q) => $q->settled()], 'amount_base')
             ->latest('started_at')
@@ -47,7 +47,7 @@ class SponsorshipController extends Controller
     public function store(Request $request, CreateSponsorship $action): JsonResponse
     {
         $sponsor = $request->user()->sponsor;
-        abort_if($sponsor === null, 403, 'هذا الحساب ليس حساب كافل.');
+        abort_if($sponsor === null, 403, __('هذا الحساب ليس حساب كافل.'));
 
         $validated = $request->validate([
             'orphan_reference' => ['required', 'string', 'exists:orphans,reference_code'],
@@ -55,9 +55,9 @@ class SponsorshipController extends Controller
             'is_zakat' => ['nullable', 'boolean'],
             'billing_day' => ['nullable', 'integer', 'min:1', 'max:'.config('kafala.billing.max_billing_day')],
         ], [
-            'orphan_reference.exists' => 'لم نجد هذه الحالة.',
-            'monthly_amount.min' => 'أقل مبلغ للكفالة ٥ دولارات شهرياً.',
-            'billing_day.max' => 'يوم الفوترة بين ١ و٢٨ حتى لا يختفي القسط في فبراير.',
+            'orphan_reference.exists' => __('لم نجد هذه الحالة.'),
+            'monthly_amount.min' => __('أقل مبلغ للكفالة ٥ دولارات شهرياً.'),
+            'billing_day.max' => __('يوم الفوترة بين ١ و٢٨ حتى لا يختفي القسط في فبراير.'),
         ]);
 
         $orphan = Orphan::where('reference_code', $validated['orphan_reference'])->firstOrFail();
@@ -71,7 +71,7 @@ class SponsorshipController extends Controller
         );
 
         return response()->json([
-            'message' => 'أنشأنا كفالتك. تبدأ فعلياً بعد أول دفعة.',
+            'message' => __('أنشأنا كفالتك. تبدأ فعلياً بعد أول دفعة.'),
             'data' => new SponsorshipResource($sponsorship->load(['orphan', 'program'])),
         ], 201);
     }
@@ -103,8 +103,8 @@ class SponsorshipController extends Controller
                 ($allowed[$locked->status->value] ?? null) === $target,
                 409,
                 $locked->status === SponsorshipStatus::Pending
-                    ? 'الكفالة لم تبدأ بعد. تبدأ بأول دفعة تصل.'
-                    : 'حالة الكفالة تغيّرت. حدّث الصفحة.',
+                    ? __('الكفالة لم تبدأ بعد. تبدأ بأول دفعة تصل.')
+                    : __('حالة الكفالة تغيّرت. حدّث الصفحة.'),
             );
 
             $locked->update($target === SponsorshipStatus::Paused
@@ -122,8 +122,8 @@ class SponsorshipController extends Controller
 
         return response()->json([
             'message' => $target === SponsorshipStatus::Paused
-                ? 'أوقفنا الخصم مؤقتاً. يبقى الطفل محجوزاً لك، واستأنف متى شئت.'
-                : 'استأنفت الكفالة. أول قسط في '.$sponsorship->next_due_at?->toDateString().'.',
+                ? __('أوقفنا الخصم مؤقتاً. يبقى الطفل محجوزاً لك، واستأنف متى شئت.')
+                : __('استأنفت الكفالة. أول قسط في :date.', ['date' => (string) $sponsorship->next_due_at?->toDateString()]),
             'data' => new SponsorshipResource($sponsorship->load(['orphan', 'program'])),
         ]);
     }
@@ -213,13 +213,13 @@ class SponsorshipController extends Controller
 
         // العمود 255 حرفاً: سببٌ أطول كان يُسقط الطلب فيظهر «الخدمة غير متاحة»
         $validated = $request->validate(['reason' => ['nullable', 'string', 'max:255']], [
-            'reason.max' => 'اختصر السبب إلى 255 حرفاً.',
+            'reason.max' => __('اختصر السبب إلى 255 حرفاً.'),
         ]);
 
         $action->handle($sponsorship, $validated['reason'] ?? null);
 
         return response()->json([
-            'message' => 'أُلغيت الكفالة. شكراً لما قدّمته، وسنؤمّن كافلاً بديلاً للطفل.',
+            'message' => __('أُلغيت الكفالة. شكراً لما قدّمته، وسنؤمّن كافلاً بديلاً للطفل.'),
         ]);
     }
 }

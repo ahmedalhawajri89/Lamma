@@ -5,6 +5,7 @@
  */
 
 import { $, $$, debounce, prefersReducedMotion } from './utils.js';
+import { t } from './i18n.js';
 
 /** «إيقاف» و«ايقاف» و«الزكاةَ» كلمةٌ واحدة في البحث */
 const normalize = (text) => String(text)
@@ -35,7 +36,7 @@ export function initFaqPage() {
       if (hit) shown += 1;
     });
     empty.hidden = shown > 0;
-    status.textContent = words.length || cat ? `${shown} ${shown === 1 ? 'سؤال' : 'أسئلة'}` : '';
+    status.textContent = words.length || cat ? (shown === 1 ? t('{n} سؤال', { n: shown }) : t('{n} أسئلة', { n: shown })) : '';
   };
 
   search?.addEventListener('input', debounce(apply, 150));

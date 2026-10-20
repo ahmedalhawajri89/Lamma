@@ -8,6 +8,7 @@ use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Models\Sponsor;
 use App\Models\User;
+use App\Support\Locale;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -30,6 +31,8 @@ class RegisterSponsor
                 'password' => Hash::make($password ?? Str::random(40)),
                 'phone' => $phone,
                 'status' => UserStatus::Active,
+                // لغة الصفحة التي سجّل منها: بها تصله رسائله
+                'locale' => Locale::supports(app()->getLocale()) ? app()->getLocale() : Locale::default(),
             ]);
 
             $user->assignRole(UserRole::Sponsor->value);

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Resources;
 
+use App\Support\Locale;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -12,11 +13,21 @@ class PostResource extends JsonResource
     /** @return array<string, mixed> */
     public function toArray(Request $request): array
     {
+        /*
+         * الموقع العام يأخذ النصّ بلغة الصفحة (translations) والعربي إن لم
+         * يُترجم، واللوحة تأخذ الأصل العربي دائماً: نافذة التحرير تُملأ من
+         * الصفّ وتُرسله كما هو، فترجمةٌ فيه تحلّ محلّ العربي عند الحفظ.
+         */
+        $public = ! $request->routeIs('api.v1.admin.*');
+        $text = fn (string $field) => $public ? $this->resource->translated($field) : $this->{$field};
+
         return [
             'id' => $this->id,
             'slug' => $this->slug,
-            'title' => $this->title,
-            'excerpt' => $this->excerpt,
+            'title' => $text('title'),
+            'excerpt' => $text('excerpt'),
+            // لغة النصّ فعلاً: مقالٌ لم يُترجم يُعرض عربياً (lang/dir) في صفحةٍ إنجليزية
+            'lang' => $this->when($public, fn () => self::contentLocale($this->resource)),
             /**
              * النصّ في صفحة المقال، وفي قوائم اللوحة.
              *
@@ -29,9 +40,11 @@ class PostResource extends JsonResource
              */
             'body' => $this->when(
                 $request->routeIs('*.show') || $request->routeIs('api.v1.admin.posts.*'),
-                fn () => $this->body,
+                fn () => $text('body'),
             ),
-            'category' => $this->whenLoaded('category', fn () => $this->category?->name_ar),
+            'category' => $this->whenLoaded('category', fn () => $public && $this->category
+                ? Locale::pick($this->category->name_ar, $this->category->getAttributes()['name_en'] ?? null)
+                : $this->category?->name_ar),
             // نافذة التحرير تختار التصنيف برقمه؛ كان غائباً فيُرسَل فارغاً مع
             // كل تعديل ويُمسح تصنيف المقال
             'category_id' => $this->category_id,
@@ -51,5 +64,15 @@ class PostResource extends JsonResource
             'views_count' => $this->views_count,
             'author' => $this->whenLoaded('author', fn () => $this->author?->name),
         ];
+    }
+
+    /** لغة نصّ المقال في هذه الصفحة: لغتها إن تُرجم عنوانه إليها، وإلا العربية. */
+    public static function contentLocale(\App\Models\Post $post): string
+    {
+        $locale = Locale::current();
+
+        return ! Locale::isDefault($locale) && filled($post->translations[$locale]['title'] ?? null)
+            ? $locale
+            : Locale::default();
     }
 }

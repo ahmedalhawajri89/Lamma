@@ -105,7 +105,8 @@ class ContactInboxController extends Controller
             return $reply;
         });
 
-        Mail::to($contact->email, $contact->name)->send(new ContactReplyMail($contact, $validated['body']));
+        // بلغة الصفحة التي كتب منها: قالب الردّ وموضوعه، والردّ نفسه بما كتبه الفريق
+        Mail::to($contact->email, $contact->name)->locale($contact->locale ?: 'ar')->send(new ContactReplyMail($contact, $validated['body']));
 
         activity()->performedOn($contact)->causedBy($request->user())->event('replied')
             ->withProperties(['reply_id' => $reply->id, 'closed' => (bool) ($validated['close'] ?? false)])

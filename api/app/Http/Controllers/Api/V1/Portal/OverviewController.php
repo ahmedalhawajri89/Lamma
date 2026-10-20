@@ -27,7 +27,7 @@ class OverviewController extends Controller
     {
         $sponsor = $request->user()->sponsor;
 
-        abort_if($sponsor === null, 403, 'هذا الحساب ليس حساب كافل.');
+        abort_if($sponsor === null, 403, __('هذا الحساب ليس حساب كافل.'));
 
         $unseenReports = Report::query()
             ->unseenBy($sponsor->id)
@@ -76,7 +76,7 @@ class OverviewController extends Controller
                 'sponsorships' => SponsorshipResource::collection(
                     $sponsor->sponsorships()
                         ->live()
-                        ->with(['orphan:id,reference_code,first_name,gender,photo_path,date_of_birth,funded_percent', 'program'])
+                        ->with(['orphan:id,reference_code,first_name,translations,gender,photo_path,date_of_birth,funded_percent', 'program'])
                         // الدفعات المكتملة وحدها: كانت الفاشلة والمستردّة تُحسب فيما «قدّمه له»
                         ->withCount(['payments' => fn ($q) => $q->settled()])
                         ->withSum(['payments' => fn ($q) => $q->settled()], 'amount_base')
@@ -90,7 +90,7 @@ class OverviewController extends Controller
                         ->whereIn('status', [\App\Enums\SponsorshipStatus::Cancelled, \App\Enums\SponsorshipStatus::Completed])
                         // حجزٌ سقط بلا دفع لم يكن كفالة: لا يُعرض كتاريخ
                         ->whereHas('payments', fn ($q) => $q->settled())
-                        ->with(['orphan:id,reference_code,first_name,gender,photo_path,date_of_birth,funded_percent', 'program'])
+                        ->with(['orphan:id,reference_code,first_name,translations,gender,photo_path,date_of_birth,funded_percent', 'program'])
                         ->withSum(['payments' => fn ($q) => $q->settled()], 'amount_base')
                         ->latest('ended_at')
                         ->limit(10)
@@ -101,7 +101,7 @@ class OverviewController extends Controller
                     Report::query()
                         ->published()
                         ->whereIn('orphan_id', $sponsor->sponsorships()->funded()->select('orphan_id'))
-                        ->with(['orphan:id,reference_code,first_name,gender,photo_path'])
+                        ->with(['orphan:id,reference_code,first_name,translations,gender,photo_path'])
                         ->withCount(['views' => fn ($q) => $q->where('sponsor_id', $sponsor->id)])
                         ->latest('published_at')
                         ->limit(4)

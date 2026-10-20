@@ -44,9 +44,9 @@ class FaqPageController extends Controller
             return [
                 'id' => $anchor,
                 'icon' => $topic[2] ?? 'fa-circle-question',
-                'q' => $f->question,
-                'a' => FaqResource::fill((string) $f->answer),
-                'category' => $f->category ?: 'عام',
+                'q' => $f->translated('question'),
+                'a' => FaqResource::fill((string) $f->translated('answer')),
+                'category' => $f->translated('category') ?: __('عام'),
             ];
         });
 

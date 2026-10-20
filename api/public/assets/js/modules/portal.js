@@ -18,20 +18,34 @@ import {
 import { fetchCheckoutConfig } from './api.js';
 import { toast } from './ui.js';
 import { validateInput, tokenizeCard } from './forms.js';
-import { url } from './i18n.js';
+import { url, t, plural, intl, dir } from './i18n.js';
 
-const dateFmt = new Intl.DateTimeFormat('ar', { day: 'numeric', month: 'long', year: 'numeric' });
-const shortFmt = new Intl.DateTimeFormat('ar', { day: 'numeric', month: 'long' });
-const todayFmt = new Intl.DateTimeFormat('ar', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-const fmtDate = (v) => (v ? dateFmt.format(new Date(v)) : 'غير محدد');
-const fmtShort = (v) => (v ? shortFmt.format(new Date(v)) : 'غير محدد');
+const dateFmt = new Intl.DateTimeFormat(intl, { day: 'numeric', month: 'long', year: 'numeric' });
+const shortFmt = new Intl.DateTimeFormat(intl, { day: 'numeric', month: 'long' });
+const todayFmt = new Intl.DateTimeFormat(intl, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+const fmtDate = (v) => (v ? dateFmt.format(new Date(v)) : t('غير محدد'));
+const fmtShort = (v) => (v ? shortFmt.format(new Date(v)) : t('غير محدد'));
+
+/**
+ * عددٌ بصيغته في كل لغة، و{count} فيه هو الرقم منسّقاً (وملفوفاً بـ wrap إن
+ * لزم عزله في جملة). العربية تبقى كما كانت تُكتب هنا.
+ */
+const count = (n, forms, wrap = (s) => s) => plural(n, forms).replace(/\{count\}/g, wrap(formatNumber(n)));
+
+/** النسبة بعلامة لغتها: «٤٠٪» في العربية و«40%» في الإنجليزية. */
+const pct = (v) => t('{p}٪', { p: v });
+
+/** أول الحرف كبيراً: «monthly» عنواناً. لا أثر له في العربية. */
+const cap = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : '');
 
 /** العمر بصيغة العدد العربية: سنة، سنتان، ٣ إلى ١٠ سنوات، ثم ١١ سنة. */
 function ageLabel(age) {
   if (!age) return '';
-  if (age === 1) return 'سنة واحدة';
-  if (age === 2) return 'سنتان';
-  return `${age} ${age <= 10 ? 'سنوات' : 'سنة'}`;
+  return plural(age, {
+    // العربية بقاعدتها هنا لا بقواعد Intl: ما فوق العاشرة «سنة» أياً كان العدد
+    ar: { other: age === 1 ? 'سنة واحدة' : age === 2 ? 'سنتان' : age <= 10 ? '{n} سنوات' : '{n} سنة' },
+    en: { one: '{n} year old', other: '{n} years old' },
+  });
 }
 
 /** «اليوم»، «غداً»، «بعد ٣ أيام»: أقرب إلى الكافل من تاريخٍ مجرّد. */
@@ -40,25 +54,27 @@ function inDays(value) {
   const day = 86_400_000;
   const start = new Date(); start.setHours(0, 0, 0, 0);
   const n = Math.round((new Date(value).setHours(0, 0, 0, 0) - start) / day);
-  if (n < 0) return 'متأخر';
-  if (n === 0) return 'اليوم';
-  if (n === 1) return 'غداً';
-  if (n === 2) return 'بعد يومين';
-  return `بعد ${n} ${n <= 10 ? 'أيام' : 'يوماً'}`;
+  if (n < 0) return t('متأخر');
+  if (n === 0) return t('اليوم');
+  if (n === 1) return t('غداً');
+  return plural(n, {
+    ar: { other: n === 2 ? 'بعد يومين' : n <= 10 ? 'بعد {n} أيام' : 'بعد {n} يوماً' },
+    en: { one: 'in {n} day', other: 'in {n} days' },
+  });
 }
 
-const CYCLE = { 1: 'شهرياً', 3: 'كل ثلاثة أشهر', 12: 'سنوياً' };
+const CYCLE = { 1: t('شهرياً'), 3: t('كل ثلاثة أشهر'), 12: t('سنوياً') };
 
 /** بنود الإنفاق في التقرير كما يحفظها الخادم (نسبٌ مئوية). */
 const SPENDING = {
-  living: { label: 'معيشة وغذاء', color: 'var(--chart-1)' },
-  education: { label: 'تعليم', color: 'var(--chart-4)' },
-  health: { label: 'صحة', color: 'var(--chart-2)' },
-  psychosocial: { label: 'دعم نفسي', color: 'var(--chart-5)' },
-  overhead: { label: 'تشغيل', color: 'var(--chart-muted)' },
+  living: { label: t('معيشة وغذاء'), color: 'var(--chart-1)' },
+  education: { label: t('تعليم'), color: 'var(--chart-4)' },
+  health: { label: t('صحة'), color: 'var(--chart-2)' },
+  psychosocial: { label: t('دعم نفسي'), color: 'var(--chart-5)' },
+  overhead: { label: t('تشغيل'), color: 'var(--chart-muted)' },
 };
 
-const SECTIONS = { overview: 'نظرة عامة', children: 'أطفالي', reports: 'التقارير', payments: 'المدفوعات', account: 'حسابي' };
+const SECTIONS = { overview: t('نظرة عامة'), children: t('أطفالي'), reports: t('التقارير'), payments: t('المدفوعات'), account: t('حسابي') };
 
 /** يملأ كل عنصرٍ يطابق المحدِّد بالنص، ويتجاهله بهدوء إن لم يكن في الصفحة. */
 function setText(selector, value) {
@@ -142,7 +158,7 @@ const errorBlock = (text) => `
 <div class="pt-empty" role="alert">
   <i class="fa-solid fa-plug-circle-exclamation" aria-hidden="true"></i>
   <p>${escapeHtml(text)}</p>
-  <button class="btn btn-outline-primary btn-sm" type="button" data-portal-retry>أعد المحاولة</button>
+  <button class="btn btn-outline-primary btn-sm" type="button" data-portal-retry>${t('أعد المحاولة')}</button>
 </div>`;
 
 let sponsorships = [];
@@ -169,8 +185,8 @@ export async function initPortal() {
     user = await me({ strict: true });
   } catch {
     // الخادم متعثّر لا الجلسة: لا نُخرج الكافل، نقول ما حدث
-    attention('error', 'fa-plug-circle-exclamation', 'تعذّر الوصول إلى الخادم الآن.', 'تحقّق من اتصالك ثم أعد المحاولة.',
-      '<button class="btn btn-outline-primary btn-sm" type="button" data-portal-retry>أعد المحاولة</button>');
+    attention('error', 'fa-plug-circle-exclamation', t('تعذّر الوصول إلى الخادم الآن.'), t('تحقّق من اتصالك ثم أعد المحاولة.'),
+      `<button class="btn btn-outline-primary btn-sm" type="button" data-portal-retry>${t('أعد المحاولة')}</button>`);
     $('[data-portal-retry]')?.addEventListener('click', () => window.location.reload());
     root.removeAttribute('data-portal-loading');
     return;
@@ -195,10 +211,10 @@ export async function initPortal() {
 
   $$('[data-portal-logout], [data-logout]').forEach((button) => button.addEventListener('click', async (e) => {
     e.preventDefault();
-    busy(button, true, 'جارٍ الخروج…');
+    busy(button, true, t('جارٍ الخروج…'));
     await logout().catch(() => {});
     clearSignedIn();
-    window.location.href = '/';
+    window.location.href = url('/');
   }));
 
   document.addEventListener('click', (e) => {
@@ -227,7 +243,9 @@ function showUser(user) {
   const first = (user.name ?? '').split(' ')[0];
   const hour = new Date().getHours();
   setText('[data-portal-name]', user.name ?? '');
-  setText('[data-portal-greeting]', `${hour >= 4 && hour < 12 ? 'صباح الخير' : 'مساء الخير'}، ${first}`);
+  setText('[data-portal-greeting]', hour >= 4 && hour < 12
+    ? t('صباح الخير، {name}', { name: first })
+    : t('مساء الخير، {name}', { name: first }));
   setText('[data-portal-avatar]', (user.name ?? '·').charAt(0));
   setText('[data-portal-email]', user.email ?? '');
 }
@@ -253,16 +271,16 @@ async function loadOverview() {
 
     // لا أرقام وهمية ولا «لا كفالات» كاذبة: القسم يقول إنه لم يُحمَّل
     $$('[data-stat]').forEach((el) => { if (el.tagName === 'DD') el.textContent = '·'; });
-    attention('error', 'fa-plug-circle-exclamation', 'تعذّر تحميل بوابتك الآن.', error?.message ?? '',
-      '<button class="btn btn-outline-primary btn-sm" type="button" data-portal-retry>أعد المحاولة</button>');
+    attention('error', 'fa-plug-circle-exclamation', t('تعذّر تحميل بوابتك الآن.'), error?.message ?? '',
+      `<button class="btn btn-outline-primary btn-sm" type="button" data-portal-retry>${t('أعد المحاولة')}</button>`);
     const list = $('[data-portal-sponsorships]');
-    if (list) list.innerHTML = errorBlock(error?.message ?? 'تعذّر تحميل كفالاتك.');
+    if (list) list.innerHTML = errorBlock(error?.message ?? t('تعذّر تحميل كفالاتك.'));
     const kids = $('[data-portal-kids]');
-    if (kids) kids.innerHTML = '<li class="pt-empty"><p>لم يُحمَّل.</p></li>';
+    if (kids) kids.innerHTML = `<li class="pt-empty"><p>${t('لم يُحمَّل.')}</p></li>`;
     const host = $('[data-portal-reports]');
-    if (host) host.innerHTML = '<li class="pt-empty"><p>لم تُحمَّل التقارير.</p></li>';
+    if (host) host.innerHTML = `<li class="pt-empty"><p>${t('لم تُحمَّل التقارير.')}</p></li>`;
     const latest = $('[data-portal-latest]');
-    if (latest) latest.innerHTML = '<p class="pt-muted mb-0">لم يُحمَّل.</p>';
+    if (latest) latest.innerHTML = `<p class="pt-muted mb-0">${t('لم يُحمَّل.')}</p>`;
   }
 }
 
@@ -286,7 +304,7 @@ function initViews() {
       else link.removeAttribute('aria-current');
     });
     // الاسم من الإعدادات (head.blade يكتبه في application-name)، لا مكتوباً هنا
-    document.title = `${SECTIONS[view.id] ?? 'بوابتي'} | ${document.querySelector('meta[name="application-name"]')?.content ?? ''}`;
+    document.title = `${SECTIONS[view.id] ?? t('بوابتي')} | ${document.querySelector('meta[name="application-name"]')?.content ?? ''}`;
     setText('[data-pt-title]', SECTIONS[view.id] ?? '');
 
     if (focus) {
@@ -322,8 +340,8 @@ function initRail() {
   const apply = (on) => {
     root.classList.toggle('is-rail', on);
     toggle.setAttribute('aria-expanded', String(!on));
-    toggle.setAttribute('aria-label', on ? 'توسيع القائمة' : 'طيّ القائمة');
-    toggle.title = on ? 'توسيع القائمة' : 'طيّ القائمة';
+    toggle.setAttribute('aria-label', on ? t('توسيع القائمة') : t('طيّ القائمة'));
+    toggle.title = on ? t('توسيع القائمة') : t('طيّ القائمة');
   };
 
   try { apply(localStorage.getItem(RAIL_KEY) === '1'); } catch { /* تخزين محجوب */ }
@@ -342,7 +360,9 @@ function initRail() {
     const r = link.getBoundingClientRect();
     tip.textContent = link.dataset.tip;
     tip.style.top = `${r.top + r.height / 2}px`;
-    tip.style.right = `${window.innerWidth - r.left + 10}px`;
+    // التلميح بجانب الشريط: يساره في العربية، ويمينه في الإنجليزية
+    if (dir === 'rtl') tip.style.right = `${window.innerWidth - r.left + 10}px`;
+    else tip.style.left = `${r.right + 10}px`;
     tip.classList.add('is-shown');
   };
   const hide = () => tip.classList.remove('is-shown');
@@ -380,40 +400,40 @@ function renderAttention() {
   if (failing.length) {
     const f = failing[0];
     attention('error', 'fa-credit-card', failing.length === 1
-      ? `تعذّر خصم قسط ${f.orphan?.name ?? 'الطفل'}`
-      : `تعذّر خصم ${formatNumber(failing.length)} أقساط`,
-    `${issueText(f)} حدّث البطاقة فيصل القسط فوراً.`,
-    `<button class="btn btn-cta btn-sm" type="button" data-card-open="${f.id}">حدّث البطاقة</button>`);
+      ? t('تعذّر خصم قسط {name}', { name: f.orphan?.name ?? t('الطفل') })
+      : t('تعذّر خصم {n} أقساط', { n: formatNumber(failing.length) }),
+    `${issueText(f)} ${t('حدّث البطاقة فيصل القسط فوراً.')}`,
+    `<button class="btn btn-cta btn-sm" type="button" data-card-open="${f.id}">${t('حدّث البطاقة')}</button>`);
     return;
   }
 
   if (s.pending_count > 0 && pending.length) {
     const p = pending[0];
-    attention('wait', 'fa-building-columns', 'حوّل قسطك الأول', s.pending_count === 1
-      ? `كفالة ${p.orphan?.name ?? 'الطفل'} محجوزة بانتظار تحويلك حتى ${fmtShort(p.hold_expires_at)}.`
-      : `لديك ${formatNumber(s.pending_count)} كفالات محجوزة بانتظار تحويلك.`,
-    `<button class="btn btn-cta btn-sm" type="button" data-bank-open="${p.id}">بيانات التحويل</button>`);
+    attention('wait', 'fa-building-columns', t('حوّل قسطك الأول'), s.pending_count === 1
+      ? t('كفالة {name} محجوزة بانتظار تحويلك حتى {date}.', { name: p.orphan?.name ?? t('الطفل'), date: fmtShort(p.hold_expires_at) })
+      : t('لديك {n} كفالات محجوزة بانتظار تحويلك.', { n: formatNumber(s.pending_count) }),
+    `<button class="btn btn-cta btn-sm" type="button" data-bank-open="${p.id}">${t('بيانات التحويل')}</button>`);
     return;
   }
 
   const covered = sponsorships.find((x) => x.fund_cover);
   if (covered) {
-    attention('wait', 'fa-shield-heart', `صندوق الاستمرارية يغطّي ${covered.orphan?.name ?? 'الطفل'}`, fundText(covered),
-      `<button class="btn btn-cta btn-sm" type="button" data-card-open="${covered.id}">حدّث البطاقة</button>`);
+    attention('wait', 'fa-shield-heart', t('صندوق الاستمرارية يغطّي {name}', { name: covered.orphan?.name ?? t('الطفل') }), fundText(covered),
+      `<button class="btn btn-cta btn-sm" type="button" data-card-open="${covered.id}">${t('حدّث البطاقة')}</button>`);
     return;
   }
 
   if (fresh.length) {
-    attention('report', 'fa-file-lines', fresh.length === 1 ? 'تقريرٌ جديد لم تقرأه' : `${formatNumber(fresh.length)} تقارير جديدة`, fresh.length === 1
-      ? `زيارة ${fresh[0].orphan?.name ?? ''} الميدانية عن ${fresh[0].period_label}.`
-      : 'زياراتٌ ميدانية لأطفالك لم تقرأ تقاريرها بعد.',
-    `<button class="btn btn-primary btn-sm" type="button" data-report-open="${fresh[0].id}">اقرأ التقرير</button>`);
+    attention('report', 'fa-file-lines', fresh.length === 1 ? t('تقريرٌ جديد لم تقرأه') : t('{n} تقارير جديدة', { n: formatNumber(fresh.length) }), fresh.length === 1
+      ? t('زيارة {name} الميدانية عن {period}.', { name: fresh[0].orphan?.name ?? '', period: fresh[0].period_label })
+      : t('زياراتٌ ميدانية لأطفالك لم تقرأ تقاريرها بعد.'),
+    `<button class="btn btn-primary btn-sm" type="button" data-report-open="${fresh[0].id}">${t('اقرأ التقرير')}</button>`);
     return;
   }
 
-  attention('calm', 'fa-check', 'لا شيء ينتظرك اليوم', next
-    ? `قرأت كل التقارير، وقسطك القادم ${fmtShort(next.due_at)} يُخصم تلقائياً.`
-    : 'قرأت كل التقارير، وستظهر هنا أي مهمة جديدة.');
+  attention('calm', 'fa-check', t('لا شيء ينتظرك اليوم'), next
+    ? t('قرأت كل التقارير، وقسطك القادم {date} يُخصم تلقائياً.', { date: fmtShort(next.due_at) })
+    : t('قرأت كل التقارير، وستظهر هنا أي مهمة جديدة.'));
 }
 
 /* ------------------------------------------------------------- المؤشرات */
@@ -427,19 +447,22 @@ function renderStats(data) {
   setText('[data-stat="payments-count"]', formatNumber(s.payments_count ?? 0));
 
   const next = data.next_payment;
-  setText('[data-stat="next"]', next ? fmtShort(next.due_at) : 'لا أقساط');
-  setText('[data-stat="payments-next"]', next ? fmtShort(next.due_at) : 'لا أقساط');
+  setText('[data-stat="next"]', next ? fmtShort(next.due_at) : t('لا أقساط'));
+  setText('[data-stat="payments-next"]', next ? fmtShort(next.due_at) : t('لا أقساط'));
   setText('[data-stat="next-hint"]', next
     ? `${formatMoney(next.amount, next.currency)}${next.interval_months > 1 ? ` ${CYCLE[next.interval_months] ?? ''}` : ''} · ${inDays(next.due_at)}`
     : '');
 
-  setText('[data-stat="orphans-hint"]', s.pending_count > 0 ? `و${formatNumber(s.pending_count)} بانتظار التحويل` : 'كفالات نشطة');
-  setText('[data-stat="given-hint"]', `في ${formatNumber(s.payments_count ?? 0)} دفعة`);
+  setText('[data-stat="orphans-hint"]', s.pending_count > 0 ? t('و{n} بانتظار التحويل', { n: formatNumber(s.pending_count) }) : t('كفالات نشطة'));
+  setText('[data-stat="given-hint"]', count(s.payments_count ?? 0, {
+    ar: { other: 'في {count} دفعة' },
+    en: { one: 'in {count} payment', other: 'in {count} payments' },
+  }));
 
   const since = data.sponsor?.since;
-  setText('[data-portal-since]', since ? `كافلٌ منذ ${new Date(since).getFullYear()}` : '');
+  setText('[data-portal-since]', since ? t('كافلٌ منذ {date}', { date: new Date(since).getFullYear() }) : '');
   const chip = $('[data-portal-since-chip]');
-  if (chip && since) { chip.hidden = false; chip.textContent = `كافلٌ منذ ${fmtDate(since)}`; }
+  if (chip && since) { chip.hidden = false; chip.textContent = t('كافلٌ منذ {date}', { date: fmtDate(since) }); }
   $$('[data-pending-count]').forEach((el) => { el.hidden = !(s.pending_count > 0); el.textContent = formatNumber(s.pending_count ?? 0); });
   setText('[data-portal-code]', data.sponsor?.code ?? '');
 
@@ -458,31 +481,41 @@ function syncReportBadges() {
 /* ------------------------------------------------------------- الكفالات */
 
 const STATUS_CHIP = {
-  active: '<span class="pt-chip pt-chip--ok">نشطة</span>',
-  paused: '<span class="pt-chip">موقوفة مؤقتاً</span>',
-  pending: '<span class="pt-chip pt-chip--wait">بانتظار التحويل</span>',
+  active: `<span class="pt-chip pt-chip--ok">${t('نشطة')}</span>`,
+  paused: `<span class="pt-chip">${t('موقوفة مؤقتاً')}</span>`,
+  pending: `<span class="pt-chip pt-chip--wait">${t('بانتظار التحويل')}</span>`,
 };
 
 /** شارة الكفالة: المتعثّرة نشطةٌ لكنها تحتاج الكافل، فتقول ذلك. */
-const chipFor = (s) => (s.payment_issue ? '<span class="pt-chip pt-chip--bad">القسط متعثّر</span>'
-  : s.fund_cover ? '<span class="pt-chip pt-chip--wait">يغطّيه الصندوق</span>' : STATUS_CHIP[s.status] ?? '');
+const chipFor = (s) => (s.payment_issue ? `<span class="pt-chip pt-chip--bad">${t('القسط متعثّر')}</span>`
+  : s.fund_cover ? `<span class="pt-chip pt-chip--wait">${t('يغطّيه الصندوق')}</span>` : STATUS_CHIP[s.status] ?? '');
 
 /** ما جرى للقسط ومتى المحاولة التالية، بلغة الكافل. */
 function issueText(s) {
   const issue = s.payment_issue;
   const next = issue.next_retry_at
-    ? `نعيد المحاولة ${fmtShort(issue.next_retry_at)}.`
-    : 'توقّفت المحاولات حتى تحدّث البطاقة.';
-  return `لم يُخصم قسط ${fmtShort(s.next_due_at ?? issue.since)}${issue.card_last4 ? ` من البطاقة المنتهية بـ⁦${issue.card_last4}⁩` : ''}. ${next}`;
+    ? t('نعيد المحاولة {date}.', { date: fmtShort(issue.next_retry_at) })
+    : t('توقّفت المحاولات حتى تحدّث البطاقة.');
+  const date = fmtShort(s.next_due_at ?? issue.since);
+  const what = issue.card_last4
+    ? t('لم يُخصم قسط {date} من البطاقة المنتهية بـ⁦{last4}⁩.', { date, last4: issue.card_last4 })
+    : t('لم يُخصم قسط {date}.', { date });
+  return `${what} ${next}`;
 }
 
 /** ما غطّاه صندوق الاستمرارية منذ آخر قسطٍ وصل، وكم بقي. */
 function fundText(s) {
   const { months, max } = s.fund_cover;
   const left = max - months;
-  return `تعذّر قسطك، فغطّى صندوق الاستمرارية ${months === 1 ? 'شهراً' : months === 2 ? 'شهرين' : `${formatNumber(months)} أشهر`} لـ${s.orphan?.name ?? 'الطفل'} ولم ينقطع عنه شيء. ${left > 0
-    ? `حدّث بطاقتك قبل أن تنفد ${left === 1 ? 'آخر شهرٍ' : left === 2 ? 'الشهرين الباقيين' : `الأشهر الـ${formatNumber(left)} الباقية`} من التغطية.`
-    : 'هذا آخر ما يغطّيه الصندوق: إن لم يصل القسط القادم تنتهي الكفالة.'}`;
+  const covered = t('تعذّر قسطك، فغطّى صندوق الاستمرارية {months} لـ{name} ولم ينقطع عنه شيء.', {
+    months: count(months, { ar: { one: 'شهراً', two: 'شهرين', other: '{count} أشهر' }, en: { one: 'one month', other: '{count} months' } }),
+    name: s.orphan?.name ?? t('الطفل'),
+  });
+  return `${covered} ${left > 0
+    ? t('حدّث بطاقتك قبل أن تنفد {left} من التغطية.', {
+      left: count(left, { ar: { one: 'آخر شهرٍ', two: 'الشهرين الباقيين', other: 'الأشهر الـ{count} الباقية' }, en: { one: 'one month', other: '{count} months' } }),
+    })
+    : t('هذا آخر ما يغطّيه الصندوق: إن لم يصل القسط القادم تنتهي الكفالة.')}`;
 }
 
 /** ما تعنيه الحالة للكافل، حين تحتاج شرحاً. */
@@ -496,19 +529,19 @@ function statusLine(s) {
   if (s.payment_issue) {
     return `<p class="pt-kid__state pt-kid__state--bad">
       <i class="fa-solid fa-credit-card" aria-hidden="true"></i>
-      <span><b>${escapeHtml(issueText(s))}</b>${s.payment_issue.reason ? ` السبب: ${escapeHtml(s.payment_issue.reason)}` : ''}</span>
+      <span><b>${escapeHtml(issueText(s))}</b>${s.payment_issue.reason ? ` ${t('السبب:')} ${escapeHtml(s.payment_issue.reason)}` : ''}</span>
     </p>`;
   }
   if (s.status === 'pending') {
     return `<p class="pt-kid__state pt-kid__state--wait">
       <i class="fa-regular fa-clock" aria-hidden="true"></i>
-      <span><b>بانتظار تحويلك.</b> نحجز الطفل لك حتى ${fmtShort(s.hold_expires_at)}، وتبدأ الكفالة حين يصل التحويل.</span>
+      <span><b>${t('بانتظار تحويلك.')}</b> ${t('نحجز الطفل لك حتى {date}، وتبدأ الكفالة حين يصل التحويل.', { date: fmtShort(s.hold_expires_at) })}</span>
     </p>`;
   }
   if (s.status === 'paused') {
     return `<p class="pt-kid__state">
       <i class="fa-solid fa-pause" aria-hidden="true"></i>
-      <span><b>موقوفة مؤقتاً${s.paused_at ? ` منذ ${fmtShort(s.paused_at)}` : ''}.</b> لا خصم الآن، والطفل محجوز لك.</span>
+      <span><b>${s.paused_at ? t('موقوفة مؤقتاً منذ {date}.', { date: fmtShort(s.paused_at) }) : t('موقوفة مؤقتاً.')}</b> ${t('لا خصم الآن، والطفل محجوز لك.')}</span>
     </p>`;
   }
   return '';
@@ -521,8 +554,8 @@ function renderKids() {
   if (!sponsorships.length) {
     host.innerHTML = `<li class="pt-empty">
       <i class="fa-solid fa-hand-holding-heart" aria-hidden="true"></i>
-      <p>لا كفالات قائمة الآن. طفلٌ واحد يكفي لتبدأ.</p>
-      <a class="btn btn-cta btn-sm" href="${url('/orphans')}">اختر طفلاً تقف معه</a>
+      <p>${t('لا كفالات قائمة الآن. طفلٌ واحد يكفي لتبدأ.')}</p>
+      <a class="btn btn-cta btn-sm" href="${url('/orphans')}">${t('اختر طفلاً تقف معه')}</a>
     </li>`;
     return;
   }
@@ -533,8 +566,8 @@ function renderKids() {
     return `
 <li><a class="pt-row" href="#children" data-pt-link>
   ${kidImage(o, 44)}
-  <span class="pt-row__who"><b>${escapeHtml(o.name ?? '')}${o.age ? `، ${ageLabel(o.age)}` : ''}</b><span>${escapeHtml(s.program?.name ?? '')}</span></span>
-  ${s.status === 'pending' ? '' : `<span class="pt-row__fund"><span>مغطّاة <b class="num">${funded}٪</b></span><span class="pt-bar"><span style="--v:${funded}%"></span></span></span>`}
+  <span class="pt-row__who"><b>${escapeHtml(o.name ?? '')}${o.age ? `${t('، ')}${ageLabel(o.age)}` : ''}</b><span>${escapeHtml(s.program?.name ?? '')}</span></span>
+  ${s.status === 'pending' ? '' : `<span class="pt-row__fund"><span>${t('مغطّاة {p}', { p: `<b class="num">${pct(funded)}</b>` })}</span><span class="pt-bar"><span style="--v:${funded}%"></span></span></span>`}
   <span class="pt-row__end">
     <span class="num">${formatMoney(interval > 1 ? s.charge_cycle_amount : s.charge_amount, s.charge_currency)}</span>
     ${chipFor(s)}
@@ -543,7 +576,7 @@ function renderKids() {
   }).join('');
 }
 
-const STATUS_TABS = [['all', 'الكل'], ['active', 'نشطة'], ['paused', 'موقوفة مؤقتاً'], ['pending', 'بانتظار التحويل']];
+const STATUS_TABS = [['all', t('الكل')], ['active', t('نشطة')], ['paused', t('موقوفة مؤقتاً')], ['pending', t('بانتظار التحويل')]];
 let statusFilter = 'all';
 
 /** تبويبات الحالة في «أطفالي»: لا تظهر إلا حين تختلف الحالات فعلاً. */
@@ -559,7 +592,7 @@ function renderStatusTabs() {
 
   const active = sponsorships.filter((x) => x.status === 'active').length;
   setText('[data-children-sub]', sponsorships.length
-    ? `${formatNumber(sponsorships.length)} ${sponsorships.length === 1 ? 'كفالة' : 'كفالات'}${active && active !== sponsorships.length ? `، ${formatNumber(active)} منها نشطة` : ''}. راسل الطفل، أو أوقف كفالته مؤقتاً، من بطاقته.`
+    ? `${sponsorships.length === 1 ? t('{n} كفالة', { n: formatNumber(1) }) : t('{n} كفالات', { n: formatNumber(sponsorships.length) })}${active && active !== sponsorships.length ? t('، {n} منها نشطة', { n: formatNumber(active) }) : ''}. ${t('راسل الطفل، أو أوقف كفالته مؤقتاً، من بطاقته.')}`
     : '');
 }
 
@@ -582,15 +615,15 @@ function renderSponsorships() {
     list.innerHTML = `
 <div class="pt-empty">
   <i class="fa-solid fa-hand-holding-heart" aria-hidden="true"></i>
-  <p>لا كفالات قائمة الآن. طفلٌ واحد يكفي لتبدأ.</p>
-  <a class="btn btn-cta" href="${url('/orphans')}">اختر طفلاً تقف معه</a>
+  <p>${t('لا كفالات قائمة الآن. طفلٌ واحد يكفي لتبدأ.')}</p>
+  <a class="btn btn-cta" href="${url('/orphans')}">${t('اختر طفلاً تقف معه')}</a>
 </div>`;
     return;
   }
 
   list.innerHTML = items.map((s) => {
     const orphan = s.orphan ?? {};
-    const name = escapeHtml(orphan.name ?? 'غير معروف');
+    const name = escapeHtml(orphan.name ?? t('غير معروف'));
     const funded = Math.min(100, Math.max(0, Number(orphan.funded_percent ?? 0)));
     const interval = Number(s.interval_months ?? 1);
     const pending = s.status === 'pending';
@@ -601,25 +634,25 @@ function renderSponsorships() {
     // ما يظهر من الإجراءات يتبع الحالة: الحجز يُستكمل أو يُلغى، والموقوفة تُستأنف
     const actions = pending
       ? `<button class="btn btn-cta btn-sm" type="button" data-bank-open="${s.id}">
-          <i class="fa-solid fa-building-columns" aria-hidden="true"></i> بيانات التحويل
+          <i class="fa-solid fa-building-columns" aria-hidden="true"></i> ${t('بيانات التحويل')}
         </button>
-        <a class="btn btn-soft btn-sm" href="${profile}">ملفه</a>
-        <button class="pt-kid__stop" type="button" data-cancel-open="${s.id}">ألغِ الحجز</button>`
+        <a class="btn btn-soft btn-sm" href="${profile}">${t('ملفه')}</a>
+        <button class="pt-kid__stop" type="button" data-cancel-open="${s.id}">${t('ألغِ الحجز')}</button>`
       : `${s.payment_issue || s.fund_cover ? `<button class="btn btn-cta btn-sm" type="button" data-card-open="${s.id}">
-          <i class="fa-solid fa-credit-card" aria-hidden="true"></i> حدّث البطاقة
+          <i class="fa-solid fa-credit-card" aria-hidden="true"></i> ${t('حدّث البطاقة')}
         </button>` : ''}${paused ? `<button class="btn btn-primary btn-sm" type="button" data-resume="${s.id}">
-          <i class="fa-solid fa-play" aria-hidden="true"></i> استأنف
+          <i class="fa-solid fa-play" aria-hidden="true"></i> ${t('استأنف')}
         </button>` : ''}
         <button class="btn ${paused || s.payment_issue || s.fund_cover ? 'btn-soft' : 'btn-primary'} btn-sm" type="button" data-message-open="${s.id}">
-          <i class="fa-regular fa-envelope" aria-hidden="true"></i> رسالة
+          <i class="fa-regular fa-envelope" aria-hidden="true"></i> ${t('رسالة')}
         </button>
         <button class="btn btn-soft btn-sm" type="button" data-ledger-open="${s.id}">
-          <i class="fa-solid fa-route" aria-hidden="true"></i> أين ذهب مالك
+          <i class="fa-solid fa-route" aria-hidden="true"></i> ${t('أين ذهب مالك')}
         </button>
         ${latest ? `<button class="btn btn-soft btn-sm" type="button" data-report-open="${latest.id}">
-          <i class="fa-regular fa-file-lines" aria-hidden="true"></i> آخر تقرير
-        </button>` : `<a class="btn btn-soft btn-sm" href="${profile}">ملفه</a>`}
-        <button class="pt-kid__stop" type="button" data-cancel-open="${s.id}">${paused ? 'إنهاء' : 'إيقاف أو إنهاء'}</button>`;
+          <i class="fa-regular fa-file-lines" aria-hidden="true"></i> ${t('آخر تقرير')}
+        </button>` : `<a class="btn btn-soft btn-sm" href="${profile}">${t('ملفه')}</a>`}
+        <button class="pt-kid__stop" type="button" data-cancel-open="${s.id}">${paused ? t('إنهاء') : t('إيقاف أو إنهاء')}</button>`;
 
     // الصنف sponsor-row يبقى: يعتمد عليه اختبار e2e للبوابة
     return `
@@ -627,8 +660,8 @@ function renderSponsorships() {
   <div class="pt-kid__head">
     ${kidImage(orphan, 60, 'pt-kid__photo')}
     <div class="pt-kid__who">
-      <h3>${name}${orphan.age ? `<span>، ${ageLabel(orphan.age)}</span>` : ''}</h3>
-      <p>${escapeHtml(s.program?.name ?? '')}${s.is_zakat ? '<span class="pt-tag">من الزكاة</span>' : ''}</p>
+      <h3>${name}${orphan.age ? `<span>${t('، ')}${ageLabel(orphan.age)}</span>` : ''}</h3>
+      <p>${escapeHtml(s.program?.name ?? '')}${s.is_zakat ? `<span class="pt-tag">${t('من الزكاة')}</span>` : ''}</p>
     </div>
     ${chipFor(s)}
   </div>
@@ -636,16 +669,16 @@ function renderSponsorships() {
   ${statusLine(s)}
 
   <dl class="pt-kid__facts">
-    <div><dt>${interval > 1 ? CYCLE[interval] : 'شهرياً'}</dt>
+    <div><dt>${cap(interval > 1 ? CYCLE[interval] : CYCLE[1])}</dt>
       <dd class="num">${formatMoney(interval > 1 ? s.charge_cycle_amount : s.charge_amount, s.charge_currency)}</dd>
-      ${s.charge_currency !== s.currency ? `<dd class="pt-kid__fx" title="ما يعادله اليوم بالدولار، ويتغيّر مع سعر الصرف">≈ <bdi class="num" dir="ltr">${formatMoney(s.monthly_amount, s.currency)}</bdi></dd>` : ''}</div>
-    <div><dt>${pending ? 'أول دفعة' : s.payment_issue ? 'مستحق منذ' : 'القسط القادم'}</dt><dd>${pending ? 'عند التحويل' : paused ? 'بعد الاستئناف' : fmtShort(s.next_due_at)}</dd></div>
-    <div><dt>قدّمتَ له</dt><dd class="num">${formatMoney(s.total_paid ?? 0, s.currency)}</dd></div>
+      ${s.charge_currency !== s.currency ? `<dd class="pt-kid__fx" title="${t('ما يعادله اليوم بالدولار، ويتغيّر مع سعر الصرف')}">≈ <bdi class="num" dir="ltr">${formatMoney(s.monthly_amount, s.currency)}</bdi></dd>` : ''}</div>
+    <div><dt>${pending ? t('أول دفعة') : s.payment_issue ? t('مستحق منذ') : t('القسط القادم')}</dt><dd>${pending ? t('عند التحويل') : paused ? t('بعد الاستئناف') : fmtShort(s.next_due_at)}</dd></div>
+    <div><dt>${t('قدّمتَ له')}</dt><dd class="num">${formatMoney(s.total_paid ?? 0, s.currency)}</dd></div>
   </dl>
 
   ${pending ? '' : `<div class="pt-kid__fund">
-    <span>كفالته مغطّاة بنسبة <b class="num">${funded}٪</b></span>
-    <span class="pt-bar" role="img" aria-label="مغطّاة ${funded}٪"><span style="--v:${funded}%"></span></span>
+    <span>${t('كفالته مغطّاة بنسبة {p}', { p: `<b class="num">${pct(funded)}</b>` })}</span>
+    <span class="pt-bar" role="img" aria-label="${t('مغطّاة {p}', { p: pct(funded) })}"><span style="--v:${funded}%"></span></span>
   </div>`}
 
   <div class="pt-kid__actions">${actions}</div>
@@ -665,15 +698,15 @@ function renderPast(items) {
   const list = $('[data-portal-past-list]');
   list.innerHTML = items.map((s) => `
 <li>
-  <strong>${escapeHtml(s.orphan?.name ?? 'غير معروف')}</strong>
-  <span>${escapeHtml(s.status_label ?? '')}${s.ended_at ? ` في ${fmtDate(s.ended_at)}` : ''}</span>
-  <span>قدّمتَ له <b class="num">${formatMoney(s.total_paid ?? 0, s.currency)}</b></span>
+  <strong>${escapeHtml(s.orphan?.name ?? t('غير معروف'))}</strong>
+  <span>${escapeHtml(s.status_label ?? '')}${s.ended_at ? ` ${t('في {date}', { date: fmtDate(s.ended_at) })}` : ''}</span>
+  <span>${t('قدّمتَ له {amount}', { amount: `<b class="num">${formatMoney(s.total_paid ?? 0, s.currency)}</b>` })}</span>
 </li>`).join('');
 }
 
 /* -------------------------------------------------------------- التقارير */
 
-const NEW_CHIP = '<span class="pt-chip pt-chip--new">جديد</span>';
+const NEW_CHIP = `<span class="pt-chip pt-chip--new">${t('جديد')}</span>`;
 
 /** شريط «كيف صُرفت الكفالة» ومفتاحه، من نسب الخادم. */
 /** legend=false في البطاقات المتكررة: المفتاح نفسه تحت كل شريط ضجيجٌ لا معلومة. */
@@ -682,11 +715,11 @@ function spendBar(report, legend = true) {
     .filter(([key, v]) => SPENDING[key] && Number(v) > 0);
   if (!parts.length) return '';
   return `
-<div class="pt-split" role="img" aria-label="${parts.map(([k, v]) => `${SPENDING[k].label} ${v}٪`).join('، ')}">
+<div class="pt-split" role="img" aria-label="${parts.map(([k, v]) => `${SPENDING[k].label} ${pct(v)}`).join(t('، '))}">
   ${parts.map(([k, v]) => `<span style="--w:${Number(v)}%; --c:${SPENDING[k].color}"></span>`).join('')}
 </div>
 ${legend ? `<ul class="pt-legend" aria-hidden="true">
-  ${parts.map(([k, v]) => `<li><i style="--c:${SPENDING[k].color}"></i>${SPENDING[k].label} <b class="num">${Number(v)}٪</b></li>`).join('')}
+  ${parts.map(([k, v]) => `<li><i style="--c:${SPENDING[k].color}"></i>${SPENDING[k].label} <b class="num">${pct(Number(v))}</b></li>`).join('')}
 </ul>` : ''}`;
 }
 
@@ -697,7 +730,7 @@ function renderLatest() {
   const r = reports.find((x) => x.is_new) ?? reports[0];
 
   if (!r) {
-    host.innerHTML = '<p class="pt-muted mb-0">يصلك أول تقرير بعد ثلاثة أشهر من بدء الكفالة، بعد زيارةٍ ميدانية للطفل.</p>';
+    host.innerHTML = `<p class="pt-muted mb-0">${t('يصلك أول تقرير بعد ثلاثة أشهر من بدء الكفالة، بعد زيارةٍ ميدانية للطفل.')}</p>`;
     return;
   }
 
@@ -705,12 +738,12 @@ function renderLatest() {
 <div class="pt-latest" data-report="${r.id}">
   <div class="pt-who">
     ${kidImage(r.orphan, 44)}
-    <div><b>${escapeHtml(r.orphan?.name ?? '')}</b><span>${escapeHtml(r.period_label ?? '')} · زيارة ${fmtShort(r.visit_date)}</span></div>
+    <div><b>${escapeHtml(r.orphan?.name ?? '')}</b><span>${escapeHtml(r.period_label ?? '')} · ${t('زيارة {date}', { date: fmtShort(r.visit_date) })}</span></div>
     ${r.is_new ? NEW_CHIP : ''}
   </div>
   ${r.summary ? `<p class="pt-latest__summary">${escapeHtml(r.summary)}</p>` : ''}
   ${spendBar(r)}
-  <button class="btn btn-soft btn-sm w-100" type="button" data-report-open="${r.id}">اقرأ التقرير كاملاً</button>
+  <button class="btn btn-soft btn-sm w-100" type="button" data-report-open="${r.id}">${t('اقرأ التقرير كاملاً')}</button>
 </div>`;
 }
 
@@ -723,13 +756,15 @@ function renderReports() {
   if (!reports.length) {
     list.innerHTML = `<li class="pt-empty">
       <i class="fa-regular fa-file-lines" aria-hidden="true"></i>
-      <p>لا تقارير منشورة بعد. يصلك أول تقرير بعد ثلاثة أشهر من بدء الكفالة.</p>
+      <p>${t('لا تقارير منشورة بعد. يصلك أول تقرير بعد ثلاثة أشهر من بدء الكفالة.')}</p>
     </li>`;
     return;
   }
 
   const fresh = reports.filter((r) => r.is_new).length;
-  setText('[data-reports-sub]', `${formatNumber(reports.length)} ${reports.length === 1 ? 'تقرير' : 'تقارير'}${fresh ? `، ${formatNumber(fresh)} منها ${fresh === 1 ? 'جديد' : 'جديدة'}` : ''}. زيارةٌ ميدانية لكل طفل كل ثلاثة أشهر.`);
+  const total = reports.length === 1 ? t('{n} تقرير', { n: formatNumber(1) }) : t('{n} تقارير', { n: formatNumber(reports.length) });
+  const unread = !fresh ? '' : fresh === 1 ? t('، {n} منها جديد', { n: formatNumber(1) }) : t('، {n} منها جديدة', { n: formatNumber(fresh) });
+  setText('[data-reports-sub]', `${total}${unread}. ${t('زيارةٌ ميدانية لكل طفل كل ثلاثة أشهر.')}`);
 
   // تصفية بالطفل حين يكفل أكثر من واحد
   const kids = [...new Map(reports.map((r) => [r.orphan?.id, r.orphan])).values()].filter(Boolean);
@@ -738,7 +773,7 @@ function renderReports() {
     filter.hidden = kids.length < 2;
     if (!kids.some((k) => String(k.id) === reportFilter)) reportFilter = 'all';
     filter.innerHTML = kids.length < 2 ? '' : [
-      `<button type="button" data-filter="all" aria-pressed="${reportFilter === 'all'}">الكل <span class="num">${formatNumber(reports.length)}</span></button>`,
+      `<button type="button" data-filter="all" aria-pressed="${reportFilter === 'all'}">${t('الكل')} <span class="num">${formatNumber(reports.length)}</span></button>`,
       ...kids.map((k) => `<button type="button" data-filter="${k.id}" aria-pressed="${reportFilter === String(k.id)}">${kidImage(k, 26)}${escapeHtml(k.name ?? '')} <span class="num">${formatNumber(reports.filter((r) => r.orphan?.id === k.id).length)}</span></button>`),
     ].join('');
   }
@@ -747,14 +782,14 @@ function renderReports() {
 <li class="pt-report${r.is_new ? ' is-new' : ''}" data-report="${r.id}" data-orphan="${r.orphan?.id ?? ''}"${reportFilter !== 'all' && String(r.orphan?.id) !== reportFilter ? ' hidden' : ''}>
   <div class="pt-who">
     ${kidImage(r.orphan, 44)}
-    <div><b>${escapeHtml(r.orphan?.name ?? '')}</b><span>زيارة ${fmtDate(r.visit_date)}</span></div>
+    <div><b>${escapeHtml(r.orphan?.name ?? '')}</b><span>${t('زيارة {date}', { date: fmtDate(r.visit_date) })}</span></div>
     ${r.is_new ? NEW_CHIP : ''}
   </div>
   <h3>${escapeHtml(r.period_label ?? r.title ?? '')}</h3>
   ${r.summary ? `<p class="pt-report__summary">${escapeHtml(r.summary)}</p>` : ''}
   ${spendBar(r, false)}
   <button class="btn ${r.is_new ? 'btn-primary' : 'btn-soft'} btn-sm" type="button" data-report-open="${r.id}">
-    اقرأ التقرير <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+    ${t('اقرأ التقرير')} <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
   </button>
 </li>`).join('');
 }
@@ -793,7 +828,7 @@ function initReports() {
         syncReportBadges();
       }
     } catch (error) {
-      failed(error, 'تعذّر فتح التقرير.');
+      failed(error, t('تعذّر فتح التقرير.'));
     } finally {
       if (button.isConnected) button.disabled = false;
     }
@@ -806,9 +841,9 @@ function openReportModal(report) {
   if (!host) return;
 
   const notes = [
-    ['الدراسة', 'fa-book-open', report.academic_note],
-    ['الصحة', 'fa-heart-pulse', report.health_note],
-    ['الحال النفسية', 'fa-face-smile', report.psychosocial_note],
+    [t('الدراسة'), 'fa-book-open', report.academic_note],
+    [t('الصحة'), 'fa-heart-pulse', report.health_note],
+    [t('الحال النفسية'), 'fa-face-smile', report.psychosocial_note],
   ].filter(([, , v]) => v);
 
   const photo = report.media?.find((m) => m.type === 'image') ?? null;
@@ -818,8 +853,10 @@ function openReportModal(report) {
 <header class="pt-rep__head">
   ${kidImage(report.orphan, 56)}
   <div>
-    <p>${escapeHtml(report.period_label ?? '')} · زيارة ميدانية ${fmtDate(report.visit_date)}${report.supervisor ? ` مع ${escapeHtml(report.supervisor)}` : ''}</p>
-    <h2 id="reportModalTitle">${escapeHtml(report.orphan?.name ? `تقرير ${report.orphan.name}` : report.title)}</h2>
+    <p>${escapeHtml(report.period_label ?? '')} · ${report.supervisor
+      ? t('زيارة ميدانية {date} مع {name}', { date: fmtDate(report.visit_date), name: escapeHtml(report.supervisor) })
+      : t('زيارة ميدانية {date}', { date: fmtDate(report.visit_date) })}</p>
+    <h2 id="reportModalTitle">${escapeHtml(report.orphan?.name ? t('تقرير {name}', { name: report.orphan.name }) : report.title)}</h2>
   </div>
 </header>
 
@@ -831,11 +868,11 @@ ${notes.length ? `<dl class="pt-rep__notes">
   ${notes.map(([label, icon, value]) => `<div><dt><i class="fa-solid ${icon}" aria-hidden="true"></i>${label}</dt><dd>${escapeHtml(value)}</dd></div>`).join('')}
 </dl>` : ''}
 
-${breakdown ? `<div class="pt-rep__spend"><h3>كيف صُرفت الكفالة</h3>${breakdown}</div>` : ''}
+${breakdown ? `<div class="pt-rep__spend"><h3>${t('كيف صُرفت الكفالة')}</h3>${breakdown}</div>` : ''}
 
 <p class="pt-rep__private">
   <i class="fa-solid fa-lock" aria-hidden="true"></i>
-  <span>هذا التقرير خاصٌّ بك ككافل. نرجو ألا تنشر صور الطفل أو تفاصيله خارج المنصة.</span>
+  <span>${t('هذا التقرير خاصٌّ بك ككافل. نرجو ألا تنشر صور الطفل أو تفاصيله خارج المنصة.')}</span>
 </p>`;
 
   openModal('reportModal');
@@ -857,7 +894,7 @@ function initLedger() {
       const { data } = await portalLedger(Number(button.dataset.ledgerOpen));
       openLedgerModal(data);
     } catch (error) {
-      failed(error, 'تعذّر فتح السجل.');
+      failed(error, t('تعذّر فتح السجل.'));
     } finally {
       if (button.isConnected) button.disabled = false;
     }
@@ -870,11 +907,12 @@ const money = (v) => `<bdi class="num" dir="ltr">${formatMoney(Number(v) || 0)}<
 function openLedgerModal(d) {
   const host = $('[data-ledger-content]');
   if (!host) return;
-  const t = d.totals;
+  const tot = d.totals;
   const name = escapeHtml(d.child?.name ?? '');
   const assoc = d.association
     ? `<a href="${url(`/partners/${encodeURIComponent(d.association.slug)}`)}">${escapeHtml(d.association.name)}</a>`
-    : 'جمعيته';
+    : t('جمعيته');
+  const bdi = (v) => `<bdi class="num">${v}</bdi>`;
   const months = (d.months ?? []).filter((m) => m.received || m.fund || m.transfer || m.spent_total);
 
   // الشهر الجاري يُحوَّل أوله التالي، والماضي ينتظر الإرسال؛ وما قبلهما بلا تحويلٍ مسجّل لا وعد له
@@ -885,11 +923,11 @@ function openLedgerModal(d) {
     return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}`;
   });
   const transferChip = (m) => {
-    if (m.transfer?.status === 'confirmed') return `<span class="pt-chip pt-chip--ok">وصل للجمعية ${money(m.transfer.amount)}</span>`;
-    if (m.transfer?.status === 'sent') return `<span class="pt-chip pt-chip--wait">أُرسل للجمعية ${money(m.transfer.amount)}</span>`;
+    if (m.transfer?.status === 'confirmed') return `<span class="pt-chip pt-chip--ok">${t('وصل للجمعية {amount}', { amount: money(m.transfer.amount) })}</span>`;
+    if (m.transfer?.status === 'sent') return `<span class="pt-chip pt-chip--wait">${t('أُرسل للجمعية {amount}', { amount: money(m.transfer.amount) })}</span>`;
     if (!m.received && !m.fund) return '<span></span>';
-    if (m.period === current) return '<span class="pt-chip">يُحوَّل أول الشهر التالي</span>';
-    if (m.period === previous) return '<span class="pt-chip">بانتظار الإرسال</span>';
+    if (m.period === current) return `<span class="pt-chip">${t('يُحوَّل أول الشهر التالي')}</span>`;
+    if (m.period === previous) return `<span class="pt-chip">${t('بانتظار الإرسال')}</span>`;
     return '<span></span>';
   };
 
@@ -898,38 +936,40 @@ function openLedgerModal(d) {
 
   host.innerHTML = `
 <header class="pt-led__head">
-  <p>منذ بدأت الكفالة · المبالغ بالدولار</p>
-  <h2 id="ledgerModalTitle">أين ذهب مالك لـ${name}</h2>
+  <p>${t('منذ بدأت الكفالة · المبالغ بالدولار')}</p>
+  <h2 id="ledgerModalTitle">${t('أين ذهب مالك لـ{name}', { name })}</h2>
 </header>
 
 <ol class="pt-flow" role="list">
   <li>
     <span class="pt-flow__icon" aria-hidden="true"><i class="fa-solid fa-hand-holding-heart"></i></span>
-    <span class="pt-flow__label">وصل لـ${name}</span>
-    <strong>${money(t.received)}</strong>
-    <small>${t.my_share_percent !== null ? `منك ${money(t.mine)}، أي <bdi class="num">${t.my_share_percent}٪</bdi> مما وصل` : 'لم تصل دفعات بعد'}</small>
+    <span class="pt-flow__label">${t('وصل لـ{name}', { name })}</span>
+    <strong>${money(tot.received)}</strong>
+    <small>${tot.my_share_percent !== null ? t('منك {mine}، أي {share} مما وصل', { mine: money(tot.mine), share: bdi(pct(tot.my_share_percent)) }) : t('لم تصل دفعات بعد')}</small>
   </li>
   <li>
     <span class="pt-flow__icon" aria-hidden="true"><i class="fa-solid fa-building-columns"></i></span>
-    <span class="pt-flow__label">حُوِّل إلى ${assoc}</span>
-    <strong>${money(t.transferred)}</strong>
-    <small>بعد التشغيل ${money(t.fee)}، وهو <bdi class="num">${formatNumber(d.fee_percent)}٪</bdi> من كل دفعة</small>
+    <span class="pt-flow__label">${t('حُوِّل إلى {association}', { association: assoc })}</span>
+    <strong>${money(tot.transferred)}</strong>
+    <small>${t('بعد التشغيل {fee}، وهو {share} من كل دفعة', { fee: money(tot.fee), share: bdi(pct(formatNumber(d.fee_percent))) })}</small>
   </li>
   <li>
     <span class="pt-flow__icon" aria-hidden="true"><i class="fa-solid fa-basket-shopping"></i></span>
-    <span class="pt-flow__label">صُرف على ${name}</span>
-    <strong>${money(t.spent)}</strong>
-    <small>في <bdi class="num">${formatNumber(t.spend_items)}</bdi> بنداً${t.receipts ? `، منها <bdi class="num">${formatNumber(t.receipts)}</bdi> بإيصالٍ موثّق` : ''}</small>
+    <span class="pt-flow__label">${t('صُرف على {name}', { name })}</span>
+    <strong>${money(tot.spent)}</strong>
+    <small>${count(tot.spend_items, { ar: { other: 'في {count} بنداً' }, en: { one: 'on {count} item', other: 'on {count} items' } }, bdi)}${tot.receipts
+      ? count(tot.receipts, { ar: { other: '، منها {count} بإيصالٍ موثّق' }, en: { one: ', {count} with a verified receipt', other: ', {count} with verified receipts' } }, bdi)
+      : ''}</small>
   </li>
 </ol>
 
-${t.fund > 0 ? `<p class="pt-led__balance pt-led__balance--fund"><i class="fa-solid fa-shield-heart" aria-hidden="true"></i> <span>حين تعذّر قسطٌ، غطّى صندوق الاستمرارية لـ${name} <b>${money(t.fund)}</b>، فلم ينقطع عنه شيء. والصندوق من حصةٍ صغيرة من التشغيل، لا من مال أطفالٍ آخرين.</span></p>` : ''}
-${t.transferred > 0 && t.balance > 0 ? `<p class="pt-led__balance"><i class="fa-solid fa-piggy-bank" aria-hidden="true"></i> <span>عند الجمعية لـ${name} <b>${money(t.balance)}</b> لم تُصرف بعد، وتُصرف عليه في الأشهر القادمة.</span></p>` : ''}
-${t.transferred === 0 && t.received > 0 ? '<p class="pt-led__balance"><i class="fa-regular fa-clock" aria-hidden="true"></i> يُحوَّل ما يصل كل شهر لجمعية الطفل في أول الشهر التالي، ويظهر هنا حين يُرسل.</p>' : ''}
+${tot.fund > 0 ? `<p class="pt-led__balance pt-led__balance--fund"><i class="fa-solid fa-shield-heart" aria-hidden="true"></i> <span>${t('حين تعذّر قسطٌ، غطّى صندوق الاستمرارية لـ{name} {amount}، فلم ينقطع عنه شيء. والصندوق من حصةٍ صغيرة من التشغيل، لا من مال أطفالٍ آخرين.', { name, amount: `<b>${money(tot.fund)}</b>` })}</span></p>` : ''}
+${tot.transferred > 0 && tot.balance > 0 ? `<p class="pt-led__balance"><i class="fa-solid fa-piggy-bank" aria-hidden="true"></i> <span>${t('عند الجمعية لـ{name} {amount} لم تُصرف بعد، وتُصرف عليه في الأشهر القادمة.', { name, amount: `<b>${money(tot.balance)}</b>` })}</span></p>` : ''}
+${tot.transferred === 0 && tot.received > 0 ? `<p class="pt-led__balance"><i class="fa-regular fa-clock" aria-hidden="true"></i> ${t('يُحوَّل ما يصل كل شهر لجمعية الطفل في أول الشهر التالي، ويظهر هنا حين يُرسل.')}</p>` : ''}
 
 ${cats.length ? `<section class="pt-rep__spend">
-  <h3>على ماذا صُرف</h3>
-  <div class="pt-split" role="img" aria-label="${cats.map((c) => `${escapeHtml(c.label)} ${formatMoney(c.amount)}`).join('، ')}">
+  <h3>${t('على ماذا صُرف')}</h3>
+  <div class="pt-split" role="img" aria-label="${cats.map((c) => `${escapeHtml(c.label)} ${formatMoney(c.amount)}`).join(t('، '))}">
     ${cats.map((c) => `<span style="--w:${(c.amount * 100 / spentAll).toFixed(1)}%; --c:${escapeHtml(c.color ?? 'var(--color-brand)')}"></span>`).join('')}
   </div>
   <ul class="pt-legend">
@@ -938,20 +978,20 @@ ${cats.length ? `<section class="pt-rep__spend">
 </section>` : ''}
 
 ${months.length ? `<section class="pt-led__months">
-  <h3>شهراً بشهر</h3>
+  <h3>${t('شهراً بشهر')}</h3>
   <ol role="list">
     ${months.map((m) => `<li>
       <strong>${escapeHtml(m.label)}</strong>
-      <span>وصل <b>${money(m.received)}</b>${m.mine && m.mine !== m.received ? ` <small>منك ${money(m.mine)}</small>` : ''}${m.fund ? ` <small class="pt-led__fund">والصندوق ${money(m.fund)}</small>` : ''}</span>
+      <span>${t('وصل {amount}', { amount: `<b>${money(m.received)}</b>` })}${m.mine && m.mine !== m.received ? ` <small>${t('منك {amount}', { amount: money(m.mine) })}</small>` : ''}${m.fund ? ` <small class="pt-led__fund">${t('والصندوق {amount}', { amount: money(m.fund) })}</small>` : ''}</span>
       ${transferChip(m)}
-      <span>صُرف <b>${money(m.spent_total)}</b></span>
+      <span>${t('صُرف {amount}', { amount: `<b>${money(m.spent_total)}</b>` })}</span>
     </li>`).join('')}
   </ol>
-</section>` : '<p class="pt-muted">لا حركة بعد. يظهر هنا كل شهر ما وصل وما حُوِّل وما صُرف.</p>'}
+</section>` : `<p class="pt-muted">${t('لا حركة بعد. يظهر هنا كل شهر ما وصل وما حُوِّل وما صُرف.')}</p>`}
 
 <p class="pt-rep__private">
   <i class="fa-solid fa-scale-balanced" aria-hidden="true"></i>
-  <span>كل رقمٍ هنا محسوبٌ من الدفعات والتحويلات والصرف المعتمَد نفسها، لا مكتوبٌ باليد. وما دفعه كفلاء آخرون يظهر مجموعاً لا بأسمائهم.</span>
+  <span>${t('كل رقمٍ هنا محسوبٌ من الدفعات والتحويلات والصرف المعتمَد نفسها، لا مكتوبٌ باليد. وما دفعه كفلاء آخرون يظهر مجموعاً لا بأسمائهم.')}</span>
 </p>`;
 
   openModal('ledgerModal');
@@ -963,10 +1003,10 @@ let messagesFor = null;
 
 /** «وافق المشرف» لا تعني «وصلت»: التسليم خطوة لاحقة يسجّلها المشرف. */
 const MESSAGE_STATUS = {
-  pending_review: 'بانتظار مراجعة المشرف',
-  approved: 'وافق عليها المشرف، وتصل في الزيارة القادمة',
-  delivered: 'وصلت للطفل',
-  rejected: 'لم تُسلَّم',
+  pending_review: t('بانتظار مراجعة المشرف'),
+  approved: t('وافق عليها المشرف، وتصل في الزيارة القادمة'),
+  delivered: t('وصلت للطفل'),
+  rejected: t('لم تُسلَّم'),
 };
 
 function initMessages() {
@@ -993,7 +1033,7 @@ function initMessages() {
     e.preventDefault();
     const body = field.value.trim();
     if (body.length < 2) {
-      toast('اكتب رسالتك أولاً.', 'error');
+      toast(t('اكتب رسالتك أولاً.'), 'error');
       field.focus();
       return;
     }
@@ -1005,10 +1045,10 @@ function initMessages() {
     try {
       const res = await sendPortalMessage(target, body);
       field.value = '';
-      toast(res.message ?? 'وصلتنا رسالتك.');
+      toast(res.message ?? t('وصلتنا رسالتك.'));
       if (messagesFor === target) await renderMessages(target);
     } catch (error) {
-      failed(error, 'تعذّر إرسال الرسالة.');
+      failed(error, t('تعذّر إرسال الرسالة.'));
     } finally {
       button.disabled = false;
     }
@@ -1018,7 +1058,7 @@ function initMessages() {
 async function openMessages(id) {
   messagesFor = id;
   const s = sponsorships.find((x) => x.id === id);
-  setText('#messagesTitle', `رسائلك إلى ${s?.orphan?.name ?? 'الطفل'}`);
+  setText('#messagesTitle', t('رسائلك إلى {name}', { name: s?.orphan?.name ?? t('الطفل') }));
   const avatar = $('[data-messages-avatar]');
   if (avatar && s?.orphan) {
     avatar.dataset.fallback = s.orphan.illustration_url ?? '';
@@ -1031,7 +1071,7 @@ async function openMessages(id) {
 async function renderMessages(id) {
   const list = $('[data-messages-list]');
   if (!list) return;
-  list.innerHTML = '<li class="pt-muted">جارٍ التحميل…</li>';
+  list.innerHTML = `<li class="pt-muted">${t('جارٍ التحميل…')}</li>`;
 
   try {
     const { data } = await portalMessages(id);
@@ -1051,7 +1091,7 @@ async function renderMessages(id) {
       }).join('')
       : `<li class="pt-empty">
           <i class="fa-regular fa-comment-dots" aria-hidden="true"></i>
-          <p>لا رسائل بعد. كلمةٌ قصيرة منك تعني له الكثير.</p>
+          <p>${t('لا رسائل بعد. كلمةٌ قصيرة منك تعني له الكثير.')}</p>
         </li>`;
 
     const body = list.closest('.modal-body');
@@ -1059,7 +1099,7 @@ async function renderMessages(id) {
   } catch (error) {
     if (messagesFor !== id) return;
     if (isAuthLoss(error)) { toLogin(); return; }
-    list.innerHTML = `<li class="pt-muted">${escapeHtml(error.message ?? 'تعذّر تحميل الرسائل.')}</li>`;
+    list.innerHTML = `<li class="pt-muted">${escapeHtml(error.message ?? t('تعذّر تحميل الرسائل.'))}</li>`;
   }
 }
 
@@ -1081,11 +1121,11 @@ async function changeStatus(id, status, button) {
   if (button) busy(button, true);
   try {
     const res = await setSponsorshipStatus(id, status);
-    toast(res.message ?? 'حُفظ.');
+    toast(res.message ?? t('حُفظ.'));
     await loadOverview();
     return true;
   } catch (error) {
-    failed(error, 'تعذّر تغيير حالة الكفالة.');
+    failed(error, t('تعذّر تغيير حالة الكفالة.'));
     // 409: الحالة تغيّرت من مكان آخر، فالبوابة تعرض الحالة الحقيقية
     if (error?.status === 409) await loadOverview();
     return false;
@@ -1117,11 +1157,11 @@ function initCancel() {
 
     // الحجز يُلغى ولا يُوقف؛ والنشطة تُعرض عليها الاستراحة قبل الإنهاء
     setText('[data-cancel-name]', s?.orphan?.name ?? '');
-    setText('[data-cancel-verb]', pending ? 'إلغاء حجز' : 'إنهاء كفالة');
+    setText('[data-cancel-verb]', pending ? t('إلغاء حجز') : t('إنهاء كفالة'));
     setText('[data-cancel-lede]', pending
-      ? 'نُلغي الحجز فيعود الطفل متاحاً لكافل آخر. لن يُخصم منك شيء.'
-      : 'الإنهاء نهائي: نتوقف عن الخصم من اليوم، ونبحث للطفل عن كافل بديل كي لا تنقطع رعايته.');
-    setText('[data-cancel-submit]', pending ? 'ألغِ الحجز' : 'أنهِ الكفالة');
+      ? t('نُلغي الحجز فيعود الطفل متاحاً لكافل آخر. لن يُخصم منك شيء.')
+      : t('الإنهاء نهائي: نتوقف عن الخصم من اليوم، ونبحث للطفل عن كافل بديل كي لا تنقطع رعايته.'));
+    setText('[data-cancel-submit]', pending ? t('ألغِ الحجز') : t('أنهِ الكفالة'));
     const pause = $('[data-cancel-pause]');
     if (pause) pause.hidden = s?.status !== 'active';
     const reason = $('[data-cancel-reason]');
@@ -1143,18 +1183,18 @@ function initCancel() {
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const button = $('[data-cancel-submit]');
-    busy(button, true, 'جارٍ التنفيذ…');
+    busy(button, true, t('جارٍ التنفيذ…'));
 
     try {
       const id = cancelFor;
       const res = await cancelSponsorship(id, form.elements.reason.value.trim());
       await closeModal('cancelModal');
       form.reset();
-      toast(res.message ?? 'أُنهيت الكفالة.');
+      toast(res.message ?? t('أُنهيت الكفالة.'));
       await loadOverview();
       refocusSponsorship(id);
     } catch (error) {
-      failed(error, 'تعذّر إنهاء الكفالة.');
+      failed(error, t('تعذّر إنهاء الكفالة.'));
     } finally {
       busy(button, false);
     }
@@ -1191,7 +1231,7 @@ function initCard() {
     const icon = $('i', box);
     if (icon) icon.className = `fa-solid ${cardFor.payment_issue ? 'fa-credit-card' : 'fa-shield-heart'}`;
     setText('[data-card="amount"]', formatMoney(cardFor.payment_issue?.amount ?? cardFor.charge_cycle_amount, cardFor.payment_issue?.currency ?? cardFor.charge_currency));
-    setText('[data-card="when"]', cardFor.payment_issue ? 'يُخصم الآن' : `قسط ${fmtShort(cardFor.next_due_at)}، يُخصم الآن`);
+    setText('[data-card="when"]', cardFor.payment_issue ? t('يُخصم الآن') : t('قسط {date}، يُخصم الآن', { date: fmtShort(cardFor.next_due_at) }));
     setText('[data-card="day"]', formatNumber(cardFor.billing_day ?? 1));
     openModal('cardModal');
 
@@ -1216,15 +1256,15 @@ function initCard() {
 
     const button = $('[type="submit"]', form);
     const card = tokenizeCard($('#cardNumber', form).value);
-    busy(button, true, 'جارٍ الخصم…');
+    busy(button, true, t('جارٍ الخصم…'));
     try {
       const res = await updateSponsorshipCard(cardFor.id, { card_token: card.token, card_last4: card.last4, card_brand: card.brand });
       await closeModal('cardModal');
-      toast(res.message ?? 'وصل القسط، شكراً لك.');
+      toast(res.message ?? t('وصل القسط، شكراً لك.'));
       await loadOverview();
     } catch (error) {
       if (isAuthLoss(error)) toLogin();
-      else showFormErrors(form, error, 'تعذّر الخصم الآن.');
+      else showFormErrors(form, error, t('تعذّر الخصم الآن.'));
     } finally {
       busy(button, false);
     }
@@ -1246,7 +1286,7 @@ function initBank() {
     try {
       bankConfig ??= await fetchCheckoutConfig();
     } catch (error) {
-      failed(error, 'تعذّر جلب بيانات الحساب.');
+      failed(error, t('تعذّر جلب بيانات الحساب.'));
       return;
     } finally {
       trigger.disabled = false;
@@ -1271,9 +1311,9 @@ function initBank() {
     if (!value) return;
     try {
       await navigator.clipboard.writeText(value);
-      toast('نُسخ.', 'info', 2000);
+      toast(t('نُسخ.'), 'info', 2000);
     } catch {
-      toast('تعذّر النسخ. حدّد النص وانسخه يدوياً.', 'error');
+      toast(t('تعذّر النسخ. حدّد النص وانسخه يدوياً.'), 'error');
     }
   });
 }
@@ -1338,7 +1378,7 @@ function showFormErrors(form, error, fallback) {
 }
 
 /** زرّ ينتظر الخادم: معطّل، ويقول ذلك نصّاً لا بالتعطيل وحده. */
-function busy(button, on, label = 'جارٍ الحفظ…') {
+function busy(button, on, label = t('جارٍ الحفظ…')) {
   if (!button) return;
   if (on) {
     button.dataset.label = button.innerHTML;
@@ -1381,9 +1421,9 @@ function initAccount() {
       profile.dataset.email = res.data?.email ?? payload.email;
       if (profile.elements.current_password) profile.elements.current_password.value = '';
       if (confirmBox) confirmBox.hidden = true;
-      toast(res.message ?? 'حُفظت التعديلات.');
+      toast(res.message ?? t('حُفظت التعديلات.'));
     } catch (error) {
-      if (!isAuthLoss(error)) showFormErrors(profile, error, 'تعذّر حفظ التعديلات.');
+      if (!isAuthLoss(error)) showFormErrors(profile, error, t('تعذّر حفظ التعديلات.'));
       else toLogin();
     } finally {
       busy(button, false);
@@ -1396,9 +1436,9 @@ function initAccount() {
     button.disabled = true;
     try {
       const res = await forgotPassword(profile?.dataset.email ?? '');
-      toast(res.message ?? 'أرسلنا الرابط إلى بريدك.');
+      toast(res.message ?? t('أرسلنا الرابط إلى بريدك.'));
     } catch (error) {
-      failed(error, 'تعذّر إرسال الرابط.');
+      failed(error, t('تعذّر إرسال الرابط.'));
     } finally {
       button.disabled = false;
     }
@@ -1410,7 +1450,7 @@ function initAccount() {
     const { current_password: current, password: next, password_confirmation: again } = password.elements;
     clearFieldErrors(password);
     if (next.value !== again.value) {
-      showFieldError(again, 'كلمتا المرور غير متطابقتين.');
+      showFieldError(again, t('كلمتا المرور غير متطابقتين.'));
       again.focus();
       return;
     }
@@ -1424,9 +1464,9 @@ function initAccount() {
         password_confirmation: again.value,
       });
       password.reset();
-      toast(res.message ?? 'تم تغيير كلمة المرور. خرجت أجهزتك الأخرى من حسابك.');
+      toast(res.message ?? t('تم تغيير كلمة المرور. خرجت أجهزتك الأخرى من حسابك.'));
     } catch (error) {
-      if (!isAuthLoss(error)) showFormErrors(password, error, 'تعذّر تغيير كلمة المرور.');
+      if (!isAuthLoss(error)) showFormErrors(password, error, t('تعذّر تغيير كلمة المرور.'));
       else toLogin();
     } finally {
       busy(button, false);
@@ -1458,11 +1498,11 @@ function renderRecent(items) {
       return `
 <li>
   <span class="pt-recent__icon pt-recent__icon${tone}" aria-hidden="true"><i class="fa-solid ${icon}"></i></span>
-  <span class="pt-recent__text"><b>${escapeHtml(p.sponsorship?.orphan?.name ?? 'كفالة')}</b><span>${fmtShort(p.paid_at ?? p.created_at)} · ${escapeHtml(p.status_label ?? '')}</span></span>
+  <span class="pt-recent__text"><b>${escapeHtml(p.sponsorship?.orphan?.name ?? t('كفالة'))}</b><span>${fmtShort(p.paid_at ?? p.created_at)} · ${escapeHtml(p.status_label ?? '')}</span></span>
   <span class="num">${formatMoney(p.amount, p.currency)}</span>
 </li>`;
     }).join('')
-    : '<li class="pt-muted">لا مدفوعات بعد.</li>';
+    : `<li class="pt-muted">${t('لا مدفوعات بعد.')}</li>`;
 }
 
 /** صفحة بعد صفحة: كان السجل يقف عند آخر عشر دفعات بلا طريق لما قبلها. */
@@ -1480,19 +1520,19 @@ async function loadPayments(page) {
     if (page === 1) renderRecent(data);
 
     if (page === 1 && !data.length) {
-      body.innerHTML = '<tr><td colspan="6" class="pt-table__empty">لا مدفوعات بعد.</td></tr>';
+      body.innerHTML = `<tr><td colspan="6" class="pt-table__empty">${t('لا مدفوعات بعد.')}</td></tr>`;
     } else {
       const rows = data.map((p) => `
 <tr>
-  <td data-label="التاريخ">${fmtDate(p.paid_at ?? p.created_at)}</td>
-  <td data-label="الطفل"><span class="pt-table__kid">${kidImage(orphanOf(p), 30)}${escapeHtml(p.sponsorship?.orphan?.name ?? 'غير معروف')}</span></td>
-  <td data-label="المبلغ" class="num">${formatMoney(p.amount, p.currency)}</td>
-  <td data-label="الوسيلة">${escapeHtml(p.card ?? p.method_label ?? '')}</td>
-  <td data-label="الحالة">
+  <td data-label="${t('التاريخ')}">${fmtDate(p.paid_at ?? p.created_at)}</td>
+  <td data-label="${t('الطفل')}"><span class="pt-table__kid">${kidImage(orphanOf(p), 30)}${escapeHtml(p.sponsorship?.orphan?.name ?? t('غير معروف'))}</span></td>
+  <td data-label="${t('المبلغ')}" class="num">${formatMoney(p.amount, p.currency)}</td>
+  <td data-label="${t('الوسيلة')}">${escapeHtml(p.card ?? p.method_label ?? '')}</td>
+  <td data-label="${t('الحالة')}">
     <span class="pt-chip ${PAY_CHIP[p.status] ?? ''}">${escapeHtml(p.status_label ?? '')}</span>
     ${p.status === 'failed' && p.failure_reason ? `<span class="pt-why">${escapeHtml(p.failure_reason)}</span>` : ''}
   </td>
-  <td data-label="الإيصال">${p.receipt_number ? `<span class="num pt-receipt">${escapeHtml(p.receipt_number)}</span>` : '<span class="pt-receipt">لا يوجد</span>'}</td>
+  <td data-label="${t('الإيصال')}">${p.receipt_number ? `<span class="num pt-receipt">${escapeHtml(p.receipt_number)}</span>` : `<span class="pt-receipt">${t('لا يوجد')}</span>`}</td>
 </tr>`).join('');
       if (page === 1) body.innerHTML = rows;
       else body.insertAdjacentHTML('beforeend', rows);
@@ -1502,14 +1542,14 @@ async function loadPayments(page) {
     const foot = $('[data-payments-foot]');
     if (foot) foot.hidden = page === 1 && !data.length;
     setText('[data-payments-shown]', meta?.total
-      ? `عرض ${formatNumber(body.querySelectorAll('tr').length)} من ${formatNumber(meta.total)}`
+      ? t('عرض {shown} من {total}', { shown: formatNumber(body.querySelectorAll('tr').length), total: formatNumber(meta.total) })
       : '');
   } catch (error) {
     if (isAuthLoss(error)) { toLogin(); return; }
     if (page === 1) {
-      body.innerHTML = '<tr><td colspan="6" class="pt-table__empty">تعذّر تحميل سجل المدفوعات.</td></tr>';
+      body.innerHTML = `<tr><td colspan="6" class="pt-table__empty">${t('تعذّر تحميل سجل المدفوعات.')}</td></tr>`;
       renderRecent([]);
-    } else toast(error?.message ?? 'تعذّر تحميل المزيد.', 'error');
+    } else toast(error?.message ?? t('تعذّر تحميل المزيد.'), 'error');
   } finally {
     if (more) more.disabled = false;
   }

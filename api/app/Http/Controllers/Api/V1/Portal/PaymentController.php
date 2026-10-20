@@ -20,7 +20,7 @@ class PaymentController extends Controller
 
         $payments = Payment::query()
             ->where('sponsor_id', $sponsor->id)
-            ->with(['sponsorship', 'sponsorship.orphan:id,reference_code,first_name,gender,photo_path,date_of_birth,funded_percent'])
+            ->with(['sponsorship', 'sponsorship.orphan:id,reference_code,first_name,translations,gender,photo_path,date_of_birth,funded_percent'])
             ->when($request->filled('status'), fn ($q) => $q->where('status', $request->string('status')))
             ->when($request->filled('year'), fn ($q) => $q->whereYear('paid_at', $request->integer('year')))
             // الترتيب بتاريخ الحدث لا الإدخال. و`ORDER BY paid_at DESC` وحده

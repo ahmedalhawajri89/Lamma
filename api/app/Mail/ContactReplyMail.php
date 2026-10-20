@@ -22,7 +22,7 @@ class ContactReplyMail extends Mailable
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: 'ردّ '.SiteProfile::site()['name'].' على رسالتك');
+        return new Envelope(subject: __('ردّ :site على رسالتك', ['site' => SiteProfile::site()['name']]));
     }
 
     public function content(): Content

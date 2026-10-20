@@ -13,7 +13,6 @@ use App\Models\ContinuityFundEntry;
 use App\Models\Payment;
 use App\Models\Setting;
 use App\Models\Sponsorship;
-use App\Support\Locale;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
@@ -135,7 +134,7 @@ final class ContinuityFund
             ->whereNotNull('payment_issue_since')
             ->where('payment_failures', '>=', Sponsorship::maxPaymentAttempts())
             ->whereDate('next_due_at', '<=', today()->subDays((int) config('kafala.continuity.recovery_days', 14)))
-            ->with(['orphan:id,first_name,family_id,translations', 'orphan.family:id,association_id', 'sponsor:id,user_id', 'sponsor.user:id,name,email,locale'])
+            ->with(['orphan:id,first_name,family_id,translations,reference_code', 'orphan.family:id,association_id', 'sponsor:id,user_id', 'sponsor.user:id,name,email,locale'])
             ->get();
 
         foreach ($due as $sponsorship) {
@@ -205,9 +204,7 @@ final class ContinuityFund
         }
 
         try {
-            Mail::to($user->email, $user->name)
-                ->locale(Locale::supports($user->locale) ? $user->locale : Locale::default())
-                ->send(new PaymentIssueMail($sponsorship, '', $stage, $monthsLeft));
+            Mail::to($user)->send(new PaymentIssueMail($sponsorship, '', $stage, $monthsLeft));
         } catch (Throwable $e) {
             report($e);
         }
