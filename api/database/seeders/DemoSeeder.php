@@ -32,6 +32,7 @@ use App\Models\Sponsor;
 use App\Models\Sponsorship;
 use App\Models\User;
 use App\Services\TransferPreparer;
+use App\Support\Fx;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -93,6 +94,7 @@ class DemoSeeder extends Seeder
 
         $this->command->info('  · الكفالات والمدفوعات…');
         $this->sponsorshipsAndPayments($orphanIds, $sponsorIds);
+        $this->sponsorCurrencies();
 
         $this->command->info('  · الصرف والتقارير والزيارات…');
         $this->disbursements($orphanIds, $staff);
@@ -699,6 +701,55 @@ class DemoSeeder extends Seeder
                 'card_brand' => $card->card_brand,
                 'card_last4' => $card->card_last4,
             ]);
+        }
+    }
+
+    /* ==================================================================== */
+
+    /**
+     * كفلاءٌ بعملاتهم: نحو سُدس الكفالات الشهرية بالجنيه واليورو والريال
+     * وغيرها، بمبلغٍ ثابت بعملة الكافل (مقرّبٍ لوحدةٍ كاملة كما في صفحة
+     * الكفالة)، ودفعاتها بعملته وسعر يومها: السعر الحاليّ بتذبذبٍ صغير من شهرٍ
+     * لشهر، فيتغيّر ما يعادلها بالدولار كما يتغيّر فعلاً. والكافل التجريبي
+     * بالدولار، كما اعتاد.
+     */
+    private function sponsorCurrencies(): void
+    {
+        $weights = ['GBP' => 5, 'EUR' => 4, 'SAR' => 4, 'AED' => 2, 'QAR' => 1, 'CAD' => 1];
+        $pool = collect($weights)->flatMap(fn ($w, $code) => array_fill(0, $w, $code))->all();
+        $demoSponsor = Sponsor::whereHas('user', fn ($q) => $q->where('email', 'sponsor@lamma.org'))->value('id');
+
+        $chosen = Sponsorship::query()
+            ->whereIn('status', [SponsorshipStatus::Active->value, SponsorshipStatus::Paused->value, SponsorshipStatus::Cancelled->value])
+            ->where('interval_months', 1)
+            ->where('sponsor_id', '!=', $demoSponsor)
+            ->inRandomOrder()
+            ->get()
+            ->filter(fn () => random_int(1, 6) === 1);
+
+        foreach ($chosen as $s) {
+            $code = $pool[array_rand($pool)];
+            $rate = Fx::rate($code);
+            $charge = Fx::friendly((float) $s->monthly_amount, $code);
+
+            DB::table('sponsorships')->where('id', $s->id)->update([
+                'charge_currency' => $code,
+                'charge_amount' => $charge,
+                'monthly_amount' => Fx::toBase($charge, $code),
+            ]);
+            DB::table('sponsors')->where('id', $s->sponsor_id)->update(['preferred_currency' => $code]);
+
+            // كل دفعة بسعر شهرها: الحاليّ ± 3٪
+            DB::table('payments')->where('sponsorship_id', $s->id)->orderBy('id')->get(['id'])
+                ->each(function ($payment) use ($code, $rate, $charge): void {
+                    $fx = round($rate * (1 + random_int(-30, 30) / 1000), 6);
+                    DB::table('payments')->where('id', $payment->id)->update([
+                        'currency' => $code,
+                        'amount' => $charge,
+                        'fx_rate' => $fx,
+                        'amount_base' => round($charge * $fx, 2),
+                    ]);
+                });
         }
     }
 
