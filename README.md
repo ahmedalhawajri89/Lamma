@@ -1,80 +1,108 @@
 <p align="center">
-  <img src="docs/cover.png" alt="Lamma — لمّة" width="900">
+  <img src="docs/cover.png" alt="Lamma, لمّة" width="900">
 </p>
 
-# Lamma — لمّة
+# Lamma · لمّة
 
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-Open%20the%20site-c2410c?style=for-the-badge&logo=vercel&logoColor=white)](https://lamma-sponsorship.vercel.app/)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Open%20the%20site-0f5c5c?style=for-the-badge&logo=vercel&logoColor=white)](https://lamma-sponsorship.vercel.app/)
+[![CI](https://github.com/ahmedalhawajri89/Lamma/actions/workflows/ci.yml/badge.svg)](https://github.com/ahmedalhawajri89/Lamma/actions/workflows/ci.yml)
 
-**Live demo: [lamma-sponsorship.vercel.app](https://lamma-sponsorship.vercel.app/)**
-The whole platform runs there: the public site, the admin console at `/admin` and the sponsor portal, on Vercel with a TiDB database. Sign in with `admin@lamma.org` (console) or `sponsor@lamma.org` (portal), password `password`.
+*Every child in the circle of their family.*
+
+An orphan sponsorship platform built end to end: a bilingual public site (Arabic first, full English under `/en`), a Laravel 12 API on MySQL, a Vue 3 admin console, and a portal where each sponsor follows the child they support and sees where every dollar went.
 
 *Arabic README: [README.ar.md](README.ar.md)*
 
-*Every child in the circle of their family.* Formerly “Kafala”; renamed because that name is shared by many charities and projects (technical identifiers such as `config/kafala.php` keep the old name).
+---
 
-An orphan sponsorship platform, built end to end: an Arabic-first public site, a Laravel 12 API on MySQL, a Vue 3 admin console, and a portal where a sponsor follows the child they support.
+## Try it
+
+**[lamma-sponsorship.vercel.app](https://lamma-sponsorship.vercel.app/)**, in [Arabic](https://lamma-sponsorship.vercel.app/) or [English](https://lamma-sponsorship.vercel.app/en). Payments run against a demo gateway: no money moves.
+
+| Role | Email | What to look at |
+|---|---|---|
+| Sponsor | `sponsor@lamma.org` | `/dashboard`: the children, «Where your money went», reports, receipts |
+| Administrator | `admin@lamma.org` | `/admin`: everything, including partner associations and settings |
+| Accountant | `accountant@lamma.org` | `/admin`: payments, monthly transfers, the continuity fund |
+| Field supervisor | `supervisor1@lamma.org` | `/admin`: only the families in their own country |
+
+Password for all: `password`. To sponsor as a visitor, use the card `4242 4242 4242 4242` (or `4000 0000 0000 0002` to see a decline).
 
 ---
 
 ## The idea
 
-Most donation sites ask you to trust them. This one is built so you do not have to.
+Most donation sites ask you to trust them. This one is built so you don't have to.
 
-You do not give to an anonymous cause — you sponsor a named child with a story and a verified file, you receive a photo report every three months, and you can read the audited budget that anyone else can read too.
+You don't give to an anonymous cause. You sponsor a named child who lives with their mother or relatives, through a verified local association, and you can follow every month of your money: what arrived, what was kept for running costs, what was transferred to the association, and what was spent on the child, item by item.
 
-**That principle is enforced in the schema, not written in the marketing copy.** Every number the site publishes is derived from the database rather than typed into the page: the spending ring is aggregated from approved disbursements, the "93% reaches the child" figure is a division, and the field-visit count is a `COUNT(*)`. If the data changes, the claim changes with it. It cannot drift out of sync, because there is no second copy of it.
+**That promise is enforced by the data model, not written in the marketing copy.** Every figure the site shows is computed from the payment, transfer and disbursement rows themselves. If the data changes, the claim changes with it.
 
 ---
 
 ## What it does
 
-**For the visitor.** Browses sponsorship programmes and orphan profiles, filters and searches, reads the transparency page and the quarterly reports, and completes a sponsorship from first read to confirmed monthly commitment.
+**The visitor** browses children and programmes, reads the transparency report, and sponsors in their own currency. Before paying they see exactly how the money will be split.
 
-**For the sponsor.** Signs in to a portal that shows the children they sponsor, the payment history, and the reports published about each child.
+**The sponsor** gets a portal with each child's quarterly photo reports, a month-by-month ledger of where their money went, receipts by email in their language, messages to the child (moderated), and the controls to pause, change card or stop.
 
-**For the administrator.** Sixteen screens covering orphans and their guardians, sponsors and sponsorships, payments and disbursements, quarterly reports, field visits, and the published budget — each behind a policy that decides what this user may see and do.
+**The staff** work in a 23-screen console. A field supervisor sees only their country, an association supervisor only their association. The accountant prepares and sends the monthly transfers to partner associations, records local spending, and follows sponsorships whose card was declined.
 
 ---
 
-## The part that matters
+## The hard parts
 
-**One deployment serves everything, from one origin.**
+### 1. «Where your money went», per child, per month
 
-| Path | What is served |
-|---|---|
-| `/`, `/about`, `/orphans`, … | The public site — static HTML, clean URLs |
-| `/dashboard` | Sponsor portal |
-| `/admin/**` | Admin console — Vue SPA |
-| `/api/v1/…` | The API |
+Each payment keeps a snapshot of the running-cost percentage in force when it was made, so changing the setting never rewrites the past. On the first of every month, `kafala:transfers-prepare` builds one transfer per partner association from that month's payments, with one line per child. A transfer is a draft until the accountant sends it with a bank reference. From then on it's locked and the sponsor can see it.
 
-Because there is a single origin there is no CORS, no cross-origin cookies, and the content security policy can stay at `connect-src 'self'` — the narrowest surface the application can have. That is a deployment decision that removes a whole class of problems instead of configuring around them.
+The ledger the sponsor reads (`ChildLedgerService`) is assembled from those same rows: received, the sponsor's own share, running costs, transferred, spent by category, and the balance still held by the association for that child.
 
-**Five decisions in the schema**
+### 2. Keeping the child with their family
 
-**1. A partial unique constraint on an engine that has none.**
-A sponsor must not sponsor the same child twice *at the same time*, but must be free to come back after cancelling. A plain `UNIQUE(sponsor_id, orphan_id)` forbids the return. MySQL has no partial indexes, so the constraint is built with a generated column:
+Children are cared for through **partner associations**, and each family records its care arrangement (with the mother, a grandparent, an uncle…), attested by a field visit that expires after 12 months. A child can't be published unless the family is family-based care, the attestation is current, and the association is verified (`Orphan::publishBlockers()`). Suspending an association hides its children from the site at once.
 
-```sql
-active_key TINYINT GENERATED ALWAYS AS (
-    CASE WHEN status IN ('pending','active','paused') THEN 1 ELSE NULL END
-) STORED,
-UNIQUE KEY uniq_active_sponsorship (sponsor_id, orphan_id, active_key)
-```
+Staff access is scoped in one place (`StaffScope`): everything, one country, or one association. That replaced about twenty scattered country checks.
 
-`NULL` does not participate in `UNIQUE` in MySQL, so cancelled rows drop out of the constraint automatically. A real partial index, on an engine that does not support them.
+### 3. When a card is declined: the continuity fund
 
-**2. `idempotency_key` is unique on payments.**
-A sponsor double-clicks "pay", or the gateway retries its webhook. The duplicate charge is made impossible *by the engine* rather than by code discipline.
+A declined monthly payment is retried on day 0, 3 and 7, never every day. The sponsor gets one email in their language and can pay with a new card from the portal. If it still isn't resolved 14 days after the due date, the **continuity fund** covers the child's month, so the money keeps arriving. The fund is fed by 1% taken from the existing running costs (not added on top) plus donations. After three covered months without a payment, the sponsorship ends and the child returns to the site.
 
-**3. `date_of_birth`, never `age`.**
-An age column is wrong the day after you write it. The date is the fact; the age is derived.
+A test walks a sponsorship day by day for four months: retries, three covered months, then the end.
 
-**4. Money is `DECIMAL`, with its currency and exchange rate.**
-`FLOAT` loses cents once you start summing.
+### 4. Sponsoring in your own currency
 
-**5. `UNIQUE(orphan_id, year, quarter)` on reports.**
-The promise of "a report every three months" becomes a constraint that cannot be broken, not a policy someone has to remember.
+A sponsor in London pays a fixed £40 every month, the same amount every month. Its dollar value changes with the rate, and it's the dollar value that funds the child. `monthly_amount` stays in the base currency, so the thirty places that compute funding and reports didn't change. A daily job refreshes the rates, rejects any jump over 25% in a day as a likely source error, and reprices live sponsorships.
+
+One edge case needed a rule. When the pound dips, a fully funded child could reappear on the site needing 50 cents. A gap under one dollar counts as fully funded (`Orphan::FX_TOLERANCE`).
+
+### 5. Two languages, one codebase
+
+Arabic is the default and the keys are the Arabic text itself (`__('…')` in Blade, `t('…')` in JS), with 1,000+ English translations. A test scans every template, controller, email and JS module, and **fails the build if an Arabic string has no English**, so an untranslated string can't ship. Mixed-direction text uses `<bdi>` and Unicode isolates so «£40» never flips to «40£» inside an Arabic sentence. Each account stores its language, and every email (receipt, welcome, reset, payment issue) goes out in it.
+
+---
+
+## Bugs worth telling
+
+- **A late payment swallowed the next one.** The idempotency key for a monthly charge was built from the month the job *ran*, so collecting September's late payment in October took October's key. October's own payment was then skipped as "already paid". The key now comes from the due month, and a test pins it.
+- **Password-reset links could point to another site.** Building the link with `url()` trusts the request's `Host` header, so a forged header put an attacker's domain in a real reset email. Email links are now built from `app.url` only (`Locale::absolute()`), with a test that sends a forged host.
+- **The thank-you page promised emails nobody sent.** It said "we've emailed your receipt" and "we've sent you a link to set your password", and nothing did. Both emails now exist and are sent after the database commit, so a rolled-back payment never gets a receipt.
+- **Exchange-rate drift reopened funded children.** See the tolerance rule above.
+
+---
+
+## Decisions in the schema
+
+- **A partial unique constraint on an engine without partial indexes.** A sponsor can't sponsor the same child twice at the same time, but can come back after cancelling. A generated column is `NULL` for ended sponsorships, and MySQL ignores `NULL` in `UNIQUE`:
+  ```sql
+  active_key TINYINT GENERATED ALWAYS AS (
+      CASE WHEN status IN ('pending','active','paused') THEN 1 ELSE NULL END
+  ) STORED,
+  UNIQUE KEY uniq_active_sponsorship (sponsor_id, orphan_id, active_key)
+  ```
+- **`idempotency_key` is unique on payments**, so a double click or a retried webhook can't charge twice. The engine refuses it.
+- **Money is `DECIMAL` with its currency, rate and base equivalent**, and the rate used is stored on each payment.
+- **`date_of_birth`, never `age`**, and **`UNIQUE(orphan_id, year, quarter)` on reports**, so "a report every three months" is a constraint, not a policy.
 
 ---
 
@@ -82,80 +110,68 @@ The promise of "a report every three months" becomes a constraint that cannot be
 
 | | |
 |---|---|
-| Database tables | **44** across nine domains |
-| API routes | **88** in four groups |
-| Eloquent models | 29, with 15 enums |
-| Admin screens | 16 |
-| Public site | 17 pages, ~10,900 lines |
-| Tests | 80 Pest · 29 Playwright · 12 Vitest |
+| Database tables | **51**, 42 migrations |
+| API routes | **136** (public, auth, portal, admin) |
+| Models / enums | 36 / 18 |
+| Admin console | 23 screens |
+| Scheduled jobs | billing, exchange rates, continuity fund, monthly transfers, metrics |
+| Tests | **331 Pest** · 12 Vitest · 53 Playwright |
+| Translations | 1,064 English strings, guarded by a coverage test |
 
 ---
 
 ## Security
 
-- **No card data is stored** — the brand and last four digits, nothing more.
+- **No card data is stored**: a gateway token, the brand and the last four digits.
 - **Guardian ID numbers are hashed** with SHA-256 and a pepper: duplicates are detectable, the number itself is never kept.
-- **A policy on every model**, so authorisation is answered in one place per resource rather than scattered through controllers.
+- **A policy on every model**, plus `StaffScope` for row-level access by country or association.
+- **One origin** for the site, portal, console and API: no CORS and no cross-origin cookies, and the CSP stays at `connect-src 'self'`.
+- **Two people for money out:** the person who records a disbursement can't approve it.
 
 ---
 
 ## Design
 
-A **clay and amber** identity on a warm sand ground — deliberately away from the medical green that charity sites default to.
-
-| Role | Token | Value |
-|---|---|---|
-| Primary | `--color-brand` | `#c2410c` — terracotta |
-| Secondary | `--color-accent` | `#d97706` — amber |
-| Growth | `--color-growth` | `#4d7c0f` — olive |
-| Canvas | `--color-canvas` | `#fbf7f0` — warm sand |
-
-**The logo** is a custom SVG: two hands — one clay, one amber — cradling an olive-toned child. It draws the literal meaning of *kafala*, taking someone under your hand, and stays readable from 120px down to 16px.
-
-**Typography** pairs *Readex Pro* for headings with *IBM Plex Sans Arabic* for body text and *Aref Ruqaa* for pull quotes — a distinctive Arabic pairing instead of the ubiquitous Cairo/Tajawal. Every size is a `clamp`.
-
-**The chart palette was not chosen by eye.** The brand colours failed automated validation as a categorical palette: olive against teal measured ΔE 11.7 for normal vision against a threshold of 15, and the sand tone had chroma 0.027, so it read as grey. The palette was re-derived from the same colour ramps until it passed the lightness-range, chroma-floor and colour-blind separation checks. The working is in [`admin/src/utils/palette.js`](admin/src/utils/palette.js).
+Teal `#0f5c5c`, gold `#e0a63b` and a warm sand ground `#f7f5f0`, with dark mode. Readex Pro for headings and IBM Plex Sans Arabic for text, chosen over the usual Cairo/Tajawal. No gradients, logical CSS properties throughout so RTL and LTR share one stylesheet, and reduced motion respected.
 
 ---
 
 ## Tech stack
 
-**Back end** — Laravel 12 · PHP 8.2 · MySQL · Sanctum for token auth
-**Admin console** — Vue 3 · Vite · Pinia · Chart.js
-**Public site** — HTML, CSS and JavaScript with no framework and no build step
-**Testing** — Pest for the API · Vitest for the console units · Playwright end to end
+**Back end:** Laravel 12 · PHP 8.2 · MySQL (TiDB in production) · Sanctum
+**Public site and portal:** Blade, Bootstrap 5 and vanilla JS modules, no build step
+**Admin console:** Vue 3 · Vite · Pinia · Tailwind · Chart.js
+**Quality:** Pest · Vitest · Playwright · PHPStan (Larastan) · Pint · GitHub Actions
 
 ---
 
 ## Structure
 
 ```
-kafala-orphan-sponsorship/
-│
-├── api/                    Laravel 12 · PHP 8.2 · MySQL · Sanctum
-│   ├── app/  database/     ~12,400 lines
-│   └── public/             ← the public site: HTML, CSS and JS, no framework
-│       ├── index.html …    17 pages · ~10,900 lines
-│       ├── assets/
-│       └── admin-app/      ← Vue build output (not committed)
-│
-└── admin/                  Console source: Vue 3 · Vite · Pinia · Chart.js
+.
+├── api/                    Laravel 12 API, and the public site and portal it serves
+│   ├── app/                Actions, Services, Policies, Support (Fx, Locale, StaffScope)
+│   ├── database/           42 migrations, demo seeder (two years of data)
+│   ├── lang/               en.json and en/js.php (Arabic is the key)
+│   ├── resources/views/    Blade: site pages, portal, emails
+│   └── public/assets/      CSS and JS modules for the site and portal
+├── admin/                  Vue 3 admin console (built into api/public/admin-app)
+└── docs/                   Architecture and database notes
 ```
 
 ---
 
 ## Running it
 
-**Requirements:** PHP 8.2+ · Composer · MySQL or MariaDB · Node 20+
+**Requirements:** PHP 8.2+ · Composer · MySQL 8 · Node 20+
 
 ```bash
-# 1) The API — it serves the public site too
+# 1) The API, which also serves the public site and the portal
 cd api
 composer install
 cp .env.example .env && php artisan key:generate
 mysql -u root -e "CREATE DATABASE kafala CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
-php artisan migrate --seed     # ~60s: 148 orphans, 180 sponsors, two years of payments
-php artisan metrics:rollup
+php artisan migrate --seed       # about a minute: children, sponsors, two years of payments
 php artisan serve
 
 # 2) The admin console
@@ -164,10 +180,12 @@ npm install
 npm run dev
 ```
 
+The scheduled jobs (`billing:run`, `kafala:rates-refresh`, `kafala:continuity-cover`, `kafala:transfers-prepare`, `metrics:rollup`) run through `php artisan schedule:work` locally.
+
 ---
 
 ## Licence
 
-MIT — see [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE).
 
 Built by [Ahmed Al-Hawajiri](https://github.com/ahmedalhawajri89), Gaza.

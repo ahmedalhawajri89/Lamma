@@ -97,6 +97,8 @@ test.describe('الكفالة من الموقع', () => {
     await expect(page.locator('[data-checkout="bank-note"]')).toBeVisible()
 
     await fillGuest(page, `bank${Date.now()}@example.com`)
+    // الإفصاح قبل الكفالة إلزامي للبطاقة والتحويل معاً
+    await page.check('#disclosure')
     await page.locator('#checkoutSubmit').click()
 
     await page.waitForURL(/thank-you\?ref=KFS-/, { timeout: 25_000 })

@@ -53,10 +53,11 @@ test.describe('الموقع العام', () => {
     await expect(cards).toHaveCount(Math.min(12, n))
   })
 
-  test('الموقع يبقى صحيحاً حين يسقط الخادم', async ({ page }) => {
-    // هذا ليس احتياطاً نظرياً: الموقع منشور ملفاتٍ ساكنة، وقد يُفتح
-    // والـ API متوقف. عندها يجب أن يعرض بياناته المبدئية لا شاشة فارغة.
-    await page.route('**/api/v1/public/**', (route) => route.abort())
+  test('الموقع يقول الحقيقة حين يسقط الخادم، ويعيد المحاولة', async ({ page }) => {
+    // لا أطفال وهميين حين يتعذّر الخادم: بطاقة خطأ بزرّ يعيد المحاولة، فإن
+    // عاد الخادم ظهر الأطفال الحقيقيون. والصفحة لا تنكسر في الحالتين.
+    let down = true
+    await page.route('**/api/v1/public/**', (route) => (down ? route.abort() : route.continue()))
 
     const errors = []
     page.on('pageerror', (e) => errors.push(e.message))
@@ -64,9 +65,13 @@ test.describe('الموقع العام', () => {
     await page.goto(`${WEB}/orphans`)
     await page.waitForTimeout(1500)
 
-    // الفلاتر والصفحات نفسها على البيانات المضمَّنة، لا شاشة خطأ
-    await expect(page.locator('#catalogGrid .kid-card')).toHaveCount(8)
-    await expect(page.locator('#catalogCount strong')).toHaveText('8')
+    await expect(page.locator('#catalogGrid .kid-card')).toHaveCount(0)
+    const retry = page.locator('#catalogGrid [data-retry]')
+    await expect(retry).toBeVisible()
+
+    down = false
+    await retry.click()
+    await expect(page.locator('#catalogGrid .kid-card').first()).toBeVisible()
     expect(errors).toEqual([])
   })
 

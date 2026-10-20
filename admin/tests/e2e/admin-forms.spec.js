@@ -662,7 +662,8 @@ test.describe('الإعدادات', () => {
     // التعديل في درج: بلا تغيير لا زرّ حفظ
     await page.getByRole('button', { name: /تعديل الهوية/ }).click()
     const drawer = page.getByRole('dialog', { name: 'هوية المنصة والتواصل' })
-    const tagline = drawer.getByLabel('الوصف المختصر')
+    // exact: «الوصف المختصر بالإنجليزية» حقلٌ آخر يحمل الاسم نفسه في أوله
+    const tagline = drawer.getByLabel('الوصف المختصر', { exact: true })
     const original = await tagline.inputValue()
     await expect(drawer.getByRole('button', { name: 'إغلاق' }).last()).toBeVisible()
     await expect(drawer.getByRole('button', { name: /حفظ التغييرات/ })).toHaveCount(0)
@@ -679,12 +680,12 @@ test.describe('الإعدادات', () => {
     await drawer.getByRole('button', { name: /حفظ التغييرات/ }).click()
     await expect(page.getByText(/حُفظت هوية المنصة/)).toBeVisible({ timeout: 20_000 })
     await expect(drawer).toHaveCount(0)
-    await expect(page.locator('#idName ~ p')).toHaveText(`${original} (اختبار)`)
+    await expect(page.locator('#idName ~ p').first()).toHaveText(`${original} (اختبار)`)
     await expect(page.locator('section[aria-labelledby=hTitle]')).toContainText('الوصف المختصر', { timeout: 15_000 })
 
     // وتُعاد القيمة
     await page.getByRole('button', { name: /تعديل الهوية/ }).click()
-    await drawer.getByLabel('الوصف المختصر').fill(original)
+    await drawer.getByLabel('الوصف المختصر', { exact: true }).fill(original)
     await drawer.getByRole('button', { name: /حفظ التغييرات/ }).click()
     await expect(drawer).toHaveCount(0, { timeout: 20_000 })
   })
