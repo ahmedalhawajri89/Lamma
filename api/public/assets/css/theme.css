@@ -17,7 +17,7 @@
 :root,
 [data-bs-theme] {
   /* الألوان الدلالية: الثانوي رمادي النص المكتوم لا تركوازي فاتح،
-     لأن ‎#1e8a7a على الخلفية الرملية 3.9 فقط */
+     لأن ‎#176b56 على الخلفية الرملية 3.9 فقط */
   --bs-primary: var(--color-brand);
   --bs-secondary: var(--color-text-muted);
   --bs-success: var(--color-success);

@@ -12,7 +12,7 @@ import { $, $$ } from './utils.js';
 import { t } from './i18n.js';
 
 const KEY = 'kafala-theme';
-const META_COLOR = { light: '#0f5c5c', dark: '#0d1617' };
+const META_COLOR = { light: '#064e3b', dark: '#0a1614' };
 
 const systemDark = window.matchMedia('(prefers-color-scheme: dark)');
 

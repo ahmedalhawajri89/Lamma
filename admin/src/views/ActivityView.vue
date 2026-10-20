@@ -84,7 +84,7 @@ const time = (iso) => timeFmt.format(new Date(iso))
 
 /** أيقونة الفعل ولونه: الأخضر لما يُعتمد، والأحمر لما يُنقض أو يُسترد */
 const EVENTS = {
-  created: ['plus', 'bg-[#0f5c5c]/10 text-[#0f5c5c]'],
+  created: ['plus', 'bg-[#064e3b]/10 text-[#064e3b]'],
   updated: ['edit', 'bg-sand-100 text-sand-600'],
   deleted: ['trash', 'bg-rose-100 text-rose-700'],
   approved: ['check', 'bg-olive-50 text-olive-700'],
@@ -92,10 +92,10 @@ const EVENTS = {
   document_verified: ['file-check', 'bg-olive-50 text-olive-700'],
   document_rejected: ['close', 'bg-rose-100 text-rose-700'],
   returned: ['undo', 'bg-amber-100 text-amber-800'],
-  reviewed: ['chat', 'bg-[#1e8a7a]/10 text-[#1e8a7a]'],
-  delivered: ['mail', 'bg-[#1e8a7a]/10 text-[#1e8a7a]'],
-  replied: ['mail', 'bg-[#1e8a7a]/10 text-[#1e8a7a]'],
-  recorded: ['receipt', 'bg-[#E0A63B]/15 text-[#a8741a]'],
+  reviewed: ['chat', 'bg-[#176b56]/10 text-[#176b56]'],
+  delivered: ['mail', 'bg-[#176b56]/10 text-[#176b56]'],
+  replied: ['mail', 'bg-[#176b56]/10 text-[#176b56]'],
+  recorded: ['receipt', 'bg-[#D5A85C]/15 text-[#a8741a]'],
   refunded: ['undo', 'bg-rose-100 text-rose-700'],
   status_changed: ['sliders', 'bg-amber-100 text-amber-800'],
   settings_updated: ['sliders', 'bg-amber-100 text-amber-800'],
@@ -164,7 +164,7 @@ async function exportCsv() {
           >
             <span
               class="w-full rounded-t-[3px] transition-colors"
-              :class="pickedDay === d.date ? 'bg-[#E0A63B]' : pickedDay ? 'bg-sand-200 group-hover:bg-sand-300' : d.date === todayKey ? 'bg-[#0f5c5c]' : 'bg-[#1e8a7a]/45 group-hover:bg-[#1e8a7a]'"
+              :class="pickedDay === d.date ? 'bg-[#D5A85C]' : pickedDay ? 'bg-sand-200 group-hover:bg-sand-300' : d.date === todayKey ? 'bg-[#064e3b]' : 'bg-[#176b56]/45 group-hover:bg-[#176b56]'"
               :style="{ height: d.count ? `${Math.max(6, (d.count / peak) * 100)}%` : '2px' }"
             />
           </button>
@@ -185,10 +185,10 @@ async function exportCsv() {
               :class="String(filters.causer_id) === String(a.id) ? 'bg-clay-50' : 'hover:bg-sand-100'"
               :aria-pressed="String(filters.causer_id) === String(a.id)" @click="pickActor(a.id)"
             >
-              <span class="size-7 shrink-0 rounded-full bg-[#0f5c5c]/10 text-[#0f5c5c] grid place-items-center text-xs font-semibold" aria-hidden="true">{{ a.name.trim().charAt(0) }}</span>
+              <span class="size-7 shrink-0 rounded-full bg-[#064e3b]/10 text-[#064e3b] grid place-items-center text-xs font-semibold" aria-hidden="true">{{ a.name.trim().charAt(0) }}</span>
               <span class="flex-1 min-w-0">
                 <span class="flex justify-between text-sm"><span class="truncate">{{ a.name }}</span><span class="num text-sand-600">{{ num(a.count) }}</span></span>
-                <span class="block h-1 rounded-full bg-sand-100 mt-1"><span class="block h-full rounded-full bg-[#1e8a7a]" :style="{ width: `${(a.count / topMax) * 100}%` }" /></span>
+                <span class="block h-1 rounded-full bg-sand-100 mt-1"><span class="block h-full rounded-full bg-[#176b56]" :style="{ width: `${(a.count / topMax) * 100}%` }" /></span>
               </span>
             </button>
           </li>

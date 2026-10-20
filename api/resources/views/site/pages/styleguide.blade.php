@@ -36,19 +36,19 @@
       <div class="row g-3">
         <div class="col-6 col-md-4 col-lg-3" data-reveal>
           <div class="sg-swatch"><div class="sg-swatch__chip" style="background:var(--color-brand);color:var(--color-brand-contrast)">نص 7.8</div>
-          <div class="sg-swatch__meta"><strong>الأساسي</strong><br><code>#0f5c5c</code></div></div>
+          <div class="sg-swatch__meta"><strong>الأساسي</strong><br><code>#064e3b</code></div></div>
         </div>
         <div class="col-6 col-md-4 col-lg-3" data-reveal data-reveal-delay="60">
           <div class="sg-swatch"><div class="sg-swatch__chip" style="background:var(--color-cta);color:var(--color-cta-contrast)">نص 6.8</div>
-          <div class="sg-swatch__meta"><strong>الإجراء الرئيسي</strong><br><code>#e0a63b</code></div></div>
+          <div class="sg-swatch__meta"><strong>الإجراء الرئيسي</strong><br><code>#d5a85c</code></div></div>
         </div>
         <div class="col-6 col-md-4 col-lg-3" data-reveal data-reveal-delay="120">
           <div class="sg-swatch"><div class="sg-swatch__chip" style="background:var(--color-canvas);color:var(--color-text)">نص 13.5</div>
-          <div class="sg-swatch__meta"><strong>الخلفية</strong><br><code>#f7f5f0</code></div></div>
+          <div class="sg-swatch__meta"><strong>الخلفية</strong><br><code>#f8f5ef</code></div></div>
         </div>
         <div class="col-6 col-md-4 col-lg-3" data-reveal data-reveal-delay="180">
           <div class="sg-swatch"><div class="sg-swatch__chip" style="background:var(--color-ink);color:#fff">الأقسام الداكنة</div>
-          <div class="sg-swatch__meta"><strong>الحبر</strong><br><code>#093a3a</code></div></div>
+          <div class="sg-swatch__meta"><strong>الحبر</strong><br><code>#0b302b</code></div></div>
         </div>
         <div class="col-6 col-md-4 col-lg-3" data-reveal>
           <div class="sg-swatch"><div class="sg-swatch__chip" style="background:var(--color-surface);color:var(--color-text-muted)">مكتوم 6.5</div>

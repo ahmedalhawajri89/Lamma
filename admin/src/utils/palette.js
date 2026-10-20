@@ -7,10 +7,10 @@
  * الترتيب ثابت ولا يُدار: الشريحة السادسة لا تولّد لوناً جديداً بل تندمج
  * في «أخرى»، لأن اللون يتبع الكيان لا ترتيبه.
  */
-export const CATEGORICAL = ['#0f5c5c', '#e0a63b', '#c9694b', '#6366d9', '#edc56a']
+export const CATEGORICAL = ['#064e3b', '#d5a85c', '#c9694b', '#6366d9', '#edc56a']
 
 /** لون واحد يتدرّج للمقادير، لا قوس قزح. */
-export const SEQUENTIAL = ['#d3ebe8', '#a8d6d0', '#74bbb2', '#1e8a7a', '#0f5c5c']
+export const SEQUENTIAL = ['#d3ebe8', '#a8d6d0', '#74bbb2', '#176b56', '#064e3b']
 
 /** ألوان الحالة محجوزة، لا تُستعمل كسلسلة رابعة. */
 export const STATUS = {

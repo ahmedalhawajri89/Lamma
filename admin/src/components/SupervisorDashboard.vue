@@ -31,8 +31,8 @@ function due(c) {
   if (!c.last_visited_at) return { text: 'لم يُزر قط', tone: 'text-rose-700 bg-rose-50' }
   if (c.days === null) return { text: 'بلا موعد', tone: 'text-sand-600 bg-sand-100' }
   if (c.days < 0) return { text: `فات موعدها بـ ${-c.days} ${-c.days === 1 ? 'يوم' : 'أيام'}`, tone: 'text-rose-700 bg-rose-50' }
-  if (c.days === 0) return { text: 'اليوم', tone: 'text-[#a8741a] bg-[#E0A63B]/15' }
-  if (c.days <= 7) return { text: `بعد ${c.days} ${c.days === 1 ? 'يوم' : 'أيام'}`, tone: 'text-[#a8741a] bg-[#E0A63B]/15' }
+  if (c.days === 0) return { text: 'اليوم', tone: 'text-[#a8741a] bg-[#D5A85C]/15' }
+  if (c.days <= 7) return { text: `بعد ${c.days} ${c.days === 1 ? 'يوم' : 'أيام'}`, tone: 'text-[#a8741a] bg-[#D5A85C]/15' }
   return { text: dayFmt.format(new Date(`${c.next_due}T12:00:00`)), tone: 'text-sand-600 bg-sand-100' }
 }
 const recordLink = (c) => ({ path: '/visits', query: { record: c.id, name: c.name, ref: c.reference_code } })
@@ -53,7 +53,7 @@ const TONE = { bad: 'text-rose-700', warn: 'text-[#a8741a]', neutral: 'text-sand
 <template>
   <div class="space-y-5">
     <!-- ══ شريط الأسبوع ══ -->
-    <section class="rounded-2xl bg-[#0f5c5c] text-white p-5 lg:p-6 grid grid-cols-2 lg:grid-cols-4 gap-5" aria-label="أسبوعك في الميدان">
+    <section class="rounded-2xl bg-[#064e3b] text-white p-5 lg:p-6 grid grid-cols-2 lg:grid-cols-4 gap-5" aria-label="أسبوعك في الميدان">
       <div>
         <p class="text-xs text-white/60">أطفال في {{ field.country }}</p>
         <p class="num text-3xl font-bold mt-1">{{ num(field.children) }}</p>
@@ -61,7 +61,7 @@ const TONE = { bad: 'text-rose-700', warn: 'text-[#a8741a]', neutral: 'text-sand
       </div>
       <RouterLink to="/visits?bucket=overdue" class="group">
         <p class="text-xs text-white/60">زيارات تأخّرت</p>
-        <p class="num text-3xl font-bold mt-1" :class="v.overdue + v.never ? 'text-[#E0A63B]' : ''">{{ num(v.overdue + v.never) }}</p>
+        <p class="num text-3xl font-bold mt-1" :class="v.overdue + v.never ? 'text-[#D5A85C]' : ''">{{ num(v.overdue + v.never) }}</p>
         <p class="text-xs text-white/70 mt-1 group-hover:underline">
           <template v-if="v.overdue + v.never">{{ v.never ? `${v.never} لم يُزاروا قط` : '' }}{{ v.never && v.overdue ? '، ' : '' }}{{ v.overdue ? `${v.overdue} فات موعدهم` : '' }}</template>
           <template v-else>لا أحد متأخر</template>
@@ -89,7 +89,7 @@ const TONE = { bad: 'text-rose-700', warn: 'text-[#a8741a]', neutral: 'text-sand
         <ul v-if="v.next.length" class="divide-y divide-sand-100 flex-1">
           <li v-for="c in v.next" :key="c.id" class="flex items-center gap-3 px-5 py-3">
             <img v-if="c.photo_url" :src="c.photo_url" alt="" class="size-10 rounded-full object-cover shrink-0" width="40" height="40" loading="lazy" />
-            <span v-else class="size-10 shrink-0 rounded-full bg-[#0f5c5c]/10 text-[#0f5c5c] grid place-items-center font-semibold" aria-hidden="true">{{ c.name.trim().charAt(0) }}</span>
+            <span v-else class="size-10 shrink-0 rounded-full bg-[#064e3b]/10 text-[#064e3b] grid place-items-center font-semibold" aria-hidden="true">{{ c.name.trim().charAt(0) }}</span>
             <div class="min-w-0 flex-1">
               <RouterLink :to="`/orphans/${c.id}`" class="text-sm font-medium text-sand-900 hover:text-clay-700">{{ c.name }}</RouterLink>
               <p class="text-xs text-sand-500 truncate">
@@ -116,12 +116,12 @@ const TONE = { bad: 'text-rose-700', warn: 'text-[#a8741a]', neutral: 'text-sand
 
         <p class="mt-4"><span class="num text-3xl font-bold">{{ done }}%</span> <span class="text-sm text-sand-500">أُرسلت</span></p>
         <div class="mt-3 flex h-2.5 rounded-full overflow-hidden bg-sand-100" aria-hidden="true">
-          <span class="bg-[#0f5c5c]" :style="{ width: pct(r.sent) }" />
-          <span class="bg-[#E0A63B]" :style="{ width: pct(r.drafts) }" />
+          <span class="bg-[#064e3b]" :style="{ width: pct(r.sent) }" />
+          <span class="bg-[#D5A85C]" :style="{ width: pct(r.drafts) }" />
         </div>
         <dl class="mt-3 grid grid-cols-3 gap-3 text-sm">
-          <div><dt class="flex items-center gap-1.5 text-xs text-sand-500"><span class="size-2 rounded-full bg-[#0f5c5c]" />أُرسلت</dt><dd class="num font-semibold">{{ r.sent }}</dd></div>
-          <div><dt class="flex items-center gap-1.5 text-xs text-sand-500"><span class="size-2 rounded-full bg-[#E0A63B]" />مسوّدة</dt><dd class="num font-semibold">{{ r.drafts }}</dd></div>
+          <div><dt class="flex items-center gap-1.5 text-xs text-sand-500"><span class="size-2 rounded-full bg-[#064e3b]" />أُرسلت</dt><dd class="num font-semibold">{{ r.sent }}</dd></div>
+          <div><dt class="flex items-center gap-1.5 text-xs text-sand-500"><span class="size-2 rounded-full bg-[#D5A85C]" />مسوّدة</dt><dd class="num font-semibold">{{ r.drafts }}</dd></div>
           <div><dt class="flex items-center gap-1.5 text-xs text-sand-500"><span class="size-2 rounded-full bg-sand-300" />لم تُبدأ</dt><dd class="num font-semibold" :class="r.missing ? 'text-rose-700' : ''">{{ r.missing }}</dd></div>
         </dl>
 
@@ -129,7 +129,7 @@ const TONE = { bad: 'text-rose-700', warn: 'text-[#a8741a]', neutral: 'text-sand
           <p class="text-sm font-medium text-[#a8741a] mb-2">أُرجعت إليك للتعديل ({{ r.returned_count }})</p>
           <ul class="space-y-2.5">
             <li v-for="x in r.returned" :key="x.id">
-              <RouterLink :to="`/reports?review=${x.id}`" class="block rounded-lg border border-[#E0A63B]/40 bg-[#E0A63B]/5 px-3 py-2 hover:bg-[#E0A63B]/10">
+              <RouterLink :to="`/reports?review=${x.id}`" class="block rounded-lg border border-[#D5A85C]/40 bg-[#D5A85C]/5 px-3 py-2 hover:bg-[#D5A85C]/10">
                 <p class="text-sm font-medium">{{ x.orphan }} <span class="text-xs text-sand-500">· {{ relative(x.returned_at) }}</span></p>
                 <p v-if="x.note" class="text-xs text-sand-700 mt-0.5 line-clamp-2">{{ x.note }}</p>
               </RouterLink>

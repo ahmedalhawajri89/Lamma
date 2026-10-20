@@ -37,8 +37,8 @@ const items = computed(() => data.value?.items ?? [])
 
 const TONE = {
   bad: { dot: 'bg-rose-500', num: 'text-rose-700', icon: 'alert' },
-  warn: { dot: 'bg-[#E0A63B]', num: 'text-[#a8741a]', icon: 'clock' },
-  good: { dot: 'bg-[#1e8a7a]', num: 'text-[#0f5c5c]', icon: 'trend' },
+  warn: { dot: 'bg-[#D5A85C]', num: 'text-[#a8741a]', icon: 'clock' },
+  good: { dot: 'bg-[#176b56]', num: 'text-[#064e3b]', icon: 'trend' },
   neutral: { dot: 'bg-sand-400', num: 'text-sand-800', icon: 'mail' },
 }
 const tone = (t) => TONE[t] ?? TONE.neutral
@@ -47,7 +47,7 @@ const tone = (t) => TONE[t] ?? TONE.neutral
 <template>
   <section v-if="data && !hidden" class="rounded-2xl border border-sand-200 bg-sand-0 mb-6 overflow-hidden" aria-labelledby="sinceTitle">
     <header class="flex flex-wrap items-center gap-x-3 gap-y-1 px-5 py-3 border-b border-sand-100 bg-sand-25">
-      <span class="size-2 rounded-full bg-[#E0A63B]" aria-hidden="true" />
+      <span class="size-2 rounded-full bg-[#D5A85C]" aria-hidden="true" />
       <h2 id="sinceTitle" class="font-semibold text-sm">
         {{ data.first_visit ? 'خلال الأسبوع الماضي' : 'منذ آخر دخول لك' }}
       </h2>

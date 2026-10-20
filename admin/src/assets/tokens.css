@@ -1,36 +1,36 @@
 /* ==========================================================================
    توكنز اللوحة — بالهوية المعتمدة نفسها في الموقع (api/public/assets/css/tokens.css)
-   تركوازي داكن أساسي، وذهبي للتمييز، على أرضية رملية فاتحة.
+   أخضر داكن عميق أساسي (#064E3B)، وذهبي دافئ للتمييز، على أرضية عاجية (#F8F5EF).
 
    أسماء المقاييس (clay وamber وolive) باقية كما هي لأن الشاشات كلها تستعملها
    أصنافاً في Tailwind، لكن قيمها صارت ألوان الهوية الجديدة:
-   clay = التركوازي (الأساسي)، amber = الذهبي، olive = أخضر النجاح.
+   clay = الأخضر (الأساسي)، amber = الذهبي، olive = أخضر النجاح.
    ========================================================================== */
 
 @import 'tailwindcss';
 
 @theme {
-  /* الأساسي: التركوازي الداكن (clay-600 هو #0f5c5c لون العلامة) */
-  --color-clay-50: #eef7f6;
-  --color-clay-100: #d3ebe8;
-  --color-clay-200: #a8d6d0;
-  --color-clay-300: #74bbb2;
-  --color-clay-400: #3fa095;
-  --color-clay-500: #1e8a7a;
-  --color-clay-600: #0f5c5c;
-  --color-clay-700: #0c4a4a;
-  --color-clay-800: #093a3a;
-  --color-clay-900: #062727;
+  /* الأساسي: الأخضر الداكن العميق (clay-600 هو #064E3B لون العلامة) */
+  --color-clay-50: #edf6f2;
+  --color-clay-100: #d2e9df;
+  --color-clay-200: #a7d3c1;
+  --color-clay-300: #74b89f;
+  --color-clay-400: #3f9a7d;
+  --color-clay-500: #1f8165;
+  --color-clay-600: #064e3b;
+  --color-clay-700: #053f30;
+  --color-clay-800: #0b302b;
+  --color-clay-900: #061e1a;
 
   /* الثانوي: الذهبي */
-  --color-amber-50: #fdf8ec;
-  --color-amber-100: #faedcc;
-  --color-amber-200: #f4da9a;
-  --color-amber-300: #edc56a;
-  --color-amber-400: #e7b450;
-  --color-amber-500: #e0a63b;
-  --color-amber-600: #c48a25;
-  --color-amber-700: #9c6b1a;
+  --color-amber-50: #fbf6ec;
+  --color-amber-100: #f6ebd5;
+  --color-amber-200: #f0ddb6;
+  --color-amber-300: #e8c78f;
+  --color-amber-400: #dfb877;
+  --color-amber-500: #d5a85c;
+  --color-amber-600: #b98a3e;
+  --color-amber-700: #91692c;
 
   /* النجاح */
   --color-olive-50: #effbf3;
@@ -42,24 +42,24 @@
 
   /* المحايد: رمل فاتح ونصّ حبري */
   --color-sand-0: #ffffff;
-  --color-sand-25: #fbfaf7;
-  --color-sand-50: #f7f5f0;
-  --color-sand-100: #efece4;
-  --color-sand-200: #e4e0d6;
-  --color-sand-300: #cfcabe;
-  --color-sand-400: #9ea3a1;
-  --color-sand-500: #5f6b6f;
-  --color-sand-600: #4e5b5f;
-  --color-sand-700: #3a474b;
-  --color-sand-800: #2b373b;
-  --color-sand-900: #1f2a2e;
+  --color-sand-25: #fcfaf6;
+  --color-sand-50: #f8f5ef;
+  --color-sand-100: #f1eae0;
+  --color-sand-200: #e9dfd0;
+  --color-sand-300: #d9ccb8;
+  --color-sand-400: #a39a8c;
+  --color-sand-500: #6b7280;
+  --color-sand-600: #5a625f;
+  --color-sand-700: #3a4441;
+  --color-sand-800: #2b3633;
+  --color-sand-900: #202b29;
 
   /* الحبر: لوحات داكنة كجانب صفحة الدخول */
-  --color-ink: #093a3a;
+  --color-ink: #0b302b;
 
   /* ألوان الحالات */
-  --color-teal-600: #157266;
-  --color-teal-700: #0f5c5c;
+  --color-teal-600: #176b56;
+  --color-teal-700: #064e3b;
   --color-rose-600: #e11d48;
   --color-rose-700: #be123c;
 
@@ -78,10 +78,10 @@
  * المال» فارغاً ومربّعات البنود بلا لون.
  */
 :root {
-  --chart-1: #0f5c5c;
+  --chart-1: #064e3b;
   --chart-2: #c9694b;
-  --chart-3: #edc56a;
-  --chart-4: #e0a63b;
+  --chart-3: #e8c78f;
+  --chart-4: #d5a85c;
   --chart-5: #6366d9;
   --chart-muted: #9ea3a1;
 }

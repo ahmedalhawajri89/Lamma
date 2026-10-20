@@ -42,7 +42,7 @@ const flowChart = computed(() => ({
   labels: props.monthly.map((x) => { const [y, mo] = x.month.split('-').map(Number); return monthName.format(new Date(y, mo - 1, 1)) }),
   datasets: [
     { label: 'المقبوض', data: props.monthly.map((x) => x.revenue), backgroundColor: CATEGORICAL[0], borderRadius: 4, barPercentage: 0.7, categoryPercentage: 0.7 },
-    { label: 'المصروف', data: props.monthly.map((x) => x.disbursed), backgroundColor: '#E0A63B', borderRadius: 4, barPercentage: 0.7, categoryPercentage: 0.7 },
+    { label: 'المصروف', data: props.monthly.map((x) => x.disbursed), backgroundColor: '#D5A85C', borderRadius: 4, barPercentage: 0.7, categoryPercentage: 0.7 },
   ],
 }))
 const flowOptions = {
@@ -77,7 +77,7 @@ const d = computed(() => props.finance.disbursements)
             <span class="num text-4xl font-bold text-sand-900">{{ money(m.collected) }}</span>
             <span class="text-sm text-sand-500 ms-1">من <span class="num">{{ money(m.expected) }}</span> متوقعة</span>
           </p>
-          <span v-if="m.rate !== null" class="num rounded-full bg-[#0f5c5c]/10 text-[#0f5c5c] px-2.5 py-1 text-sm font-semibold">{{ m.rate }}%</span>
+          <span v-if="m.rate !== null" class="num rounded-full bg-[#064e3b]/10 text-[#064e3b] px-2.5 py-1 text-sm font-semibold">{{ m.rate }}%</span>
           <span v-if="m.change !== null" class="text-xs text-sand-500">
             <span class="num font-semibold" :class="m.change >= 0 ? 'text-olive-700' : 'text-rose-700'">{{ m.change > 0 ? '+' : '' }}{{ m.change }}%</span>
             عن الفترة نفسها من الشهر الماضي
@@ -86,13 +86,13 @@ const d = computed(() => props.finance.disbursements)
 
         <!-- المتوقع مقسوماً: ما دخل، وما فشل، وما بقي -->
         <div class="mt-5 flex h-3 rounded-full overflow-hidden bg-sand-100" aria-hidden="true">
-          <span class="bg-[#0f5c5c]" :style="{ width: share(m.collected) }" />
+          <span class="bg-[#064e3b]" :style="{ width: share(m.collected) }" />
           <span class="bg-rose-400" :style="{ width: share(m.unrecovered) }" />
-          <span class="bg-[#E0A63B]/60" :style="{ width: share(m.upcoming) }" />
+          <span class="bg-[#D5A85C]/60" :style="{ width: share(m.upcoming) }" />
         </div>
         <dl class="mt-4 grid grid-cols-3 gap-4 text-sm">
           <div>
-            <dt class="flex items-center gap-1.5 text-xs text-sand-500"><span class="size-2 rounded-full bg-[#0f5c5c]" />حُصّل</dt>
+            <dt class="flex items-center gap-1.5 text-xs text-sand-500"><span class="size-2 rounded-full bg-[#064e3b]" />حُصّل</dt>
             <dd class="num font-semibold mt-0.5">{{ money(m.collected) }}</dd>
             <dd class="text-xs text-sand-500"><span class="num">{{ m.collected_count }}</span> دفعة</dd>
           </div>
@@ -102,7 +102,7 @@ const d = computed(() => props.finance.disbursements)
             <dd class="text-xs text-sand-500"><span class="num">{{ m.unrecovered_count }}</span> دفعة</dd>
           </RouterLink>
           <div>
-            <dt class="flex items-center gap-1.5 text-xs text-sand-500"><span class="size-2 rounded-full bg-[#E0A63B]/60" />باقٍ هذا الشهر</dt>
+            <dt class="flex items-center gap-1.5 text-xs text-sand-500"><span class="size-2 rounded-full bg-[#D5A85C]/60" />باقٍ هذا الشهر</dt>
             <dd class="num font-semibold mt-0.5">{{ money(m.upcoming) }}</dd>
             <dd class="text-xs text-sand-500">{{ m.upcoming_count ? `${m.upcoming_count} قسطاً قادماً` : 'لا أقساط باقية' }}</dd>
           </div>
@@ -116,7 +116,7 @@ const d = computed(() => props.finance.disbursements)
         <ul class="space-y-3.5">
           <li v-for="x in m.by_method" :key="x.method">
             <div class="flex justify-between text-sm"><span>{{ x.label }}</span><span class="num font-medium">{{ money(x.amount) }}</span></div>
-            <div class="h-1.5 rounded-full bg-sand-100 mt-1.5"><div class="h-full rounded-full bg-[#1e8a7a]" :style="{ width: `${(x.amount / methodMax) * 100}%` }" /></div>
+            <div class="h-1.5 rounded-full bg-sand-100 mt-1.5"><div class="h-full rounded-full bg-[#176b56]" :style="{ width: `${(x.amount / methodMax) * 100}%` }" /></div>
             <p class="text-xs text-sand-500 mt-1"><span class="num">{{ x.count }}</span> دفعة</p>
           </li>
           <li v-if="!m.by_method.length" class="text-sm text-sand-500">لا دفعات بعد هذا الشهر.</li>
@@ -166,7 +166,7 @@ const d = computed(() => props.finance.disbursements)
         <div class="mt-4 flex items-end gap-[3px] h-20" role="img" :aria-label="`أقساط ${upcomingCount} موزّعة على 30 يوماً`">
           <span
             v-for="x in days" :key="x.date" class="flex-1 rounded-t-[3px]"
-            :class="x.count ? 'bg-[#1e8a7a]/70' : 'bg-sand-100'"
+            :class="x.count ? 'bg-[#176b56]/70' : 'bg-sand-100'"
             :style="{ height: x.count ? `${Math.max(8, (x.amount / dayPeak) * 100)}%` : '3px' }"
             :title="`${fmtDay(x.date)}: ${x.count} قسط · ${money(x.amount)}`"
           />
@@ -221,10 +221,10 @@ const d = computed(() => props.finance.disbursements)
         <div class="border-t border-sand-100 pt-4">
           <div class="flex items-baseline justify-between text-sm">
             <span class="font-medium">نسبة التشغيل في <span class="num">{{ oh.year }}</span></span>
-            <span class="num text-lg font-bold" :class="over ? 'text-rose-700' : 'text-[#0f5c5c]'">{{ oh.actual ?? '–' }}%</span>
+            <span class="num text-lg font-bold" :class="over ? 'text-rose-700' : 'text-[#064e3b]'">{{ oh.actual ?? '–' }}%</span>
           </div>
           <div class="relative h-1.5 rounded-full bg-sand-100 mt-2" aria-hidden="true">
-            <span class="absolute inset-y-0 start-0 rounded-full" :class="over ? 'bg-rose-400' : 'bg-[#1e8a7a]'" :style="{ width: pos(oh.actual ?? 0) }" />
+            <span class="absolute inset-y-0 start-0 rounded-full" :class="over ? 'bg-rose-400' : 'bg-[#176b56]'" :style="{ width: pos(oh.actual ?? 0) }" />
             <span class="absolute -top-1 -bottom-1 w-0.5 bg-sand-900" :style="{ insetInlineStart: pos(oh.target) }" />
           </div>
           <p class="text-xs mt-1.5" :class="over ? 'text-rose-700' : 'text-sand-500'">الهدف <span class="num">{{ oh.target }}%</span>، {{ over ? 'والفعلي فوقه' : 'والفعلي ضمنه' }}.</p>

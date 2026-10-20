@@ -12,7 +12,7 @@
 @hasSection('robots')
 <meta name="robots" content="@yield('robots')">
 @endif
-<meta name="theme-color" content="#0f5c5c">
+<meta name="theme-color" content="#064e3b">
 
 {{-- سياسة أمان المحتوى: نسمح فقط بالمصادر التي نستخدمها فعلاً، فلا يستطيع
      سكربت خارجي أو إطار مدسوس أن يعمل داخل الصفحة. --}}

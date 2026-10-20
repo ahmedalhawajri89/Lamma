@@ -272,9 +272,9 @@ onBeforeUnmount(() => { window.removeEventListener('beforeunload', beforeUnload)
 
     <template v-else>
       <!-- ══ الهوية: كما يراها الزائر ══ -->
-      <section class="rounded-2xl bg-[#0f5c5c] text-white p-6 lg:p-8" aria-labelledby="idName">
+      <section class="rounded-2xl bg-[#064e3b] text-white p-6 lg:p-8" aria-labelledby="idName">
         <div class="flex flex-wrap items-start gap-5">
-          <span class="size-16 shrink-0 rounded-2xl bg-[#E0A63B] text-[#0f5c5c] grid place-items-center text-3xl font-bold" aria-hidden="true">
+          <span class="size-16 shrink-0 rounded-2xl bg-[#D5A85C] text-[#064e3b] grid place-items-center text-3xl font-bold" aria-hidden="true">
             {{ (view('site.name') || 'ل').trim().charAt(0) }}
           </span>
           <div class="flex-1 min-w-[14rem]">
@@ -290,7 +290,7 @@ onBeforeUnmount(() => { window.removeEventListener('beforeunload', beforeUnload)
             <a :href="siteUrl" target="_blank" rel="noopener" class="btn !bg-transparent !text-white border border-white/30 hover:!bg-white/10">
               <BaseIcon name="external" :size="15" /> افتح الموقع
             </a>
-            <button type="button" class="btn !bg-white !text-[#0f5c5c] hover:!bg-white/90 font-semibold" @click="open('identity')">
+            <button type="button" class="btn !bg-white !text-[#064e3b] hover:!bg-white/90 font-semibold" @click="open('identity')">
               <BaseIcon name="edit" :size="15" /> تعديل الهوية
             </button>
           </div>
@@ -298,18 +298,18 @@ onBeforeUnmount(() => { window.removeEventListener('beforeunload', beforeUnload)
 
         <ul class="flex flex-wrap gap-2 mt-6 text-sm">
           <li v-if="sinceOf(view('site.start_year'))" class="inline-flex items-center gap-2 rounded-full bg-white/10 px-3.5 py-1.5">
-            <BaseIcon name="clock" :size="14" class="text-[#E0A63B]" />
+            <BaseIcon name="clock" :size="14" class="text-[#D5A85C]" />
             نعمل منذ <span class="num">{{ sinceOf(view('site.start_year')) }}</span> عاماً
             <span class="text-white/50 num">({{ view('site.start_year') }})</span>
           </li>
           <li v-if="view('site.email')" class="inline-flex items-center gap-2 rounded-full bg-white/10 px-3.5 py-1.5">
-            <BaseIcon name="mail" :size="14" class="text-[#E0A63B]" /><span class="num" dir="ltr">{{ view('site.email') }}</span>
+            <BaseIcon name="mail" :size="14" class="text-[#D5A85C]" /><span class="num" dir="ltr">{{ view('site.email') }}</span>
           </li>
           <li v-if="view('site.phone')" class="inline-flex items-center gap-2 rounded-full bg-white/10 px-3.5 py-1.5">
-            <BaseIcon name="chat" :size="14" class="text-[#E0A63B]" /><span class="num" dir="ltr">{{ view('site.phone') }}</span>
+            <BaseIcon name="chat" :size="14" class="text-[#D5A85C]" /><span class="num" dir="ltr">{{ view('site.phone') }}</span>
           </li>
           <li v-if="view('site.address')" class="inline-flex items-center gap-2 rounded-full bg-white/10 px-3.5 py-1.5">
-            <BaseIcon name="map" :size="14" class="text-[#E0A63B]" />{{ view('site.address') }}
+            <BaseIcon name="map" :size="14" class="text-[#D5A85C]" />{{ view('site.address') }}
           </li>
         </ul>
         <p v-if="lastChanged('identity')" class="text-xs text-white/50 mt-4">
@@ -341,7 +341,7 @@ onBeforeUnmount(() => { window.removeEventListener('beforeunload', beforeUnload)
         <!-- نسبة التشغيل -->
         <article class="rounded-2xl bg-sand-0 border border-sand-200 p-5 flex flex-col" aria-labelledby="tFin">
           <header class="flex items-center gap-3">
-            <span class="size-10 rounded-xl grid place-items-center bg-[#0f5c5c]/10 text-[#0f5c5c]"><BaseIcon name="wallet" :size="19" /></span>
+            <span class="size-10 rounded-xl grid place-items-center bg-[#064e3b]/10 text-[#064e3b]"><BaseIcon name="wallet" :size="19" /></span>
             <h3 id="tFin" class="font-semibold flex-1">نسبة التشغيل</h3>
             <button type="button" class="btn btn-outline !py-1 !px-3 text-sm" @click="open('finance')"><BaseIcon name="edit" :size="13" /> تعديل</button>
           </header>
@@ -351,7 +351,7 @@ onBeforeUnmount(() => { window.removeEventListener('beforeunload', beforeUnload)
           </p>
           <div class="mt-auto pt-4">
             <div v-if="hasActual" class="relative h-1.5 rounded-full bg-sand-100" aria-hidden="true">
-              <span class="absolute inset-y-0 start-0 rounded-full" :class="overOf(view('finance.overhead_target_percent')) ? 'bg-rose-400' : 'bg-[#1e8a7a]'" :style="{ width: pos(actual) }" />
+              <span class="absolute inset-y-0 start-0 rounded-full" :class="overOf(view('finance.overhead_target_percent')) ? 'bg-rose-400' : 'bg-[#176b56]'" :style="{ width: pos(actual) }" />
               <span class="absolute -top-1 -bottom-1 w-0.5 bg-sand-900" :style="{ insetInlineStart: pos(view('finance.overhead_target_percent')) }" />
             </div>
             <p class="text-sm mt-2" :class="overOf(view('finance.overhead_target_percent')) ? 'text-rose-700' : 'text-sand-600'">
@@ -368,7 +368,7 @@ onBeforeUnmount(() => { window.removeEventListener('beforeunload', beforeUnload)
         <!-- متابعة الأطفال -->
         <article class="rounded-2xl bg-sand-0 border border-sand-200 p-5 flex flex-col" aria-labelledby="tRep">
           <header class="flex items-center gap-3">
-            <span class="size-10 rounded-xl grid place-items-center bg-[#E0A63B]/15 text-[#a8741a]"><BaseIcon name="file" :size="19" /></span>
+            <span class="size-10 rounded-xl grid place-items-center bg-[#D5A85C]/15 text-[#a8741a]"><BaseIcon name="file" :size="19" /></span>
             <h3 id="tRep" class="font-semibold flex-1">متابعة الأطفال</h3>
             <button type="button" class="btn btn-outline !py-1 !px-3 text-sm" @click="open('reports')"><BaseIcon name="edit" :size="13" /> تعديل</button>
           </header>
@@ -384,7 +384,7 @@ onBeforeUnmount(() => { window.removeEventListener('beforeunload', beforeUnload)
       <!-- ══ أسعار الصرف ══ -->
       <section v-if="rates.length" class="rounded-2xl bg-sand-0 border border-sand-200 mt-4" aria-labelledby="fxTitle">
         <header class="flex flex-wrap items-center gap-3 px-5 py-4 border-b border-sand-100">
-          <span class="size-10 rounded-xl grid place-items-center bg-[#0f5c5c]/10 text-[#0f5c5c]"><BaseIcon name="globe" :size="19" /></span>
+          <span class="size-10 rounded-xl grid place-items-center bg-[#064e3b]/10 text-[#064e3b]"><BaseIcon name="globe" :size="19" /></span>
           <div class="flex-1">
             <h3 id="fxTitle" class="font-semibold">أسعار الصرف</h3>
             <p class="text-xs text-sand-500">تُحدَّث كل يوم. بها يُحسب ما يعادل قسط الكافل بعملته، ويُقترح سعر الصرف المحلي.</p>
@@ -522,10 +522,10 @@ onBeforeUnmount(() => { window.removeEventListener('beforeunload', beforeUnload)
             <div v-if="hasActual" class="rounded-xl bg-sand-25 border border-sand-100 p-4">
               <div class="flex items-baseline justify-between text-sm">
                 <span>الفعلي في <span class="num">{{ meta.overhead_year }}</span></span>
-                <span class="num text-xl font-bold" :class="overOf(draft['finance.overhead_target_percent']) ? 'text-rose-700' : 'text-[#0f5c5c]'">{{ actual }}%</span>
+                <span class="num text-xl font-bold" :class="overOf(draft['finance.overhead_target_percent']) ? 'text-rose-700' : 'text-[#064e3b]'">{{ actual }}%</span>
               </div>
               <div class="relative h-2 rounded-full bg-sand-100 mt-3" aria-hidden="true">
-                <span class="absolute inset-y-0 start-0 rounded-full" :class="overOf(draft['finance.overhead_target_percent']) ? 'bg-rose-400' : 'bg-[#1e8a7a]'" :style="{ width: pos(actual) }" />
+                <span class="absolute inset-y-0 start-0 rounded-full" :class="overOf(draft['finance.overhead_target_percent']) ? 'bg-rose-400' : 'bg-[#176b56]'" :style="{ width: pos(actual) }" />
                 <span class="absolute -top-1.5 -bottom-1.5 w-0.5 bg-sand-900" :style="{ insetInlineStart: pos(draft['finance.overhead_target_percent']) }" />
               </div>
               <div class="flex justify-between text-[0.7rem] text-sand-400 mt-1.5 num"><span>0%</span><span>30%</span></div>

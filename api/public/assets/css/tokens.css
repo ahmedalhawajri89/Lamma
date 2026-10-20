@@ -1,14 +1,18 @@
 /* ==========================================================================
-   Kafala — Design Tokens
+   Lamma · Design Tokens
    الطبقة الأساسية: كل قيمة تصميمية في المشروع تبدأ من هنا.
    لا يُسمح بأي لون أو مقاس ثابت (hard-coded) خارج هذا الملف.
 
-   هوية «أمان ودفء — تركوازي وذهبي»:
-     تركوازي عميق  #0F5C5C — الأمان والثقة (العلامة)
-     تركوازي ثانوي #1E8A7A — النمو والحياة
-     ذهبي دافئ     #E0A63B — زر «اكفل» وحده: الدفء والعطاء
-     أرضية دافئة   #F7F5F0 — ورقية هادئة، لا أبيض حادّ
-     حبر           #1F2A2E — نص رمادي مزرقّ، أنعم من الأسود
+   هوية «لمّة»، أخضر وذهبي على عاجي:
+     أخضر داكن عميق  #064E3B: العلامة والأزرار الأساسية
+     أخضر غامق جداً  #0B302B: خلفيات الأقسام البارزة
+     أخضر متوسط      #176B56: الأيقونات والعناصر التفاعلية
+     ذهبي دافئ       #D5A85C: إبراز الكلمات المهمة والتفاصيل
+     ذهبي فاتح       #E8C78F: أزرار الدعوة إلى الكفالة
+     أبيض عاجي       #F8F5EF: الخلفية الأساسية
+     بيج فاتح        #E9DFD0: الخلفيات الثانوية
+     رمادي دافئ      #6B7280: النصوص الوصفية
+     فحمي داكن       #202B29: النصوص الرئيسية
 
    القاعدة: المكونات تستعمل الأدوار الدلالية (--color-*) فقط، لا السلالم.
    هكذا يعمل الوضع الليلي بإعادة تعريف الأدوار وحدها، بلا لمس أي مكوّن.
@@ -21,29 +25,29 @@
      1. السلالم الخام
      ------------------------------------------------------------------ */
 
-  /* التركوازي — ٧٠٠ هو الأساسي، و٥٠٠ هو الثانوي */
-  --teal-50:  #eef7f6;
-  --teal-100: #d3ebe8;
-  --teal-200: #a8d6d0;
-  --teal-300: #74bbb2;
-  --teal-400: #3fa095;
-  --teal-500: #1e8a7a;
-  --teal-600: #157266;
-  --teal-700: #0f5c5c;
-  --teal-800: #0c4a4a;
-  --teal-900: #093a3a;
-  --teal-950: #062727;
+  /* الأخضر (الاسم القديم teal باقٍ لأن المكوّنات كلها تستعمله): ٧٠٠ #064E3B الأساسي، ٦٠٠ #176B56 للأيقونات والتفاعل، ٩٠٠ #0B302B للأقسام البارزة */
+  --teal-50:  #edf6f2;
+  --teal-100: #d2e9df;
+  --teal-200: #a7d3c1;
+  --teal-300: #74b89f;
+  --teal-400: #3f9a7d;
+  --teal-500: #1f8165;
+  --teal-600: #176b56;
+  --teal-700: #064e3b;
+  --teal-800: #053f30;
+  --teal-900: #0b302b;
+  --teal-950: #061e1a;
 
-  /* الذهبي — ٥٠٠ هو زر «اكفل» */
-  --gold-50:  #fdf8ec;
-  --gold-100: #faedcc;
-  --gold-200: #f4da9a;
-  --gold-300: #edc56a;
-  --gold-400: #e7b450;
-  --gold-500: #e0a63b;
-  --gold-600: #c48a25;
-  --gold-700: #9c6b1a;
-  --gold-800: #74501a;
+  /* الذهبي: ٥٠٠ #D5A85C للإبراز، و٣٠٠ #E8C78F لأزرار الدعوة إلى الكفالة */
+  --gold-50:  #fbf6ec;
+  --gold-100: #f6ebd5;
+  --gold-200: #f0ddb6;
+  --gold-300: #e8c78f;
+  --gold-400: #dfb877;
+  --gold-500: #d5a85c;
+  --gold-600: #b98a3e;
+  --gold-700: #91692c;
+  --gold-800: #6c4e22;
 
   /* الطين — للصحة في المخططات وبرامج الكفالة فقط */
   --clay-500: #c9694b;
@@ -73,59 +77,59 @@
 
   /* المحايد: أرضية دافئة ونصوص رمادية مزرقّة */
   --sand-0:   #ffffff;
-  --sand-25:  #fbfaf7;
-  --sand-50:  #f7f5f0;
-  --sand-100: #efece4;
-  --sand-200: #e4e0d6;
-  --sand-300: #cfcabe;
-  --sand-400: #9ea3a1;
-  --sand-500: #858a84;   /* 3.5 على الأبيض: أدنى ما يُرى به حدّ حقل */
-  --ink-500:  #5f6b6f;   /* 4.7 على السطح البديل */
-  --ink-600:  #4e5b5f;
-  --ink-700:  #3a474b;
-  --ink-900:  #1f2a2e;
+  --sand-25:  #fcfaf6;
+  --sand-50:  #f8f5ef;
+  --sand-100: #f1eae0;
+  --sand-200: #e9dfd0;
+  --sand-300: #d9ccb8;
+  --sand-400: #a39a8c;
+  --sand-500: #857c6f;   /* 3.5 على الأبيض: أدنى ما يُرى به حدّ حقل */
+  --ink-500:  #6b7280;   /* 4.7 على السطح البديل */
+  --ink-600:  #5a625f;
+  --ink-700:  #3a4441;
+  --ink-900:  #202b29;
 
   /* ------------------------------------------------------------------
      2. الأدوار الدلالية — استخدم هذه في المكونات، لا السلالم أعلاه
      ------------------------------------------------------------------ */
 
-  /* العلامة — #0F5C5C يعطي 7.1 على الأرضية و7.8 للنص الأبيض فوقه */
+  /* العلامة: #064E3B يعطي 9.4 للنص الأبيض فوقه */
   --color-brand:            var(--teal-700);
   /* الشعار: ورقتان بلون العلامة وورقةٌ ذهبية (partials/logo-mark) */
-  --logo-leaf:              #0f5c5c;
-  --logo-gold:              #e0a63b;
+  --logo-leaf:              #064e3b;
+  --logo-gold:              #d5a85c;
   --font-logo:              'Tajawal', var(--font-display);
   --color-brand-hover:      var(--teal-800);
   --color-brand-strong:     var(--teal-800);   /* نص فوق السطح الناعم */
   --color-brand-soft:       var(--teal-50);
   --color-brand-border:     var(--teal-200);
   --color-brand-contrast:   var(--sand-0);
-  --color-brand-2:          var(--teal-500);   /* الثانوي: أيقونات ومؤشرات */
+  --color-brand-2:          var(--teal-600);   /* الثانوي: أيقونات ومؤشرات */
 
-  /* «اكفل» — الذهبي لا يحمل نصاً أبيض (2.2 فقط)، فنصّه الحبر بتباين 6.7 */
-  --color-cta:              var(--gold-500);
+  /* «اكفل»: الذهبي الفاتح لا يحمل نصاً أبيض، فنصّه الحبر الفحمي بتباين 10 */
+  --color-cta:              var(--gold-300);
   --color-cta-hover:        var(--gold-400);
   --color-cta-contrast:     var(--ink-900);
   --color-cta-soft:         var(--gold-50);
   --color-cta-strong:       var(--gold-800);   /* نص فوق السطح الذهبي الناعم */
   --color-cta-display:      var(--gold-700);   /* نص عرض كبير فقط: 4.2 ≥ 3 */
-  --color-highlight:        rgb(224 166 59 / 0.28);
+  --color-highlight:        rgb(213 168 92 / 0.28);
 
   --color-accent:           var(--gold-500);
   --color-accent-soft:      var(--gold-50);
   --color-accent-strong:    var(--gold-800);
 
-  --color-growth:           var(--teal-500);
+  --color-growth:           var(--teal-600);
   --color-growth-soft:      var(--teal-50);
   --color-growth-strong:    var(--teal-700);
 
   --color-canvas:           var(--sand-50);
   --color-surface:          var(--sand-0);
-  --color-surface-alt:      var(--sand-100);
+  --color-surface-alt:      var(--sand-200);
   --color-surface-raised:   var(--sand-0);
 
   --color-text:             var(--ink-900);
-  --color-text-muted:       var(--ink-600);
+  --color-text-muted:       var(--ink-500);
   --color-text-subtle:      var(--ink-500);
 
   --color-border:           var(--sand-200);
@@ -165,7 +169,7 @@
   --color-photo-glass:      rgb(255 255 255 / 0.14);
   --color-photo-line:       rgb(255 255 255 / 0.30);
 
-  --color-scrim:            rgb(9 31 31 / 0.55);
+  --color-scrim:            rgb(11 48 43 / 0.55);
   --color-selection:        var(--teal-100);
   --color-selection-text:   var(--teal-900);
   --color-scrollbar:        var(--sand-300);
@@ -318,8 +322,8 @@
    ========================================================================== */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --logo-leaf: #3e9c8e;
-    --logo-gold: #e8b34f;
+    --logo-leaf: #3f9a7d;
+    --logo-gold: #e8c78f;
     color-scheme: dark;
 
     --color-brand:          var(--teal-300);
@@ -345,10 +349,10 @@
     --color-growth-soft:    rgb(116 187 178 / 0.12);
     --color-growth-strong:  var(--teal-200);
 
-    --color-canvas:         #0d1617;
-    --color-surface:        #142022;
-    --color-surface-alt:    #1a2a2c;
-    --color-surface-raised: #1f3133;
+    --color-canvas:         #0a1614;
+    --color-surface:        #10201d;
+    --color-surface-alt:    #152a26;
+    --color-surface-raised: #1a322d;
 
     --color-text:           #ecefea;
     --color-text-muted:     #aab5b3;
@@ -366,14 +370,14 @@
     --color-urgent-soft:    rgb(251 113 133 / 0.14);
     --color-urgent-contrast: var(--teal-950);   /* الأبيض على الوردي الفاتح 2.8 */
 
-    --color-ink:            #0d3030;
+    --color-ink:            #0b302b;
     --color-scrim:          rgb(0 0 0 / 0.62);
     --color-selection:      var(--teal-800);
     --color-selection-text: var(--teal-50);
     --color-scrollbar:      #34494b;
 
     --color-focus:          var(--teal-300);
-    --color-focus-halo:     #0d1617;
+    --color-focus-halo:     #0a1614;
 
     --chart-1: var(--teal-300);
     --chart-2: var(--clay-300);
@@ -397,8 +401,8 @@
 }
 
 :root[data-theme="dark"] {
-  --logo-leaf: #3e9c8e;
-  --logo-gold: #e8b34f;
+  --logo-leaf: #3f9a7d;
+  --logo-gold: #e8c78f;
   color-scheme: dark;
 
   --color-brand:          var(--teal-300);
@@ -424,10 +428,10 @@
   --color-growth-soft:    rgb(116 187 178 / 0.12);
   --color-growth-strong:  var(--teal-200);
 
-  --color-canvas:         #0d1617;
-  --color-surface:        #142022;
-  --color-surface-alt:    #1a2a2c;
-  --color-surface-raised: #1f3133;
+  --color-canvas:         #0a1614;
+  --color-surface:        #10201d;
+  --color-surface-alt:    #152a26;
+  --color-surface-raised: #1a322d;
 
   --color-text:           #ecefea;
   --color-text-muted:     #aab5b3;
@@ -445,14 +449,14 @@
   --color-urgent-soft:    rgb(251 113 133 / 0.14);
   --color-urgent-contrast: var(--teal-950);   /* الأبيض على الوردي الفاتح 2.8 */
 
-  --color-ink:            #0d3030;
+  --color-ink:            #0b302b;
   --color-scrim:          rgb(0 0 0 / 0.62);
   --color-selection:      var(--teal-800);
   --color-selection-text: var(--teal-50);
   --color-scrollbar:      #34494b;
 
   --color-focus:          var(--teal-300);
-  --color-focus-halo:     #0d1617;
+  --color-focus-halo:     #0a1614;
 
   --chart-1: var(--teal-300);
   --chart-2: var(--clay-300);
