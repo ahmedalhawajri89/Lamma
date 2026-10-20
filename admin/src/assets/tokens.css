@@ -64,6 +64,8 @@
   --color-rose-700: #be123c;
 
   --font-display: 'Readex Pro', system-ui, sans-serif;
+  /* خط الشعار: الاسم وسطره تحته، لا بقية الواجهة */
+  --font-logo: 'Tajawal', 'Readex Pro', system-ui, sans-serif;
   --font-sans: 'IBM Plex Sans Arabic', system-ui, sans-serif;
 
   --radius-card: 1rem;

@@ -32,7 +32,7 @@
     <div class="kf-footer__cols">
       <div class="kf-footer__about">
         <a class="kf-footer__brand" href="{{ lurl('/') }}">
-          <img src="/assets/img/logo.svg" alt="" width="40" height="40">
+          @include('site.partials.logo-mark', ['size' => 40])
           <span><b data-site="name">{{ $site['name'] }}</b><small data-site="tagline">{{ $site['tagline'] }}</small></span>
         </a>
         <p class="kf-footer__muted">{{ __('منصة تربط بين من يريد أن يعطي ومن يستحق أن يُعطى، بشفافية موثّقة وتقارير دورية.') }}</p>

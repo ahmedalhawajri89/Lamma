@@ -20,14 +20,14 @@
   <nav class="navbar navbar-expand-xl" aria-label="{{ __('التنقل الرئيسي') }}">
     <div class="container">
       <a class="navbar-brand kf-brand" href="{{ lurl('/') }}">
-        <img class="kf-brand__logo" src="/assets/img/logo.svg" alt="" width="46" height="46">
-        <span class="kf-brand__name"><span data-site="name">{{ $site['name'] }}</span><span class="kf-brand__tag" data-site="tagline">{{ $site['tagline'] }}</span></span>
+        @include('site.partials.logo-mark', ['size' => 46, 'class' => 'kf-brand__logo'])
+        <span class="kf-brand__name"><span data-site="name">{{ $site['name'] }}</span><span class="kf-brand__tag">{{ __('منصة رعاية الأيتام') }}</span></span>
       </a>
 
       <div class="offcanvas-xl offcanvas-start kf-drawer" tabindex="-1" id="siteNav" aria-labelledby="siteNavTitle">
         <div class="offcanvas-header kf-drawer__head">
           <p class="kf-drawer__title" id="siteNavTitle">
-            <img src="/assets/img/logo.svg" alt="" width="34" height="34"> <span>{{ $site['name'] }}</span>
+            @include('site.partials.logo-mark', ['size' => 34]) <span>{{ $site['name'] }}</span>
           </p>
           <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#siteNav" aria-label="{{ __('إغلاق القائمة') }}"></button>
         </div>

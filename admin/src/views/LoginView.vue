@@ -89,7 +89,7 @@ async function submit() {
       <div class="admin-login__brand">
         <span class="admin-login__mark"><img src="/logo.svg" alt="" width="34" height="34" /></span>
         <div>
-          <p class="font-display font-semibold text-xl text-sand-900 leading-tight">{{ ui.brand }}</p>
+          <p class="font-logo font-extrabold text-2xl text-sand-900 leading-tight">{{ ui.brand }}</p>
           <p class="text-sm text-clay-600 leading-tight">لوحة الإدارة</p>
         </div>
       </div>

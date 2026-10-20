@@ -91,6 +91,10 @@
 
   /* العلامة — #0F5C5C يعطي 7.1 على الأرضية و7.8 للنص الأبيض فوقه */
   --color-brand:            var(--teal-700);
+  /* الشعار: ورقتان بلون العلامة وورقةٌ ذهبية (partials/logo-mark) */
+  --logo-leaf:              #0f5c5c;
+  --logo-gold:              #e0a63b;
+  --font-logo:              'Tajawal', var(--font-display);
   --color-brand-hover:      var(--teal-800);
   --color-brand-strong:     var(--teal-800);   /* نص فوق السطح الناعم */
   --color-brand-soft:       var(--teal-50);
@@ -314,6 +318,8 @@
    ========================================================================== */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
+    --logo-leaf: #3e9c8e;
+    --logo-gold: #e8b34f;
     color-scheme: dark;
 
     --color-brand:          var(--teal-300);
@@ -391,6 +397,8 @@
 }
 
 :root[data-theme="dark"] {
+  --logo-leaf: #3e9c8e;
+  --logo-gold: #e8b34f;
   color-scheme: dark;
 
   --color-brand:          var(--teal-300);

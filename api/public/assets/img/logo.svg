@@ -1,11 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-label="شعار لمّة">
   <title>لمّة</title>
-  <!-- «لمّة» الأسرة: ثلاثة أشخاص تتشابك أذرعهم حلقةً حول الطفل في الوسط -->
-  <path d="M28.88 15.99A12.5 12.5 0 0 1 36.41 29.02" fill="none" stroke="#1e8a7a" stroke-width="5.2" stroke-linecap="round"/>
-  <path d="M31.52 37.48A12.5 12.5 0 0 1 16.48 37.48" fill="none" stroke="#0f5c5c" stroke-width="5.2" stroke-linecap="round"/>
-  <path d="M11.59 29.02A12.5 12.5 0 0 1 19.12 15.99" fill="none" stroke="#2f9c88" stroke-width="5.2" stroke-linecap="round"/>
-  <circle cx="24.00" cy="7.30" r="3.9" fill="#1e8a7a"/>
-  <circle cx="41.49" cy="37.60" r="3.9" fill="#0f5c5c"/>
-  <circle cx="6.51" cy="37.60" r="3.9" fill="#2f9c88"/>
-  <circle cx="24" cy="27.5" r="5.4" fill="#e0a63b"/>
+  <!-- برعمٌ من ثلاث أوراق: ورقتان تحتضنان ورقةً ذهبية تنمو بينهما -->
+  <path d="M22.60 45.00C20.38 33.76 13.92 25.39 3.60 20.40C2.35 34.32 8.81 42.69 22.60 45.00Z" fill="#0f5c5c"/>
+  <path d="M25.00 45.00C41.35 41.40 48.22 31.07 45.20 14.60C33.32 21.17 26.45 31.50 25.00 45.00Z" fill="#0f5c5c"/>
+  <path d="M23.60 34.50C34.76 25.58 36.73 14.66 29.40 2.40C21.32 11.88 19.35 22.79 23.60 34.50Z" fill="#e0a63b"/>
 </svg>

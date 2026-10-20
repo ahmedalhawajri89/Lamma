@@ -137,7 +137,7 @@
 
               <div class="post-card post-about">
                 <div class="post-meta__by">
-                  <span class="post-meta__avatar" aria-hidden="true"><img src="/assets/img/logo.svg" alt="" width="40" height="40"></span>
+                  <span class="post-meta__avatar" aria-hidden="true">@include('site.partials.logo-mark', ['size' => 40])</span>
                   <span><b>{{ $post->author?->name ?? __('فريق :name', ['name' => $site['name']]) }}</b><span>{{ __('من فريق المنصة') }}</span></span>
                 </div>
                 <dl class="post-facts">

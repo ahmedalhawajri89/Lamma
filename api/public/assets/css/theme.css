@@ -612,10 +612,13 @@ button:focus-visible,
 /* أيقونة بلا إطار (المظهر) */
 .btn-icon--plain { --bs-btn-border-color: transparent; --bs-btn-hover-border-color: transparent; }
 
+/* الشعار لا ينكمش بجانب نصٍّ أطول (Lamma وسطره في الإنجليزية) */
+.kf-mark { flex-shrink: 0; display: block; }
 .kf-brand { display: inline-flex; align-items: center; gap: 0.6rem; color: var(--color-text); text-decoration: none; }
 .kf-brand:hover { color: var(--color-text); }
-.kf-brand__name { display: flex; flex-direction: column; line-height: 1.15; font-family: var(--font-display); font-weight: 700; font-size: 1.15rem; }
-.kf-brand__tag { font-family: var(--font-body); font-weight: 400; font-size: 0.75rem; color: var(--color-text-muted); }
+.kf-brand__name { display: flex; flex-direction: column; line-height: 1.15; font-family: var(--font-logo); font-weight: 800; font-size: 1.2rem; }
+.kf-brand__tag { font-family: var(--font-logo); font-weight: 300; font-size: 0.78rem; color: var(--color-text-muted); }
+.kf-drawer__title span { font-family: var(--font-logo); font-weight: 800; }
 .kf-brand--on-ink { color: #fff; }
 .kf-brand--on-ink:hover { color: #fff; }
 .kf-brand--on-ink .kf-brand__tag { color: var(--color-on-ink-muted); }

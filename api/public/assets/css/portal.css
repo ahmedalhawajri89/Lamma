@@ -52,8 +52,8 @@
 
 .pt-side__head { display: flex; align-items: center; gap: 0.5rem; min-block-size: 4.25rem; padding: 0.75rem 1rem; border-block-end: 1px solid var(--color-border); }
 .pt-side__brand { display: flex; align-items: center; gap: 0.65rem; min-inline-size: 0; color: var(--color-text); text-decoration: none; }
-.pt-side__brand img { flex-shrink: 0; }
-.pt-side__brand b { display: block; font-family: var(--font-display); font-size: 1.05rem; line-height: 1.2; white-space: nowrap; }
+.pt-side__brand .kf-mark { flex-shrink: 0; }
+.pt-side__brand b { display: block; font-family: var(--font-logo); font-weight: 800; font-size: 1.15rem; line-height: 1.2; white-space: nowrap; }
 .pt-side__brand small { display: block; font-size: 0.75rem; color: var(--color-text-subtle); white-space: nowrap; }
 .pt-side__head .pt-iconbtn { margin-inline-start: auto; }
 

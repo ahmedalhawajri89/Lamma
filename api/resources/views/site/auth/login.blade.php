@@ -20,8 +20,8 @@
     <main class="acc-main" id="main">
       <div class="acc-bar">
         <a class="kf-brand acc-brand" href="{{ lurl('/') }}">
-          <img src="/assets/img/logo.svg" alt="" width="40" height="40">
-          <span class="kf-brand__name"><span>{{ $site['name'] }}</span><span class="kf-brand__tag">{{ $site['tagline'] }}</span></span>
+          @include('site.partials.logo-mark', ['size' => 40])
+          <span class="kf-brand__name"><span>{{ $site['name'] }}</span><span class="kf-brand__tag">{{ __('منصة رعاية الأيتام') }}</span></span>
         </a>
         <div class="acc-bar__tools">
           @include('site.partials.lang-switch')

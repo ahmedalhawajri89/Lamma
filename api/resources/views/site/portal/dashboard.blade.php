@@ -28,7 +28,7 @@
     <aside class="pt-side offcanvas-lg offcanvas-start" id="ptSide" tabindex="-1" aria-labelledby="ptSideTitle">
       <div class="pt-side__head">
         <a class="pt-side__brand" href="{{ lurl('/') }}" title="{{ __('الموقع') }}">
-          <img src="/assets/img/logo.svg" alt="" width="36" height="36">
+          @include('site.partials.logo-mark', ['size' => 36])
           <span class="pt-label"><b id="ptSideTitle">{{ $site['name'] }}</b><small>{{ __('بوابة الكافل') }}</small></span>
         </a>
         <button class="pt-iconbtn pt-side__rail d-none d-lg-inline-grid" type="button" data-rail-toggle aria-expanded="true" aria-label="{{ __('طيّ القائمة') }}" title="{{ __('طيّ القائمة') }}">
@@ -103,7 +103,7 @@
           <span class="pt-dot" data-reports-count hidden></span>
         </button>
         <span class="pt-top__title" data-pt-title>{{ __('نظرة عامة') }}</span>
-        <a class="pt-top__brand" href="{{ lurl('/') }}" aria-label="{{ $site['name'] }}"><img src="/assets/img/logo.svg" alt="" width="30" height="30"></a>
+        <a class="pt-top__brand" href="{{ lurl('/') }}" aria-label="{{ $site['name'] }}">@include('site.partials.logo-mark', ['size' => 30])</a>
       </header>
 
       <main class="pt-content" id="main">

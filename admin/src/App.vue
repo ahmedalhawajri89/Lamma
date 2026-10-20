@@ -138,7 +138,7 @@ watch(
       <div class="side__head p-4 border-b border-sand-200 flex items-center gap-2.5">
         <img src="/logo.svg" alt="" width="36" height="36" class="shrink-0" />
         <div class="side__label min-w-0">
-          <p class="font-semibold text-sand-900 leading-tight whitespace-nowrap">{{ ui.brand }}</p>
+          <p class="font-logo font-extrabold text-lg text-sand-900 leading-tight whitespace-nowrap">{{ ui.brand }}</p>
           <p class="text-xs text-sand-500 whitespace-nowrap">لوحة الإدارة</p>
         </div>
 
