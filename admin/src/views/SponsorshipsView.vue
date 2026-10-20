@@ -150,7 +150,8 @@ function onSaved() {
       </template>
 
       <template #monthly_amount="{ row }">
-        <span class="num font-medium">{{ money(row.monthly_amount, row.currency) }}</span>
+        <span class="num font-medium">{{ money(row.charge_amount ?? row.monthly_amount, row.charge_currency ?? row.currency) }}</span>
+        <span v-if="row.charge_currency && row.charge_currency !== row.currency" class="block text-xs text-sand-500 num">≈ {{ money(row.monthly_amount, row.currency) }}</span>
         <span class="block text-xs text-sand-500">
           <template v-if="row.interval_months > 1">{{ CYCLE[row.interval_months] }} </template>
           <span v-if="row.is_zakat" class="text-teal-700">· زكاة</span>

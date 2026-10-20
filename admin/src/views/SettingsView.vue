@@ -110,6 +110,28 @@ async function load() {
 }
 onMounted(load)
 
+/* ── أسعار الصرف ── */
+const rates = ref([])
+const refreshingRates = ref(false)
+async function loadRates() {
+  try {
+    rates.value = (await admin.fx.rates()).data.data
+  } catch { rates.value = [] }
+}
+async function refreshRates() {
+  refreshingRates.value = true
+  try {
+    const { data } = await admin.fx.refresh()
+    ui.success(data.message)
+  } catch (e) {
+    ui.error(e.userMessage)
+  } finally {
+    refreshingRates.value = false
+    loadRates()
+  }
+}
+onMounted(loadRates)
+
 /* ── ما يُعرض: من المحفوظ، والدرج من المسوّدة ───────────────────────── */
 
 const view = (k) => saved.value[k]
@@ -358,6 +380,30 @@ onBeforeUnmount(() => { window.removeEventListener('beforeunload', beforeUnload)
           </p>
         </article>
       </div>
+
+      <!-- ══ أسعار الصرف ══ -->
+      <section v-if="rates.length" class="rounded-2xl bg-sand-0 border border-sand-200 mt-4" aria-labelledby="fxTitle">
+        <header class="flex flex-wrap items-center gap-3 px-5 py-4 border-b border-sand-100">
+          <span class="size-10 rounded-xl grid place-items-center bg-[#0f5c5c]/10 text-[#0f5c5c]"><BaseIcon name="globe" :size="19" /></span>
+          <div class="flex-1">
+            <h3 id="fxTitle" class="font-semibold">أسعار الصرف</h3>
+            <p class="text-xs text-sand-500">تُحدَّث كل يوم. بها يُحسب ما يعادل قسط الكافل بعملته، ويُقترح سعر الصرف المحلي.</p>
+          </div>
+          <button type="button" class="btn btn-outline !py-1 !px-3 text-sm" :disabled="refreshingRates" @click="refreshRates">
+            <BaseIcon :name="refreshingRates ? 'loader' : 'undo'" :size="13" :class="{ 'animate-spin': refreshingRates }" /> حدّث الآن
+          </button>
+        </header>
+        <ul class="grid sm:grid-cols-2 lg:grid-cols-3 gap-px bg-sand-100">
+          <li v-for="r in rates.filter((x) => x.currency !== 'USD')" :key="r.currency" class="bg-sand-0 px-5 py-3 flex items-baseline gap-3">
+            <span class="num font-semibold w-12" dir="ltr">{{ r.currency }}</span>
+            <span class="flex-1 text-sm">
+              <span class="num" dir="ltr">1 {{ r.currency }} = ${{ r.rate.toFixed(4) }}</span>
+              <span v-if="r.for_sponsors" class="ms-1.5 text-[0.7rem] rounded-full bg-amber-50 text-amber-800 px-1.5 py-0.5">للكفلاء</span>
+            </span>
+            <span class="text-xs" :class="r.stale ? 'text-rose-700' : 'text-sand-500'">{{ r.fetched_at ? relative(r.fetched_at) : 'سعر ابتدائي' }}</span>
+          </li>
+        </ul>
+      </section>
 
       <!-- ══ سجل التغييرات ══ -->
       <section class="rounded-2xl bg-sand-0 border border-sand-200 mt-4" aria-labelledby="hTitle">

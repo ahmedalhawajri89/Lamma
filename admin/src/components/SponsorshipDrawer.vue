@@ -178,8 +178,9 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKey))
           <template v-if="money_">
             <div>
               <dt class="text-xs text-sand-500 mb-0.5">المبلغ</dt>
-              <dd><span class="num font-semibold">{{ money(s.monthly_amount, s.currency) }}</span> شهرياً
-                <span v-if="s.interval_months > 1" class="block text-xs text-sand-500">يدفع {{ CYCLE[s.interval_months] }} <span class="num">{{ money(s.cycle_amount, s.currency) }}</span></span>
+              <dd><span class="num font-semibold">{{ money(s.charge_amount ?? s.monthly_amount, s.charge_currency ?? s.currency) }}</span> شهرياً
+                <span v-if="s.charge_currency && s.charge_currency !== s.currency" class="block text-xs text-sand-500">بعملة الكافل، تعادل اليوم <span class="num">{{ money(s.monthly_amount, s.currency) }}</span></span>
+                <span v-if="s.interval_months > 1" class="block text-xs text-sand-500">يدفع {{ CYCLE[s.interval_months] }} <span class="num">{{ money(s.charge_cycle_amount ?? s.cycle_amount, s.charge_currency ?? s.currency) }}</span></span>
               </dd>
             </div>
             <div>

@@ -158,3 +158,22 @@ it('صفحة الكفالة تعرض عملات الكفلاء وأسعارها�
         ->and($res->json('data.currency'))->toBe('GBP')
         ->and(Sponsor::whereHas('user', fn ($q) => $q->where('email', 'sarah@example.com'))->value('preferred_currency'))->toBe('GBP');
 });
+
+it('أسعار الصرف في اللوحة: يراها المحاسب ومنذ متى، ويحدّثها المدير وحده', function () {
+    ExchangeRate::query()->update(['fetched_at' => now()->subDays(5), 'source' => 'open.er-api.com']);
+    setRate('GBP', 1.25);
+    $accountant = \App\Models\User::factory()->accountant()->create();
+    $admin = \App\Models\User::factory()->admin()->create();
+
+    $rows = collect($this->actingAs($accountant)->getJson('/api/v1/admin/fx/rates')->assertOk()->json('data'))->keyBy('currency');
+    expect($rows['GBP']['rate'])->toEqual(1.25)
+        ->and($rows['GBP']['stale'])->toBeFalse()
+        ->and($rows['GBP']['for_sponsors'])->toBeTrue()
+        ->and($rows['EUR']['stale'])->toBeTrue();
+
+    $this->actingAs($accountant)->postJson('/api/v1/admin/fx/refresh')->assertForbidden();
+
+    Http::fake(['*' => Http::response(['result' => 'success', 'rates' => ['GBP' => 0.8, 'EUR' => 1 / 1.1]])]);
+    $this->actingAs($admin)->postJson('/api/v1/admin/fx/refresh')->assertOk();
+    expect(Fx::rate('EUR'))->toBe(1.1);
+});

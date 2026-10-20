@@ -294,6 +294,9 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
             Route::get('transfers/{transfer}', [Admin\TransferController::class, 'show'])->name('transfers.show');
             Route::post('transfers/{transfer}/send', [Admin\TransferController::class, 'send'])->name('transfers.send');
             Route::post('transfers/{transfer}/confirm', [Admin\TransferController::class, 'confirm'])->name('transfers.confirm');
+            // أسعار الصرف: ما يعادل دفعات الكفلاء بعملاتهم والصرف بالعملات المحلية
+            Route::get('fx/rates', [Admin\ExchangeRateController::class, 'index'])->name('fx.index');
+            Route::post('fx/refresh', [Admin\ExchangeRateController::class, 'refresh'])->middleware('throttle:6,1')->name('fx.refresh');
             // صندوق الاستمرارية: رصيده وقيوده، والمتعثّر الآن، والتبرّع له
             Route::get('fund', [Admin\ContinuityFundController::class, 'index'])->name('fund.index');
             Route::get('fund/at-risk', [Admin\ContinuityFundController::class, 'atRisk'])->name('fund.at-risk');

@@ -9,7 +9,7 @@
  * ورقم الحوالة ليس حقلاً وصفياً: منه يُشتقّ `idempotency_key`، فتسجيل
  * الحوالة نفسها مرتين يُعيد الدفعة الأولى ولا يخصم ثانيةً. ولهذا هو مطلوب.
  */
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { admin } from '@/api/endpoints'
 import { useForm } from '@/composables/useForm'
 import { money } from '@/utils/format'
@@ -34,6 +34,7 @@ const BLANK = {
   method: 'bank_transfer',
   reference: '',
   paid_at: '',
+  fx_rate: null,
 }
 
 const form = useForm(BLANK, (values) => admin.payments.record(values))
@@ -41,6 +42,9 @@ const form = useForm(BLANK, (values) => admin.payments.record(values))
 
 // الكفالة المختارة كما وصلت من البحث: منها مبلغ القسط في التلميح
 const chosen = ref(null)
+
+// كفالةٌ بعملة الكافل: المبلغ بعملته، وسعر الصرف من كشف البنك إن وُجد
+const foreign = computed(() => Boolean(chosen.value && chosen.value.charge_currency && chosen.value.charge_currency !== chosen.value.currency))
 
 const methods = [
   { value: 'bank_transfer', label: 'تحويل بنكي' },
@@ -91,9 +95,9 @@ async function save() {
         :error="form.errors.value.method" @update:model-value="form.touch('method')"
       />
       <FormField
-        v-model="form.values.amount" label="المبلغ" type="number"
+        v-model="form.values.amount" :label="foreign ? `المبلغ بـ ${chosen.charge_currency}` : 'المبلغ'" type="number"
         :min="0.01" :step="0.01"
-        :hint="chosen ? `اتركه فارغاً ليُسجَّل مبلغ الكفالة ${money(chosen.monthly_amount)}` : 'اتركه فارغاً ليُسجَّل مبلغ الكفالة.'"
+        :hint="chosen ? `اتركه فارغاً ليُسجَّل مبلغ الكفالة ${money(chosen.charge_amount ?? chosen.monthly_amount, chosen.charge_currency ?? chosen.currency)}` : 'اتركه فارغاً ليُسجَّل مبلغ الكفالة.'"
         :error="form.errors.value.amount" @update:model-value="form.touch('amount')"
       />
     </div>
@@ -111,6 +115,13 @@ async function save() {
         :error="form.errors.value.paid_at" @update:model-value="form.touch('paid_at')"
       />
     </div>
+
+    <FormField
+      v-if="foreign"
+      v-model="form.values.fx_rate" :label="`سعر ${chosen.charge_currency} بالدولار`" type="number" :min="0.000001" :step="0.0001"
+      hint="كما في كشف البنك. فارغاً يُستعمل سعر اليوم."
+      :error="form.errors.value.fx_rate" @update:model-value="form.touch('fx_rate')"
+    />
 
     <template #actions="{ close }">
       <button class="btn btn-outline" type="button" :disabled="form.submitting.value" @click="close">

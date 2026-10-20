@@ -195,6 +195,12 @@ export const admin = {
     confirm: (id) => client.post(`${v1}/admin/transfers/${id}/confirm`),
   },
 
+  /** أسعار الصرف إلى الدولار: عرضها وتحديثها الآن */
+  fx: {
+    rates: () => client.get(`${v1}/admin/fx/rates`),
+    refresh: () => client.post(`${v1}/admin/fx/refresh`),
+  },
+
   /** صندوق الاستمرارية: رصيده وقيوده، والمتعثّر الآن، والتبرّع له */
   fund: {
     list: (params) => client.get(`${v1}/admin/fund`, { params }),

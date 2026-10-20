@@ -95,6 +95,20 @@ const selected = computed(() =>
  */
 const needsRate = computed(() => (form.values.currency || '').toUpperCase() !== 'USD')
 
+/**
+ * سعر اليوم يُقترح في الحقل حين يكون فارغاً، فيُعدَّل من الإيصال إن اختلف.
+ * الحقل يبقى إلزامياً على الخادم: السعر يُكتب عن قصد لا يُفترض.
+ */
+const todayRates = ref(null)
+watch(() => form.values.currency, async (code) => {
+  if (!props.open || !code || code.toUpperCase() === 'USD' || form.values.fx_rate) return
+  try {
+    todayRates.value ??= (await admin.fx.rates()).data.data
+    const r = todayRates.value.find((x) => x.currency === code.toUpperCase())
+    if (r && !form.values.fx_rate) form.values.fx_rate = Number(r.rate.toFixed(6))
+  } catch { /* بلا صلاحية أو بلا شبكة: يُكتب يدوياً كما كان */ }
+})
+
 /** بندٌ تشغيلي لا يخصّ طفلاً: اختياره يُفرغ حقل الطفل، والخادم يرفض الجمع بينهما */
 function onCategoryPicked(id) {
   form.touch('category_id')
@@ -160,7 +174,7 @@ async function save() {
       v-if="needsRate"
       v-model="form.values.fx_rate" label="سعر الصرف إلى الدولار" type="number" required
       :min="0.000001" :step="0.0001"
-      :hint="`كم دولاراً يساوي ١ ${form.values.currency}، كما في إيصال البنك أو الصرّاف. منه يُحسب المبلغ في تقارير الشفافية.`"
+      :hint="`كم دولاراً يساوي ١ ${form.values.currency}، كما في إيصال البنك أو الصرّاف. اقترحنا سعر اليوم، فعدّله إن اختلف الإيصال. منه يُحسب المبلغ في تقارير الشفافية.`"
       :error="form.errors.value.fx_rate" @update:model-value="form.touch('fx_rate')"
     />
 
